@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="QuikGraph" Version="2.2.0" />
+    <PackageReference Include="QuikGraph.Serialization" Version="2.2.2" />
+  </ItemGroup>
+</Project>
