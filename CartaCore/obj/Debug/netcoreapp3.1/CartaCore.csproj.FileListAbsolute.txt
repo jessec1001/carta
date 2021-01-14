@@ -1,9 +1,0 @@
-/home/matt/Documents/Projects/Contextualize/carta/CartaCore/bin/Debug/netcoreapp3.1/CartaCore.deps.json
-/home/matt/Documents/Projects/Contextualize/carta/CartaCore/bin/Debug/netcoreapp3.1/CartaCore.dll
-/home/matt/Documents/Projects/Contextualize/carta/CartaCore/bin/Debug/netcoreapp3.1/CartaCore.pdb
-/home/matt/Documents/Projects/Contextualize/carta/CartaCore/obj/Debug/netcoreapp3.1/CartaCore.csprojAssemblyReference.cache
-/home/matt/Documents/Projects/Contextualize/carta/CartaCore/obj/Debug/netcoreapp3.1/CartaCore.AssemblyInfoInputs.cache
-/home/matt/Documents/Projects/Contextualize/carta/CartaCore/obj/Debug/netcoreapp3.1/CartaCore.AssemblyInfo.cs
-/home/matt/Documents/Projects/Contextualize/carta/CartaCore/obj/Debug/netcoreapp3.1/CartaCore.csproj.CoreCompileInputs.cache
-/home/matt/Documents/Projects/Contextualize/carta/CartaCore/obj/Debug/netcoreapp3.1/CartaCore.dll
-/home/matt/Documents/Projects/Contextualize/carta/CartaCore/obj/Debug/netcoreapp3.1/CartaCore.pdb
