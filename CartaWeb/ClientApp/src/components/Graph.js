@@ -8,7 +8,7 @@ import {
 } from 'react-sigma';
 import ForceLink from 'react-sigma/lib/ForceLink';
 import DragNodes from 'react-sigma/lib/DragNodes';
-import { Properties } from "./Graph/Properties";
+import { PropertyList } from "./Graph/PropertyList";
 
 export class Graph extends Component {
     static displayName = Graph.name;
@@ -31,7 +31,7 @@ export class Graph extends Component {
         return (
             <Container>
                 <Row>
-                    <Col xs="9">
+                    <Col xs="8">
                         <Sigma
                             settings={{defaultNodeColor: '#334', scalingMode:'inside', animationsTime:1000}}
                             onClickNode={this.handleClickNode}
@@ -44,8 +44,8 @@ export class Graph extends Component {
                             </LoadGEXF>
                         </Sigma>
                     </Col>
-                    <Col xs="3">
-                        <Properties properties={this.state.properties}></Properties>
+                    <Col xs="4">
+                        <PropertyList properties={this.state.properties}></PropertyList>
                     </Col>
                 </Row>
             </Container>

@@ -1,0 +1,7 @@
+.property-list {
+  max-height: 80vh;
+  padding: 0;
+  padding-right: 0.5rem;
+  list-style: none;
+  overflow-y: scroll;
+}
