@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "+VR8GrqQMgGPlIi06ZBl0aDIEQEt3bA4KedtVo6fEkjhhQQbvf5M8L4kLvF66k5umqxo1TwVAIjPmHi+r/jGeQ==",
+  "dgSpecHash": "vVuPWrR6fhbY3jWoSyO/9GmhWOKLDpWGVxiwfTNZ3PCRH2hEjuHBXiFE8MPx4/NzXaTukwGsG0vsQY6tEZt+Qw==",
   "success": true,
-  "projectFilePath": "/home/matt/Documents/Projects/Contextualize/Carta/CartaTest/CartaTest.csproj",
+  "projectFilePath": "/home/matt/Documents/Projects/Contextualize/carta/CartaTest/CartaTest.csproj",
   "expectedPackageFiles": [
     "/home/matt/.nuget/packages/microsoft.codecoverage/16.5.0/microsoft.codecoverage.16.5.0.nupkg.sha512",
     "/home/matt/.nuget/packages/microsoft.csharp/4.0.1/microsoft.csharp.4.0.1.nupkg.sha512",

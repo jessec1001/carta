@@ -4739,11 +4739,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/home/matt/Documents/Projects/Contextualize/Carta/CartaTest/CartaTest.csproj",
+      "projectUniqueName": "/home/matt/Documents/Projects/Contextualize/carta/CartaTest/CartaTest.csproj",
       "projectName": "CartaTest",
-      "projectPath": "/home/matt/Documents/Projects/Contextualize/Carta/CartaTest/CartaTest.csproj",
+      "projectPath": "/home/matt/Documents/Projects/Contextualize/carta/CartaTest/CartaTest.csproj",
       "packagesPath": "/home/matt/.nuget/packages/",
-      "outputPath": "/home/matt/Documents/Projects/Contextualize/Carta/CartaTest/obj/",
+      "outputPath": "/home/matt/Documents/Projects/Contextualize/carta/CartaTest/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/matt/.nuget/NuGet/NuGet.Config"
@@ -4757,8 +4757,8 @@
       "frameworks": {
         "netcoreapp3.1": {
           "projectReferences": {
-            "/home/matt/Documents/Projects/Contextualize/Carta/CartaCore/CartaCore.csproj": {
-              "projectPath": "/home/matt/Documents/Projects/Contextualize/Carta/CartaCore/CartaCore.csproj"
+            "/home/matt/Documents/Projects/Contextualize/carta/CartaCore/CartaCore.csproj": {
+              "projectPath": "/home/matt/Documents/Projects/Contextualize/carta/CartaCore/CartaCore.csproj"
             }
           }
         }

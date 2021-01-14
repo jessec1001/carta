@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "/home/matt/Documents/Projects/Contextualize/Carta/CartaCore/CartaCore.csproj": {}
+    "/home/matt/Documents/Projects/Contextualize/carta/CartaCore/CartaCore.csproj": {}
   },
   "projects": {
-    "/home/matt/Documents/Projects/Contextualize/Carta/CartaCore/CartaCore.csproj": {
+    "/home/matt/Documents/Projects/Contextualize/carta/CartaCore/CartaCore.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/home/matt/Documents/Projects/Contextualize/Carta/CartaCore/CartaCore.csproj",
+        "projectUniqueName": "/home/matt/Documents/Projects/Contextualize/carta/CartaCore/CartaCore.csproj",
         "projectName": "CartaCore",
-        "projectPath": "/home/matt/Documents/Projects/Contextualize/Carta/CartaCore/CartaCore.csproj",
+        "projectPath": "/home/matt/Documents/Projects/Contextualize/carta/CartaCore/CartaCore.csproj",
         "packagesPath": "/home/matt/.nuget/packages/",
-        "outputPath": "/home/matt/Documents/Projects/Contextualize/Carta/CartaCore/obj/",
+        "outputPath": "/home/matt/Documents/Projects/Contextualize/carta/CartaCore/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/home/matt/.nuget/NuGet/NuGet.Config"

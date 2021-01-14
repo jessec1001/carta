@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "QZ4uyBNOYvRN6oK9xwuEgj74c8uqVPCJapIwYfle6C8lN31W3TUZLu93/zFAm+9oMCMx7x3g/CgdT8FHaopceQ==",
+  "dgSpecHash": "/HCqGgI/ZbiPAIPWBaRWr2NtWVu6Zy5p9KQKrs7Z2dldvGxeNjb6RVq9cK+pZ47Pqz4ZioHrCJ0uZziVDVEAhA==",
   "success": true,
-  "projectFilePath": "/home/matt/Documents/Projects/Contextualize/Carta/CartaCore/CartaCore.csproj",
+  "projectFilePath": "/home/matt/Documents/Projects/Contextualize/carta/CartaCore/CartaCore.csproj",
   "expectedPackageFiles": [
     "/home/matt/.nuget/packages/microsoft.netcore.platforms/1.1.0/microsoft.netcore.platforms.1.1.0.nupkg.sha512",
     "/home/matt/.nuget/packages/microsoft.netcore.targets/1.1.0/microsoft.netcore.targets.1.1.0.nupkg.sha512",
