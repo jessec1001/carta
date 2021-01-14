@@ -8,10 +8,10 @@ import {
 } from 'react-sigma';
 import ForceLink from 'react-sigma/lib/ForceLink';
 import DragNodes from 'react-sigma/lib/DragNodes';
-import { GraphDisplayProperties } from "./GraphDisplayProperties";
+import { Properties } from "./Graph/Properties";
 
-export class GraphDisplay extends Component {
-    static displayName = GraphDisplay.name;
+export class Graph extends Component {
+    static displayName = Graph.name;
 
     constructor(props) {
         super(props);
@@ -31,7 +31,7 @@ export class GraphDisplay extends Component {
         return (
             <Container>
                 <Row>
-                    <Col xs="8">
+                    <Col xs="9">
                         <Sigma
                             settings={{defaultNodeColor: '#334', scalingMode:'inside', animationsTime:1000}}
                             onClickNode={this.handleClickNode}
@@ -44,8 +44,8 @@ export class GraphDisplay extends Component {
                             </LoadGEXF>
                         </Sigma>
                     </Col>
-                    <Col xs="4">
-                        <GraphDisplayProperties properties={this.state.properties}></GraphDisplayProperties>
+                    <Col xs="3">
+                        <Properties properties={this.state.properties}></Properties>
                     </Col>
                 </Row>
             </Container>
