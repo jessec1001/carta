@@ -42,7 +42,7 @@ namespace CartaCore.Serialization.Json
         public List<JgfEdge> Edges { get; set; }
 
         [JsonIgnore]
-        public IEnumerable<int> NodeValues => Nodes.Values.Select(node => node.NodeValue);
+        public IEnumerable<int> NodeValues => Nodes.Keys.Select(nodeId => int.Parse(nodeId));
         [JsonIgnore]
         public IEnumerable<Edge<int>> EdgeValues => Edges.Select(edge => edge.EdgeValue);
 
@@ -68,16 +68,6 @@ namespace CartaCore.Serialization.Json
     {
         [JsonPropertyName("label")]
         public string Label { get; set; }
-
-        [JsonIgnore]
-        public int NodeValue
-        {
-            get
-            {
-                int.TryParse(Label, out int result);
-                return result;
-            }
-        }
 
         public JgfNode() { }
         public JgfNode(VertexIdentity<int> vertexId, EdgeIdentity<int, Edge<int>> edgeId, int vertex)

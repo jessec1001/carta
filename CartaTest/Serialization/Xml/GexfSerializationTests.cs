@@ -11,7 +11,7 @@ using NUnit.Framework;
 namespace CartaTest.Serialization.Xml
 {
     [TestFixture]
-    public class GexfSerializerTests
+    public class GexfSerializationTests
     {
         protected IUndirectedGraph<int, Edge<int>> TestGraph;
 
