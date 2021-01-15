@@ -1,7 +1,9 @@
 .property-list {
-  max-height: 80vh;
+  max-height: calc(100vh - 10rem);
+  margin: 0;
   padding: 0;
   padding-right: 0.5rem;
   list-style: none;
-  overflow-y: scroll;
+  overflow-x: hidden;
+  overflow-y: auto;
 }

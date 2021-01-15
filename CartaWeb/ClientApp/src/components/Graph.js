@@ -9,6 +9,7 @@ import {
 import ForceLink from 'react-sigma/lib/ForceLink';
 import DragNodes from 'react-sigma/lib/DragNodes';
 import { PropertyList } from "./Graph/PropertyList";
+import './Graph.css';
 
 export class Graph extends Component {
     static displayName = Graph.name;
@@ -29,12 +30,12 @@ export class Graph extends Component {
 
     render() {
         return (
-            <Container>
-                <Row>
-                    <Col xs="8">
+            <Row>
+                <Col xs="8">
                         <Sigma
                             settings={{defaultNodeColor: '#334', scalingMode:'inside', animationsTime:1000}}
                             onClickNode={this.handleClickNode}
+                            style={{ height: '100%' }}
                         >
                             <LoadGEXF path={'graphdata'}>
                                 <RandomizeNodePositions/>
@@ -43,12 +44,11 @@ export class Graph extends Component {
                                 <DragNodes />
                             </LoadGEXF>
                         </Sigma>
-                    </Col>
-                    <Col xs="4">
-                        <PropertyList properties={this.state.properties}></PropertyList>
-                    </Col>
-                </Row>
-            </Container>
+                </Col>
+                <Col xs="4">
+                    <PropertyList properties={this.state.properties}></PropertyList>
+                </Col>
+            </Row>
         );
     }
 }

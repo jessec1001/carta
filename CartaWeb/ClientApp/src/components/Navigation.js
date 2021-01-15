@@ -36,6 +36,9 @@ export class Navigation extends Component {
                 <NavItem>
                   <NavLink tag={Link} className="text-dark" to="/graph">Graph</NavLink>
                 </NavItem>
+                <NavItem>
+                  <NavLink tag={Link} className="text-dark" to="/api">API</NavLink>
+                </NavItem>
               </ul>
             </Collapse>
           </Container>

@@ -1,0 +1,24 @@
+.endpoint {
+  margin-top: 0.5rem;
+  display: flex;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 0.25rem;
+}
+
+.endpoint > * {
+  margin: 0;
+}
+.endpoint-method {
+  width: 8em;
+  display: table-cell;
+  text-align: center;
+  padding: 0.25rem;
+  text-transform: uppercase;
+  border-right: 1px solid rgba(0, 0, 0, 0.2);
+}
+.endpoint-path {
+  flex-grow: 1;
+  padding: 0.25rem 0.75rem;
+  display: table-cell;
+  text-transform: lowercase;
+}
