@@ -5,7 +5,7 @@ using CartaCore.Serialization.Json;
 
 namespace CartaCore.Integration.HyperThought.Data
 {
-    [JsonConverter(typeof(JsonExactStringTEnumConverter))]
+    [JsonConverter(typeof(JsonExactStringEnumConverter))]
     public enum ProcessType
     {
         [EnumMember(Value = "workflow")]

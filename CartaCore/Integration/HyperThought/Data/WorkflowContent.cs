@@ -27,7 +27,7 @@ namespace CartaCore.Integration.HyperThought.Data
         [JsonPropertyName("children")]
         public List<string> ChildrenIds { get; set; }
         [JsonPropertyName("pk")]
-        public string ProcessKey { get; set; }
+        public string PrimaryKey { get; set; }
         #endregion
 
         #region Creation Information
@@ -36,7 +36,7 @@ namespace CartaCore.Integration.HyperThought.Data
         [JsonPropertyName("template")]
         public string Template { get; set; }
         [JsonPropertyName("creator")]
-        public string Creator { get; set; }
+        public string CreatedBy { get; set; }
         [JsonPropertyName("created")]
         public DateTime CreatedTime { get; set; }
         [JsonPropertyName("modifier")]

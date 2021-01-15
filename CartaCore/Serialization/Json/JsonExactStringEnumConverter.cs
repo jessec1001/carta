@@ -8,7 +8,7 @@ using System.Text.Json.Serialization;
 
 namespace CartaCore.Serialization.Json
 {
-    public class JsonExactStringTEnumConverter :
+    public class JsonExactStringEnumConverter :
         JsonConverterFactory
     {
         public override bool CanConvert(Type typeToConvert)
@@ -20,7 +20,7 @@ namespace CartaCore.Serialization.Json
         public override JsonConverter CreateConverter(Type typeToConvert, JsonSerializerOptions options)
         {
             JsonConverter converter = (JsonConverter)Activator.CreateInstance(
-                typeof(JsonExactStringEnumConverter<>).MakeGenericType(
+                typeof(JsonExactStringEnumConverterInner<>).MakeGenericType(
                     new Type[] { typeToConvert }
                 ),
                 BindingFlags.Instance | BindingFlags.Public,
@@ -32,13 +32,13 @@ namespace CartaCore.Serialization.Json
             return converter;
         }
 
-        private class JsonExactStringEnumConverter<TEnum> :
+        private class JsonExactStringEnumConverterInner<TEnum> :
             JsonConverter<TEnum> where TEnum : struct, Enum
         {
             private Dictionary<string, TEnum> Map;
             private Dictionary<TEnum, string> InverseMap;
 
-            public JsonExactStringEnumConverter()
+            public JsonExactStringEnumConverterInner()
             {
                 TEnum[] values = Enum
                     .GetValues(typeof(TEnum))

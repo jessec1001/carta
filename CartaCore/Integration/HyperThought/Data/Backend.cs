@@ -6,11 +6,11 @@ using CartaCore.Serialization.Json;
 namespace CartaCore.Integration.HyperThought.Data
 {
     [JsonConverter(typeof(JsonExactStringEnumConverter))]
-    public enum DataType
+    public enum Backend
     {
-        [EnumMember(Value = "string")]
-        String,
-        [EnumMember(Value = "link")]
-        Link
+        [EnumMember(Value = "default")]
+        Default,
+        [EnumMember(Value = "s3")]
+        S3
     }
 }
