@@ -9,6 +9,8 @@ namespace CartaCore.Integration.HyperThought.Data
         public FileContent Content { get; set; }
         [JsonPropertyName("triples")]
         public List<Triple> Triples { get; set; }
+        [JsonPropertyName("metadata")]
+        public List<Metadata> Metadata { get; set; }
         [JsonPropertyName("header")]
         public Header Header { get; set; }
         [JsonPropertyName("permissions")]

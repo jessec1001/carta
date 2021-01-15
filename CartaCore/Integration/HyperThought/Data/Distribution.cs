@@ -8,6 +8,8 @@ namespace CartaCore.Integration.HyperThought.Data
     [JsonConverter(typeof(JsonExactStringEnumConverter))]
     public enum Distribution
     {
+        [EnumMember(Value = "")]
+        None,
         [EnumMember(Value = "distribution a")]
         DistributionA,
         [EnumMember(Value = "distribution b")]

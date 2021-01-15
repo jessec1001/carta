@@ -208,5 +208,153 @@ namespace CartaTest.Integration.HyperThought.Data
             Assert.AreEqual(Distribution.DistributionB, workflow.Restrictions.Distribution);
             Assert.AreEqual(ExportControl.EAR, workflow.Restrictions.ExportControl);
         }
+
+        [Test]
+        public void TestApiFiles()
+        {
+            string jsonPkg =
+            @"
+            [
+                {
+                    ""content"": {
+                        ""name"": ""New Text Document - Copy (1).txt"",
+                        ""ftype"": ""txt"",
+                        ""path"": "",3bbf74b6-c351-49cb-8ddd-b5646e587d75,874d9e44-fe02-408c-9396-6c6b078672f8,"",
+                        ""path_string"": ""/test2/test3/New Text Document - Copy.txt"",
+                        ""size"": 0,
+                        ""items"": 0,
+                        ""created_by"": ""fourmajr"",
+                        ""created"": ""2020-02-12T14:39:03.787Z"",
+                        ""modified_by"": ""fourmajr"",
+                        ""modified"": ""2020-02-12T14:39:03.787Z"",
+                        ""backend"": ""default"",
+                        ""file"": ""48e69a94-fcea-4dbc-9ce5-bb189ef62361"",
+                        ""pk"": ""00dfb7b9-b675-4303-b2e6-4916c813ca31""
+                    },
+                    ""metadata"": [
+                        {
+                            ""keyName"": ""test"",
+                            ""value"": {
+                                ""type"": ""string"",
+                                ""link"": ""blue""
+                            },
+                            ""annotation"": """"
+                        }
+                    ],
+                    ""triples"": [],
+                    ""permissions"": {
+                        ""groups"": {},
+                        ""projects"": {},
+                        ""users"": {
+                            ""fourmajr"": ""edit""
+                        }
+                    },
+                    ""restrictions"": {
+                        ""distribution"": """",
+                        ""exportControl"": """",
+                        ""securityMarking"": """"
+                    },
+                    ""header"": {
+                        ""canonical-uri"": ""/files/filesystementry/00dfb7b9-b675-4303-b2e6-4916c813ca31"",
+                        ""sys-creation-timestamp"": ""2020-02-12T14:39:03.7871543-05:00"",
+                        ""sys-last-modified"": ""2020-02-12T14:39:03.7871543-05:00"",
+                        ""createdBy"": ""fourmajr"",
+                        ""modifiedBy"": ""fourmajr"",
+                        ""uri"": ""/files/filesystementry/00dfb7b9-b675-4303-b2e6-4916c813ca31/versions/0"",
+                        ""pid"": ""b26ea920-571f-4831-a895-778029f98294""
+                    }
+                }
+            ]
+            ";
+
+            // Parse the package string into an appropriately-typed JSON object.
+            IList<File> files = JsonSerializer.Deserialize<List<File>>(jsonPkg);
+            File file = files.FirstOrDefault();
+
+            // Assert a collection of random values.
+            Assert.AreEqual(1, files.Count);
+            Assert.AreEqual("New Text Document - Copy (1).txt", file.Content.Name);
+            Assert.AreEqual("txt", file.Content.FileExtension);
+            Assert.AreEqual("/test2/test3/New Text Document - Copy.txt", file.Content.DirectoryPath);
+            Assert.AreEqual("fourmajr", file.Content.CreatedBy);
+            Assert.AreEqual(new DateTime(2020, 2, 12, 14, 39, 03, 787), file.Content.CreatedTime);
+            Assert.AreEqual(Backend.Default, file.Content.Backend);
+            Assert.AreEqual("blue", file.Metadata[0].Value.Link);
+            Assert.AreEqual(0, file.Triples.Count);
+            Assert.AreEqual(Distribution.None, file.Restrictions.Distribution);
+            Assert.AreEqual("/files/filesystementry/00dfb7b9-b675-4303-b2e6-4916c813ca31/versions/0", file.Header.Uri);
+        }
+
+        [Test]
+        public void TestApiFilesKey()
+        {
+            string jsonPkg =
+            @"
+            {
+                ""content"": {
+                    ""name"": ""New Text Document - Copy (3).pdf"",
+                    ""ftype"": ""pdf"",
+                    ""path"": "",3bbf74b6-c351-49cb-8ddd-b5646e587d75,874d9e44-fe02-408c-9396-6c6b078672f8,"",
+                    ""path_string"": ""/test2/test3/New Text Document - Copy.txt"",
+                    ""size"": 0,
+                    ""items"": 0,
+                    ""created_by"": ""fourmajr"",
+                    ""created"": ""2020-02-12T14:39:03.787Z"",
+                    ""modified_by"": ""fourmajr"",
+                    ""modified"": ""2020-02-12T14:39:03.787Z"",
+                    ""backend"": ""default"",
+                    ""file"": ""48e69a94-fcea-4dbc-9ce5-bb189ef62361"",
+                    ""pk"": ""00dfb7b9-b675-4303-b2e6-4916c813ca31""
+                },
+                ""metadata"": [
+                    {
+                        ""keyName"": ""test"",
+                        ""value"": {
+                            ""type"": ""string"",
+                            ""link"": ""red""
+                        },
+                        ""annotation"": """"
+                    }
+                ],
+                ""triples"": [],
+                ""permissions"": {
+                    ""groups"": {},
+                    ""projects"": {},
+                    ""users"": {
+                        ""fourmajr"": ""edit""
+                    }
+                },
+                ""restrictions"": {
+                    ""distribution"": """",
+                    ""exportControl"": """",
+                    ""securityMarking"": """"
+                },
+                ""header"": {
+                    ""canonical-uri"": ""/files/filesystementry/00dfb7b9-b675-4303-b2e6-4916c813ca31"",
+                    ""sys-creation-timestamp"": ""2020-02-12T14:39:03.7871543-05:00"",
+                    ""sys-last-modified"": ""2020-02-12T14:39:03.7871543-05:00"",
+                    ""createdBy"": ""fourmajr"",
+                    ""modifiedBy"": ""fourmajr"",
+                    ""uri"": ""/files/filesystementry/00dfb7b9-b675-4303-b2e6-4916c813ca31/versions/0"",
+                    ""pid"": ""b26ea920-571f-4831-a895-778029f98294""
+                }
+            }
+            ";
+
+            // Parse the package string into an appropriately-typed JSON object.
+            File file = JsonSerializer.Deserialize<File>(jsonPkg);
+
+            // Assert a collection of random values.
+            Assert.AreEqual("New Text Document - Copy (3).pdf", file.Content.Name);
+            Assert.AreEqual("pdf", file.Content.FileExtension);
+            Assert.AreEqual("/test2/test3/New Text Document - Copy.txt", file.Content.DirectoryPath);
+            Assert.AreEqual("fourmajr", file.Content.CreatedBy);
+            Assert.AreEqual(new DateTime(2020, 2, 12, 14, 39, 03, 787), file.Content.CreatedTime);
+            Assert.AreEqual(Backend.Default, file.Content.Backend);
+            Assert.AreEqual("red", file.Metadata[0].Value.Link);
+            Assert.AreEqual(0, file.Triples.Count);
+            Assert.AreEqual(Distribution.None, file.Restrictions.Distribution);
+            Assert.AreEqual("/files/filesystementry/00dfb7b9-b675-4303-b2e6-4916c813ca31/versions/0", file.Header.Uri);
+        }
     }
 }
