@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 using QuikGraph;
 using QuikGraph.Algorithms;
 
-namespace CartaCore.Serialization.Json
+namespace CartaCore.Serialization.Json.Jgf
 {
     public class Jgf
     {

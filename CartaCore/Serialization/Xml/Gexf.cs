@@ -6,7 +6,7 @@ using System.Xml.Serialization;
 using QuikGraph;
 using QuikGraph.Algorithms;
 
-namespace CartaCore.Serialization.Xml
+namespace CartaCore.Serialization.Xml.Gexf
 {
     [XmlRoot(ElementName = "gexf", Namespace = "http://www.gexf.net/1.2draft")]
     public class Gexf

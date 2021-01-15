@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 using QuikGraph;
 
 using CartaCore.Data.Synthetic;
-using CartaCore.Serialization.Json;
+using CartaCore.Serialization.Json.Jgf;
 
 namespace CartaWeb.Controllers
 {

@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 using QuikGraph;
 
 using CartaCore.Data.Synthetic;
-using CartaCore.Serialization.Xml;
+using CartaCore.Serialization.Xml.Gexf;
 
 namespace CartaWeb.Controllers
 {

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Xml;
 using System.Xml.Serialization;
 
-using CartaCore.Serialization.Xml;
+using CartaCore.Serialization.Xml.Gexf;
 using QuikGraph;
 using NUnit.Framework;
 

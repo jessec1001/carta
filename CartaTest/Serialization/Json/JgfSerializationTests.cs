@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 
-using CartaCore.Serialization.Json;
+using CartaCore.Serialization.Json.Jgf;
 using QuikGraph;
 using NUnit.Framework;
 
