@@ -24,6 +24,7 @@ namespace CartaWeb.Controllers
         }
 
         [HttpGet]
+        [Produces("text/xml")]
         public ContentResult Get()
         {
             // Generate graph.
@@ -50,7 +51,7 @@ namespace CartaWeb.Controllers
             return new ContentResult
             {
                 Content = xml,
-                ContentType = "application/xml",
+                ContentType = "text/xml",
                 StatusCode = 200
             };
         }
