@@ -12,25 +12,25 @@ export class Api extends Component {
         this.apis = [
             {
                 method: 'GET',
-                path: '/api/data/synthetic/randomGraph'
+                path: '/api/data/synthetic:RandomUndirectedGraph'
             },
             {
                 method: 'GET',
-                path: '/api/graph/synthetic/randomGraph'
+                path: '/api/graph/synthetic:RandomUndirectedGraph'
             }
         ];
     }
 
     render() {
         return (
-            <Container>
-                <h2>API</h2>
+            <section>
+                <h3>API</h3>
                 <ul className="api-list">
-                    {this.apis.map(api =>
-                        <Endpoint method={api.method} path={api.path} />   
+                    {this.apis.map((api, index) =>
+                        <Endpoint key={index} method={api.method} path={api.path} />   
                     )}
                 </ul>
-            </Container>
+            </section>
         );
     }
 }

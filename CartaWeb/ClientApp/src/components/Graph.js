@@ -37,7 +37,7 @@ export class Graph extends Component {
                             onClickNode={this.handleClickNode}
                             style={{ height: '100%' }}
                         >
-                            <LoadGEXF path={'graphdata'}>
+                            <LoadGEXF path={'api/graph'}>
                                 <RandomizeNodePositions/>
                                 <RelativeSize initialSize={16}/>
                                 <ForceLink worker autoStop={true} background={true} easing={"cubicInOut"} linLogMode />

@@ -21,7 +21,9 @@ namespace CartaWeb
         public void ConfigureServices(IServiceCollection services)
         {
 
-            services.AddControllersWithViews();
+            services
+                .AddControllersWithViews(options => options.RespectBrowserAcceptHeader = true)
+                .AddXmlSerializerFormatters();
 
             // In production, the React files will be served from this directory
             services.AddSpaStaticFiles(configuration =>
