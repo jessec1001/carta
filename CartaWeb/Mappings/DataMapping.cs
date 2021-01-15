@@ -33,6 +33,7 @@ namespace CartaWeb.Mappings
                 return null;
 
             // Get the data name. If no corresponding one is found, return null.
+            return null;
         }
     }
 }
