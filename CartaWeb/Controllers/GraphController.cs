@@ -1,7 +1,4 @@
-using System.IO;
 using System.Linq;
-using System.Xml;
-using System.Xml.Serialization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -24,7 +21,7 @@ namespace CartaWeb.Controllers
         }
 
         [HttpGet]
-        [Produces("text/xml")]
+        [Produces("application/xml")]
         public Gexf Get()
         {
             // Generate adn return graph.

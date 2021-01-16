@@ -23,7 +23,7 @@ namespace CartaWeb.Controllers
         }
 
         [HttpGet]
-        [Produces("text/json")]
+        [Produces("application/json")]
         public Jgf Get()
         {
             // Generate and return graph.
