@@ -52,8 +52,8 @@ namespace CartaWeb.Controllers
             return "";
         }
 
-        [HttpGet]
         [Produces("application/json")]
+        [HttpGet]
         public IDictionary<string, IList<ApiEndpoint>> Get()
         {
             IDictionary<string, IList<ApiEndpoint>> endpoints = new Dictionary<string, IList<ApiEndpoint>>();

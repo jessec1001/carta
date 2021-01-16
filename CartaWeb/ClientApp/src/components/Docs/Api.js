@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
-import Container from 'reactstrap/lib/Container';
-import { Endpoint } from './Api/Endpoint';
+import { ApiSection } from './Api/ApiSection';
 import './Api.css';
 
 export class Api extends Component {
@@ -9,28 +8,29 @@ export class Api extends Component {
     constructor(props) {
         super(props);
 
-        this.apis = [
-            {
-                method: 'GET',
-                path: '/api/data/synthetic:RandomUndirectedGraph'
-            },
-            {
-                method: 'GET',
-                path: '/api/graph/synthetic:RandomUndirectedGraph'
-            }
-        ];
+        this.state = { apis: {}, loading: true };
+    }
+
+    componentDidMount() {
+        this.populateApis();
     }
 
     render() {
         return (
             <section>
                 <h3>API</h3>
-                <ul className="api-list">
-                    {this.apis.map((api, index) =>
-                        <Endpoint key={index} method={api.method} path={api.path} />   
+                <ul class='api-list'>
+                    {Object.keys(this.state.apis).map(controller =>
+                        <ApiSection key={controller} name={controller} endpoints={this.state.apis[controller]} />
                     )}
                 </ul>
             </section>
         );
+    }
+
+    async populateApis() {
+        const response = await fetch('api/meta');
+        const data = await response.json();
+        this.setState({ apis: data, loading: false });
     }
 }
