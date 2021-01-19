@@ -1,14 +1,8 @@
 import React, { Component } from 'react';
-import { Container, Row, Col } from 'reactstrap';
-import {
-    Sigma,
-    RandomizeNodePositions,
-    RelativeSize,
-    LoadGEXF
-} from 'react-sigma';
-import ForceLink from 'react-sigma/lib/ForceLink';
-import DragNodes from 'react-sigma/lib/DragNodes';
-import { PropertyList } from "./Graph/PropertyList";
+import { Row, Col } from 'reactstrap';
+import { VisGraph } from './Graph/VisGraph';
+import { PropertyList } from './Graph/PropertyList';
+import { toVis } from '../lib/graph-extend';
 import './Graph.css';
 
 export class Graph extends Component {
@@ -16,39 +10,42 @@ export class Graph extends Component {
 
     constructor(props) {
         super(props);
-        this.state = { properties: {}};
+        this.state = { loading: true, properties: {} };
         
-        this.handleClickNode = this.handleClickNode.bind(this);
+        this.handleSelectNode = this.handleSelectNode.bind(this);
     }
 
-    handleClickNode(event) {
-        let node = event.data.node;
+    handleSelectNode(event) {
+        const nodes = event.nodes;
+        if (nodes.length === 0)
+            return;
+
+        const node = nodes[0];
         this.setState({
-            properties: node
+            properties: this.state.data.graph.nodes[node]
         });
+    }
+
+    componentDidMount() {
+        this.populateData();
     }
 
     render() {
         return (
             <Row>
                 <Col xs="8">
-                        <Sigma
-                            settings={{defaultNodeColor: '#334', scalingMode:'inside', animationsTime:1000}}
-                            onClickNode={this.handleClickNode}
-                            style={{ height: '100%' }}
-                        >
-                            <LoadGEXF path={'api/graph'}>
-                                <RandomizeNodePositions/>
-                                <RelativeSize initialSize={16}/>
-                                <ForceLink worker autoStop={true} background={true} easing={"cubicInOut"} linLogMode />
-                                <DragNodes />
-                            </LoadGEXF>
-                        </Sigma>
+                    <VisGraph graph={this.state.vis} options={{}} onSelectNode={this.handleSelectNode} />
                 </Col>
                 <Col xs="4">
                     <PropertyList properties={this.state.properties}></PropertyList>
                 </Col>
             </Row>
         );
+    }
+
+    async populateData() {
+        const response = await fetch('api/data/synthetic');
+        const data = await response.json();
+        this.setState({ data: data, vis: toVis(data), loading: false });
     }
 }
