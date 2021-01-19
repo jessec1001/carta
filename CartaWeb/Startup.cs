@@ -6,6 +6,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
+using CartaWeb.Extended.Formatters;
+
 namespace CartaWeb
 {
     public class Startup
@@ -22,8 +24,14 @@ namespace CartaWeb
         {
 
             services
-                .AddControllersWithViews(options => options.RespectBrowserAcceptHeader = true)
-                .AddXmlSerializerFormatters();
+                .AddControllersWithViews(options =>
+                {
+                    options.RespectBrowserAcceptHeader = true;
+                    options.ReturnHttpNotAcceptable = true;
+
+                    // Our graph formatting middleware needs to come before other formatters.
+                    options.OutputFormatters.Insert(0, new GraphOutputFormatter());
+                });
 
             // In production, the React files will be served from this directory
             services.AddSpaStaticFiles(configuration =>
@@ -49,16 +57,13 @@ namespace CartaWeb
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseSpaStaticFiles();
-
             app.UseRouting();
-
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute(
                     name: "default",
                     pattern: "{controller}/{action=Index}/{id?}");
             });
-
             app.UseSpa(spa =>
             {
                 spa.Options.SourcePath = "ClientApp";

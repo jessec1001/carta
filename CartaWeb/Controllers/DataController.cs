@@ -1,13 +1,10 @@
-using System.IO;
 using System.Linq;
-using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
 using QuikGraph;
 
 using CartaCore.Data.Synthetic;
-using CartaCore.Serialization.Json.Jgf;
 
 namespace CartaWeb.Controllers
 {
@@ -22,9 +19,8 @@ namespace CartaWeb.Controllers
             _logger = logger;
         }
 
-        [HttpGet]
-        [Produces("application/json")]
-        public Jgf Get()
+        [HttpGet("synthetic")]
+        public IUndirectedGraph<int, Edge<int>> GetSynthetic()
         {
             // Generate and return graph.
             UndirectedGraphDataset dataset = new UndirectedGraphDataset(
@@ -34,7 +30,14 @@ namespace CartaWeb.Controllers
             );
             IUndirectedGraph<int, Edge<int>> graph = dataset.Generate().First();
 
-            return new Jgf(graph);
+            return graph;
+        }
+
+        [HttpGet("hyperthought")]
+        public IUndirectedGraph<int, Edge<int>> GetHyperthought()
+        {
+            // Not yet implemented.
+            return null;
         }
     }
 }
