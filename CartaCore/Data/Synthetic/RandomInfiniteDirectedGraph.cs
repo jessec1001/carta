@@ -71,7 +71,7 @@ namespace CartaCore.Data.Synthetic
             CompoundRandom random = new CompoundRandom(Seed, id);
 
             // Construct a dictionary of random properties.
-            Dictionary<string, FreeformVertexProperty> properties = new Dictionary<string, FreeformVertexProperty>();
+            SortedList<string, FreeformVertexProperty> properties = new SortedList<string, FreeformVertexProperty>();
             foreach (KeyValuePair<string, Type> property in Properties)
             {
                 if (random.NextDouble() < PropertyDensity)

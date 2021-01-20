@@ -7,7 +7,7 @@ namespace CartaCore.Data
     public class FreeformVertex : IComparable<FreeformVertex>, IEquatable<FreeformVertex>
     {
         public Guid Id { get; set; }
-        public IDictionary<string, FreeformVertexProperty> Properties { get; set; }
+        public SortedList<string, FreeformVertexProperty> Properties { get; set; }
 
         public int CompareTo([AllowNull] FreeformVertex other)
         {
