@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
 
-using CartaCore.Data.Synthetic;
 using QuikGraph;
 using NUnit.Framework;
+
+using CartaCore.Data.Synthetic;
 
 namespace CartaTest
 {
@@ -22,7 +23,7 @@ namespace CartaTest
         public void Setup()
         {
             // Generate the samples we will test.
-            CartaCore.Data.Synthetic.UndirectedGraphDataset dataset = new CartaCore.Data.Synthetic.UndirectedGraphDataset(
+            UndirectedGraphDataset dataset = new UndirectedGraphDataset(
                 Samples,
                 MinVertices, MaxVertices,
                 MinEdges, MaxEdges
