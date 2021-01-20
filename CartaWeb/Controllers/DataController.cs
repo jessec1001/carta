@@ -33,8 +33,8 @@ namespace CartaWeb.Controllers
             return graph;
         }
 
-        [HttpGet("hyperthought")]
-        public IUndirectedGraph<int, Edge<int>> GetHyperthought()
+        [HttpGet("hyperthought/{uuid}")]
+        public IUndirectedGraph<int, Edge<int>> GetHyperthought(string uuid)
         {
             // Not yet implemented.
             return null;

@@ -1,3 +1,7 @@
 .graph-container {
   height: 95%;
 }
+.vis-network,
+.vis-network:focus {
+  outline: none;
+}

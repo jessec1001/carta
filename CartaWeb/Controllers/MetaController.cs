@@ -31,62 +31,91 @@ namespace CartaWeb.Controllers
             else
                 return typeName;
         }
-        private string ResolveRoute(Type type, RouteAttribute attr)
+
+        private IEnumerable<string> ResolveControllerRoute(Type type)
         {
-            // We initialize the route to be the same as the template in the case of a literal.
-            string route = attr.Template.ToLower();
+            // Get the name of the type as a controller.
+            string controllerName = ResolveControllerName(type);
 
-            // Replace [controller] with name of controller.
-            // If a name was specified on the attribute, use that.
-            // Otherwise, extract the controller name from the type name.
-            string controllerName = attr.Name ?? ResolveControllerName(type);
-            route = route.Replace("[controller]", controllerName);
+            // Iterate over each route attribute as a separate route.
+            foreach (RouteAttribute attr in type.GetCustomAttributes<RouteAttribute>())
+            {
+                // We initialize the route to be the same as the template in the case of a literal.
+                string route = (attr.Template ?? "[controller]")
+                    .ToLower()
+                    .Trim('/');
 
-            // For now, we are only concerned with replacing the [controller] component.
+                // If a name was specified on the attribute, use that.
+                // Otherwise, extract the controller name from the type name.
+                string replacementName = attr.Name ?? controllerName;
 
-            return route;
+                // Replace [controller] with name of controller.
+                route = route.Replace("[controller]", replacementName);
+
+                // For now, we are only concerned with replacing the [controller] component.
+                yield return route;
+            }
         }
-        private string ResolveRoute(MethodInfo info, HttpMethodAttribute attr)
+        private IEnumerable<ApiEndpoint> ResolveActionRoute(MethodInfo method)
         {
-            // Not yet implemented.
-            return "";
+            // Get the containing controller routes.
+            IEnumerable<string> controllerRoutes = ResolveControllerRoute(method.DeclaringType);
+
+            IEnumerable<IRouteTemplateProvider> httpAttrs = method.GetCustomAttributes<HttpMethodAttribute>();
+            IEnumerable<IRouteTemplateProvider> routeAttrs = method.GetCustomAttributes<RouteAttribute>();
+            foreach (IRouteTemplateProvider attr in httpAttrs.Union(routeAttrs))
+            {
+                // We initialize the route to be the same as the template in the case of a literal.
+                string route = (attr.Template ?? string.Empty)
+                    .ToLower()
+                    .Trim('/');
+
+                // The complete route is the concatenation of the controller and action route.
+                foreach (string controllerRoute in controllerRoutes)
+                {
+                    ApiMethod actionMethod = default(ApiMethod);
+                    string actionRoute;
+                    if (string.IsNullOrEmpty(route))
+                        actionRoute = controllerRoute;
+                    else
+                        actionRoute = string.Join('/', controllerRoute, route);
+
+                    // If the attribute was an HTTP method, use it as the method type.
+                    if (attr is HttpMethodAttribute httpAttr)
+                        actionMethod = httpAttr.GetMethodType();
+
+                    yield return new ApiEndpoint
+                    {
+                        Method = actionMethod,
+                        Path = actionRoute
+                    };
+                }
+            }
         }
 
-        [Produces("application/json")]
         [HttpGet]
         public IDictionary<string, IList<ApiEndpoint>> Get()
         {
             IDictionary<string, IList<ApiEndpoint>> endpoints = new Dictionary<string, IList<ApiEndpoint>>();
 
+            // Get each controller type in this assembly.
             IList<Type> controllerTypes = Assembly
                 .GetExecutingAssembly()
                 .GetTypes()
                 .Where(type => type.GetCustomAttributes<ApiControllerAttribute>().Any())
                 .ToList();
 
+            // Iterate over each controller forming a category of endpoints.
             foreach (Type controllerType in controllerTypes)
             {
+                // We add a list of endpoints per controller.
                 string controllerName = ResolveControllerName(controllerType);
-                string path = controllerType
-                    .GetCustomAttributes<RouteAttribute>()
-                    .Select(attr => ResolveRoute(controllerType, attr))
-                    .FirstOrDefault();
-
-                IList<ApiEndpoint> controllerEndpoints = new List<ApiEndpoint>();
+                List<ApiEndpoint> controllerEndpoints = new List<ApiEndpoint>();
                 endpoints.Add(controllerName, controllerEndpoints);
 
-                foreach (MethodInfo controllerMethod in controllerType.GetMethods())
-                {
-                    controllerMethod
-                        .GetCustomAttributes<HttpMethodAttribute>()
-                        .ToList()
-                        .ForEach(attr => controllerEndpoints.Add(new ApiEndpoint
-                        {
-                            Method = attr.GetMethodType(),
-                            Path = path
-                        }
-                        ));
-                }
+                // We resolve the routes to each individual method and add it to the results.
+                foreach (MethodInfo actionMethod in controllerType.GetMethods())
+                    controllerEndpoints.AddRange(ResolveActionRoute(actionMethod));
             }
 
             return endpoints;
