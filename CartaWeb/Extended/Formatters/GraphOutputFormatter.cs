@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -22,6 +24,11 @@ namespace CartaWeb.Extended.Formatters
 
     public class GraphOutputFormatter : TextOutputFormatter
     {
+        private static JsonSerializerOptions JsonOptions = new JsonSerializerOptions
+        {
+            IgnoreNullValues = true
+        };
+
         public GraphOutputFormatter()
         {
             foreach (string mediaType in new string[]
@@ -39,38 +46,66 @@ namespace CartaWeb.Extended.Formatters
 
         protected override bool CanWriteType(Type type)
         {
-            if (typeof(FreeformGraph).IsAssignableFrom(type))
+            if (typeof(FreeformGraph).IsAssignableFrom(type) ||
+                typeof(FreeformVertex).IsAssignableFrom(type) ||
+                typeof(IEnumerable<FreeformVertex>).IsAssignableFrom(type) ||
+                typeof(IDictionary<string, FreeformVertex>).IsAssignableFrom(type))
                 return base.CanWriteType(type);
             return false;
         }
 
         public override Task WriteResponseBodyAsync(OutputFormatterWriteContext context, Encoding selectedEncoding)
         {
-            FreeformGraph graph = (FreeformGraph)context.Object;
-
             StringSegment acceptSubtype = MediaTypeHeaderValue.Parse(context.ContentType).SubTypeWithoutSuffix;
             string content = string.Empty;
-            if (acceptSubtype.Equals("json") || acceptSubtype.Equals("jgf")) content = FormatJgf(graph);
-            // if (acceptSubtype.Equals("xml") || acceptSubtype.Equals("gexf")) content = FormatGexf(graph);
+
+            if (acceptSubtype.Equals("json") || acceptSubtype.Equals("jgf"))
+            {
+                switch (context.Object)
+                {
+                    case FreeformGraph graph:
+                        content = FormatJgf(graph);
+                        break;
+                    case FreeformVertex vertex:
+                        content = FormatJgf(vertex);
+                        break;
+                    case IEnumerable<FreeformVertex> vertices:
+                        content = FormatJgf(vertices);
+                        break;
+                    case IDictionary<string, FreeformVertex> vertices:
+                        content = FormatJgf(vertices);
+                        break;
+                }
+            }
 
             return context.HttpContext.Response.WriteAsync(content, selectedEncoding);
         }
 
-        private static string FormatJgf(FreeformGraph graph)
+        private static string FormatJson<T>(T obj) =>
+            JsonSerializer.Serialize<T>(obj, JsonOptions);
+        private static string FormatJgf(FreeformGraph graph) =>
+            FormatJson<Jgf>(new Jgf(graph));
+        private static string FormatJgf(FreeformVertex vertex) =>
+            FormatJson<JgfNode>(new JgfNode(vertex));
+        private static string FormatJgf(IEnumerable<FreeformVertex> vertices) =>
+            FormatJson<IEnumerable<JgfNode>>(vertices.Select(vertex => new JgfNode(vertex)));
+        private static string FormatJgf(IDictionary<string, FreeformVertex> vertices) =>
+            FormatJson<IDictionary<string, JgfNode>>(vertices.ToDictionary(
+                pair => pair.Key,
+                pair => new JgfNode(pair.Value)
+            ));
+
+        private static string FormatXml<T>(T obj)
         {
-            return JsonSerializer.Serialize<Jgf>(new Jgf(graph));
+            using (StringWriter sw = new StringWriter())
+            {
+                using (XmlWriter xw = XmlWriter.Create(sw))
+                {
+                    XmlSerializer serializer = new XmlSerializer(typeof(T));
+                    serializer.Serialize(xw, obj);
+                }
+                return sw.ToString();
+            }
         }
-        // private static string FormatGexf(FreeformGraph graph)
-        // {
-        //     using (StringWriter sw = new StringWriter())
-        //     {
-        //         using (XmlWriter xw = XmlWriter.Create(sw))
-        //         {
-        //             XmlSerializer serializer = new XmlSerializer(typeof(Gexf));
-        //             serializer.Serialize(xw, new Gexf(graph));
-        //         }
-        //         return sw.ToString();
-        //     }
-        // }
     }
 }

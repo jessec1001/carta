@@ -31,6 +31,9 @@ namespace CartaWeb
 
                     // Our graph formatting middleware needs to come before other formatters.
                     options.OutputFormatters.Insert(0, new GraphOutputFormatter());
+                }).AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.IgnoreNullValues = true;
                 });
 
             // In production, the React files will be served from this directory
@@ -58,12 +61,7 @@ namespace CartaWeb
             app.UseStaticFiles();
             app.UseSpaStaticFiles();
             app.UseRouting();
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllerRoute(
-                    name: "default",
-                    pattern: "{controller}/{action=Index}/{id?}");
-            });
+            app.UseEndpoints(endpoints => endpoints.MapDefaultControllerRoute());
             app.UseSpa(spa =>
             {
                 spa.Options.SourcePath = "ClientApp";

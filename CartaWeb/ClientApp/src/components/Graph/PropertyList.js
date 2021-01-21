@@ -14,7 +14,8 @@ export class PropertyList extends Component {
                     <li key={key}>
                         <Property
                             name={key}
-                            value={this.props.properties[key]}
+                            value={this.props.properties[key].value}
+                            type={this.props.properties[key].type}
                         />
                     </li>
                 )}

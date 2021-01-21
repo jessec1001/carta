@@ -29,12 +29,15 @@ namespace CartaCore.Data.Synthetic
             CompoundRandom random = new CompoundRandom(seed);
 
             Seed = seed;
-            Properties = Enumerable
-                    .Range(0, propertyCount)
-                    .ToDictionary(
-                        _ => random.NextPsuedoword(),
-                        _ => GenerateRandomType(random)
-                    );
+            Properties = new Dictionary<string, Type>();
+            while (Properties.Count < propertyCount)
+            {
+                string key = random.NextPsuedoword();
+                Type type = GenerateRandomType(random);
+
+                if (!Properties.ContainsKey(key))
+                    Properties.Add(key, type);
+            }
             PropertyDensity = propertyDensity;
             ChildProbability = childProbability;
             ChildDampener = childDampener;

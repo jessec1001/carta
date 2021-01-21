@@ -7,10 +7,10 @@ export class Property extends Component {
     render() {
         let name = this.props.name;
         let value = this.props.value;
-        let type = typeof(value);
+        let type = this.props.type;
         
         // Round to 6 sig figs if a floating point number.
-        if (type === 'number' && value % 1 !== 0)
+        if (type === 'double' || type === 'float')
             value = value.toPrecision(6);
 
         return (
