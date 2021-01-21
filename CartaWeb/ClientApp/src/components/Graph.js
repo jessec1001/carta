@@ -22,7 +22,7 @@ export class Graph extends Component {
 
         const node = nodes[0];
         this.setState({
-            properties: this.state.data.graph.nodes[node]
+            properties: this.state.data.graph.nodes[node].data
         });
     }
 

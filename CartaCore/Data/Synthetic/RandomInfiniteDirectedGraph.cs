@@ -8,9 +8,11 @@ using CartaCore.Utility;
 
 namespace CartaCore.Data.Synthetic
 {
+    using FreeformGraph = IEdgeListAndIncidenceGraph<FreeformVertex, Edge<FreeformVertex>>;
+
     public class RandomInfiniteDirectedGraph
     {
-        private ulong Seed;
+        private ulong Seed { get; set; }
         private IDictionary<string, Type> Properties { get; set; }
         private double PropertyDensity { get; set; }
         private double ChildProbability { get; set; }
@@ -65,6 +67,7 @@ namespace CartaCore.Data.Synthetic
             return null;
         }
 
+        public bool IsFinite() => false;
         public FreeformVertex GetVertexProperties(Guid id)
         {
             // Create a compound random number generator using the GUID and original seed as a combined seed.
@@ -106,5 +109,6 @@ namespace CartaCore.Data.Synthetic
                 probability *= ChildDampener;
             }
         }
+        public FreeformGraph GetGraph() => throw new NotFiniteNumberException();
     }
 }

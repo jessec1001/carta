@@ -7,7 +7,7 @@ export function toVis(jgf) {
     if (jgf.graph.nodes) {
         graph.nodes = Object.keys(jgf.graph.nodes).map(id => ({
             id: id,
-            label: id
+            label: jgf.graph.nodes[id].label
         }));
     }
     if (jgf.graph.edges) {

@@ -1,104 +1,175 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json.Serialization;
 
 using QuikGraph;
-using QuikGraph.Algorithms;
+
+using CartaCore.Data;
+using CartaCore.Utility;
 
 namespace CartaCore.Serialization.Json.Jgf
 {
+    using FreeformGraph = IEdgeListAndIncidenceGraph<FreeformVertex, Edge<FreeformVertex>>;
+
     public class Jgf
     {
         [JsonPropertyName("graph")]
-        public JgfGraph Graph { get; set; }
-
+        public JgfGraph JsonGraph { get; set; }
         [JsonIgnore]
-        public IUndirectedGraph<int, Edge<int>> GraphValue
+        public FreeformGraph Graph
         {
             get
             {
-                UndirectedGraph<int, Edge<int>> graph = new UndirectedGraph<int, Edge<int>>();
-                graph.AddVertexRange(Graph.NodeValues);
-                graph.AddEdgeRange(Graph.EdgeValues);
+                AdjacencyGraph<FreeformVertex, Edge<FreeformVertex>> graph = new AdjacencyGraph<FreeformVertex, Edge<FreeformVertex>>();
+                graph.AddVertexRange(JsonGraph.Nodes);
+                graph.AddEdgeRange(JsonGraph.Edges);
                 return graph;
             }
         }
 
         public Jgf() { }
-        public Jgf(IUndirectedGraph<int, Edge<int>> graph)
+        public Jgf(FreeformGraph graph)
         {
-            Graph = new JgfGraph(graph);
+            JsonGraph = new JgfGraph(graph);
         }
     }
 
     public class JgfGraph
     {
         [JsonPropertyName("directed")]
-        public bool Directed { get; set; }
+        public bool JsonDirected { get; set; }
 
         [JsonPropertyName("nodes")]
-        public Dictionary<string, JgfNode> Nodes { get; set; }
+        public Dictionary<string, JgfNode> JsonNodes { get; set; }
         [JsonPropertyName("edges")]
-        public List<JgfEdge> Edges { get; set; }
+        public List<JgfEdge> JsonEdges { get; set; }
 
         [JsonIgnore]
-        public IEnumerable<int> NodeValues => Nodes.Keys.Select(nodeId => int.Parse(nodeId));
+        public IEnumerable<FreeformVertex> Nodes
+        {
+            get
+            {
+                foreach (KeyValuePair<string, JgfNode> pair in JsonNodes)
+                {
+                    Guid.TryParse(pair.Key, out Guid id);
+
+                    yield return new FreeformVertex
+                    {
+                        Id = id,
+                        Properties = pair.Value.Properties
+                    };
+                }
+            }
+        }
         [JsonIgnore]
-        public IEnumerable<Edge<int>> EdgeValues => Edges.Select(edge => edge.EdgeValue);
+        public IEnumerable<Edge<FreeformVertex>> Edges
+        {
+            get => JsonEdges.Select(edge => edge.Edge);
+        }
 
         public JgfGraph() { }
-        public JgfGraph(IUndirectedGraph<int, Edge<int>> graph)
+        public JgfGraph(FreeformGraph graph)
         {
-            VertexIdentity<int> vi = graph.GetVertexIdentity();
-            EdgeIdentity<int, Edge<int>> ei = graph.GetEdgeIdentity();
+            JsonDirected = true;
 
-            Nodes = graph.Vertices.ToDictionary(
-                vertex => vi(vertex),
-                vertex => new JgfNode(vi, ei, vertex)
+            JsonNodes = graph.Vertices.ToDictionary(
+                vertex => vertex.Id.ToString(),
+                vertex => new JgfNode(vertex)
             );
-            Edges = graph.Edges.Select(
-                edge => new JgfEdge(vi, ei, edge)
+            JsonEdges = graph.Edges.Select(
+                edge => new JgfEdge(edge)
             ).ToList();
-
-            Directed = false;
         }
     }
 
     public class JgfNode
     {
         [JsonPropertyName("label")]
-        public string Label { get; set; }
+        public string JsonLabel { get; set; }
+        [JsonPropertyName("data")]
+        public SortedList<string, object> JsonData { get; set; }
+        [JsonPropertyName("metadata")]
+        public SortedList<string, string> JsonMetadata { get; set; }
+
+        [JsonIgnore]
+        public SortedList<string, FreeformVertexProperty> Properties
+        {
+            get
+            {
+                if (JsonData == null)
+                    return new SortedList<string, FreeformVertexProperty>();
+
+                return new SortedList<string, FreeformVertexProperty>(
+                    JsonData.ToDictionary(
+                        pair => pair.Key,
+                        pair =>
+                        {
+                            Type type = null;
+                            if (JsonMetadata != null && JsonMetadata.TryGetValue(pair.Key, out string typeString))
+                                type = typeString.ToFriendlyType();
+
+
+                            return new FreeformVertexProperty
+                            {
+                                Value = pair.Value,
+                                Type = type
+                            };
+                        }
+                    )
+                );
+            }
+        }
 
         public JgfNode() { }
-        public JgfNode(VertexIdentity<int> vertexId, EdgeIdentity<int, Edge<int>> edgeId, int vertex)
+        public JgfNode(FreeformVertex vertex)
         {
-            Label = vertexId(vertex);
+            JsonLabel = "";
+            JsonData = vertex.Properties == null ? null :
+            new SortedList<string, object>(
+                vertex.Properties
+                    .ToDictionary(
+                        pair => pair.Key,
+                        pair => pair.Value.Value
+                    )
+            );
+            JsonMetadata = vertex.Properties == null ? null :
+            new SortedList<string, string>(
+                vertex.Properties
+                    .ToDictionary(
+                        pair => pair.Key,
+                        pair => pair.Value.Type.ToFriendlyString()
+                    )
+            );
         }
     }
 
     public class JgfEdge
     {
         [JsonPropertyName("source")]
-        public string SourceId { get; set; }
+        public string JsonSourceId { get; set; }
         [JsonPropertyName("target")]
-        public string TargetId { get; set; }
+        public string JsonTargetId { get; set; }
 
         [JsonIgnore]
-        public Edge<int> EdgeValue
+        public Edge<FreeformVertex> Edge
         {
             get
             {
-                int.TryParse(SourceId, out int source);
-                int.TryParse(TargetId, out int target);
-                return new Edge<int>(source, target);
+                Guid.TryParse(JsonSourceId, out Guid source);
+                Guid.TryParse(JsonTargetId, out Guid target);
+                return new Edge<FreeformVertex>(
+                    new FreeformVertex { Id = source },
+                    new FreeformVertex { Id = target }
+                );
             }
         }
 
         public JgfEdge() { }
-        public JgfEdge(VertexIdentity<int> vertexId, EdgeIdentity<int, Edge<int>> edgeId, Edge<int> edge)
+        public JgfEdge(Edge<FreeformVertex> edge)
         {
-            SourceId = vertexId(edge.Source);
-            TargetId = vertexId(edge.Target);
+            JsonSourceId = edge.Source.Id.ToString();
+            JsonTargetId = edge.Target.Id.ToString();
         }
     }
 }

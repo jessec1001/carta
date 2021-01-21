@@ -4,10 +4,13 @@ using Microsoft.Extensions.Logging;
 
 using QuikGraph;
 
+using CartaCore.Data;
 using CartaCore.Data.Synthetic;
 
 namespace CartaWeb.Controllers
 {
+    using FreeformGraph = IEdgeListAndIncidenceGraph<FreeformVertex, Edge<FreeformVertex>>;
+
     [ApiController]
     [Route("api/[controller]")]
     public class DataController : ControllerBase
@@ -20,21 +23,21 @@ namespace CartaWeb.Controllers
         }
 
         [HttpGet("synthetic")]
-        public IUndirectedGraph<int, Edge<int>> GetSynthetic()
+        public FreeformGraph GetSynthetic()
         {
             // Generate and return graph.
-            UndirectedGraphDataset dataset = new UndirectedGraphDataset(
+            RandomFiniteUndirectedGraph dataset = new RandomFiniteUndirectedGraph(
                 1,
                 minVertices: 20, maxVertices: 100,
-                minEdges: 0, maxEdges: 100
+                minEdges: 20, maxEdges: 100
             );
-            IUndirectedGraph<int, Edge<int>> graph = dataset.Generate().First();
+            FreeformGraph graph = dataset.GetGraph();
 
             return graph;
         }
 
         [HttpGet("hyperthought/{uuid}")]
-        public IUndirectedGraph<int, Edge<int>> GetHyperthought(string uuid)
+        public FreeformGraph GetHyperthought(string uuid)
         {
             // Not yet implemented.
             return null;
