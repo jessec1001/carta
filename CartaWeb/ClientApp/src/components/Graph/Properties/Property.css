@@ -8,6 +8,13 @@
   border-radius: 0.25rem;
   border: 1px solid rgba(0, 0, 0, 0.2);
 }
+.property.clickable {
+  cursor: pointer;
+}
+.property.selected {
+  border-color: rgba(64, 128, 0, 0.4);
+  background-color: rgba(128, 255, 0, 0.2);
+}
 
 .property * {
   margin: 0;

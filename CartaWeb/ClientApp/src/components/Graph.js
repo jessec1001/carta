@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { Row, Col } from 'reactstrap';
 import { VisGraph } from './Graph/VisGraph';
 import { PropertyList } from './Graph/PropertyList';
+import { Semantics } from "./Graph/Semantics";
 import { toVis } from '../lib/graph-extend';
 import './Graph.css';
 
@@ -10,11 +11,11 @@ export class Graph extends Component {
 
     constructor(props) {
         super(props);
-        this.state = { loading: true, properties: {} };
+        this.state = { loading: true, properties: {}, attributes: {}, semantics: {} };
         
         this.handleSingleClick = this.handleSingleClick.bind(this);
         this.handleDoubleClick = this.handleDoubleClick.bind(this);
-        this.handleSelectNode = this.handleSelectNode.bind(this);
+        this.handleSemanticsChanged = this.handleSemanticsChanged.bind(this);
     }
 
     handleSingleClick(event) {
@@ -36,6 +37,25 @@ export class Graph extends Component {
                 properties: {}
             });
         }
+
+        // Set the combined attributes of all the nodes.
+        let attributes = {};
+        for (let k = 0; k < nodes.length; k++) {
+            const node = this.state.data.graph.nodes[nodes[k]];
+            attributes = {
+                ...attributes,
+                ...Object.keys(node.data)
+                    .reduce((obj, key) => {
+                        return {
+                            ...obj,
+                            [key]: { type: node.data[key].type }
+                        };
+                    }, {})
+            };
+        }
+        this.setState({
+            attributes: attributes
+        });
     }
     handleDoubleClick(event) {
         const nodes = event.nodes;
@@ -57,8 +77,10 @@ export class Graph extends Component {
             }
         }
     }
-    handleSelectNode(event) {
-
+    handleSemanticsChanged(semantics) {
+        this.setState({
+            semantics: semantics
+        });
     }
 
     componentDidMount() {
@@ -66,6 +88,11 @@ export class Graph extends Component {
     }
 
     render() {
+        const propertyListProps = Object.keys(this.state.properties).length > 0 ?
+            this.state.properties : this.state.attributes;
+        const propertyListName = Object.keys(this.state.properties).length > 0 ?
+            "Properties" : "Attributes";
+
         return (
             <Row>
                 <Col xs="8">
@@ -78,11 +105,13 @@ export class Graph extends Component {
                         }}
                         onClick={this.handleSingleClick}
                         onDoubleClick={this.handleDoubleClick}
-                        onSelectNode={this.handleSelectNode}
                     />
                 </Col>
                 <Col xs="4">
-                    <PropertyList properties={this.state.properties}></PropertyList>
+                    <PropertyList properties={propertyListProps} semantics={this.state.semantics}>
+                        <h2>{propertyListName}</h2>
+                        <Semantics attributes={this.state.attributes} onSemanticsChanged={this.handleSemanticsChanged} />
+                    </PropertyList>
                 </Col>
             </Row>
         );

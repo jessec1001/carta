@@ -32,7 +32,7 @@ namespace CartaWeb.Controllers
             // Generate and return graph.
             Guid nodeId = Guid.NewGuid();
 
-            RandomInfiniteDirectedGraph data = new RandomInfiniteDirectedGraph(seed: seed, childProbability: 1.0);
+            RandomInfiniteDirectedGraph data = new RandomInfiniteDirectedGraph(seed: seed, propertyCount: 50, childProbability: 1.0, propertyDensity: 0.10);
             AdjacencyGraph<FreeformVertex, Edge<FreeformVertex>> graph = new AdjacencyGraph<FreeformVertex, Edge<FreeformVertex>>();
             graph.AddVertex(data.GetVertexProperties(nodeId));
 
@@ -48,7 +48,7 @@ namespace CartaWeb.Controllers
             // Get the GUID.
             if (Guid.TryParse(id, out Guid nodeId))
             {
-                RandomInfiniteDirectedGraph data = new RandomInfiniteDirectedGraph(seed: seed, childProbability: 1.0);
+                RandomInfiniteDirectedGraph data = new RandomInfiniteDirectedGraph(seed: seed, propertyCount: 50, childProbability: 1.0, propertyDensity: 0.10);
                 FreeformVertex node = data.GetVertexProperties(nodeId);
 
                 return node;
@@ -66,7 +66,7 @@ namespace CartaWeb.Controllers
             // Get the GUID.
             if (Guid.TryParse(id, out Guid nodeId))
             {
-                RandomInfiniteDirectedGraph data = new RandomInfiniteDirectedGraph(seed: seed, childProbability: 1.0);
+                RandomInfiniteDirectedGraph data = new RandomInfiniteDirectedGraph(seed: seed, propertyCount: 50, childProbability: 1.0, propertyDensity: 0.10);
                 IEnumerable<Edge<FreeformVertex>> edges = data.GetVertexEdges(nodeId);
                 IDictionary<string, FreeformVertex> vertices = edges.ToDictionary(
                     edge => edge.Target.Id.ToString(),

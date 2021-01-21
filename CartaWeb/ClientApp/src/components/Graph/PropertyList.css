@@ -1,9 +1,15 @@
 .property-list {
-  max-height: calc(100vh - 10rem);
+  max-height: 75vh;
   margin: 0;
   padding: 0;
   padding-right: 0.5rem;
   list-style: none;
   overflow-x: hidden;
   overflow-y: auto;
+}
+
+.property-list-header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
 }

@@ -10,11 +10,17 @@ export class Property extends Component {
         let type = this.props.type;
         
         // Round to 6 sig figs if a floating point number.
-        if (type === 'double' || type === 'float')
+        if (value !== undefined && (type === 'double' || type === 'float'))
             value = value.toPrecision(6);
 
+        let className = "property";
+        if (this.props.selected)
+            className += " selected";
+        if (this.props.onClick)
+            className += " clickable";
+
         return (
-            <div className="property">
+            <div className={className} onClick={this.props.onClick}>
                 <p className="property-name">{name}</p>
                 <p className="property-value">{value}</p>
                 <p className="property-type text-muted">{type}</p>
