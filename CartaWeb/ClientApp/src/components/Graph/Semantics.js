@@ -140,7 +140,7 @@ export class Semantics extends Component {
                                 <PropertyList
                                     properties={sourceAttributes}
                                     semantics={aliases}
-                                    selected={this.state.selected}
+                                    selected={[this.state.selected]}
                                     onClickProperty={this.handleClickSourceProperty}
                                 >
                                     <Row>
