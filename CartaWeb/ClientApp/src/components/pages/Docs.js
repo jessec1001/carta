@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import Container from 'reactstrap/lib/Container';
-import { Api } from './Docs/Api';
+import { Api } from '../shared/api/Api';
 
 export class Docs extends Component {
     static displayName = Docs.name;

@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { Input, Row, Col, Button, Modal, ModalHeader, ModalBody } from 'reactstrap';
-import { PropertyList } from './PropertyList';
+import { PropertyList } from '../shared/properties/PropertyList';
 
 export class Semantics extends Component {
     static displayName = Semantics.name;

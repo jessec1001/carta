@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Property } from "./Properties/Property";
+import { Property } from "./Property";
 import './PropertyList.css';
 
 export class PropertyList extends Component {

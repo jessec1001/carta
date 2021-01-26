@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
 import { Route } from 'react-router';
-import { Layout } from './components/Layout';
-import { Home } from './components/Home';
-import { Graph } from './components/Graph';
-import { Docs } from './components/Docs';
+import { Layout } from './components/layouts/Layout';
+import { Home } from './components/pages/Home';
+import { Graph } from './components/pages/Graph';
+import { Docs } from './components/pages/Docs';
 
 import './custom.css'
 
