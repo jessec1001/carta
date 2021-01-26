@@ -12,14 +12,12 @@ export class Semantics extends Component {
             selected: null,
             semantics: {},
             sourceSearch: "",
-            targetSearch: "",
-            alias: ""
+            targetSearch: ""
         };
 
         this.toggleModalOpen = this.toggleModalOpen.bind(this);
         this.handleClickSourceProperty = this.handleClickSourceProperty.bind(this);
         this.handleClickTargetProperty = this.handleClickTargetProperty.bind(this);
-        this.handleAliasChanged = this.handleAliasChanged.bind(this);
     }
 
     toggleModalOpen() {
@@ -31,18 +29,8 @@ export class Semantics extends Component {
         });
     }
     handleClickSourceProperty(property) {
-        let alias = "";
-        if (property !== this.state.selected)
-        {
-            if (property in this.state.semantics)
-                alias = this.state.semantics[property];
-            else
-                alias = property
-        }
-
         this.setState({
-            selected: property === this.state.selected ? null : property,
-            alias: alias
+            selected: property === this.state.selected ? null : property
         });
     }
     handleClickTargetProperty(property) {
@@ -63,20 +51,6 @@ export class Semantics extends Component {
                 semantics: semantics
             });
         }
-
-        if (this.props.onSemanticsChanged)
-            this.props.onSemanticsChanged(semantics);
-    }
-    handleAliasChanged(event) {
-        let alias = event.target.value; 
-
-        let semantics = this.state.semantics;
-        semantics[this.state.selected] = alias;
-
-        this.setState({
-            alias: alias,
-            semantics: semantics
-        });
 
         if (this.props.onSemanticsChanged)
             this.props.onSemanticsChanged(semantics);
@@ -121,10 +95,6 @@ export class Semantics extends Component {
         const sourceAttributes = this.findSourceAttributes();
         const targetAttributes = this.findTargetAttributes();
 
-        const aliases = Object.keys(this.state.semantics)
-            .filter(attribute => !(this.state.semantics[attribute] in this.props.attributes))
-            .reduce((obj, attribute) => ({ ...obj, [attribute]: this.state.semantics[attribute]}), {});
-
         return (
             <div>
                 <Button onClick={this.toggleModalOpen} color="success">Semantics</Button>
@@ -137,59 +107,48 @@ export class Semantics extends Component {
                     <ModalBody>
                         <Row>
                             <Col>
-                                <PropertyList
-                                    properties={sourceAttributes}
-                                    semantics={aliases}
-                                    selected={[this.state.selected]}
-                                    onClickProperty={this.handleClickSourceProperty}
-                                >
-                                    <Row>
-                                        <Col>
-                                            <h3>Source</h3>
-                                        </Col>
-                                        <Col>
-                                            <Input
-                                                type="text"
-                                                bsSize="sm"
-                                                value={this.state.sourceSearch}
-                                                onChange={event => this.setState({ sourceSearch: event.target.value })}
-                                            />
-                                        </Col>
-                                    </Row>
-                                </PropertyList>
+                                <h3 className="text-center">This</h3>
+                            </Col>
+                            <Col className="my-auto">
+                                <p className="text-center text-muted">overrides</p>
                             </Col>
                             <Col>
-                                <PropertyList
-                                    properties={targetAttributes}
-                                    semantics={aliases}
-                                    selected={Object.keys(this.state.semantics)}
-                                    onClickProperty={this.handleClickTargetProperty}
-                                >
-                                    <Row>
-                                        <Col>
-                                            <h3>Target</h3>
-                                        </Col>
-                                        <Col>
-                                            <Input
-                                                type="text"
-                                                bsSize="sm"
-                                                value={this.state.targetSearch}
-                                                onChange={event => this.setState({ targetSearch: event.target.value })}
-                                            />
-                                        </Col>
-                                    </Row>
-                                </PropertyList>
+                                <h3 className="text-center">That</h3>
                             </Col>
                         </Row>
                         <Row>
                             <Col>
+                                <PropertyList
+                                    properties={sourceAttributes}
+                                    selected={[this.state.selected]}
+                                    onClickProperty={this.handleClickSourceProperty}
+                                />
+                            </Col>
+                            <Col>
+                                <PropertyList
+                                    properties={targetAttributes}
+                                    selected={Object.keys(this.state.semantics)}
+                                    onClickProperty={this.handleClickTargetProperty}
+                                />
+                            </Col>
+                        </Row>
+                        <Row className="mt-4">
+                            <Col>
                                 <Input
                                     type="text"
                                     bsSize="sm"
-                                    placeholder="Rename"
-                                    disabled={this.state.selected === null}
-                                    value={this.state.alias}
-                                    onChange={this.handleAliasChanged}
+                                    value={this.state.sourceSearch}
+                                    placeholder={"Search this"}
+                                    onChange={event => this.setState({ sourceSearch: event.target.value })}
+                                />
+                            </Col>
+                            <Col>
+                                <Input
+                                    type="text"
+                                    bsSize="sm"
+                                    value={this.state.targetSearch}
+                                    placeholder={"Search that"}
+                                    onChange={event => this.setState({ targetSearch: event.target.value })}
                                 />
                             </Col>
                         </Row>
