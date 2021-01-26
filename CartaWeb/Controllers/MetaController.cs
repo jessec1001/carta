@@ -10,17 +10,33 @@ using CartaWeb.Models.Meta;
 
 namespace CartaWeb.Controllers
 {
+    /// <summary>
+    /// Contains endpoints for obtaining information about active API endpoints.
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     public class MetaController : ControllerBase
     {
+        /// <summary>
+        /// The logger for this controller.
+        /// </summary>
         private readonly ILogger<MetaController> _logger;
 
+        /// <inheritdoc />
         public MetaController(ILogger<MetaController> logger)
         {
             _logger = logger;
         }
 
+        /// <summary>
+        /// Resolves the string name of a controller type.
+        /// </summary>
+        /// <remarks>
+        /// If the type name does not end in <c>"Controller"</c>, then, the entire type name is assumed to be the
+        /// controller name. Otherwise, only the prefix is considered to be the controller name.
+        /// </remarks>
+        /// <param name="type">The controller type.</param>
+        /// <returns>A string representing the name of the controller.</returns>
         private string ResolveControllerName(Type type)
         {
             // If the type ends in "Controller" (which it should), remove it and set the remainder as the type name.
@@ -32,6 +48,11 @@ namespace CartaWeb.Controllers
                 return typeName;
         }
 
+        /// <summary>
+        /// Resolves the list of routes to a controller type.
+        /// </summary>
+        /// <param name="type">The controller type.</param>
+        /// <returns>An enumerable of string routes.</returns>
         private IEnumerable<string> ResolveControllerRoute(Type type)
         {
             // Get the name of the type as a controller.
@@ -56,6 +77,11 @@ namespace CartaWeb.Controllers
                 yield return route;
             }
         }
+        /// <summary>
+        /// Resolves the list of endpoints to a controller action.
+        /// </summary>
+        /// <param name="method">The controller action.</param>
+        /// <returns>An enumerable of API endpoints.</returns>
         private IEnumerable<ApiEndpoint> ResolveActionRoute(MethodInfo method)
         {
             // Get the containing controller routes.
@@ -69,6 +95,31 @@ namespace CartaWeb.Controllers
                 string route = (attr.Template ?? string.Empty)
                     .ToLower()
                     .Trim('/');
+
+                // We add the query string, if any, to the action route.
+                string queryString = string.Join('&',
+                    method
+                        .GetParameters()
+                        .Select(param => ResolveParameterString(param))
+                        .Where(paramStr => !string.IsNullOrEmpty(paramStr))
+                );
+                route = string.IsNullOrEmpty(queryString) ? route : $"{route}?{queryString}";
+
+                // We get the parameter list.
+                List<ApiParameter> parameters =
+                    method
+                        .GetParameters()
+                        .Select(param =>
+                        {
+                            string name = param.GetCustomAttribute<FromQueryAttribute>()?.Name ?? param.Name;
+
+                            return new ApiParameter
+                            {
+                                Name = name,
+                                Type = param.ParameterType
+                            };
+                        })
+                        .ToList();
 
                 // The complete route is the concatenation of the controller and action route.
                 foreach (string controllerRoute in controllerRoutes)
@@ -87,12 +138,36 @@ namespace CartaWeb.Controllers
                     yield return new ApiEndpoint
                     {
                         Method = actionMethod,
-                        Path = actionRoute
+                        Path = actionRoute,
+                        Parameters = parameters
                     };
                 }
             }
         }
+        /// <summary>
+        /// Resolves a parameter to a query string component.
+        /// </summary>
+        /// <param name="parameter">The parameter.</param>
+        /// <returns>The query string parameter.</returns>
+        private string ResolveParameterString(ParameterInfo parameter)
+        {
+            // The parameter name is either set by the from query attribute or defaults to the name of the parameter.
+            string parameterName = parameter
+                .GetCustomAttributes<FromQueryAttribute>()
+                .Select(attr => attr.Name ?? parameter.Name)
+                .FirstOrDefault();
 
+            // The parameter value is only set if the parameter has a default value.
+            string parameterValue = parameter.HasDefaultValue ? parameter.DefaultValue.ToString() : null;
+
+            // If there is no default value, use 'param=value'; otherwise, use 'param'.
+            return (parameterValue is null) ? parameterName : $"{parameterName}={parameterValue}";
+        }
+
+        /// <summary>
+        /// Gets the list of all active API endpoints and associated information.
+        /// </summary>
+        /// <returns>A list of API endpoints sorted by controller.</returns>
         [HttpGet]
         public IDictionary<string, IList<ApiEndpoint>> Get()
         {
