@@ -8,6 +8,8 @@ using NUnit.Framework;
 
 namespace CartaTest.Integration.HyperThought.Data
 {
+    using Workflow = CartaCore.Integration.HyperThought.Data.Workflow;
+
     [TestFixture]
     public class TestHyperThoughtDataSerialization
     {
