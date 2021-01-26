@@ -58,7 +58,7 @@ namespace CartaWeb.Controllers
         }
 
         [HttpGet("synthetic/children")]
-        public IDictionary<string, FreeformVertex> GetSyntheticChildre(
+        public IDictionary<string, FreeformVertex> GetSyntheticChildren(
             [FromQuery] string id,
             [FromQuery] ulong seed = 0
         )
@@ -79,8 +79,10 @@ namespace CartaWeb.Controllers
                 throw new FormatException();
         }
 
-        [HttpGet("hyperthought/{uuid}")]
-        public FreeformGraph GetHyperthought(string uuid)
+        [HttpGet("hyperthought")]
+        public FreeformGraph GetHyperthought(
+            [FromQuery] string uuid
+        )
         {
             // Not yet implemented.
             return null;
