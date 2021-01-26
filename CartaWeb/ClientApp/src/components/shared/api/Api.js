@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { ApiSection } from './Api/ApiSection';
+import { ApiSection } from './ApiSection';
 import './Api.css';
 
 export class Api extends Component {

@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
 import { Row, Col } from 'reactstrap';
-import { VisGraph } from './Graph/VisGraph';
-import { PropertyList } from './Graph/PropertyList';
-import { Semantics } from "./Graph/Semantics";
-import { toVis } from '../lib/graph-extend';
+import { VisGraph } from '../shared/graphs/VisGraph';
+import { PropertyList } from '../shared/properties/PropertyList';
+import { Semantics } from "../forms/Semantics";
+import { toVis } from '../../lib/graph-extend';
 import './Graph.css';
 
 export class Graph extends Component {
