@@ -28,8 +28,8 @@ namespace CartaTest.Data.Synthetic
         {
             Guid id = Guid.NewGuid();
 
-            FreeformVertex vertex = Graph.GetVertexProperties(id);
-            IList<Edge<FreeformVertex>> edges = Graph.GetVertexEdges(id).ToList();
+            FreeformVertex vertex = Graph.GetProperties(id);
+            IList<Edge<FreeformVertex>> edges = Graph.GetEdges(id).ToList();
 
             Assert.Pass();
         }
@@ -39,11 +39,11 @@ namespace CartaTest.Data.Synthetic
         {
             Guid id = Guid.NewGuid();
 
-            FreeformVertex vertex1 = Graph.GetVertexProperties(id);
-            IList<Edge<FreeformVertex>> edges1 = Graph.GetVertexEdges(id).ToList();
+            FreeformVertex vertex1 = Graph.GetProperties(id);
+            IList<Edge<FreeformVertex>> edges1 = Graph.GetEdges(id).ToList();
 
-            FreeformVertex vertex2 = Graph.GetVertexProperties(id);
-            IList<Edge<FreeformVertex>> edges2 = Graph.GetVertexEdges(id).ToList();
+            FreeformVertex vertex2 = Graph.GetProperties(id);
+            IList<Edge<FreeformVertex>> edges2 = Graph.GetEdges(id).ToList();
 
             Assert.AreEqual(vertex1.Id, vertex2.Id);
             Assert.AreEqual(vertex1.Properties.Count, vertex2.Properties.Count);

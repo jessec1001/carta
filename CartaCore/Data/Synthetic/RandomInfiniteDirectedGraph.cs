@@ -10,14 +10,46 @@ namespace CartaCore.Data.Synthetic
 {
     using FreeformGraph = IEdgeListAndIncidenceGraph<FreeformVertex, Edge<FreeformVertex>>;
 
-    public class RandomInfiniteDirectedGraph
+    /// <summary>
+    /// Represents graph data of a random, (practically) infinite, directed graph. Both the vertices and edges are
+    /// randomly generated and connected.
+    /// </summary>
+    public class RandomInfiniteDirectedGraph : ISampledGraph
     {
+        /// <summary>
+        /// The seed for random generation of the graph.
+        /// </summary>
+        /// <value>The random seed.</value>
         private ulong Seed { get; set; }
+        /// <summary>
+        /// The set of properties and their types that vertices select from in the graph.
+        /// </summary>
+        /// <value></value>
         private IDictionary<string, Type> Properties { get; set; }
+        /// <summary>
+        /// The average percentage of the total properties that any particular vertex obtains.
+        /// </summary>
+        /// <value></value>
         private double PropertyDensity { get; set; }
+        /// <summary>
+        /// The initial probability of a vertex constructing an edge to a child.
+        /// </summary>
+        /// <value>The initial child probability.</value>
         private double ChildProbability { get; set; }
+        /// <summary>
+        /// The amount that the child probability gets scaled by each time a child is generated.
+        /// </summary>
+        /// <value>The scalar dampener on the child probability.</value>
         private double ChildDampener { get; set; }
 
+        /// <summary>
+        /// Creates a new random sampled, infinite, directed graph with the specified parameters.
+        /// </summary>
+        /// <param name="seed">The seed for random generation.</param>
+        /// <param name="propertyCount">The number of total properties for the graph.</param>
+        /// <param name="propertyDensity">The percentage of properties per vertex.</param>
+        /// <param name="childProbability">The initial probability of child per vertex.</param>
+        /// <param name="childDampener">The scalar on the child probability per vertex.</param>
         public RandomInfiniteDirectedGraph(
             ulong seed = 0,
             int propertyCount = 20,
@@ -43,6 +75,11 @@ namespace CartaCore.Data.Synthetic
             ChildDampener = childDampener;
         }
 
+        /// <summary>
+        /// Generates a random type for a property.
+        /// </summary>
+        /// <param name="random">The random number generator.</param>
+        /// <returns>An available type for random data.</returns>
         protected Type GenerateRandomType(CompoundRandom random)
         {
             // These are the available types to use in the graph vertex properties.
@@ -56,22 +93,38 @@ namespace CartaCore.Data.Synthetic
             // Return the random types.
             return availableTypes[random.NextInt(availableTypes.Length)];
         }
+        /// <summary>
+        /// Generates a random value given an associated type.
+        /// </summary>
+        /// <param name="random">The random number generator.</param>
+        /// <param name="type">The type of value to generate.</param>
+        /// <returns>The random value.</returns>
         protected object GenerateRandomValue(CompoundRandom random, Type type)
         {
+            // Return a random value based on the type desired.
             if (typeof(int) == type)
-                return random.NextInt(0, 10) + 1;
+                return random.NextInt(0, 10) + 1;   // Random integer in [1, 10].
             if (typeof(double) == type)
-                return random.NextDouble();
+                return random.NextDouble();         // Random double in [0, 1).
             if (typeof(string) == type)
-                return random.NextPsuedoword();
+                return random.NextPsuedoword();     // Random word with around 3 syllables.
 
             // If no types match, return null.
             // This should never happen.
             return null;
         }
 
-        public bool IsFinite() => false;
-        public FreeformVertex GetVertexProperties(Guid id)
+        /// <summary>
+        /// Whether the graph has a finite or infinite number of vertices and edges.
+        /// </summary>
+        /// <value>Always <c>false</c>.</value>
+        public bool IsFinite => false;
+
+        /// <inheritdoc />
+        public FreeformGraph GetEntire() => throw new NotFiniteNumberException();
+
+        /// <inheritdoc />
+        public FreeformVertex GetProperties(Guid id)
         {
             // Create a compound random number generator using the GUID and original seed as a combined seed.
             CompoundRandom random = new CompoundRandom(Seed, id);
@@ -95,23 +148,29 @@ namespace CartaCore.Data.Synthetic
                 Properties = properties
             };
         }
-        public IEnumerable<Edge<FreeformVertex>> GetVertexEdges(Guid id)
+        /// <inheritdoc />
+        public IEnumerable<Edge<FreeformVertex>> GetEdges(Guid id)
         {
+            // Create a compound random number generator using the GUID and original seed as a combined seed.
             CompoundRandom random = new CompoundRandom(Seed, id);
+            FreeformVertex sourceVertex = new FreeformVertex { Id = id };
 
+            // Keep constructing children until the random generator doesn't sample within the current probability.
             double probability = ChildProbability;
             while (random.NextDouble() < probability)
             {
+                // We must construct the ID from the random number generator and not from the system.
                 Guid randomId = random.NextGuid();
 
+                // The source of each edge is the selected vertex.
                 yield return new Edge<FreeformVertex>(
-                    new FreeformVertex { Id = id },
+                    sourceVertex,
                     new FreeformVertex { Id = randomId }
                 );
 
+                // We lower the probability by some amount each time.
                 probability *= ChildDampener;
             }
         }
-        public FreeformGraph GetGraph() => throw new NotFiniteNumberException();
     }
 }

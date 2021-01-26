@@ -4,35 +4,58 @@ using System.Linq;
 
 using QuikGraph;
 
-using CartaCore.Data;
 using CartaCore.Utility;
 
 namespace CartaCore.Data.Synthetic
 {
     using FreeformGraph = IEdgeListAndIncidenceGraph<FreeformVertex, Edge<FreeformVertex>>;
 
-    public class RandomFiniteUndirectedGraph
+    /// <summary>
+    /// Represents graph data of a random, finite, undirected graph. Both the vertices and edges are randomly generated
+    /// and connected.
+    /// </summary>
+    public class RandomFiniteUndirectedGraph : ISampledGraph
     {
+        /// <summary>
+        /// The seed for random generation of the graph.
+        /// </summary>
+        /// <value>The random seed.</value>
         private ulong Seed;
         /// <summary>
         /// The minimum number (inclusive) of vertices a generated graph can have. 
         /// </summary>
+        /// <value>The mininum number of vertices.</value>
         private int MinVertices { get; set; }
         /// <summary>
         /// The maximum number (inclusive) of vertices a generated graph can have.
         /// </summary>
+        /// <value>The maximum number of vertices.</value>
         private int MaxVertices { get; set; }
         /// <summary>
         /// The minimum number (inclusive) of edges a generated graph can have. 
         /// </summary>
+        /// <value>The mininum number of edges.</value>
         private int MinEdges { get; set; }
         /// <summary>
         /// The maximum number (inclusive) of edges a generated graph can have.
         /// </summary>
+        /// <value>The maximum number of vertices.</value>
         private int MaxEdges { get; set; }
 
+        /// <summary>
+        /// The entirety of the graph generated.
+        /// </summary>
+        /// <value>The randomly generated graph.</value>
         private FreeformGraph Graph { get; set; }
 
+        /// <summary>
+        /// Creates a new random sampled, finite, undirected graph with the specified parameters.
+        /// </summary>
+        /// <param name="seed">The seed for random generation.</param>
+        /// <param name="minVertices">The minimum (inclusive) number of vertices.</param>
+        /// <param name="maxVertices">The maximum (inclusive) number of vertices.</param>
+        /// <param name="minEdges">The minimum (inclusive) number of edges.</param>
+        /// <param name="maxEdges">The maximum (inclusive) number of edges.</param>
         public RandomFiniteUndirectedGraph(
             ulong seed = 0,
             int minVertices = 1, int maxVertices = 10,
@@ -45,12 +68,17 @@ namespace CartaCore.Data.Synthetic
             MinEdges = minEdges;
             MaxEdges = maxEdges;
 
+            // We generate all the graph data after setting the parameters.
             Graph = GenerateGraph();
         }
 
+        /// <summary>
+        /// Generates the random graph data.
+        /// </summary>
+        /// <returns>The random graph data.</returns>
         protected FreeformGraph GenerateGraph()
         {
-            // Random number generator. Seeded if a seed was specified.
+            // Random number generator that is seeded with whatever seed was specified.
             CompoundRandom random = new CompoundRandom(Seed);
 
             // Generate the random number of vertices and edges.
@@ -106,20 +134,32 @@ namespace CartaCore.Data.Synthetic
             return graph;
         }
 
-        public bool IsFinite() => true;
-        public FreeformVertex GetVertexProperties(Guid id)
+        /// <summary>
+        /// Whether the graph has a finite or infinite number of vertices and edges.
+        /// </summary>
+        /// <value>Always <c>true</c>.</value>
+        public bool IsFinite => true;
+
+        /// <inheritdoc />
+        public FreeformGraph GetEntire() => Graph;
+
+        /// <inheritdoc />
+        public FreeformVertex GetProperties(Guid id)
         {
+            // Return the properties of the vertex whose ID matches.
             return Graph.Vertices
                 .Where(vertex => vertex.Id == id)
                 .FirstOrDefault();
         }
-        public IEnumerable<Edge<FreeformVertex>> GetVertexEdges(Guid id)
+        /// <inheritdoc />
+        public IEnumerable<Edge<FreeformVertex>> GetEdges(Guid id)
         {
+            // Return the out-edges and in-edges of the vertex whose ID matches.
+            // It doesn't matter whether the edge is an out-edge or an in-edge because this is an undirected graph.
             return Graph.Edges
                 .Where(edge =>
                     edge.Source.Id == id ||
                     edge.Target.Id == id);
         }
-        public FreeformGraph GetGraph() => Graph;
     }
 }

@@ -24,12 +24,12 @@ namespace CartaTest
         public void Setup()
         {
             // Generate the samples we will test.
-            RandomFiniteUndirectedGraph graph = new RandomFiniteUndirectedGraph(
+            ISampledGraph graph = new RandomFiniteUndirectedGraph(
                 seed: 0,
                 minVertices: MinVertices, maxVertices: MaxVertices,
                 minEdges: MinEdges, maxEdges: MaxEdges
             );
-            TestGraph = graph.GetGraph();
+            TestGraph = graph.GetEntire();
         }
 
         [Test]
