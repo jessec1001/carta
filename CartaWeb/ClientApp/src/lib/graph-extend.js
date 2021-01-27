@@ -16,7 +16,7 @@ export function toVis(jgf) {
     }
     if (jgf.graph.edges) {
         graph.edges = jgf.graph.edges.map((edge, index) => ({
-            id: index.toString(),
+            id: index,
             from: edge.source,
             to: edge.target,
             direction: 'to',
