@@ -106,14 +106,14 @@ export class Semantics extends Component {
                     <ModalHeader toggle={this.toggleModalOpen}>Semantics</ModalHeader>
                     <ModalBody>
                         <Row>
-                            <Col>
-                                <h3 className="text-center">This</h3>
+                            <Col xs="5">
+                                <h3 className="text-center">This Property</h3>
                             </Col>
-                            <Col className="my-auto">
+                            <Col xs="2" className="my-auto">
                                 <p className="text-center text-muted">overrides</p>
                             </Col>
-                            <Col>
-                                <h3 className="text-center">That</h3>
+                            <Col xs="5">
+                                <h3 className="text-center">These Properties</h3>
                             </Col>
                         </Row>
                         <Row>
