@@ -14,33 +14,10 @@ namespace CartaCore.Data.Synthetic
     /// Represents graph data of a random, finite, undirected graph. Both the vertices and edges are randomly generated
     /// and connected.
     /// </summary>
-    public class RandomFiniteUndirectedGraph : ISampledGraph
+    public class RandomFiniteUndirectedGraph : ISampledGraph, IOptionsGraph<RandomFiniteUndirectedGraphOptions>
     {
-        /// <summary>
-        /// The seed for random generation of the graph.
-        /// </summary>
-        /// <value>The random seed.</value>
-        private ulong Seed;
-        /// <summary>
-        /// The minimum number (inclusive) of vertices a generated graph can have. 
-        /// </summary>
-        /// <value>The mininum number of vertices.</value>
-        private int MinVertices { get; set; }
-        /// <summary>
-        /// The maximum number (inclusive) of vertices a generated graph can have.
-        /// </summary>
-        /// <value>The maximum number of vertices.</value>
-        private int MaxVertices { get; set; }
-        /// <summary>
-        /// The minimum number (inclusive) of edges a generated graph can have. 
-        /// </summary>
-        /// <value>The mininum number of edges.</value>
-        private int MinEdges { get; set; }
-        /// <summary>
-        /// The maximum number (inclusive) of edges a generated graph can have.
-        /// </summary>
-        /// <value>The maximum number of vertices.</value>
-        private int MaxEdges { get; set; }
+        /// <inheritdoc />
+        public RandomFiniteUndirectedGraphOptions Options { get; set; }
 
         /// <summary>
         /// The entirety of the graph generated.
@@ -51,24 +28,11 @@ namespace CartaCore.Data.Synthetic
         /// <summary>
         /// Creates a new random sampled, finite, undirected graph with the specified parameters.
         /// </summary>
-        /// <param name="seed">The seed for random generation.</param>
-        /// <param name="minVertices">The minimum (inclusive) number of vertices.</param>
-        /// <param name="maxVertices">The maximum (inclusive) number of vertices.</param>
-        /// <param name="minEdges">The minimum (inclusive) number of edges.</param>
-        /// <param name="maxEdges">The maximum (inclusive) number of edges.</param>
-        public RandomFiniteUndirectedGraph(
-            ulong seed = 0,
-            int minVertices = 1, int maxVertices = 10,
-            int minEdges = 0, int maxEdges = 50
-        )
+        /// <param name="options">The options to generate the graph with.</param>
+        public RandomFiniteUndirectedGraph(RandomFiniteUndirectedGraphOptions options = default(RandomFiniteUndirectedGraphOptions))
         {
-            Seed = seed;
-            MinVertices = minVertices;
-            MaxVertices = maxVertices;
-            MinEdges = minEdges;
-            MaxEdges = maxEdges;
-
             // We generate all the graph data after setting the parameters.
+            Options = options;
             Graph = GenerateGraph();
         }
 
@@ -79,14 +43,14 @@ namespace CartaCore.Data.Synthetic
         protected FreeformGraph GenerateGraph()
         {
             // Random number generator that is seeded with whatever seed was specified.
-            CompoundRandom random = new CompoundRandom(Seed);
+            CompoundRandom random = new CompoundRandom(Options.Seed);
 
             // Generate the random number of vertices and edges.
-            int numVertices = random.NextInt(MinVertices, MaxVertices + 1);
+            int numVertices = random.NextInt(Options.MinVertices, Options.MaxVertices + 1);
             int possibleEdges = numVertices * (numVertices - 1) / 2;
             int numEdges = random.NextInt(
-                Math.Min(possibleEdges, MinEdges),
-                Math.Min(possibleEdges, MaxEdges)
+                Math.Min(possibleEdges, Options.MinEdges),
+                Math.Min(possibleEdges, Options.MaxEdges)
             );
 
             // Generate the vertices.
@@ -95,7 +59,7 @@ namespace CartaCore.Data.Synthetic
                 .Range(0, numVertices)
                 .Select(_ => new FreeformVertex
                 {
-                    Id = Guid.NewGuid(),
+                    Id = random.NextGuid(),
                     Properties = new SortedList<string, FreeformVertexProperty>()
                 })
             );

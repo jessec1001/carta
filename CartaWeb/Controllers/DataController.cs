@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -9,82 +10,150 @@ using QuikGraph;
 using CartaCore.Data;
 using CartaCore.Data.Synthetic;
 
+using CartaWeb.Models.Data;
+
 namespace CartaWeb.Controllers
 {
     using FreeformGraph = IEdgeListAndIncidenceGraph<FreeformVertex, Edge<FreeformVertex>>;
 
+    /// <summary>
+    /// Serves data from multiple sources in graph format.
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     public class DataController : ControllerBase
     {
         private readonly ILogger<DataController> _logger;
 
+        private Dictionary<string, IDataResolver> SyntheticResolvers;
+
+        /// <summary>
+        /// Creates a new instance of the data controller initializing all relevant data resolvers.
+        /// </summary>
+        /// <param name="logger">The logger that is injected to this controller.</param>
         public DataController(ILogger<DataController> logger)
         {
             _logger = logger;
-        }
 
-        [HttpGet("synthetic")]
-        public FreeformGraph GetSynthetic(
-            [FromQuery] ulong seed = 0
-        )
-        {
-            // Generate and return graph.
-            Guid nodeId = Guid.NewGuid();
-
-            RandomInfiniteDirectedGraph data = new RandomInfiniteDirectedGraph(seed: seed, propertyCount: 50, childProbability: 1.0, propertyDensity: 0.10);
-            AdjacencyGraph<FreeformVertex, Edge<FreeformVertex>> graph = new AdjacencyGraph<FreeformVertex, Edge<FreeformVertex>>();
-            graph.AddVertex(data.GetProperties(nodeId));
-
-            return graph;
-        }
-
-        [HttpGet("synthetic/props")]
-        public FreeformVertex GetSyntheticProperties(
-            [FromQuery] string id,
-            [FromQuery] ulong seed = 0
-        )
-        {
-            // Get the GUID.
-            if (Guid.TryParse(id, out Guid nodeId))
+            SyntheticResolvers = new Dictionary<string, IDataResolver>()
             {
-                RandomInfiniteDirectedGraph data = new RandomInfiniteDirectedGraph(seed: seed, propertyCount: 50, childProbability: 1.0, propertyDensity: 0.10);
-                FreeformVertex node = data.GetProperties(nodeId);
-
-                return node;
-            }
-            else
-                throw new FormatException();
+                [nameof(RandomFiniteUndirectedGraph).ToLower()] = new OptionsDataResolver<RandomFiniteUndirectedGraphOptions>
+                    (this, options => new RandomFiniteUndirectedGraph(options)),
+                [nameof(RandomInfiniteDirectedGraph).ToLower()] = new OptionsDataResolver<RandomInfiniteDirectedGraphOptions>
+                    (this, options => new RandomInfiniteDirectedGraph(options))
+            };
         }
 
-        [HttpGet("synthetic/children")]
-        public IDictionary<string, FreeformVertex> GetSyntheticChildren(
-            [FromQuery] string id,
-            [FromQuery] ulong seed = 0
-        )
+        /// <summary>
+        /// Finds the sample graph associated with a specified source and resource.
+        /// </summary>
+        /// <param name="source">The data source.</param>
+        /// <param name="resource">The resource located on the data source</param>
+        /// <returns>The graph data.</returns>
+        private async Task<ISampledGraph> LookupData(DataSource source, string resource)
         {
-            // Get the GUID.
-            if (Guid.TryParse(id, out Guid nodeId))
+            switch (source)
             {
-                RandomInfiniteDirectedGraph data = new RandomInfiniteDirectedGraph(seed: seed, propertyCount: 50, childProbability: 1.0, propertyDensity: 0.10);
-                IEnumerable<Edge<FreeformVertex>> edges = data.GetEdges(nodeId);
-                IDictionary<string, FreeformVertex> vertices = edges.ToDictionary(
-                    edge => edge.Target.Id.ToString(),
-                    edge => data.GetProperties(edge.Target.Id)
-                );
-
-                return vertices;
+                case DataSource.Synthetic:
+                    if (!(resource is null) && SyntheticResolvers.TryGetValue(resource.ToLower(), out IDataResolver resolver))
+                    {
+                        return await resolver.GenerateAsync();
+                    }
+                    break;
+                case DataSource.HyperThought:
+                    break;
             }
-            else
-                throw new FormatException();
+            return null;
         }
 
-        [HttpGet("hyperthought")]
-        public FreeformGraph GetHyperthought(
-            [FromQuery] string uuid
+        /// <summary>
+        /// Gets the base graph for a particular data source.
+        /// </summary>
+        /// <remarks>
+        /// If the data is infinite, a graph with only vertex is returned. Otherwise, the entire graph is returned. 
+        /// </remarks>
+        /// <param name="source">The data source.</param>
+        /// <param name="resource">The resource located on the data source.</param>
+        /// <returns>The base graph.</returns>
+        [HttpGet("{source}/{resource?}")]
+        public async Task<FreeformGraph> GetGraph(
+            [FromRoute] DataSource source,
+            [FromRoute] string resource
         )
         {
-            // Not yet implemented.
+            ISampledGraph graph = await LookupData(source, resource);
+
+            if (!(graph is null))
+            {
+                if (graph.IsFinite)
+                {
+                    // Generate the entire graph.
+                    FreeformGraph data = graph.GetEntire();
+                    return data;
+                }
+                else
+                {
+                    // Generate random starting node ID.
+                    Guid nodeId = Guid.NewGuid();
+
+                    // Generate graph with starting node.
+                    AdjacencyGraph<FreeformVertex, Edge<FreeformVertex>> data = new AdjacencyGraph<FreeformVertex, Edge<FreeformVertex>>();
+                    data.AddVertex(graph.GetProperties(nodeId));
+                    return data;
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Gets the properties of a specific vertex for a particular data source.
+        /// </summary>
+        /// <param name="source">The data source.</param>
+        /// <param name="resource">The resource located on the data source.</param>
+        /// <param name="uuid">The UUID of the vertex.</param>
+        /// <returns>The vertex with its properties loaded.</returns>
+        [HttpGet("props/{source}/{resource?}")]
+        public async Task<FreeformVertex> GetProperties(
+            [FromRoute] DataSource source,
+            [FromRoute] string resource,
+            [FromQuery] Guid uuid
+        )
+        {
+            ISampledGraph graph = await LookupData(source, resource);
+
+            if (!(graph is null))
+            {
+                // Simply return the properties of the vertex.
+                return graph.GetProperties(uuid);
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Gets the children vertices of a specific vertex for a particular data source.
+        /// </summary>
+        /// <param name="source">The data source.</param>
+        /// <param name="resource">The resource located on the data source.</param>
+        /// <param name="uuid">The UUID of the vertex.</param>
+        /// <returns>The vertex with its properties loaded.</returns>
+        [HttpGet("children/{source}/{resource?}")]
+        public async Task<IDictionary<Guid, FreeformVertex>> GetChildren(
+            [FromRoute] DataSource source,
+            [FromRoute] string resource,
+            [FromQuery] Guid uuid
+        )
+        {
+            ISampledGraph graph = await LookupData(source, resource);
+
+            if (!(graph is null))
+            {
+                // Return a dictionary of node ID, node properties pairs.
+                return graph.GetEdges(uuid)
+                    .ToDictionary(
+                        edge => edge.Target.Id,
+                        edge => graph.GetProperties(edge.Target.Id)
+                    );
+            }
             return null;
         }
     }
