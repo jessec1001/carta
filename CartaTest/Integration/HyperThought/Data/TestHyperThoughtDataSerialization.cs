@@ -3,13 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 
-using CartaCore.Integration.HyperThought.Data;
+using CartaCore.Integration.Hyperthought.Data;
 using NUnit.Framework;
 
-namespace CartaTest.Integration.HyperThought.Data
+namespace CartaTest.Integration.Hyperthought.Data
 {
-    using Workflow = CartaCore.Integration.HyperThought.Data.Workflow;
-
     [TestFixture]
     public class TestHyperThoughtDataSerialization
     {
@@ -97,12 +95,12 @@ namespace CartaTest.Integration.HyperThought.Data
             ";
 
             // Parse the package string into an appropriately-typed JSON object.
-            IList<Workflow> workflows = JsonSerializer.Deserialize<List<Workflow>>(jsonPkg);
-            Workflow workflow = workflows.FirstOrDefault();
+            IList<HyperthoughtWorkflow> workflows = JsonSerializer.Deserialize<List<HyperthoughtWorkflow>>(jsonPkg);
+            HyperthoughtWorkflow workflow = workflows.FirstOrDefault();
 
             // Assert a collection of random values.
             Assert.AreEqual(1, workflows.Count);
-            Assert.AreEqual(WorkflowStatus.None, workflow.Content.Status);
+            Assert.AreEqual(HyperthoughtWorkflowStatus.None, workflow.Content.Status);
             Assert.AreEqual("string", workflow.Content.Name);
             Assert.AreEqual("3fa85f64-5717-4562-b3fc-2c963f66afa6", workflow.Content.ClientId);
             Assert.AreEqual(1, workflow.Content.ChildrenIds.Count);
@@ -110,8 +108,8 @@ namespace CartaTest.Integration.HyperThought.Data
             Assert.AreEqual(1, workflow.Triples.Count);
             Assert.AreEqual(1, workflow.Metadata.Count);
             Assert.AreEqual("string", workflow.Metadata[0].Value.Link);
-            Assert.AreEqual(Distribution.DistributionA, workflow.Restrictions.Distribution);
-            Assert.AreEqual(ExportControl.ITAR, workflow.Restrictions.ExportControl);
+            Assert.AreEqual(HyperthoughtDistribution.DistributionA, workflow.Restrictions.Distribution);
+            Assert.AreEqual(HyperthoughtExportControl.ITAR, workflow.Restrictions.ExportControl);
         }
 
         [Test]
@@ -196,10 +194,10 @@ namespace CartaTest.Integration.HyperThought.Data
             ";
 
             // Parse the package string into an appropriately-typed JSON object.
-            Workflow workflow = JsonSerializer.Deserialize<Workflow>(jsonPkg);
+            HyperthoughtWorkflow workflow = JsonSerializer.Deserialize<HyperthoughtWorkflow>(jsonPkg);
 
             // Assert a collection of random values.
-            Assert.AreEqual(WorkflowStatus.None, workflow.Content.Status);
+            Assert.AreEqual(HyperthoughtWorkflowStatus.None, workflow.Content.Status);
             Assert.AreEqual("string", workflow.Content.Name);
             Assert.AreEqual("3fa85f64-5717-4562-b3fc-2c963f66afa6", workflow.Content.ClientId);
             Assert.AreEqual(1, workflow.Content.ChildrenIds.Count);
@@ -207,8 +205,8 @@ namespace CartaTest.Integration.HyperThought.Data
             Assert.AreEqual(1, workflow.Triples.Count);
             Assert.AreEqual(1, workflow.Metadata.Count);
             Assert.AreEqual("string", workflow.Metadata[0].Value.Link);
-            Assert.AreEqual(Distribution.DistributionB, workflow.Restrictions.Distribution);
-            Assert.AreEqual(ExportControl.EAR, workflow.Restrictions.ExportControl);
+            Assert.AreEqual(HyperthoughtDistribution.DistributionB, workflow.Restrictions.Distribution);
+            Assert.AreEqual(HyperthoughtExportControl.EAR, workflow.Restrictions.ExportControl);
         }
 
         [Test]
@@ -270,8 +268,8 @@ namespace CartaTest.Integration.HyperThought.Data
             ";
 
             // Parse the package string into an appropriately-typed JSON object.
-            IList<File> files = JsonSerializer.Deserialize<List<File>>(jsonPkg);
-            File file = files.FirstOrDefault();
+            IList<HyperthoughtFile> files = JsonSerializer.Deserialize<List<HyperthoughtFile>>(jsonPkg);
+            HyperthoughtFile file = files.FirstOrDefault();
 
             // Assert a collection of random values.
             Assert.AreEqual(1, files.Count);
@@ -280,10 +278,10 @@ namespace CartaTest.Integration.HyperThought.Data
             Assert.AreEqual("/test2/test3/New Text Document - Copy.txt", file.Content.DirectoryPath);
             Assert.AreEqual("fourmajr", file.Content.CreatedBy);
             Assert.AreEqual(new DateTime(2020, 2, 12, 14, 39, 03, 787), file.Content.CreatedTime);
-            Assert.AreEqual(Backend.Default, file.Content.Backend);
+            Assert.AreEqual(HyperthoughtBackend.Default, file.Content.Backend);
             Assert.AreEqual("blue", file.Metadata[0].Value.Link);
             Assert.AreEqual(0, file.Triples.Count);
-            Assert.AreEqual(Distribution.None, file.Restrictions.Distribution);
+            Assert.AreEqual(HyperthoughtDistribution.None, file.Restrictions.Distribution);
             Assert.AreEqual("/files/filesystementry/00dfb7b9-b675-4303-b2e6-4916c813ca31/versions/0", file.Header.Uri);
         }
 
@@ -344,7 +342,7 @@ namespace CartaTest.Integration.HyperThought.Data
             ";
 
             // Parse the package string into an appropriately-typed JSON object.
-            File file = JsonSerializer.Deserialize<File>(jsonPkg);
+            HyperthoughtFile file = JsonSerializer.Deserialize<HyperthoughtFile>(jsonPkg);
 
             // Assert a collection of random values.
             Assert.AreEqual("New Text Document - Copy (3).pdf", file.Content.Name);
@@ -352,10 +350,10 @@ namespace CartaTest.Integration.HyperThought.Data
             Assert.AreEqual("/test2/test3/New Text Document - Copy.txt", file.Content.DirectoryPath);
             Assert.AreEqual("fourmajr", file.Content.CreatedBy);
             Assert.AreEqual(new DateTime(2020, 2, 12, 14, 39, 03, 787), file.Content.CreatedTime);
-            Assert.AreEqual(Backend.Default, file.Content.Backend);
+            Assert.AreEqual(HyperthoughtBackend.Default, file.Content.Backend);
             Assert.AreEqual("red", file.Metadata[0].Value.Link);
             Assert.AreEqual(0, file.Triples.Count);
-            Assert.AreEqual(Distribution.None, file.Restrictions.Distribution);
+            Assert.AreEqual(HyperthoughtDistribution.None, file.Restrictions.Distribution);
             Assert.AreEqual("/files/filesystementry/00dfb7b9-b675-4303-b2e6-4916c813ca31/versions/0", file.Header.Uri);
         }
     }
