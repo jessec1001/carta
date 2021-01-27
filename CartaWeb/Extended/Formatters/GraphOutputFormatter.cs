@@ -90,8 +90,8 @@ namespace CartaWeb.Extended.Formatters
         private static string FormatJgf(IEnumerable<FreeformVertex> vertices) =>
             FormatJson<IEnumerable<JgfNode>>(vertices.Select(vertex => new JgfNode(vertex)));
         private static string FormatJgf(IDictionary<Guid, FreeformVertex> vertices) =>
-            FormatJson<IDictionary<Guid, JgfNode>>(vertices.ToDictionary(
-                pair => pair.Key,
+            FormatJson<IDictionary<string, JgfNode>>(vertices.ToDictionary(
+                pair => pair.Key.ToString(),
                 pair => new JgfNode(pair.Value)
             ));
 

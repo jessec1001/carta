@@ -16,7 +16,8 @@ body {
   flex: 0 1 auto;
 }
 .growbox > :not(header) {
-  padding: 0rem 0rem 1rem 0rem;
+  padding: 0;
+  padding-top: 1rem;
   flex: 1 1 auto;
 }
 .growbox .row {
