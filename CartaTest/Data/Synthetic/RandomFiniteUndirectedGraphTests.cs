@@ -10,28 +10,57 @@ namespace CartaTest
 {
     using FreeformGraph = IEdgeListAndIncidenceGraph<FreeformVertex, Edge<FreeformVertex>>;
 
+    /// <summary>
+    /// Tests the generation of the <see cref="RandomFiniteUndirectedGraph"/> object.
+    /// </summary>
     [TestFixture]
     public class RandomFiniteUndirectedGraphTests
     {
+        /// <summary>
+        /// The minimum (inclusive) number of vertices.
+        /// </summary>
         protected readonly int MinVertices = 5;
+        /// <summary>
+        /// The maximum (inclusive) number of vertices.
+        /// </summary>
         protected readonly int MaxVertices = 20;
+        /// <summary>
+        /// The minimum (inclusive) number of edges.
+        /// </summary>
         protected readonly int MinEdges = 25;
+        /// <summary>
+        /// The maxmimum (inclusive) number of edges.
+        /// </summary>
         protected readonly int MaxEdges = 200;
 
+        /// <summary>
+        /// The graph generated to test on.
+        /// </summary>
         protected FreeformGraph TestGraph;
 
+        /// <summary>
+        /// Sets up the test fixture.
+        /// </summary>
         [SetUp]
         public void Setup()
         {
             // Generate the samples we will test.
             ISampledGraph graph = new RandomFiniteUndirectedGraph(
-                seed: 0,
-                minVertices: MinVertices, maxVertices: MaxVertices,
-                minEdges: MinEdges, maxEdges: MaxEdges
+                new RandomFiniteUndirectedGraphOptions
+                {
+                    Seed = 0,
+                    MinVertices = MinVertices,
+                    MaxVertices = MaxVertices,
+                    MinEdges = MinEdges,
+                    MaxEdges = MaxEdges
+                }
             );
             TestGraph = graph.GetEntire();
         }
 
+        /// <summary>
+        /// Tests that the number of vertices in the test graph is within our minimum and maximum. 
+        /// </summary>
         [Test]
         public void TestNumberVertices()
         {
@@ -39,6 +68,9 @@ namespace CartaTest
             Assert.IsTrue(MaxVertices >= TestGraph.VertexCount);
         }
 
+        /// <summary>
+        /// Tests that the number of edges in the test graph is within our minimum and maximum.
+        /// </summary>
         [Test]
         public void TestNumberEdges()
         {
@@ -49,6 +81,9 @@ namespace CartaTest
             Assert.IsTrue(MaxEdges >= TestGraph.EdgeCount);
         }
 
+        /// <summary>
+        /// Tests that there are no self edges in the test graph.
+        /// </summary>
         [Test]
         public void TestNoSelfEdges()
         {

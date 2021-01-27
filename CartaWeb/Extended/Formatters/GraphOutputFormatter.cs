@@ -49,7 +49,7 @@ namespace CartaWeb.Extended.Formatters
             if (typeof(FreeformGraph).IsAssignableFrom(type) ||
                 typeof(FreeformVertex).IsAssignableFrom(type) ||
                 typeof(IEnumerable<FreeformVertex>).IsAssignableFrom(type) ||
-                typeof(IDictionary<string, FreeformVertex>).IsAssignableFrom(type))
+                typeof(IDictionary<Guid, FreeformVertex>).IsAssignableFrom(type))
                 return base.CanWriteType(type);
             return false;
         }
@@ -72,7 +72,7 @@ namespace CartaWeb.Extended.Formatters
                     case IEnumerable<FreeformVertex> vertices:
                         content = FormatJgf(vertices);
                         break;
-                    case IDictionary<string, FreeformVertex> vertices:
+                    case IDictionary<Guid, FreeformVertex> vertices:
                         content = FormatJgf(vertices);
                         break;
                 }
@@ -89,8 +89,8 @@ namespace CartaWeb.Extended.Formatters
             FormatJson<JgfNode>(new JgfNode(vertex));
         private static string FormatJgf(IEnumerable<FreeformVertex> vertices) =>
             FormatJson<IEnumerable<JgfNode>>(vertices.Select(vertex => new JgfNode(vertex)));
-        private static string FormatJgf(IDictionary<string, FreeformVertex> vertices) =>
-            FormatJson<IDictionary<string, JgfNode>>(vertices.ToDictionary(
+        private static string FormatJgf(IDictionary<Guid, FreeformVertex> vertices) =>
+            FormatJson<IDictionary<Guid, JgfNode>>(vertices.ToDictionary(
                 pair => pair.Key,
                 pair => new JgfNode(pair.Value)
             ));

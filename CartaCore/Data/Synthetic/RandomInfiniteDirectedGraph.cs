@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 using QuikGraph;
 
@@ -14,55 +13,29 @@ namespace CartaCore.Data.Synthetic
     /// Represents graph data of a random, (practically) infinite, directed graph. Both the vertices and edges are
     /// randomly generated and connected.
     /// </summary>
-    public class RandomInfiniteDirectedGraph : ISampledGraph
+    public class RandomInfiniteDirectedGraph : ISampledGraph, IOptionsGraph<RandomInfiniteDirectedGraphOptions>
     {
-        /// <summary>
-        /// The seed for random generation of the graph.
-        /// </summary>
-        /// <value>The random seed.</value>
-        private ulong Seed { get; set; }
+        /// <inheritdoc />
+        public RandomInfiniteDirectedGraphOptions Options { get; set; }
+
         /// <summary>
         /// The set of properties and their types that vertices select from in the graph.
         /// </summary>
-        /// <value></value>
         private IDictionary<string, Type> Properties { get; set; }
-        /// <summary>
-        /// The average percentage of the total properties that any particular vertex obtains.
-        /// </summary>
-        /// <value></value>
-        private double PropertyDensity { get; set; }
-        /// <summary>
-        /// The initial probability of a vertex constructing an edge to a child.
-        /// </summary>
-        /// <value>The initial child probability.</value>
-        private double ChildProbability { get; set; }
-        /// <summary>
-        /// The amount that the child probability gets scaled by each time a child is generated.
-        /// </summary>
-        /// <value>The scalar dampener on the child probability.</value>
-        private double ChildDampener { get; set; }
 
         /// <summary>
         /// Creates a new random sampled, infinite, directed graph with the specified parameters.
         /// </summary>
-        /// <param name="seed">The seed for random generation.</param>
-        /// <param name="propertyCount">The number of total properties for the graph.</param>
-        /// <param name="propertyDensity">The percentage of properties per vertex.</param>
-        /// <param name="childProbability">The initial probability of child per vertex.</param>
-        /// <param name="childDampener">The scalar on the child probability per vertex.</param>
-        public RandomInfiniteDirectedGraph(
-            ulong seed = 0,
-            int propertyCount = 20,
-            double propertyDensity = 0.75,
-            double childProbability = 0.80,
-            double childDampener = 0.50
-        )
+        /// <param name="options">The options to generate the graph with.</param>
+        public RandomInfiniteDirectedGraph(RandomInfiniteDirectedGraphOptions options)
         {
-            CompoundRandom random = new CompoundRandom(seed);
+            // Set the options.
+            Options = options;
 
-            Seed = seed;
+            // Generate our random properties.
+            CompoundRandom random = new CompoundRandom(Options.Seed);
             Properties = new Dictionary<string, Type>();
-            while (Properties.Count < propertyCount)
+            while (Properties.Count < Options.PropertyCount)
             {
                 string key = random.NextPsuedoword();
                 Type type = GenerateRandomType(random);
@@ -70,9 +43,6 @@ namespace CartaCore.Data.Synthetic
                 if (!Properties.ContainsKey(key))
                     Properties.Add(key, type);
             }
-            PropertyDensity = propertyDensity;
-            ChildProbability = childProbability;
-            ChildDampener = childDampener;
         }
 
         /// <summary>
@@ -127,13 +97,13 @@ namespace CartaCore.Data.Synthetic
         public FreeformVertex GetProperties(Guid id)
         {
             // Create a compound random number generator using the GUID and original seed as a combined seed.
-            CompoundRandom random = new CompoundRandom(Seed, id);
+            CompoundRandom random = new CompoundRandom(Options.Seed, id);
 
             // Construct a dictionary of random properties.
             SortedList<string, FreeformVertexProperty> properties = new SortedList<string, FreeformVertexProperty>();
             foreach (KeyValuePair<string, Type> property in Properties)
             {
-                if (random.NextDouble() < PropertyDensity)
+                if (random.NextDouble() < Options.PropertyDensity)
                     properties.Add(property.Key, new FreeformVertexProperty
                     {
                         Type = property.Value,
@@ -152,11 +122,11 @@ namespace CartaCore.Data.Synthetic
         public IEnumerable<Edge<FreeformVertex>> GetEdges(Guid id)
         {
             // Create a compound random number generator using the GUID and original seed as a combined seed.
-            CompoundRandom random = new CompoundRandom(Seed, id);
+            CompoundRandom random = new CompoundRandom(Options.Seed, id);
             FreeformVertex sourceVertex = new FreeformVertex { Id = id };
 
             // Keep constructing children until the random generator doesn't sample within the current probability.
-            double probability = ChildProbability;
+            double probability = Options.ChildProbability;
             while (random.NextDouble() < probability)
             {
                 // We must construct the ID from the random number generator and not from the system.
@@ -169,7 +139,7 @@ namespace CartaCore.Data.Synthetic
                 );
 
                 // We lower the probability by some amount each time.
-                probability *= ChildDampener;
+                probability *= Options.ChildDampener;
             }
         }
     }
