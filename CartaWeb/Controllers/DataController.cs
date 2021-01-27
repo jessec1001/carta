@@ -27,10 +27,7 @@ namespace CartaWeb.Controllers
 
         private Dictionary<string, IDataResolver> SyntheticResolvers;
 
-        /// <summary>
-        /// Creates a new instance of the data controller initializing all relevant data resolvers.
-        /// </summary>
-        /// <param name="logger">The logger that is injected to this controller.</param>
+        /// <inheritdoc />
         public DataController(ILogger<DataController> logger)
         {
             _logger = logger;
