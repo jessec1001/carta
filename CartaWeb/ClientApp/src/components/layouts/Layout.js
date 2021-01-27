@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import { Container } from 'reactstrap';
 import { Navigation } from '../shared/Navigation';
 import './Layout.css';
 
@@ -10,9 +9,7 @@ export class Layout extends Component {
     return (
       <div className="growbox">
         <Navigation />
-        <Container>
-          {this.props.children}
-        </Container>
+        {this.props.children}
       </div>
     );
   }

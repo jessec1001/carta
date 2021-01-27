@@ -84,6 +84,10 @@ export class Graph extends Component {
     }
 
     componentDidMount() {
+        this.baseUri = (
+            this.props.location.pathname +
+            this.props.location.search
+        ).replace(this.props.match.path, '').substring(1);
         this.populateData();
     }
 
@@ -118,13 +122,13 @@ export class Graph extends Component {
     }
 
     async populateData() {
-        const response = await fetch('api/data/synthetic');
+        const response = await fetch(`api/data/${this.baseUri}`);
         const data = await response.json();
         this.setState({ data: data, vis: toVis(data), loading: false });
     }
 
     async populateChildren(id) {
-        const response = await fetch(`api/data/synthetic/children?id=${id}`);
+        const response = await fetch(`api/data/children/${this.baseUri}?uuid=${id}`);
         const data = await response.json();
         
         const newEdges = Object.keys(data).map(childId => ({

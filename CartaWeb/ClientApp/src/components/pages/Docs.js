@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import Container from 'reactstrap/lib/Container';
+import { Container } from 'reactstrap';
 import { Api } from '../shared/api/Api';
 
 export class Docs extends Component {

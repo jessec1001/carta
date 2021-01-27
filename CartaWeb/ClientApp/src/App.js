@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { Container } from 'reactstrap';
 import { Route } from 'react-router';
 import { Layout } from './components/layouts/Layout';
 import { Home } from './components/pages/Home';
@@ -14,8 +15,10 @@ export default class App extends Component {
     return (
       <Layout>
         <Route exact path='/' component={Home} />
-        <Route path='/graph' component={Graph} />
-        <Route path='/docs' component={Docs} />
+        <Container>
+          <Route path='/graph' component={Graph} />
+          <Route path='/docs' component={Docs} />
+        </Container>
       </Layout>
     );
   }
