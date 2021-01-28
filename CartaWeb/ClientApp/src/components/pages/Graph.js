@@ -11,10 +11,11 @@ export class Graph extends Component {
 
     constructor(props) {
         super(props);
-        this.state = { loading: true, properties: {}, attributes: {}, semantics: {} };
+        this.state = { loading: true, properties: {}, semantics: {} };
         
         this.handleSingleClick = this.handleSingleClick.bind(this);
         this.handleDoubleClick = this.handleDoubleClick.bind(this);
+        this.handleSelectNode = this.handleSelectNode.bind(this);
         this.handleSemanticsChanged = this.handleSemanticsChanged.bind(this);
     }
 
@@ -25,37 +26,7 @@ export class Graph extends Component {
             this.setState({
                 properties: {}
             });
-        } else if (nodes.length === 1) {
-            // Show properties only if exactly one node is selected.
-            const nodeData = this.state.data.graph.nodes[nodes[0]];
-            this.setState({
-                properties: nodeData.data
-            });
-        } else {
-            // Show no properties if multiple nodes are selected.
-            this.setState({
-                properties: {}
-            });
         }
-
-        // Set the combined attributes of all the nodes.
-        let attributes = {};
-        for (let k = 0; k < nodes.length; k++) {
-            const node = this.state.data.graph.nodes[nodes[k]];
-            attributes = {
-                ...attributes,
-                ...Object.keys(node.data)
-                    .reduce((obj, key) => {
-                        return {
-                            ...obj,
-                            [key]: { type: node.data[key].type }
-                        };
-                    }, {})
-            };
-        }
-        this.setState({
-            attributes: attributes
-        });
     }
     handleDoubleClick(event) {
         const nodes = event.nodes;
@@ -77,6 +48,35 @@ export class Graph extends Component {
             }
         }
     }
+    handleSelectNode(event) {
+        const nodes = event.nodes;
+        if (nodes.length === 1) {
+            // Show properties only if exactly one node is selected.
+            const nodeData = this.state.data.graph.nodes[nodes[0]];
+            this.setState({
+                properties: nodeData.data
+            });
+        } else if (nodes.length > 1) {
+            // Show the combined properties if multiple nodes are selected.
+            let properties = {};
+            for (let k = 0; k < nodes.length; k++) {
+                const node = this.state.data.graph.nodes[nodes[k]];
+                Object.keys(node.data).forEach(property => {
+                    if (property in properties) {
+                        properties[property].occurrences++;
+                    } else {
+                        properties[property] = {
+                            type: node.data[property].type,
+                            occurrences: 1
+                        };
+                    }
+                });
+            }
+            this.setState({
+                properties: properties
+            });
+        }
+    }
     handleSemanticsChanged(semantics) {
         this.setState({
             semantics: semantics
@@ -84,7 +84,7 @@ export class Graph extends Component {
     }
 
     componentDidMount() {
-        this.baseUri = (
+        this.requestURL = (
             this.props.location.pathname +
             this.props.location.search
         ).replace(this.props.match.path, '').substring(1);
@@ -92,11 +92,6 @@ export class Graph extends Component {
     }
 
     render() {
-        const propertyListProps = Object.keys(this.state.properties).length > 0 ?
-            this.state.properties : this.state.attributes;
-        const propertyListName = Object.keys(this.state.properties).length > 0 ?
-            "Properties" : "Attributes";
-
         return (
             <Row>
                 <Col xs="8">
@@ -109,26 +104,34 @@ export class Graph extends Component {
                         }}
                         onClick={this.handleSingleClick}
                         onDoubleClick={this.handleDoubleClick}
+                        onSelectNode={this.handleSelectNode}
                     />
                 </Col>
                 <Col xs="4">
-                    <PropertyList properties={propertyListProps} semantics={this.state.semantics}>
-                        <h2>{propertyListName}</h2>
-                        <Semantics attributes={this.state.attributes} onSemanticsChanged={this.handleSemanticsChanged} />
+                    <PropertyList properties={this.state.properties} semantics={this.state.semantics}>
+                        <h2>Properties</h2>
+                        <Semantics properties={this.state.properties} onSemanticsChanged={this.handleSemanticsChanged} />
                     </PropertyList>
                 </Col>
             </Row>
         );
     }
 
+    addQueryParameter(URL, parameter) {
+        if (URL.includes('?'))
+            return `${URL}&${parameter}`;
+        else
+            return `${URL}?${parameter}`;
+    }
+
     async populateData() {
-        const response = await fetch(`api/data/${this.baseUri}`);
+        const response = await fetch(`api/data/${this.requestURL}`);
         const data = await response.json();
         this.setState({ data: data, vis: toVis(data), loading: false });
     }
 
     async populateChildren(id) {
-        const response = await fetch(`api/data/children/${this.baseUri}?uuid=${id}`);
+        const response = await fetch(`api/data/children/${this.addQueryParameter(this.requestURL, `uuid=${id}`)}`);
         const data = await response.json();
         
         const newEdges = Object.keys(data).map(childId => ({

@@ -26,6 +26,10 @@
 .property-value {
   flex-grow: 1;
 }
+.property-occurrences {
+  flex-grow: 1;
+  color: #888;
+}
 .property-type {
   margin-right: -0.5em;
   margin-top: -0.5em;

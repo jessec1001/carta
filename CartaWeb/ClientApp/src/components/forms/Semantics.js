@@ -56,44 +56,44 @@ export class Semantics extends Component {
             this.props.onSemanticsChanged(semantics);
     }
 
-    findSourceAttributes() {
-        return Object.keys(this.props.attributes)
-            .filter(attribute => 
-                (!(attribute in this.state.semantics) || !(this.state.semantics[attribute] in this.props.attributes)) &&
-                (this.state.sourceSearch === "" || attribute.includes(this.state.sourceSearch) ||
-                    (attribute in this.state.semantics && this.state.semantics[attribute].includes(this.state.sourceSearch))
+    findSourceProperties() {
+        return Object.keys(this.props.properties)
+            .filter(property => 
+                (!(property in this.state.semantics) || !(this.state.semantics[property] in this.props.properties)) &&
+                (this.state.sourceSearch === "" || property.includes(this.state.sourceSearch) ||
+                    (property in this.state.semantics && this.state.semantics[property].includes(this.state.sourceSearch))
                 ) 
             )
-            .reduce((obj, attribute) => {
+            .reduce((obj, property) => {
                 return {
                     ...obj,
-                    [attribute]: this.props.attributes[attribute]
+                    [property]: this.props.properties[property]
                 };
             }, {});
     }
-    findTargetAttributes() {
+    findTargetProperties() {
         const selected = this.state.selected;
         if (selected === null)
             return {};
 
-        return Object.keys(this.props.attributes)
-            .filter(attribute => 
-                (attribute !== selected) &&
-                (!(attribute in this.state.semantics) || this.state.semantics[attribute] === selected) &&
-                (this.props.attributes[attribute].type === this.props.attributes[selected].type) &&
-                (this.state.targetSearch === "" || attribute.includes(this.state.targetSearch)) 
+        return Object.keys(this.props.properties)
+            .filter(property => 
+                (property !== selected) &&
+                (!(property in this.state.semantics) || this.state.semantics[property] === selected) &&
+                (this.props.properties[property].type === this.props.properties[selected].type) &&
+                (this.state.targetSearch === "" || property.includes(this.state.targetSearch)) 
             )
-            .reduce((obj, attribute) => {
+            .reduce((obj, property) => {
                 return {
                     ...obj,
-                    [attribute]: this.props.attributes[attribute]
+                    [property]: this.props.properties[property]
                 };
             }, {});
     }
 
     render() {
-        const sourceAttributes = this.findSourceAttributes();
-        const targetAttributes = this.findTargetAttributes();
+        const sourceProperties = this.findSourceProperties();
+        const targetProperties = this.findTargetProperties();
 
         return (
             <div>
@@ -119,14 +119,14 @@ export class Semantics extends Component {
                         <Row>
                             <Col>
                                 <PropertyList
-                                    properties={sourceAttributes}
+                                    properties={sourceProperties}
                                     selected={[this.state.selected]}
                                     onClickProperty={this.handleClickSourceProperty}
                                 />
                             </Col>
                             <Col>
                                 <PropertyList
-                                    properties={targetAttributes}
+                                    properties={targetProperties}
                                     selected={Object.keys(this.state.semantics)}
                                     onClickProperty={this.handleClickTargetProperty}
                                 />
@@ -138,7 +138,7 @@ export class Semantics extends Component {
                                     type="text"
                                     bsSize="sm"
                                     value={this.state.sourceSearch}
-                                    placeholder={"Search this"}
+                                    placeholder={"Search"}
                                     onChange={event => this.setState({ sourceSearch: event.target.value })}
                                 />
                             </Col>
@@ -147,7 +147,7 @@ export class Semantics extends Component {
                                     type="text"
                                     bsSize="sm"
                                     value={this.state.targetSearch}
-                                    placeholder={"Search that"}
+                                    placeholder={"Search"}
                                     onChange={event => this.setState({ targetSearch: event.target.value })}
                                 />
                             </Col>

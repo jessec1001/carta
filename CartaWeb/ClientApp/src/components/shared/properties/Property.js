@@ -8,6 +8,7 @@ export class Property extends Component {
         let name = this.props.name;
         let value = this.props.value;
         let type = this.props.type;
+        let occurrences = this.props.occurrences;
         
         // Round to 6 sig figs if a floating point number.
         if (value !== undefined && (type === 'double' || type === 'float'))
@@ -22,7 +23,8 @@ export class Property extends Component {
         return (
             <div className={className} onClick={this.props.onClick}>
                 <p className="property-name">{name}</p>
-                <p className="property-value">{value}</p>
+                {!occurrences && <p className="property-value">{value}</p>}
+                {occurrences && <p className="property-occurrences">×{occurrences}</p>}
                 <p className="property-type text-muted">{type}</p>
             </div>
         );
