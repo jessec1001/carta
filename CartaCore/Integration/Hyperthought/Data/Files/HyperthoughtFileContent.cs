@@ -37,7 +37,7 @@ namespace CartaCore.Integration.Hyperthought.Data
         /// The ID of the file.
         /// </summary>
         [JsonPropertyName("file")]
-        public string FileId { get; set; }
+        public Guid FileId { get; set; }
         /// <summary>
         /// How the file is stored.
         /// </summary>
@@ -47,7 +47,7 @@ namespace CartaCore.Integration.Hyperthought.Data
         /// The unique primary key that this file is stored by.
         /// </summary>
         [JsonPropertyName("pk")]
-        public string PrimaryKey { get; set; }
+        public Guid PrimaryKey { get; set; }
         #endregion
 
         #region Contents Information

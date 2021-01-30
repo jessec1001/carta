@@ -1,11 +1,50 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Text;
 
 namespace CartaCore.Utility
 {
     public class CompoundRandom
     {
+        private static readonly string Consonants = "bcdfghjklmnpqrstvwxyz";
+        private static readonly string Vowels = "aeiou";
+        private static readonly double[] LetterFrequency = new double[26]
+        {
+            0.0780, // Letter a
+            0.0200, // Letter b
+            0.0400, // Letter c
+            0.0380, // Letter d
+            0.1100, // Letter e
+            0.0140, // Letter f
+            0.0300, // Letter g
+            0.0230, // Letter h
+            0.0860, // Letter i
+            0.0021, // Letter j
+            0.0097, // Letter k
+            0.0530, // Letter l
+            0.0270, // Letter m
+            0.0720, // Letter n
+            0.0610, // Letter o
+            0.0280, // Letter p
+            0.0019, // Letter q
+            0.0730, // Letter r
+            0.0870, // Letter s
+            0.0670, // Letter t
+            0.0330, // Letter u
+            0.0100, // Letter v
+            0.0091, // Letter w
+            0.0027, // Letter x
+            0.0160, // Letter y
+            0.0044, // Letter z
+        };
+        private static readonly double ConsonantFrequency = LetterFrequency
+            .Where((_, index) => Consonants.Contains((char)(index + 97)))
+            .Sum();
+        private static readonly double VowelFrequency = LetterFrequency
+            .Where((_, index) => Vowels.Contains((char)(index + 97)))
+            .Sum();
+
         private Random[] Randoms { get; set; }
 
         public ReadOnlyCollection<byte> Seed { get; protected set; }
@@ -77,6 +116,8 @@ namespace CartaCore.Utility
         public int NextInt(int min, int max)
         {
             int diff = max - min;
+            if (diff <= 0)
+                return 0;
 
             int result = 0;
             for (int k = 0; k < Randoms.Length; k++)
@@ -146,13 +187,27 @@ namespace CartaCore.Utility
         }
         public char NextVowel()
         {
-            string vowels = "aeiou";
-            return vowels[NextInt(vowels.Length)];
+            double value = NextDouble() * VowelFrequency;
+            double cumulativeFreq = 0;
+            for (int k = 0; k < Vowels.Length; k++)
+            {
+                cumulativeFreq += LetterFrequency[(int)Vowels[k] - 97];
+                if (value < cumulativeFreq)
+                    return Vowels[k];
+            }
+            return Vowels.Last();
         }
         public char NextConsonant()
         {
-            string consonants = "bcdfghjklmnpqrstvwxyz";
-            return consonants[NextInt(consonants.Length)];
+            double value = NextDouble() * ConsonantFrequency;
+            double cumulativeFreq = 0;
+            for (int k = 0; k < Consonants.Length; k++)
+            {
+                cumulativeFreq += LetterFrequency[(int)Consonants[k] - 97];
+                if (value < cumulativeFreq)
+                    return Consonants[k];
+            }
+            return Consonants.Last();
         }
     }
 }

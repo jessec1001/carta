@@ -6,7 +6,27 @@ import './Home.css';
 export class Home extends Component {
   static displayName = Home.name;
 
-  render () {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      hyperthoughtKey: ""
+    };
+
+    this.handleHyperthoughtLink = this.handleHyperthoughtLink.bind(this);
+  }
+
+  handleHyperthoughtLink(event) {
+    const key = prompt("Please paste your HyperThought API key.");
+    console.log(event.target.href);
+    this.props.history.push({
+      pathname: event.target.getAttribute("href"),
+      search: `?api=${key}`
+    });
+    event.preventDefault();
+  }
+
+  render() {
     return (
       <div>
         <section>
@@ -55,10 +75,28 @@ export class Home extends Component {
               <NavItem>
                   <NavLink
                     tag={Link}
-                    to="/graph/hyperthought/"
-                    disabled
+                    to="/graph/hyperthought/254fdd9f-264a-4301-b372-46810b51f39b"
+                    onClick={this.handleHyperthoughtLink}
                   >
-                    CAMDEN
+                    NAVAIR
+                  </NavLink>
+                </NavItem>
+                <NavItem>
+                  <NavLink
+                    tag={Link}
+                    to="/graph/hyperthought/1badcce7-ac18-4664-962a-f730559223fc"
+                    onClick={this.handleHyperthoughtLink}
+                  >
+                    TTCP
+                  </NavLink>
+                </NavItem>
+                <NavItem>
+                  <NavLink
+                    tag={Link}
+                    to="/graph/hyperthought/4e7e93ef-e260-4258-addc-54e92011d827"
+                    onClick={this.handleHyperthoughtLink}
+                  >
+                    UDRI
                   </NavLink>
                 </NavItem>
               </Nav>

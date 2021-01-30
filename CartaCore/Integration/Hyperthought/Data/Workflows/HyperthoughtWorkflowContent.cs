@@ -32,32 +32,32 @@ namespace CartaCore.Integration.Hyperthought.Data
         /// The ID of the parent process.
         /// </summary>
         [JsonPropertyName("parent_process")]
-        public string ParentProcessId { get; set; }
+        public Guid? ParentProcessId { get; set; }
         /// <summary>
         /// The ID of the client.
         /// </summary>
         [JsonPropertyName("client_id")]
-        public string ClientId { get; set; }
+        public Guid? ClientId { get; set; }
         /// <summary>
         /// The IDs of processes that come after this one.
         /// </summary>
         [JsonPropertyName("successors")]
-        public List<string> SuccessorIds { get; set; }
+        public List<Guid> SuccessorIds { get; set; }
         /// <summary>
         /// The IDs of processes that come before this one.
         /// </summary>
         [JsonPropertyName("predecessors")]
-        public List<string> PredecessorIds { get; set; }
+        public List<Guid> PredecessorIds { get; set; }
         /// <summary>
         /// The IDs of children processes of this one.
         /// </summary>
         [JsonPropertyName("children")]
-        public List<string> ChildrenIds { get; set; }
+        public List<Guid> ChildrenIds { get; set; }
         /// <summary>
         /// The unique primary key that this workflow is stored by.
         /// </summary>
         [JsonPropertyName("pk")]
-        public string PrimaryKey { get; set; }
+        public Guid PrimaryKey { get; set; }
         #endregion
 
         #region Creation Information
@@ -65,12 +65,12 @@ namespace CartaCore.Integration.Hyperthought.Data
         /// The type of this process.
         /// </summary>
         [JsonPropertyName("process_type")]
-        public HyperthoughtProcessType Type { get; set; }
+        public HyperthoughtWorkflowType Type { get; set; }
         /// <summary>
         /// The template name of this workflow.
         /// </summary>
         [JsonPropertyName("template")]
-        public string Template { get; set; }
+        public bool Template { get; set; }
         /// <summary>
         /// The creator user of this workflow.
         /// </summary>
@@ -104,17 +104,17 @@ namespace CartaCore.Integration.Hyperthought.Data
         /// The status of this workflow.
         /// </summary>
         [JsonPropertyName("status")]
-        public HyperthoughtWorkflowStatus Status { get; set; }
+        public HyperthoughtProcessStatus Status { get; set; }
         /// <summary>
         /// When this workflow was started.
         /// </summary>
         [JsonPropertyName("started")]
-        public DateTime StartedTime { get; set; }
+        public DateTime? StartedTime { get; set; }
         /// <summary>
         /// When this workflow was completed.
         /// </summary>
         [JsonPropertyName("completed")]
-        public DateTime CompletedTime { get; set; }
+        public DateTime? CompletedTime { get; set; }
         /// <summary>
         /// The notes about this workflow.
         /// </summary>

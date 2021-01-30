@@ -9,7 +9,7 @@ using NUnit.Framework;
 namespace CartaTest.Integration.Hyperthought.Data
 {
     [TestFixture]
-    public class TestHyperThoughtDataSerialization
+    public class TestHyperthoughtDataSerialization
     {
         [Test]
         public void TestApiWorkflowProcess()
@@ -32,7 +32,7 @@ namespace CartaTest.Integration.Hyperthought.Data
                         ""3fa85f64-5717-4562-b3fc-2c963f66afa6""
                     ],
                     ""process_type"": ""workflow"",
-                    ""template"": ""string"",
+                    ""template"": true,
                     ""children"": [
                         ""3fa85f64-5717-4562-b3fc-2c963f66afa6""
                     ],
@@ -71,7 +71,7 @@ namespace CartaTest.Integration.Hyperthought.Data
                         ""annotation"": ""string""
                     }
                 ],
-                ""header"": {
+                ""headers"": {
                     ""canonincal-uri"": ""string"",
                     ""sys-creation-timestamp"": ""2021-01-15T19:26:08.667Z"",
                     ""sys-last-modified"": ""2021-01-15T19:26:08.667Z"",
@@ -100,7 +100,7 @@ namespace CartaTest.Integration.Hyperthought.Data
 
             // Assert a collection of random values.
             Assert.AreEqual(1, workflows.Count);
-            Assert.AreEqual(HyperthoughtWorkflowStatus.None, workflow.Content.Status);
+            Assert.AreEqual(HyperthoughtProcessStatus.None, workflow.Content.Status);
             Assert.AreEqual("string", workflow.Content.Name);
             Assert.AreEqual("3fa85f64-5717-4562-b3fc-2c963f66afa6", workflow.Content.ClientId);
             Assert.AreEqual(1, workflow.Content.ChildrenIds.Count);
@@ -132,7 +132,7 @@ namespace CartaTest.Integration.Hyperthought.Data
                         ""3fa85f64-5717-4562-b3fc-2c963f66afa6""
                     ],
                     ""process_type"": ""workflow"",
-                    ""template"": ""string"",
+                    ""template"": false,
                     ""children"": [
                         ""3fa85f64-5717-4562-b3fc-2c963f66afa6""
                     ],
@@ -171,7 +171,7 @@ namespace CartaTest.Integration.Hyperthought.Data
                         ""annotation"": ""string""
                     }
                 ],
-                ""header"": {
+                ""headers"": {
                     ""canonincal-uri"": ""string"",
                     ""sys-creation-timestamp"": ""2021-01-15T19:26:08.667Z"",
                     ""sys-last-modified"": ""2021-01-15T19:26:08.667Z"",
@@ -197,7 +197,7 @@ namespace CartaTest.Integration.Hyperthought.Data
             HyperthoughtWorkflow workflow = JsonSerializer.Deserialize<HyperthoughtWorkflow>(jsonPkg);
 
             // Assert a collection of random values.
-            Assert.AreEqual(HyperthoughtWorkflowStatus.None, workflow.Content.Status);
+            Assert.AreEqual(HyperthoughtProcessStatus.None, workflow.Content.Status);
             Assert.AreEqual("string", workflow.Content.Name);
             Assert.AreEqual("3fa85f64-5717-4562-b3fc-2c963f66afa6", workflow.Content.ClientId);
             Assert.AreEqual(1, workflow.Content.ChildrenIds.Count);
@@ -254,7 +254,7 @@ namespace CartaTest.Integration.Hyperthought.Data
                         ""exportControl"": """",
                         ""securityMarking"": """"
                     },
-                    ""header"": {
+                    ""headers"": {
                         ""canonical-uri"": ""/files/filesystementry/00dfb7b9-b675-4303-b2e6-4916c813ca31"",
                         ""sys-creation-timestamp"": ""2020-02-12T14:39:03.7871543-05:00"",
                         ""sys-last-modified"": ""2020-02-12T14:39:03.7871543-05:00"",
@@ -282,7 +282,7 @@ namespace CartaTest.Integration.Hyperthought.Data
             Assert.AreEqual("blue", file.Metadata[0].Value.Link);
             Assert.AreEqual(0, file.Triples.Count);
             Assert.AreEqual(HyperthoughtDistribution.None, file.Restrictions.Distribution);
-            Assert.AreEqual("/files/filesystementry/00dfb7b9-b675-4303-b2e6-4916c813ca31/versions/0", file.Header.Uri);
+            Assert.AreEqual("/files/filesystementry/00dfb7b9-b675-4303-b2e6-4916c813ca31/versions/0", file.Headers.Uri);
         }
 
         [Test]
@@ -329,7 +329,7 @@ namespace CartaTest.Integration.Hyperthought.Data
                     ""exportControl"": """",
                     ""securityMarking"": """"
                 },
-                ""header"": {
+                ""headers"": {
                     ""canonical-uri"": ""/files/filesystementry/00dfb7b9-b675-4303-b2e6-4916c813ca31"",
                     ""sys-creation-timestamp"": ""2020-02-12T14:39:03.7871543-05:00"",
                     ""sys-last-modified"": ""2020-02-12T14:39:03.7871543-05:00"",
@@ -354,7 +354,7 @@ namespace CartaTest.Integration.Hyperthought.Data
             Assert.AreEqual("red", file.Metadata[0].Value.Link);
             Assert.AreEqual(0, file.Triples.Count);
             Assert.AreEqual(HyperthoughtDistribution.None, file.Restrictions.Distribution);
-            Assert.AreEqual("/files/filesystementry/00dfb7b9-b675-4303-b2e6-4916c813ca31/versions/0", file.Header.Uri);
+            Assert.AreEqual("/files/filesystementry/00dfb7b9-b675-4303-b2e6-4916c813ca31/versions/0", file.Headers.Uri);
         }
     }
 }

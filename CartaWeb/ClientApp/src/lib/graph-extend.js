@@ -10,6 +10,8 @@ export function toVis(jgf) {
                 id: id,
                 ...jgf.graph.nodes[id]
             };
+            if (!node.title)
+                delete node.title;
             delete node.data;
             return node;
         });
@@ -18,11 +20,24 @@ export function toVis(jgf) {
         graph.edges = jgf.graph.edges.map((edge, index) => ({
             id: index,
             from: edge.source,
-            to: edge.target,
-            direction: 'to',
-            arrows: 'to'
+            to: edge.target
         }));
     }
 
-    return graph;
+    let options = {
+        nodes: {
+            shape: 'dot',
+            size: 15
+        },
+        edges: {}
+    };
+    if (jgf.graph.directed)
+        options.edges = {
+            arrows: 'to'
+        };
+
+    return {
+        graph: graph,
+        options: options
+    };
 };

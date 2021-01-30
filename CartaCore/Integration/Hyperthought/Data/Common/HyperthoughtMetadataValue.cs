@@ -16,6 +16,6 @@ namespace CartaCore.Integration.Hyperthought.Data
         /// A reference to another object.
         /// </summary>
         [JsonPropertyName("link")]
-        public string Link { get; set; }
+        public object Link { get; set; }
     }
 }

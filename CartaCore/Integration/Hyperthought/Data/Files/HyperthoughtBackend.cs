@@ -8,7 +8,7 @@ namespace CartaCore.Integration.Hyperthought.Data
     /// <summary>
     /// Represents the type of backend storing a particular file.
     /// </summary>
-    [JsonConverter(typeof(JsonExactStringEnumConverter))]
+    [JsonConverter(typeof(JsonFullStringEnumConverter))]
     public enum HyperthoughtBackend
     {
         /// <summary>

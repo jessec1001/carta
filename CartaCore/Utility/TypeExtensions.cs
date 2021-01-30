@@ -38,13 +38,13 @@ namespace CartaCore.Utility
 
         public static string ToFriendlyString(this Type type)
         {
-            if (Mappings.TryGetValue(type, out string result))
+            if (!(type is null) && Mappings.TryGetValue(type, out string result))
                 return result;
             return string.Empty;
         }
         public static Type ToFriendlyType(this string str)
         {
-            if (InverseMappings.TryGetValue(str, out Type result))
+            if (!(str is null) && InverseMappings.TryGetValue(str, out Type result))
                 return result;
             return null;
         }

@@ -8,7 +8,7 @@ using CartaCore.Utility;
 
 namespace CartaCore.Data.Synthetic
 {
-    using FreeformGraph = IEdgeListAndIncidenceGraph<FreeformVertex, Edge<FreeformVertex>>;
+    using FreeformGraph = IMutableVertexAndEdgeSet<FreeformVertex, Edge<FreeformVertex>>;
 
     /// <summary>
     /// Represents graph data of a random, finite, undirected graph. Both the vertices and edges are randomly generated
@@ -92,7 +92,7 @@ namespace CartaCore.Data.Synthetic
             }
 
             // We convert the edge list to a undirected graph and return.
-            AdjacencyGraph<FreeformVertex, Edge<FreeformVertex>> graph = new AdjacencyGraph<FreeformVertex, Edge<FreeformVertex>>();
+            UndirectedGraph<FreeformVertex, Edge<FreeformVertex>> graph = new UndirectedGraph<FreeformVertex, Edge<FreeformVertex>>();
             graph.AddVertexRange(vertices);
             graph.AddEdgeRange(edgesSelected);
             return graph;
@@ -103,6 +103,8 @@ namespace CartaCore.Data.Synthetic
         /// </summary>
         /// <value>Always <c>true</c>.</value>
         public bool IsFinite => true;
+        /// <inheritdoc />
+        public Guid BaseId => Graph.Vertices.FirstOrDefault().Id;
 
         /// <inheritdoc />
         public FreeformGraph GetEntire() => Graph;

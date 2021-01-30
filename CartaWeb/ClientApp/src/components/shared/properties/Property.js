@@ -11,8 +11,13 @@ export class Property extends Component {
         let occurrences = this.props.occurrences;
         
         // Round to 6 sig figs if a floating point number.
-        if (value !== undefined && (type === 'double' || type === 'float'))
-            value = value.toPrecision(6);
+        if (value !== undefined)
+        {
+            if (type === 'double' || type === 'float')
+                value = value.toPrecision(6);
+            else
+                value = value.toString();
+        }
 
         let className = "property";
         if (this.props.selected)

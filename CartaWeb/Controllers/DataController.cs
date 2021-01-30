@@ -9,12 +9,13 @@ using QuikGraph;
 
 using CartaCore.Data;
 using CartaCore.Data.Synthetic;
+using CartaCore.Integration.Hyperthought;
 
 using CartaWeb.Models.Data;
 
 namespace CartaWeb.Controllers
 {
-    using FreeformGraph = IEdgeListAndIncidenceGraph<FreeformVertex, Edge<FreeformVertex>>;
+    using FreeformGraph = IMutableVertexAndEdgeSet<FreeformVertex, Edge<FreeformVertex>>;
 
     /// <summary>
     /// Serves data from multiple sources in graph format.
@@ -58,6 +59,14 @@ namespace CartaWeb.Controllers
                     }
                     break;
                 case DataSource.HyperThought:
+                    if (!(resource is null))
+                    {
+                        if (Request.Query.ContainsKey("api"))
+                        {
+                            HyperthoughtApi api = new HyperthoughtApi(Request.Query["api"].ToString());
+                            return new HyperthoughtWorkflowGraph(api, Guid.Parse(resource));
+                        }
+                    }
                     break;
             }
             return null;
@@ -90,8 +99,8 @@ namespace CartaWeb.Controllers
                 }
                 else
                 {
-                    // Generate random starting node ID.
-                    Guid nodeId = Guid.NewGuid();
+                    // Get the base ID from the graph.
+                    Guid nodeId = graph.BaseId;
 
                     // Generate graph with starting node.
                     AdjacencyGraph<FreeformVertex, Edge<FreeformVertex>> data = new AdjacencyGraph<FreeformVertex, Edge<FreeformVertex>>();
@@ -144,12 +153,8 @@ namespace CartaWeb.Controllers
 
             if (!(graph is null))
             {
-                // Return a dictionary of node ID, node properties pairs.
-                return graph.GetEdges(uuid)
-                    .ToDictionary(
-                        edge => edge.Target.Id,
-                        edge => graph.GetProperties(edge.Target.Id)
-                    );
+                // Return a dictionary of node ID-node properties pairs.
+                return graph.GetChildren(uuid);
             }
             return null;
         }

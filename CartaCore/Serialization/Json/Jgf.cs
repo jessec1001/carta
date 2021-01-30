@@ -10,7 +10,7 @@ using CartaCore.Utility;
 
 namespace CartaCore.Serialization.Json.Jgf
 {
-    using FreeformGraph = IEdgeListAndIncidenceGraph<FreeformVertex, Edge<FreeformVertex>>;
+    using FreeformGraph = IMutableVertexAndEdgeSet<FreeformVertex, Edge<FreeformVertex>>;
 
     public class Jgf
     {
@@ -71,7 +71,7 @@ namespace CartaCore.Serialization.Json.Jgf
         public JgfGraph() { }
         public JgfGraph(FreeformGraph graph)
         {
-            JsonDirected = true;
+            JsonDirected = graph.IsDirected;
 
             JsonNodes = graph.Vertices.ToDictionary(
                 vertex => vertex.Id.ToString(),
@@ -87,6 +87,8 @@ namespace CartaCore.Serialization.Json.Jgf
     {
         [JsonPropertyName("label")]
         public string JsonLabel { get; set; }
+        [JsonPropertyName("title")]
+        public string JsonTitle { get; set; }
         [JsonPropertyName("data")]
         public SortedList<string, JgfData> JsonData { get; set; }
 
@@ -110,7 +112,8 @@ namespace CartaCore.Serialization.Json.Jgf
         public JgfNode() { }
         public JgfNode(FreeformVertex vertex)
         {
-            JsonLabel = "";
+            JsonLabel = vertex.Label;
+            JsonTitle = vertex.Description;
             JsonData = vertex.Properties == null ? null :
             new SortedList<string, JgfData>(
                 vertex.Properties

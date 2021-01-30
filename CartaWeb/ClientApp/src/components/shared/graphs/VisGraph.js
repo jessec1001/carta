@@ -72,6 +72,11 @@ export class VisGraph extends Component {
             // Update the datasets.
             let graph = this.props.graph || { nodes: [], edges: [] };
 
+            // Update nodes.
+            graph.nodes
+                .filter(node => this.data.nodes.get(node.id))
+                .forEach(node => this.data.nodes.update(node));
+
             // Add and remove nodes.
             let nodeIds = graph.nodes.map(node => node.id);
             this.data.nodes.add(
@@ -89,6 +94,11 @@ export class VisGraph extends Component {
             this.data.edges.remove(
                 this.data.edges.getIds().filter(id => !edgeIds.includes(id))
             );
+        }
+        
+        // If the graph options changed, just reset them.
+        if (this.props.options !== prevProps.options) {
+            this.network.setOptions(this.props.options);
         }
     }
 
