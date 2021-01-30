@@ -8,7 +8,7 @@ namespace CartaCore.Integration.Hyperthought.Data
     /// <summary>
     /// Represents the instance of the HyperThought export.
     /// </summary>
-    [JsonConverter(typeof(JsonExactStringEnumConverter))]
+    [JsonConverter(typeof(JsonFullStringEnumConverter))]
     public enum HyperthoughtExportControl
     {
         /// <summary>

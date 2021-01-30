@@ -7,7 +7,7 @@ using CartaCore.Utility;
 
 namespace CartaCore.Data.Synthetic
 {
-    using FreeformGraph = IEdgeListAndIncidenceGraph<FreeformVertex, Edge<FreeformVertex>>;
+    using FreeformGraph = IMutableVertexAndEdgeSet<FreeformVertex, Edge<FreeformVertex>>;
 
     /// <summary>
     /// Represents graph data of a random, (practically) infinite, directed graph. Both the vertices and edges are
@@ -89,6 +89,8 @@ namespace CartaCore.Data.Synthetic
         /// </summary>
         /// <value>Always <c>false</c>.</value>
         public bool IsFinite => false;
+        /// <inheritdoc />
+        public Guid BaseId => (new CompoundRandom(Options.Seed)).NextGuid();
 
         /// <inheritdoc />
         public FreeformGraph GetEntire() => throw new NotFiniteNumberException();

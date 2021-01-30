@@ -98,6 +98,7 @@ export class Graph extends Component {
                     <VisGraph
                         graph={this.state.vis}
                         options={{
+                            ...this.state.options,
                             interaction: {
                                 multiselect: true
                             }
@@ -127,7 +128,14 @@ export class Graph extends Component {
     async populateData() {
         const response = await fetch(`api/data/${this.requestURL}`);
         const data = await response.json();
-        this.setState({ data: data, vis: toVis(data), loading: false });
+        const vis = toVis(data);
+        
+        this.setState({
+            data: data,
+            vis: vis.graph,
+            options: vis.options,
+            loading: false
+        });
     }
 
     async populateChildren(id) {
@@ -148,9 +156,11 @@ export class Graph extends Component {
             }
         };
 
+        const vis = toVis(newData);
         this.setState({
             data: newData,
-            vis: toVis(newData)
+            vis: vis.graph,
+            options: vis.options
         });
     }
 
@@ -189,9 +199,11 @@ export class Graph extends Component {
             }
         };
 
+        const vis = toVis(newData);
         this.setState({
             data: newData,
-            vis: toVis(newData)
+            vis: vis.graph,
+            options: vis.options
         });
     }
 }

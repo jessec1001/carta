@@ -11,7 +11,7 @@ using CartaCore.Serialization.Json.Jgf;
 
 namespace CartaTest.Serialization.Json
 {
-    using FreeformGraph = IEdgeListAndIncidenceGraph<FreeformVertex, Edge<FreeformVertex>>;
+    using FreeformGraph = IMutableVertexAndEdgeSet<FreeformVertex, Edge<FreeformVertex>>;
 
     [TestFixture]
     public class JgfSerializationTests

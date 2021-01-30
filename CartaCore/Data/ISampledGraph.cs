@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using QuikGraph;
 
 namespace CartaCore.Data
 {
-    using FreeformGraph = IEdgeListAndIncidenceGraph<FreeformVertex, Edge<FreeformVertex>>;
+    using FreeformGraph = IMutableVertexAndEdgeSet<FreeformVertex, Edge<FreeformVertex>>;
 
     /// <summary>
     /// Represents graph data that can be queried vertex-by-vertex.
@@ -17,6 +18,14 @@ namespace CartaCore.Data
         /// </summary>
         /// <value><c>true</c> if the graph is finite; otherwise, <c>false</c>.</value>
         bool IsFinite { get; }
+        /// <summary>
+        /// The ID of the base vertex of the graph.
+        /// </summary>
+        /// <remarks>
+        /// This is required to provide deterministic behavior in infinite graphs.
+        /// </remarks>
+        /// <value>A GUID of a base vertex in the graph.</value>
+        Guid BaseId { get; }
 
         /// <summary>
         /// Gets the entirety of the graph data.
@@ -44,5 +53,19 @@ namespace CartaCore.Data
         /// <param name="id">The ID of the vertex.</param>
         /// <returns>An enumerable of the out-edges of the vertex.</returns>
         IEnumerable<Edge<FreeformVertex>> GetEdges(Guid id);
+
+        /// <summary>
+        /// Gets the children of a vertex specified by ID.
+        /// </summary>
+        /// <param name="id">The ID of the vertex.</param>
+        /// <returns>A dictionary of ID-vertex pairs of children of the vertex.</returns>
+        IDictionary<Guid, FreeformVertex> GetChildren(Guid id)
+        {
+            return GetEdges(id)
+                .ToDictionary(
+                    edge => edge.Target.Id,
+                    edge => GetProperties(edge.Target.Id)
+                );
+        }
     }
 }

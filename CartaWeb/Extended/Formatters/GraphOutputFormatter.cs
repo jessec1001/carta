@@ -20,7 +20,7 @@ using CartaCore.Serialization.Xml.Gexf;
 
 namespace CartaWeb.Extended.Formatters
 {
-    using FreeformGraph = IEdgeListAndIncidenceGraph<FreeformVertex, Edge<FreeformVertex>>;
+    using FreeformGraph = IMutableVertexAndEdgeSet<FreeformVertex, Edge<FreeformVertex>>;
 
     public class GraphOutputFormatter : TextOutputFormatter
     {

@@ -6,7 +6,7 @@ namespace CartaCore.Integration.Hyperthought.Data
     /// <summary>
     /// Represents information about the creation, modification, and storage of a HyperThought object.
     /// </summary>
-    public class HyperthoughtHeader
+    public class HyperthoughtHeaders
     {
         /// <summary>
         /// Where the object is stored regardless of version.
@@ -43,6 +43,6 @@ namespace CartaCore.Integration.Hyperthought.Data
         /// The process ID of the resource.
         /// </summary>
         [JsonPropertyName("pid")]
-        public string ProcessId { get; set; }
+        public Guid ProcessId { get; set; }
     }
 }
