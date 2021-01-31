@@ -13,13 +13,15 @@ stages:
 
 build:
   stage: build
+  artifacts:
+    untracked: true
   script:
     - curl -sL https://deb.nodesource.com/setup_current.x | bash -
     - apt-get install -y nodejs
     - cd CartaWeb/ClientApp/
     - npm ci --cache $HOME/.npm --prefer-offline
     - cd ../../
-    - dotnet build
+    - dotnet build --configuration Release
 
 test:
   stage: test
@@ -27,10 +29,12 @@ test:
     paths:
       - coverage.lcov
   script:
-    - dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=lcov /p:CoverletOutput='../coverage.lcov'
+    - dotnet test --configuration Release --no-build /p:CollectCoverage=true /p:CoverletOutputFormat=lcov /p:CoverletOutput='../coverage.lcov'
 
 docs-coverage:
   stage: docs
+  only:
+    - master
   dependencies:
     - test
   artifacts:
@@ -40,6 +44,17 @@ docs-coverage:
     - export PATH=$PATH:$HOME/.dotnet/tools
     - . ~/.bashrc
     - reportgenerator
+
+# docs-projects:
+#   stage: docs
+#   only:
+#     - master
+#   dependencies:
+#     - build
+#   artifacts:
+#     untracked: true
+#   script:
+#     - choco install docfx -y
 
 pages:
   stage: deploy
@@ -51,4 +66,5 @@ pages:
     paths:
       - public
   script:
+    - mkdir public/
     - mv coverage/ public/coverage/
