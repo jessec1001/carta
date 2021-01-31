@@ -1,0 +1,16 @@
+default:
+  image: mcr.microsoft.com/dotnet/sdk:3.1
+
+stages:
+  - build
+  - test
+
+build:
+  stage: build
+  script:
+    - dotnet build
+
+test:
+  stage: test
+  script:
+    - dotnet test
