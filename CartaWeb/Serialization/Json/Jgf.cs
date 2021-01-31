@@ -93,14 +93,14 @@ namespace CartaCore.Serialization.Json.Jgf
         public SortedList<string, JgfData> JsonData { get; set; }
 
         [JsonIgnore]
-        public SortedList<string, FreeformVertexProperty> Properties
+        public SortedList<string, FreeformProperty> Properties
         {
             get
             {
                 if (JsonData == null)
-                    return new SortedList<string, FreeformVertexProperty>();
+                    return new SortedList<string, FreeformProperty>();
 
-                return new SortedList<string, FreeformVertexProperty>(
+                return new SortedList<string, FreeformProperty>(
                     JsonData.ToDictionary(
                         pair => pair.Key,
                         pair => pair.Value.Property
@@ -162,9 +162,9 @@ namespace CartaCore.Serialization.Json.Jgf
         public string JsonType { get; set; }
 
         [JsonIgnore]
-        public FreeformVertexProperty Property
+        public FreeformProperty Property
         {
-            get => new FreeformVertexProperty
+            get => new FreeformProperty
             {
                 Value = JsonValue,
                 Type = JsonType.ToFriendlyType()
@@ -172,7 +172,7 @@ namespace CartaCore.Serialization.Json.Jgf
         }
 
         public JgfData() { }
-        public JgfData(FreeformVertexProperty property)
+        public JgfData(FreeformProperty property)
         {
             JsonValue = property.Value;
             JsonType = property.Type.ToFriendlyString();

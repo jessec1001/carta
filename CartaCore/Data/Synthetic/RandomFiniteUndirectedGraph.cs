@@ -60,7 +60,7 @@ namespace CartaCore.Data.Synthetic
                 .Select(_ => new FreeformVertex
                 {
                     Id = random.NextGuid(),
-                    Properties = new SortedList<string, FreeformVertexProperty>()
+                    Properties = new SortedList<string, FreeformProperty>()
                 })
             );
 

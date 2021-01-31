@@ -42,14 +42,14 @@ namespace CartaTest.Workflow
             Vertex = new FreeformVertex
             {
                 Id = Guid.NewGuid(),
-                Properties = new SortedList<string, FreeformVertexProperty>
+                Properties = new SortedList<string, FreeformProperty>
                 (
-                    new Dictionary<string, FreeformVertexProperty>()
+                    new Dictionary<string, FreeformProperty>()
                     {
-                        ["foo"] = new FreeformVertexProperty { Value = 1, Type = typeof(int) },
-                        ["baz"] = new FreeformVertexProperty { Value = 2, Type = typeof(int) },
-                        ["bar"] = new FreeformVertexProperty { Value = 3, Type = typeof(int) },
-                        ["qux"] = new FreeformVertexProperty { Value = 4, Type = typeof(int) }
+                        ["foo"] = new FreeformProperty { Value = 1, Type = typeof(int) },
+                        ["baz"] = new FreeformProperty { Value = 2, Type = typeof(int) },
+                        ["bar"] = new FreeformProperty { Value = 3, Type = typeof(int) },
+                        ["qux"] = new FreeformProperty { Value = 4, Type = typeof(int) }
                     }
                 )
             };

@@ -30,11 +30,11 @@ namespace CartaCore.Integration.Hyperthought
 
         private FreeformVertex VertexFromWorkflow(HyperthoughtWorkflow workflow)
         {
-            SortedList<string, FreeformVertexProperty> properties = new SortedList<string, FreeformVertexProperty>();
+            SortedList<string, FreeformProperty> properties = new SortedList<string, FreeformProperty>();
             foreach (HyperthoughtMetadata metadata in workflow.Metadata)
             {
                 HyperthoughtMetadataValue value = metadata.Value;
-                properties.Add(metadata.Key, new FreeformVertexProperty
+                properties.Add(metadata.Key, new FreeformProperty
                 {
                     Type = value.Type.ToString().ToFriendlyType(),
                     Value = value.Link
