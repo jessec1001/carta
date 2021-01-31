@@ -1,10 +1,6 @@
 default:
   image: mcr.microsoft.com/dotnet/sdk:3.1
 
-before_script:
-  - curl -sL https://deb.nodesource.com/setup_current.x | bash -
-  - apt-get install -y nodejs
-
 stages:
   - build
   - test
@@ -12,6 +8,8 @@ stages:
 build:
   stage: build
   script:
+    - curl -sL https://deb.nodesource.com/setup_current.x | bash -
+    - apt-get install -y nodejs
     - dotnet build
 
 test:
