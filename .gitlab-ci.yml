@@ -1,6 +1,13 @@
 default:
   image: mcr.microsoft.com/dotnet/sdk:3.1
 
+cache:
+  paths:
+    - .npm/
+
+before_script:
+  - npm ci --cache .npm --prefer-offline
+
 stages:
   - build
   - test
