@@ -43,7 +43,7 @@ pages:
   only:
     - master
   dependencies:
-    - docs
+    - docs-coverage
   artifacts:
     paths:
       - public
