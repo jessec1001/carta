@@ -1,0 +1,5 @@
+[ReportGenerator]
+    report = coverage.lcov
+    targetdir = ./coverage/
+    reporttype = Html
+    reporttype = Badges

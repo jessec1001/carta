@@ -1,5 +1,6 @@
 # Carta
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
+[![Code coverage](./public/coverage/badge_shieldsio_linecoverage_blue.svg)](https://github.com/coverlet-coverage/coverlet)
 
 Carta is a web-based API and application that provides graph-based tools for accessing, exploring, and transforming existing datasets and models. 
 

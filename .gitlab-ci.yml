@@ -11,6 +11,8 @@ before_script:
 stages:
   - build
   - test
+  - docs
+  - deploy
 
 build:
   stage: build
@@ -21,5 +23,29 @@ build:
 
 test:
   stage: test
+  artifacts:
+    untracked: true
   script:
-    - dotnet test /p:CollectCoverage=true
+    - dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=lcov /p:CoverletOutput='../coverage.lcov'
+
+docs-coverage:
+  stage: docs
+  dependencies:
+    - test
+  artifacts:
+    untracked: true
+  script:
+    - dotnet tool install -g dotnet-reportgenerator-globaltool
+    - reportgenerator
+
+pages:
+  stage: deploy
+  only:
+    - master
+  dependencies:
+    - docs
+  artifacts:
+    paths:
+      - public
+  script:
+    - mv coverage/ public/coverage/
