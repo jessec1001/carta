@@ -13,8 +13,6 @@ stages:
 
 build:
   stage: build
-  artifacts:
-    untracked: true
   script:
     - curl -sL https://deb.nodesource.com/setup_current.x | bash -
     - apt-get install -y nodejs
@@ -29,7 +27,7 @@ test:
     paths:
       - coverage.lcov
   script:
-    - dotnet test --configuration Release --no-build /p:CollectCoverage=true /p:CoverletOutputFormat=lcov /p:CoverletOutput='../coverage.lcov'
+    - dotnet test --configuration Release /p:CollectCoverage=true /p:CoverletOutputFormat=lcov /p:CoverletOutput='../coverage.lcov'
 
 docs-coverage:
   stage: docs
