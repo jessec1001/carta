@@ -5,9 +5,6 @@ cache:
   paths:
     - .npm/
 
-before_script:
-  - npm ci --cache .npm --prefer-offline
-
 stages:
   - build
   - test
@@ -19,6 +16,7 @@ build:
   script:
     - curl -sL https://deb.nodesource.com/setup_current.x | bash -
     - apt-get install -y nodejs
+    - npm ci --cache .npm --prefer-offline
     - dotnet build
 
 test:
