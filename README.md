@@ -21,14 +21,8 @@ This should produce a version matching `3.1.x`.
 The `CartaCore` project is only built and referenced by `CartaTest` and `CartaWeb`. It is not executable by itself. You can run tests and the web application by following the instructions in the proceding sections.
 
 ### Test
-To run the unit tests from the root directory, you can run:
+To run the unit tests from the root directory or the `CartaTest` directory, you can run:
 ```bash
-dotnet test CartaTest
-```
-
-Alternatively, you can work from within the `CartaTest` directory:
-```bash
-cd CartaTest
 dotnet test
 ```
 
