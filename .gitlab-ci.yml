@@ -36,7 +36,9 @@ docs-coverage:
   artifacts:
     untracked: true
   script:
-    - dotnet tool install dotnet-reportgenerator-globaltool --tool-path tools
+    - dotnet tool install -g dotnet-reportgenerator-globaltool
+    - export PATH=$PATH:$HOME/.dotnet/tools
+    - . ~/.bashrc
     - reportgenerator
 
 pages:
