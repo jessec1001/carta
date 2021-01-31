@@ -99,7 +99,7 @@ namespace CartaCore.Utility
             {
                 Randoms[k].NextBytes(randomBytes);
                 for (int n = 0; n < guidBytes.Length; n++)
-                    guidBytes[n] ^= randomBytes[n];
+                    guidBytes[n] += randomBytes[n];
             }
 
             // Make sure to specify the version and variant bits.

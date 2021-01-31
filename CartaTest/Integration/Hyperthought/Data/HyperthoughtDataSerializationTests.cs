@@ -102,12 +102,12 @@ namespace CartaTest.Integration.Hyperthought.Data
             Assert.AreEqual(1, workflows.Count);
             Assert.AreEqual(HyperthoughtProcessStatus.None, workflow.Content.Status);
             Assert.AreEqual("string", workflow.Content.Name);
-            Assert.AreEqual("3fa85f64-5717-4562-b3fc-2c963f66afa6", workflow.Content.ClientId);
+            Assert.AreEqual(Guid.Parse("3fa85f64-5717-4562-b3fc-2c963f66afa6"), workflow.Content.ClientId);
             Assert.AreEqual(1, workflow.Content.ChildrenIds.Count);
             Assert.AreEqual(new DateTime(2021, 01, 15, 19, 26, 8, 667), workflow.Content.CompletedTime);
             Assert.AreEqual(1, workflow.Triples.Count);
             Assert.AreEqual(1, workflow.Metadata.Count);
-            Assert.AreEqual("string", workflow.Metadata[0].Value.Link);
+            Assert.AreEqual("string", workflow.Metadata[0].Value.Link.ToString());
             Assert.AreEqual(HyperthoughtDistribution.DistributionA, workflow.Restrictions.Distribution);
             Assert.AreEqual(HyperthoughtExportControl.ITAR, workflow.Restrictions.ExportControl);
         }
@@ -199,12 +199,12 @@ namespace CartaTest.Integration.Hyperthought.Data
             // Assert a collection of random values.
             Assert.AreEqual(HyperthoughtProcessStatus.None, workflow.Content.Status);
             Assert.AreEqual("string", workflow.Content.Name);
-            Assert.AreEqual("3fa85f64-5717-4562-b3fc-2c963f66afa6", workflow.Content.ClientId);
+            Assert.AreEqual(Guid.Parse("3fa85f64-5717-4562-b3fc-2c963f66afa6"), workflow.Content.ClientId);
             Assert.AreEqual(1, workflow.Content.ChildrenIds.Count);
             Assert.AreEqual(new DateTime(2021, 01, 15, 21, 9, 14, 60), workflow.Content.CompletedTime);
             Assert.AreEqual(1, workflow.Triples.Count);
             Assert.AreEqual(1, workflow.Metadata.Count);
-            Assert.AreEqual("string", workflow.Metadata[0].Value.Link);
+            Assert.AreEqual("string", workflow.Metadata[0].Value.Link.ToString());
             Assert.AreEqual(HyperthoughtDistribution.DistributionB, workflow.Restrictions.Distribution);
             Assert.AreEqual(HyperthoughtExportControl.EAR, workflow.Restrictions.ExportControl);
         }
@@ -279,7 +279,7 @@ namespace CartaTest.Integration.Hyperthought.Data
             Assert.AreEqual("fourmajr", file.Content.CreatedBy);
             Assert.AreEqual(new DateTime(2020, 2, 12, 14, 39, 03, 787), file.Content.CreatedTime);
             Assert.AreEqual(HyperthoughtBackend.Default, file.Content.Backend);
-            Assert.AreEqual("blue", file.Metadata[0].Value.Link);
+            Assert.AreEqual("blue", file.Metadata[0].Value.Link.ToString());
             Assert.AreEqual(0, file.Triples.Count);
             Assert.AreEqual(HyperthoughtDistribution.None, file.Restrictions.Distribution);
             Assert.AreEqual("/files/filesystementry/00dfb7b9-b675-4303-b2e6-4916c813ca31/versions/0", file.Headers.Uri);
@@ -351,7 +351,7 @@ namespace CartaTest.Integration.Hyperthought.Data
             Assert.AreEqual("fourmajr", file.Content.CreatedBy);
             Assert.AreEqual(new DateTime(2020, 2, 12, 14, 39, 03, 787), file.Content.CreatedTime);
             Assert.AreEqual(HyperthoughtBackend.Default, file.Content.Backend);
-            Assert.AreEqual("red", file.Metadata[0].Value.Link);
+            Assert.AreEqual("red", file.Metadata[0].Value.Link.ToString());
             Assert.AreEqual(0, file.Triples.Count);
             Assert.AreEqual(HyperthoughtDistribution.None, file.Restrictions.Distribution);
             Assert.AreEqual("/files/filesystementry/00dfb7b9-b675-4303-b2e6-4916c813ca31/versions/0", file.Headers.Uri);
