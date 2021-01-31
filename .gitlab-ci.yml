@@ -3,7 +3,7 @@ default:
 
 cache:
   paths:
-    - .npm/
+    - $HOME/.npm/
 
 stages:
   - build
@@ -16,7 +16,9 @@ build:
   script:
     - curl -sL https://deb.nodesource.com/setup_current.x | bash -
     - apt-get install -y nodejs
-    - npm ci --cache .npm --prefer-offline
+    - cd CartaWeb/ClientApp/
+    - npm ci --cache $HOME/.npm --prefer-offline
+    - cd ../../
     - dotnet build
 
 test:
