@@ -64,3 +64,4 @@ We use the following [NuGet](https://www.nuget.org/) packages:
 - [`QuikGraph.Serialization`](https://www.nuget.org/packages/QuikGraph.Serialization/)
 - [`NUnit`](https://www.nuget.org/packages/NUnit/)
 - [`NUnit3TestAdapter`](https://www.nuget.org/packages/NUnit3TestAdapter/4.0.0-beta.1)
+- [`coverlet.msbuild`](https://www.nuget.org/packages/coverlet.msbuild/)
