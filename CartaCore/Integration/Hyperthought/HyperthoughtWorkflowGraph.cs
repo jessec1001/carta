@@ -11,7 +11,7 @@ using CartaCore.Utility;
 
 namespace CartaCore.Integration.Hyperthought
 {
-    using FreeformGraph = IMutableVertexAndEdgeSet<FreeformVertex, Edge<FreeformVertex>>;
+    using FreeformGraph = IMutableVertexAndEdgeSet<FreeformVertex, FreeformEdge>;
 
     public class HyperthoughtWorkflowGraph : ISampledGraph
     {
@@ -41,9 +41,8 @@ namespace CartaCore.Integration.Hyperthought
                 });
             }
 
-            FreeformVertex vertex = new FreeformVertex
+            FreeformVertex vertex = new FreeformVertex(workflow.Content.PrimaryKey)
             {
-                Id = workflow.Content.PrimaryKey,
                 Label = workflow.Content.Name,
                 Description = workflow.Content.Notes,
                 Properties = properties
@@ -67,16 +66,16 @@ namespace CartaCore.Integration.Hyperthought
             return VertexFromWorkflow(workflow);
         }
         /// <inheritdoc />
-        public IEnumerable<Edge<FreeformVertex>> GetEdges(Guid id)
+        public IEnumerable<FreeformEdge> GetEdges(Guid id)
         {
             // Get the workflow from an API call and yield each of the children.
             HyperthoughtWorkflow workflow = Task.Run(() => Api.GetWorkflowAsync(id)).GetAwaiter().GetResult();
-            FreeformVertex thisVertex = new FreeformVertex { Id = id };
+            FreeformVertex thisVertex = new FreeformVertex(id);
             foreach (Guid childId in workflow.Content.ChildrenIds)
             {
-                yield return new Edge<FreeformVertex>(
+                yield return new FreeformEdge(
                     thisVertex,
-                    new FreeformVertex { Id = childId }
+                    new FreeformVertex(childId)
                 );
             }
         }

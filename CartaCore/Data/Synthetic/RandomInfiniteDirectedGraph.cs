@@ -7,7 +7,7 @@ using CartaCore.Utility;
 
 namespace CartaCore.Data.Synthetic
 {
-    using FreeformGraph = IMutableVertexAndEdgeSet<FreeformVertex, Edge<FreeformVertex>>;
+    using FreeformGraph = IMutableVertexAndEdgeSet<FreeformVertex, FreeformEdge>;
 
     /// <summary>
     /// Represents graph data of a random, (practically) infinite, directed graph. Both the vertices and edges are
@@ -114,14 +114,13 @@ namespace CartaCore.Data.Synthetic
             }
 
             // Return the randomly generated vertex with properties.
-            return new FreeformVertex
+            return new FreeformVertex(id)
             {
-                Id = id,
                 Properties = properties
             };
         }
         /// <inheritdoc />
-        public IEnumerable<Edge<FreeformVertex>> GetEdges(Guid id)
+        public IEnumerable<FreeformEdge> GetEdges(Guid id)
         {
             // Create a compound random number generator using the GUID and original seed as a combined seed.
             CompoundRandom random = new CompoundRandom(Options.Seed, id);
@@ -135,9 +134,9 @@ namespace CartaCore.Data.Synthetic
                 Guid randomId = random.NextGuid();
 
                 // The source of each edge is the selected vertex.
-                yield return new Edge<FreeformVertex>(
+                yield return new FreeformEdge(
                     sourceVertex,
-                    new FreeformVertex { Id = randomId }
+                    new FreeformVertex(randomId)
                 );
 
                 // We lower the probability by some amount each time.

@@ -6,7 +6,7 @@ using QuikGraph;
 
 namespace CartaCore.Data
 {
-    using FreeformGraph = IMutableVertexAndEdgeSet<FreeformVertex, Edge<FreeformVertex>>;
+    using FreeformGraph = IMutableVertexAndEdgeSet<FreeformVertex, FreeformEdge>;
 
     /// <summary>
     /// Represents graph data that can be queried vertex-by-vertex.
@@ -52,7 +52,7 @@ namespace CartaCore.Data
         /// </remarks>
         /// <param name="id">The ID of the vertex.</param>
         /// <returns>An enumerable of the out-edges of the vertex.</returns>
-        IEnumerable<Edge<FreeformVertex>> GetEdges(Guid id);
+        IEnumerable<FreeformEdge> GetEdges(Guid id);
 
         /// <summary>
         /// Gets the children of a vertex specified by ID.

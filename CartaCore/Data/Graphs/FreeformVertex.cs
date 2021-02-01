@@ -1,14 +1,21 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CartaCore.Data
 {
     /// <summary>
     /// Represents a graph vertex that can take on multiple properties with multiple values.
     /// </summary>
-    /// <seealso cref="FreeformId" />
-    public class FreeformVertex : FreeformId
+    public class FreeformVertex : IEquatable<FreeformVertex>, IComparable<FreeformVertex>
     {
+        /// <summary>
+        /// Gets or sets the ID of the vertex.
+        /// </summary>
+        /// <value>
+        /// The vertex ID.
+        /// </value>
+        public Guid Id { get; set; }
         /// <summary>
         /// Gets or sets the label.
         /// </summary>
@@ -35,10 +42,50 @@ namespace CartaCore.Data
         /// Initializes a new instance of the <see cref="FreeformVertex"/> class with the specified ID.
         /// </summary>
         /// <param name="id">The vertex ID.</param>
-        public FreeformVertex(Guid id) : base(id) { }
+        public FreeformVertex(Guid id) => Id = id;
         /// <summary>
         /// Initializes a new instance of the <see cref="FreeformVertex"/> class.
         /// </summary>
-        public FreeformVertex() : base() { }
+        public FreeformVertex() { }
+
+        /// <inheritdoc />
+        public bool Equals([AllowNull] FreeformVertex other)
+        {
+            if (other is null)
+                return false;
+            return Id.Equals(other.Id);
+        }
+        /// <inheritdoc />
+        public override bool Equals(object obj)
+        {
+            if (obj is FreeformVertex other)
+                return Equals(other);
+            return false;
+        }
+
+        /// <inheritdoc />
+        public int CompareTo([AllowNull] FreeformVertex other)
+        {
+            if (other is null)
+                return 1;
+            return Id.CompareTo(other.Id);
+        }
+
+        /// <inheritdoc />
+        public override int GetHashCode()
+        {
+            return Id.GetHashCode();
+        }
+
+        /// <inheritdoc />
+        public static bool operator ==(FreeformVertex lhs, FreeformVertex rhs)
+        {
+            return lhs.Equals(rhs);
+        }
+        /// <inheritdoc />
+        public static bool operator !=(FreeformVertex lhs, FreeformVertex rhs)
+        {
+            return !lhs.Equals(rhs);
+        }
     }
 }

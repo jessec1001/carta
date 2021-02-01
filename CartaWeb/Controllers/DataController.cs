@@ -15,7 +15,7 @@ using CartaWeb.Models.Data;
 
 namespace CartaWeb.Controllers
 {
-    using FreeformGraph = IMutableVertexAndEdgeSet<FreeformVertex, Edge<FreeformVertex>>;
+    using FreeformGraph = IMutableVertexAndEdgeSet<FreeformVertex, FreeformEdge>;
 
     /// <summary>
     /// Serves data from multiple sources in graph format.
@@ -103,7 +103,7 @@ namespace CartaWeb.Controllers
                     Guid nodeId = graph.BaseId;
 
                     // Generate graph with starting node.
-                    AdjacencyGraph<FreeformVertex, Edge<FreeformVertex>> data = new AdjacencyGraph<FreeformVertex, Edge<FreeformVertex>>();
+                    AdjacencyGraph<FreeformVertex, FreeformEdge> data = new AdjacencyGraph<FreeformVertex, FreeformEdge>();
                     data.AddVertex(graph.GetProperties(nodeId));
                     return data;
                 }

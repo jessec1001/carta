@@ -46,7 +46,7 @@ namespace CartaTest.Data.Synthetic
 
             // Generate the properties and edges of the vertex.
             FreeformVertex vertex = Graph.GetProperties(id);
-            IList<Edge<FreeformVertex>> edges = Graph.GetEdges(id).ToList();
+            IList<FreeformEdge> edges = Graph.GetEdges(id).ToList();
 
             Assert.Pass();
         }
@@ -63,10 +63,10 @@ namespace CartaTest.Data.Synthetic
 
             // Generate the two instances of the vertex properties and edges.
             FreeformVertex vertex1 = Graph.GetProperties(id);
-            IList<Edge<FreeformVertex>> edges1 = Graph.GetEdges(id).ToList();
+            IList<FreeformEdge> edges1 = Graph.GetEdges(id).ToList();
 
             FreeformVertex vertex2 = Graph.GetProperties(id);
-            IList<Edge<FreeformVertex>> edges2 = Graph.GetEdges(id).ToList();
+            IList<FreeformEdge> edges2 = Graph.GetEdges(id).ToList();
 
             // Check that the vertex properties are the same.
             Assert.AreEqual(vertex1.Id, vertex2.Id);

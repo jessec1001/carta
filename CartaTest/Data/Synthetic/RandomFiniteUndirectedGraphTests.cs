@@ -8,7 +8,7 @@ using CartaCore.Data.Synthetic;
 
 namespace CartaTest
 {
-    using FreeformGraph = IMutableVertexAndEdgeSet<FreeformVertex, Edge<FreeformVertex>>;
+    using FreeformGraph = IMutableVertexAndEdgeSet<FreeformVertex, FreeformEdge>;
 
     /// <summary>
     /// Tests the generation of the <see cref="RandomFiniteUndirectedGraph"/> object.
