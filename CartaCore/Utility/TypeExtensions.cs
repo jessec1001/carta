@@ -40,13 +40,13 @@ namespace CartaCore.Utility
         {
             if (!(type is null) && Mappings.TryGetValue(type, out string result))
                 return result;
-            return string.Empty;
+            return type.Name;
         }
         public static Type ToFriendlyType(this string str)
         {
             if (!(str is null) && InverseMappings.TryGetValue(str, out Type result))
                 return result;
-            return null;
+            return typeof(string);
         }
     }
 }
