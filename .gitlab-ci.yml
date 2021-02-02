@@ -94,14 +94,14 @@ deploy:
   dependencies:
     - publish
   script:
-    - aws s3 cp package.zip s3://$AWS_S3_BUCKET/package-$CI_PIPELINE_ID.zip
+    - aws s3 cp package.zip s3://$AWS_S3_BUCKET/package-$CI_COMMIT_TAG.zip
     - >
       aws elasticbeanstalk create-application-version
       --application-name Carta
-      --version-label Carta-$CI_PIPELINE_ID
-      --source-bundle S3Bucket=$AWS_S3_BUCKET,S3Key=package-$CI_PIPELINE_ID.zip
+      --version-label Carta-$CI_COMMIT_TAG
+      --source-bundle S3Bucket=$AWS_S3_BUCKET,S3Key=package-$CI_COMMIT_TAG.zip
     - >
       aws elasticbeanstalk update-environment
       --application-name Carta
       --environment-name Carta-dev
-      --version-label Carta-$CI_PIPELINE_ID
+      --version-label Carta-$CI_COMMIT_TAG
