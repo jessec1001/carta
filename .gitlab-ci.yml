@@ -21,13 +21,32 @@ build:
     - cd ../../
     - dotnet build --configuration Release
 
+publish:
+  stage: build
+  only:
+    - tags
+  artifacts:
+    paths:
+      - package.zip
+  script:
+    - curl -sL https://deb.nodesource.com/setup_current.x | bash -
+    - apt-get install -y zip unzip
+    - apt-get install -y nodejs
+    - dotnet publish --configuration Release CartaWeb/ -o package
+    - cd package
+    - zip -r ../package.zip *
+
 test:
   stage: test
   artifacts:
     paths:
       - coverage.lcov
   script:
-    - dotnet test --configuration Release /p:CollectCoverage=true /p:CoverletOutputFormat=lcov /p:CoverletOutput='../coverage.lcov'
+    - >
+      dotnet test --configuration Release
+      /p:CollectCoverage=true
+      /p:CoverletOutputFormat=lcov
+      /p:CoverletOutput='../coverage.lcov'
 
 docs-coverage:
   stage: docs
@@ -66,3 +85,23 @@ pages:
   script:
     - mkdir public/
     - mv coverage/ public/coverage/
+
+deploy:
+  image: registry.gitlab.com/gitlab-org/cloud-deploy/aws-base:latest
+  stage: deploy
+  only:
+    - tags
+  dependencies:
+    - publish
+  script:
+    - aws s3 cp package.zip s3://$AWS_S3_BUCKET/package-$CI_PIPELINE_ID.zip
+    - >
+      aws elasticbeanstalk create-application-version
+      --application-name Carta
+      --version-label Carta-$CI_PIPELINE_ID
+      --source-bundle S3Bucket=$AWS_S3_BUCKET,S3Key=package-$CI_PIPELINE_ID.zip
+    - >
+      aws elasticbeanstalk update-environment
+      --application-name Carta
+      --environment-name Carta-dev
+      --version-label Carta-$CI_PIPELINE_ID
