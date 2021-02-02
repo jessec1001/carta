@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { Container, Row, Col } from 'reactstrap';
 import { VisGraph } from '../shared/graphs/VisGraph';
+import { HeightScroll } from '../layouts/HeightScroll';
 import { PropertyList } from '../shared/properties/PropertyList';
 import { Semantics } from "../forms/Semantics";
 import { toVis } from '../../lib/graph-extend';
@@ -94,8 +95,8 @@ export class Graph extends Component {
 
     render() {
         return (
-            <Container className="mt-4 h-100">
-                <Row className="h-100">
+            <Container className="h-100 mt-4">
+                <Row className="h-100 pb-4">
                     <Col xs="8">
                         <VisGraph
                             graph={this.state.vis}
@@ -111,10 +112,13 @@ export class Graph extends Component {
                         />
                     </Col>
                     <Col xs="4">
-                        <PropertyList properties={this.state.properties} semantics={this.state.semantics}>
+                        <div className="d-flex justify-content-between">
                             <h2>Properties</h2>
                             <Semantics properties={this.state.properties} onSemanticsChanged={this.handleSemanticsChanged} />
-                        </PropertyList>
+                        </div>
+                        <HeightScroll className="pr-2">
+                            <PropertyList properties={this.state.properties} semantics={this.state.semantics} />
+                        </HeightScroll>
                     </Col>
                 </Row>
             </Container>
