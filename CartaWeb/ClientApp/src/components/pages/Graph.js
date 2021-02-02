@@ -36,8 +36,8 @@ export class Graph extends Component {
             const nodeId = nodes[0];
             const nodeData = this.state.data.graph.nodes[nodeId];
             nodeData.expanded = !nodeData.expanded;
-            nodeData.color = nodeData.expanded ? { background: '#FFFFFF'} : {};
-
+            nodeData.color = nodeData.expanded ? { background: '#fff'} : {};
+            
             // Add or remove child nodes based on expand/contract state.
             if (nodeData.expanded) {
                 // Populate the children nodes if expanded.
@@ -46,6 +46,7 @@ export class Graph extends Component {
                 // Depopulate the children nodes if contracted.
                 this.depopulateChildren(nodeId);
             }
+
         }
     }
     handleSelectNode(event) {

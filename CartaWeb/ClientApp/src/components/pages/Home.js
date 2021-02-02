@@ -18,7 +18,6 @@ export class Home extends Component {
 
   handleHyperthoughtLink(event) {
     const key = prompt("Please paste your HyperThought API key.");
-    console.log(event.target.href);
     this.props.history.push({
       pathname: event.target.getAttribute("href"),
       search: `?api=${key}`
@@ -93,7 +92,7 @@ export class Home extends Component {
                 <NavItem>
                   <NavLink
                     tag={Link}
-                    to="/graph/hyperthought/4e7e93ef-e260-4258-addc-54e92011d827"
+                    to="/graph/hyperthought/f494e24a-a2e8-4a11-a34a-dad36bb70515"
                     onClick={this.handleHyperthoughtLink}
                   >
                     UDRI
