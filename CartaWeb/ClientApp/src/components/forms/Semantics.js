@@ -97,7 +97,7 @@ export class Semantics extends Component {
 
         return (
             <div>
-                <Button onClick={this.toggleModalOpen} color="success">Semantics</Button>
+                <Button onClick={this.toggleModalOpen} color="success">Naming</Button>
                 <Modal
                     isOpen={this.state.open}
                     toggle={this.toggleModalOpen}
@@ -105,16 +105,10 @@ export class Semantics extends Component {
                 >
                     <ModalHeader toggle={this.toggleModalOpen}>Semantics</ModalHeader>
                     <ModalBody>
-                        <Row>
-                            <Col xs="5">
-                                <h3 className="text-center">This Property</h3>
-                            </Col>
-                            <Col xs="2" className="my-auto">
-                                <p className="text-center text-muted">overrides</p>
-                            </Col>
-                            <Col xs="5">
-                                <h3 className="text-center">These Properties</h3>
-                            </Col>
+                        <Row className="px-4 d-flex justify-content-around">
+                            <h3 className="text-center" style={{flexGrow: 1}}>This property</h3>
+                            <p className="text-muted my-auto">is equivalent to</p>
+                            <h3 className="text-center" style={{flexGrow: 1}}>These properties</h3>
                         </Row>
                         <Row>
                             <Col>
