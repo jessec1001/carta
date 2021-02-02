@@ -17,14 +17,11 @@ export class Api extends Component {
 
     render() {
         return (
-            <section>
-                <h3>API</h3>
-                <ul class='api-list'>
-                    {Object.keys(this.state.apis).map(controller =>
-                        <ApiSection key={controller} name={controller} endpoints={this.state.apis[controller]} />
-                    )}
-                </ul>
-            </section>
+            <ul class='api-list'>
+                {Object.keys(this.state.apis).map(controller =>
+                    <ApiSection key={controller} name={controller} endpoints={this.state.apis[controller]} />
+                )}
+            </ul>
         );
     }
 
