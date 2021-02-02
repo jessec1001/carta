@@ -7,7 +7,7 @@ export class Layout extends Component {
 
   render () {
     return (
-      <div className="growbox">
+      <div>
         <Navigation />
         {this.props.children}
       </div>

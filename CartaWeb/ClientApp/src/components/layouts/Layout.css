@@ -6,20 +6,3 @@ body {
 #root {
   height: 100%;
 }
-
-.growbox {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-.growbox > header {
-  flex: 0 1 auto;
-}
-.growbox > :not(header) {
-  padding: 0;
-  padding-top: 1rem;
-  flex: 1 1 auto;
-}
-.growbox .row {
-  height: 100%;
-}
