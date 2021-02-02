@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Row, Col } from 'reactstrap';
+import { Container, Row, Col } from 'reactstrap';
 import { VisGraph } from '../shared/graphs/VisGraph';
 import { PropertyList } from '../shared/properties/PropertyList';
 import { Semantics } from "../forms/Semantics";
@@ -94,28 +94,30 @@ export class Graph extends Component {
 
     render() {
         return (
-            <Row>
-                <Col xs="8">
-                    <VisGraph
-                        graph={this.state.vis}
-                        options={{
-                            ...this.state.options,
-                            interaction: {
-                                multiselect: true
-                            }
-                        }}
-                        onClick={this.handleSingleClick}
-                        onDoubleClick={this.handleDoubleClick}
-                        onSelectNode={this.handleSelectNode}
-                    />
-                </Col>
-                <Col xs="4">
-                    <PropertyList properties={this.state.properties} semantics={this.state.semantics}>
-                        <h2>Properties</h2>
-                        <Semantics properties={this.state.properties} onSemanticsChanged={this.handleSemanticsChanged} />
-                    </PropertyList>
-                </Col>
-            </Row>
+            <Container className="mt-4 h-100">
+                <Row className="h-100">
+                    <Col xs="8">
+                        <VisGraph
+                            graph={this.state.vis}
+                            options={{
+                                ...this.state.options,
+                                interaction: {
+                                    multiselect: true
+                                }
+                            }}
+                            onClick={this.handleSingleClick}
+                            onDoubleClick={this.handleDoubleClick}
+                            onSelectNode={this.handleSelectNode}
+                        />
+                    </Col>
+                    <Col xs="4">
+                        <PropertyList properties={this.state.properties} semantics={this.state.semantics}>
+                            <h2>Properties</h2>
+                            <Semantics properties={this.state.properties} onSemanticsChanged={this.handleSemanticsChanged} />
+                        </PropertyList>
+                    </Col>
+                </Row>
+            </Container>
         );
     }
 

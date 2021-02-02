@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { Container } from 'reactstrap';
 import { Navigation } from '../shared/Navigation';
 import './Layout.css';
 
@@ -7,10 +8,10 @@ export class Layout extends Component {
 
   render () {
     return (
-      <div>
+      <Container fluid className="h-100 d-flex flex-column">
         <Navigation />
         {this.props.children}
-      </div>
+      </Container>
     );
   }
 }
