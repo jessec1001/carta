@@ -18,10 +18,12 @@ export class Home extends Component {
 
   handleHyperthoughtLink(event) {
     const key = prompt("Please paste your HyperThought API key.");
-    this.props.history.push({
-      pathname: event.target.getAttribute("href"),
-      search: `?api=${key}`
-    });
+    if (key) {
+      this.props.history.push({
+        pathname: event.target.getAttribute("href"),
+        search: `?api=${key}`
+      });
+    }
     event.preventDefault();
   }
 

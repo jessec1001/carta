@@ -1,5 +1,5 @@
 .graph-container {
-  height: 95%;
+  height: calc(100% - 1rem);
 }
 .vis-network,
 .vis-network:focus {
