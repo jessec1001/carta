@@ -1,0 +1,212 @@
+### YamlMime:TableOfContent
+- uid: CartaCore.Data
+  name: CartaCore.Data
+  items:
+  - uid: CartaCore.Data.FreeformVertex
+    name: FreeformVertex
+  - uid: CartaCore.Data.FreeformVertexProperty
+    name: FreeformVertexProperty
+  - uid: CartaCore.Data.IOptionsGraph`1
+    name: IOptionsGraph<TOptions>
+    name.vb: IOptionsGraph(Of TOptions)
+  - uid: CartaCore.Data.ISampledGraph
+    name: ISampledGraph
+- uid: CartaCore.Data.Synthetic
+  name: CartaCore.Data.Synthetic
+  items:
+  - uid: CartaCore.Data.Synthetic.RandomFiniteUndirectedGraph
+    name: RandomFiniteUndirectedGraph
+  - uid: CartaCore.Data.Synthetic.RandomFiniteUndirectedGraphOptions
+    name: RandomFiniteUndirectedGraphOptions
+  - uid: CartaCore.Data.Synthetic.RandomInfiniteDirectedGraph
+    name: RandomInfiniteDirectedGraph
+  - uid: CartaCore.Data.Synthetic.RandomInfiniteDirectedGraphOptions
+    name: RandomInfiniteDirectedGraphOptions
+- uid: CartaCore.Integration.Hyperthought
+  name: CartaCore.Integration.Hyperthought
+  items:
+  - uid: CartaCore.Integration.Hyperthought.HyperthoughtApi
+    name: HyperthoughtApi
+  - uid: CartaCore.Integration.Hyperthought.HyperthoughtApiAccess
+    name: HyperthoughtApiAccess
+  - uid: CartaCore.Integration.Hyperthought.HyperthoughtWorkflowGraph
+    name: HyperthoughtWorkflowGraph
+- uid: CartaCore.Integration.Hyperthought.Data
+  name: CartaCore.Integration.Hyperthought.Data
+  items:
+  - uid: CartaCore.Integration.Hyperthought.Data.HyperthoughtBackend
+    name: HyperthoughtBackend
+  - uid: CartaCore.Integration.Hyperthought.Data.HyperthoughtDataType
+    name: HyperthoughtDataType
+  - uid: CartaCore.Integration.Hyperthought.Data.HyperthoughtDistribution
+    name: HyperthoughtDistribution
+  - uid: CartaCore.Integration.Hyperthought.Data.HyperthoughtExportControl
+    name: HyperthoughtExportControl
+  - uid: CartaCore.Integration.Hyperthought.Data.HyperthoughtFile
+    name: HyperthoughtFile
+  - uid: CartaCore.Integration.Hyperthought.Data.HyperthoughtFileContent
+    name: HyperthoughtFileContent
+  - uid: CartaCore.Integration.Hyperthought.Data.HyperthoughtHeaders
+    name: HyperthoughtHeaders
+  - uid: CartaCore.Integration.Hyperthought.Data.HyperthoughtMetadata
+    name: HyperthoughtMetadata
+  - uid: CartaCore.Integration.Hyperthought.Data.HyperthoughtMetadataValue
+    name: HyperthoughtMetadataValue
+  - uid: CartaCore.Integration.Hyperthought.Data.HyperthoughtObjectBase
+    name: HyperthoughtObjectBase
+  - uid: CartaCore.Integration.Hyperthought.Data.HyperthoughtPermissions
+    name: HyperthoughtPermissions
+  - uid: CartaCore.Integration.Hyperthought.Data.HyperthoughtProcessStatus
+    name: HyperthoughtProcessStatus
+  - uid: CartaCore.Integration.Hyperthought.Data.HyperthoughtProject
+    name: HyperthoughtProject
+  - uid: CartaCore.Integration.Hyperthought.Data.HyperthoughtProjectContent
+    name: HyperthoughtProjectContent
+  - uid: CartaCore.Integration.Hyperthought.Data.HyperthoughtRestrictions
+    name: HyperthoughtRestrictions
+  - uid: CartaCore.Integration.Hyperthought.Data.HyperthoughtTriple
+    name: HyperthoughtTriple
+  - uid: CartaCore.Integration.Hyperthought.Data.HyperthoughtTripleContent
+    name: HyperthoughtTripleContent
+  - uid: CartaCore.Integration.Hyperthought.Data.HyperthoughtValue
+    name: HyperthoughtValue
+  - uid: CartaCore.Integration.Hyperthought.Data.HyperthoughtWorkflow
+    name: HyperthoughtWorkflow
+  - uid: CartaCore.Integration.Hyperthought.Data.HyperthoughtWorkflowContent
+    name: HyperthoughtWorkflowContent
+  - uid: CartaCore.Integration.Hyperthought.Data.HyperthoughtWorkflowTemplate
+    name: HyperthoughtWorkflowTemplate
+  - uid: CartaCore.Integration.Hyperthought.Data.HyperthoughtWorkflowType
+    name: HyperthoughtWorkflowType
+- uid: CartaCore.Serialization.Json
+  name: CartaCore.Serialization.Json
+  items:
+  - uid: CartaCore.Serialization.Json.JsonFullStringEnumConverter
+    name: JsonFullStringEnumConverter
+  - uid: CartaCore.Serialization.Json.NullableEmptyStringConverter
+    name: NullableEmptyStringConverter
+- uid: CartaCore.Serialization.Json.Jgf
+  name: CartaCore.Serialization.Json.Jgf
+  items:
+  - uid: CartaCore.Serialization.Json.Jgf.Jgf
+    name: Jgf
+  - uid: CartaCore.Serialization.Json.Jgf.JgfData
+    name: JgfData
+  - uid: CartaCore.Serialization.Json.Jgf.JgfEdge
+    name: JgfEdge
+  - uid: CartaCore.Serialization.Json.Jgf.JgfGraph
+    name: JgfGraph
+  - uid: CartaCore.Serialization.Json.Jgf.JgfNode
+    name: JgfNode
+- uid: CartaCore.Serialization.Xml.Gexf
+  name: CartaCore.Serialization.Xml.Gexf
+  items:
+  - uid: CartaCore.Serialization.Xml.Gexf.Gexf
+    name: Gexf
+  - uid: CartaCore.Serialization.Xml.Gexf.GexfEdge
+    name: GexfEdge
+  - uid: CartaCore.Serialization.Xml.Gexf.GexfEdgeType
+    name: GexfEdgeType
+  - uid: CartaCore.Serialization.Xml.Gexf.GexfGraph
+    name: GexfGraph
+  - uid: CartaCore.Serialization.Xml.Gexf.GexfMode
+    name: GexfMode
+  - uid: CartaCore.Serialization.Xml.Gexf.GexfNode
+    name: GexfNode
+- uid: CartaCore.Utility
+  name: CartaCore.Utility
+  items:
+  - uid: CartaCore.Utility.CompoundRandom
+    name: CompoundRandom
+  - uid: CartaCore.Utility.TypeExtensions
+    name: TypeExtensions
+- uid: CartaCore.Workflow
+  name: CartaCore.Workflow
+  items:
+  - uid: CartaCore.Workflow.SemanticMappingTransform
+    name: SemanticMappingTransform
+- uid: CartaTest
+  name: CartaTest
+  items:
+  - uid: CartaTest.RandomFiniteUndirectedGraphTests
+    name: RandomFiniteUndirectedGraphTests
+- uid: CartaTest.Data.Synthetic
+  name: CartaTest.Data.Synthetic
+  items:
+  - uid: CartaTest.Data.Synthetic.RandomInfiniteDirectedGraphTests
+    name: RandomInfiniteDirectedGraphTests
+- uid: CartaTest.Integration.Hyperthought.Data
+  name: CartaTest.Integration.Hyperthought.Data
+  items:
+  - uid: CartaTest.Integration.Hyperthought.Data.TestHyperthoughtDataSerialization
+    name: TestHyperthoughtDataSerialization
+- uid: CartaTest.Serialization.Json
+  name: CartaTest.Serialization.Json
+  items:
+  - uid: CartaTest.Serialization.Json.JgfSerializationTests
+    name: JgfSerializationTests
+- uid: CartaTest.Serialization.Xml
+  name: CartaTest.Serialization.Xml
+  items:
+  - uid: CartaTest.Serialization.Xml.GexfSerializationTests
+    name: GexfSerializationTests
+- uid: CartaTest.Workflow
+  name: CartaTest.Workflow
+  items:
+  - uid: CartaTest.Workflow.SemanticMappingTransformTests
+    name: SemanticMappingTransformTests
+- uid: CartaWeb
+  name: CartaWeb
+  items:
+  - uid: CartaWeb.Program
+    name: Program
+  - uid: CartaWeb.Startup
+    name: Startup
+- uid: CartaWeb.Controllers
+  name: CartaWeb.Controllers
+  items:
+  - uid: CartaWeb.Controllers.DataController
+    name: DataController
+  - uid: CartaWeb.Controllers.MetaController
+    name: MetaController
+- uid: CartaWeb.Extended.Formatters
+  name: CartaWeb.Extended.Formatters
+  items:
+  - uid: CartaWeb.Extended.Formatters.GraphOutputFormatter
+    name: GraphOutputFormatter
+- uid: CartaWeb.Mappings
+  name: CartaWeb.Mappings
+  items:
+  - uid: CartaWeb.Mappings.DataMapping
+    name: DataMapping
+  - uid: CartaWeb.Mappings.DataNamespace
+    name: DataNamespace
+- uid: CartaWeb.Models.Data
+  name: CartaWeb.Models.Data
+  items:
+  - uid: CartaWeb.Models.Data.DataSource
+    name: DataSource
+  - uid: CartaWeb.Models.Data.IDataResolver
+    name: IDataResolver
+  - uid: CartaWeb.Models.Data.OptionsDataResolver`1
+    name: OptionsDataResolver<TOptions>
+    name.vb: OptionsDataResolver(Of TOptions)
+  - uid: CartaWeb.Models.Data.OptionsDataResolverFunction`1
+    name: OptionsDataResolverFunction<TOptions>
+    name.vb: OptionsDataResolverFunction(Of TOptions)
+- uid: CartaWeb.Models.Meta
+  name: CartaWeb.Models.Meta
+  items:
+  - uid: CartaWeb.Models.Meta.ApiEndpoint
+    name: ApiEndpoint
+  - uid: CartaWeb.Models.Meta.ApiMethod
+    name: ApiMethod
+  - uid: CartaWeb.Models.Meta.ApiParameter
+    name: ApiParameter
+  - uid: CartaWeb.Models.Meta.RouteExtensions
+    name: RouteExtensions
+- uid: CartaWeb.Pages
+  name: CartaWeb.Pages
+  items:
+  - uid: CartaWeb.Pages.ErrorModel
+    name: ErrorModel

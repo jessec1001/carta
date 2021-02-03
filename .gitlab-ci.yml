@@ -62,28 +62,31 @@ docs-coverage:
     - . ~/.bashrc
     - reportgenerator
 
-# docs-projects:
-#   stage: docs
-#   only:
-#     - master
-#   dependencies:
-#     - build
-#   artifacts:
-#     untracked: true
-#   script:
-#     - choco install docfx -y
+docs-projects:
+  image: erothejoker/docker-docfx:latest
+  stage: docs
+  only:
+    - master
+  dependencies:
+    - build
+  artifacts:
+    paths:
+      - docfx_project/_site
+  script:
+    - docfx docfx_project/docfx.json
 
 pages:
   stage: deploy
   only:
     - master
   dependencies:
+    - docs-projects
     - docs-coverage
   artifacts:
     paths:
       - public
   script:
-    - mkdir public/
+    - mv docfx_project/_site public/
     - mv coverage/ public/coverage/
 
 deploy:
