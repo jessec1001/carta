@@ -10,18 +10,22 @@ using CartaCore.Utility;
 
 namespace CartaWeb.Serialization.Json
 {
-    using FreeformGraph = IMutableVertexAndEdgeSet<FreeformVertex, Edge<FreeformVertex>>;
+    using FreeformGraph = IMutableVertexAndEdgeSet<FreeformVertex, FreeformEdge>;
 
     /// <summary>
     /// Represents a freeform graph in Vis format.
     /// </summary>
+    /// <remarks>
+    /// This class allows for easy serialization and deserialization to and from JSON. This format allows the
+    /// serialized data to immediately be used by Vis.js.
+    /// </remarks>
     public class VisFormat
     {
         /// <summary>
         /// Gets or sets whether the graph is directed.
         /// </summary>
         /// <value>
-        /// <c>true</c> if the graph is directed.
+        /// <c>true</c> if the graph is directed; otherwise <c>false</c>.
         /// </value>
         [JsonPropertyName("directed")]
         public bool Directed { get; set; }
@@ -57,9 +61,9 @@ namespace CartaWeb.Serialization.Json
                 // Create a graph with the correct directed variant.
                 FreeformGraph graph;
                 if (Directed)
-                    graph = new AdjacencyGraph<FreeformVertex, Edge<FreeformVertex>>();
+                    graph = new AdjacencyGraph<FreeformVertex, FreeformEdge>();
                 else
-                    graph = new UndirectedGraph<FreeformVertex, Edge<FreeformVertex>>();
+                    graph = new UndirectedGraph<FreeformVertex, FreeformEdge>();
 
                 // Add the vertices and edges.
                 graph.AddVertexRange(Nodes.Select(node => node.Vertex));
@@ -72,10 +76,6 @@ namespace CartaWeb.Serialization.Json
         /// <summary>
         /// Initializes a new instance of the <see cref="VisFormat"/> class with the specified graph.
         /// </summary>
-        /// <remarks>
-        /// This class allows for easy serialization and deserialization to and from JSON. This format allows the
-        /// serialized data to immediately be used by Vis.js.
-        /// </remarks>
         /// <param name="graph">The graph to convert to a new format.</param>
         public VisFormat(FreeformGraph graph)
         {
@@ -87,10 +87,6 @@ namespace CartaWeb.Serialization.Json
         /// <summary>
         /// Initializes a new instance of the <see cref="VisFormat"/> class.
         /// </summary>
-        /// <remarks>
-        /// This class allows for easy serialization and deserialization to and from JSON. This format allows the
-        /// serialized data to immediately be used by Vis.js.
-        /// </remarks>
         public VisFormat() { }
     }
 
@@ -164,7 +160,7 @@ namespace CartaWeb.Serialization.Json
         /// <summary>
         /// Initializes a new instance of the <see cref="VisFormatNode"/> class with the specified node.
         /// </summary>
-        /// <param name="node">The vertex.</param>
+        /// <param name="node">The vertex to convert to a new format.</param>
         public VisFormatNode(FreeformVertex node)
         {
             Id = node.Id;
@@ -233,8 +229,8 @@ namespace CartaWeb.Serialization.Json
         /// Initializes a new instance of the <see cref="VisFormatEdge"/> class with the specified ID and endpoints.
         /// </summary>
         /// <param name="id">The edge ID.</param>
-        /// <param name="edge">The edge source and target.</param>
-        public VisFormatEdge(int id, Edge<FreeformVertex> edge)
+        /// <param name="edge">The edge source and target to convert to a new format.</param>
+        public VisFormatEdge(int id, FreeformEdge edge)
         {
             Id = id;
 
