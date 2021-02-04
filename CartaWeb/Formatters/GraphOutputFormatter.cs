@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -9,7 +8,6 @@ using System.Xml;
 using System.Xml.Serialization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Formatters;
-using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
 
 using QuikGraph;
@@ -40,17 +38,17 @@ namespace CartaWeb.Extended.Formatters
             IgnoreNullValues = true
         };
 
-        private static Dictionary<MediaTypeHeaderValue, MediaFormatter> MediaFormatters
-            = new Dictionary<MediaTypeHeaderValue, MediaFormatter>()
+        private static List<(MediaTypeHeaderValue MediaHeader, MediaFormatter Formatter)> MediaFormatters
+            = new List<(MediaTypeHeaderValue, MediaFormatter)>()
             {
                 // JSON-based formats.
-                [MediaTypeHeaderValue.Parse("application/json")] = FormatVis,
-                [MediaTypeHeaderValue.Parse("application/vnd.vis+json")] = FormatVis,
-                [MediaTypeHeaderValue.Parse("application/vnd.jgf+json")] = FormatJg,
+                (MediaTypeHeaderValue.Parse("application/vnd.vis+json"), FormatVis),
+                (MediaTypeHeaderValue.Parse("application/vnd.jgf+json"), FormatJg),
+                (MediaTypeHeaderValue.Parse("application/json"), FormatVis), // Default
 
                 // XML-based formats.
-                [MediaTypeHeaderValue.Parse("application/xml")] = FormatGex,
-                [MediaTypeHeaderValue.Parse("application/vnd.gexf+xml")] = FormatGex
+                (MediaTypeHeaderValue.Parse("application/vnd.gexf+xml"), FormatGex),
+                (MediaTypeHeaderValue.Parse("application/xml"), FormatGex), // Default
             };
 
         /// <summary>
@@ -58,8 +56,8 @@ namespace CartaWeb.Extended.Formatters
         /// </summary>
         public GraphOutputFormatter()
         {
-            foreach (MediaTypeHeaderValue header in MediaFormatters.Keys)
-                SupportedMediaTypes.Add(header);
+            foreach (var formatter in MediaFormatters)
+                SupportedMediaTypes.Add(formatter.MediaHeader);
 
             SupportedEncodings.Add(Encoding.UTF8);
             SupportedEncodings.Add(Encoding.Unicode);
@@ -82,11 +80,11 @@ namespace CartaWeb.Extended.Formatters
             string content = string.Empty;
             if (context.Object is FreeformGraph graph)
             {
-                foreach (KeyValuePair<MediaTypeHeaderValue, MediaFormatter> pair in MediaFormatters)
+                foreach (var formatter in MediaFormatters)
                 {
-                    if (contentHeader.IsSubsetOf(pair.Key))
+                    if (contentHeader.IsSubsetOf(formatter.MediaHeader))
                     {
-                        content = pair.Value(graph);
+                        content = formatter.Formatter(graph);
                         break;
                     }
                 }
