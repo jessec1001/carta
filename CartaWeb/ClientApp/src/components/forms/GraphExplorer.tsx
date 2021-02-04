@@ -1,21 +1,17 @@
 import React, { Component } from 'react';
-import { Row, Col } from 'reactstrap';
 import { Vis } from '../shared/graphs/Vis';
-import { PropertyList } from '../shared/properties/PropertyList';
-import { Semantics } from "../forms/Semantics";
-import './Graph.css';
+import './GraphExplorer.css';
 
-export class Graph extends Component {
-    static displayName = Graph.name;
+export class GraphExplorer extends Component {
+    static displayName = GraphExplorer.name;
 
     constructor(props) {
         super(props);
-        this.state = { loading: true, properties: {}, semantics: {} };
+        this.state = { loading: true, properties: {} };
         
         this.handleSingleClick = this.handleSingleClick.bind(this);
         this.handleDoubleClick = this.handleDoubleClick.bind(this);
         this.handleSelectNode = this.handleSelectNode.bind(this);
-        this.handleSemanticsChanged = this.handleSemanticsChanged.bind(this);
     }
 
     handleSingleClick(event) {
@@ -76,11 +72,6 @@ export class Graph extends Component {
             });
         }
     }
-    handleSemanticsChanged(semantics) {
-        this.setState({
-            semantics: semantics
-        });
-    }
 
     componentDidMount() {
         this.requestURL = (
@@ -92,28 +83,18 @@ export class Graph extends Component {
 
     render() {
         return (
-            <Row>
-                <Col xs="8">
-                    <Vis
-                        graph={this.state.vis}
-                        options={{
-                            ...this.state.options,
-                            interaction: {
-                                multiselect: true
-                            }
-                        }}
-                        onClick={this.handleSingleClick}
-                        onDoubleClick={this.handleDoubleClick}
-                        onSelectNode={this.handleSelectNode}
-                    />
-                </Col>
-                <Col xs="4">
-                    <PropertyList properties={this.state.properties} semantics={this.state.semantics}>
-                        <h2>Properties</h2>
-                        <Semantics properties={this.state.properties} onSemanticsChanged={this.handleSemanticsChanged} />
-                    </PropertyList>
-                </Col>
-            </Row>
+            <Vis
+                graph={this.state.vis}
+                options={{
+                    ...this.state.options,
+                    interaction: {
+                        multiselect: true
+                    }
+                }}
+                onClick={this.handleSingleClick}
+                onDoubleClick={this.handleDoubleClick}
+                onSelectNode={this.handleSelectNode}
+            />
         );
     }
 
