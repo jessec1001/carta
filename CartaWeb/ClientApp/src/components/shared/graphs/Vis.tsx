@@ -1,10 +1,10 @@
 import React, { Component, createRef } from 'react';
 import { Network } from 'vis-network/standalone';
 import { DataSet } from 'vis-data/standalone';
-import './VisGraph.css';
+import './Vis.css';
 
-export class VisGraph extends Component {
-    static displayName = VisGraph.name;
+export class Vis extends Component {
+    static displayName = Vis.name;
     static events = [
         'click',
         'doubleClick',
@@ -58,7 +58,7 @@ export class VisGraph extends Component {
         this.network = new Network(this.graphRef.current, this.data, this.props.options);
 
         // Register all of the events for the Vis Network.
-        VisGraph.events.forEach(eventName => {
+        Vis.events.forEach(eventName => {
             const handlerName = 'on' + eventName.charAt(0).toUpperCase() + eventName.slice(1);
             this.network.on(eventName, (event) => {
                 if (this.props[handlerName])

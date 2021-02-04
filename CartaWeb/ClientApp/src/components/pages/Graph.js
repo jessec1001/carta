@@ -1,9 +1,8 @@
 import React, { Component } from 'react';
 import { Row, Col } from 'reactstrap';
-import { VisGraph } from '../shared/graphs/VisGraph';
+import { Vis } from '../shared/graphs/Vis';
 import { PropertyList } from '../shared/properties/PropertyList';
 import { Semantics } from "../forms/Semantics";
-import { toVis } from '../../lib/graph-extend';
 import './Graph.css';
 
 export class Graph extends Component {
@@ -95,7 +94,7 @@ export class Graph extends Component {
         return (
             <Row>
                 <Col xs="8">
-                    <VisGraph
+                    <Vis
                         graph={this.state.vis}
                         options={{
                             ...this.state.options,
