@@ -1,5 +1,5 @@
 /** Represents a graph property of a graph node. */
-interface VisProperty {
+export interface VisProperty {
     /** The name of the property. */
     name: string,
     /** The value type of the property. */
@@ -9,7 +9,7 @@ interface VisProperty {
 }
 
 /** Represents a graph node that can be directly imported into Vis.js. */
-interface VisNode {
+export interface VisNode {
     /** The unique identifier of this node. */
     id: string,
 
@@ -23,7 +23,7 @@ interface VisNode {
 }
 
 /** Represents a graph edge that can be directly imported into Vis.js. */
-interface VisEdge {
+export interface VisEdge {
     /** The unique identifier of this edge. */
     id: number,
     
@@ -34,7 +34,7 @@ interface VisEdge {
 }
 
 /** Represents graph data that can be directly imported into Vis.js. */
-interface VisGraph {
+export interface VisGraph {
     /** Whether or not the edges of the graph are directed. */
     directed: boolean,
 

@@ -1,5 +1,5 @@
 /** Represents a graph property of a graph node. */
-interface JgProperty {
+export interface JgProperty {
     /** The value type of the property. */
     type: string,
     /** The value assigned to the property. */
@@ -7,7 +7,7 @@ interface JgProperty {
 }
 
 /** Represents a graph node. */
-interface JgNode {
+export interface JgNode {
     /** The label of the node which appears under each node when visualized. */
     label?: string,
     /** The description of the node which appears when each node is hovered over as a popup. */
@@ -18,7 +18,7 @@ interface JgNode {
 }
 
 /** Represents a graph edge. */
-interface JgEdge {
+export interface JgEdge {
     /** The unique identifier for the start node of this edge. This order is irrelevant if the graph is not directed. */
     source: string,
     /** The unique identifier for the terminal node of this edge. This order is irrelevant if the graph is not directed. */
@@ -26,7 +26,7 @@ interface JgEdge {
 }
 
 /** Represents a graph. */
-interface JgGraph {
+export interface JgGraph {
     /** Whether or not the edges of the graph are directed. */
     directed: boolean,
 
@@ -37,7 +37,7 @@ interface JgGraph {
 }
 
 /** Represents data that may contain a single graph or multiple graphs. */
-interface JgData {
+export interface JgData {
     /** Data for a single graph. */
     graph?: JgGraph,
     /** Data for multiple graphs. */
