@@ -20,8 +20,19 @@ using CartaWeb.Serialization.Xml;
 
 namespace CartaWeb.Extended.Formatters
 {
-    using FreeformGraph = IMutableVertexAndEdgeSet<FreeformVertex, Edge<FreeformVertex>>;
+    using FreeformGraph = IMutableVertexAndEdgeSet<FreeformVertex, FreeformEdge>;
 
+    /// <summary>
+    /// Represents a function that transforms a freeform graph into a string.
+    /// </summary>
+    /// <param name="graph">The freeform graph.</param>
+    /// <returns>The formatted string representation.</returns>
+    public delegate string MediaFormatter(FreeformGraph graph);
+
+    /// <summary>
+    /// Represents a text output formatter that is able to perform content negotiation and formatting for freeform
+    /// graphs.
+    /// </summary>
     public class GraphOutputFormatter : TextOutputFormatter
     {
         private static JsonSerializerOptions JsonOptions = new JsonSerializerOptions
@@ -29,72 +40,66 @@ namespace CartaWeb.Extended.Formatters
             IgnoreNullValues = true
         };
 
+        private static Dictionary<MediaTypeHeaderValue, MediaFormatter> MediaFormatters
+            = new Dictionary<MediaTypeHeaderValue, MediaFormatter>()
+            {
+                // JSON-based formats.
+                [MediaTypeHeaderValue.Parse("application/json")] = FormatVis,
+                [MediaTypeHeaderValue.Parse("application/vnd.vis+json")] = FormatVis,
+                [MediaTypeHeaderValue.Parse("application/vnd.jgf+json")] = FormatJg,
+
+                // XML-based formats.
+                [MediaTypeHeaderValue.Parse("application/xml")] = FormatGex,
+                [MediaTypeHeaderValue.Parse("application/vnd.gexf+xml")] = FormatGex
+            };
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GraphOutputFormatter"/> class.
+        /// </summary>
         public GraphOutputFormatter()
         {
-            foreach (string mediaType in new string[]
-                {
-                    "application/json", "text/json",
-                    "application/jgf", "text/jgf",
-                    "application/xml", "text/xml",
-                    "application/gexf", "text/gexf"
-                }
-            ) SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse(mediaType));
+            foreach (MediaTypeHeaderValue header in MediaFormatters.Keys)
+                SupportedMediaTypes.Add(header);
 
             SupportedEncodings.Add(Encoding.UTF8);
             SupportedEncodings.Add(Encoding.Unicode);
         }
 
+        /// <inheritdoc />
         protected override bool CanWriteType(Type type)
         {
-            if (typeof(FreeformGraph).IsAssignableFrom(type) ||
-                typeof(FreeformVertex).IsAssignableFrom(type) ||
-                typeof(IEnumerable<FreeformVertex>).IsAssignableFrom(type) ||
-                typeof(IDictionary<Guid, FreeformVertex>).IsAssignableFrom(type))
+            if (typeof(FreeformGraph).IsAssignableFrom(type))
                 return base.CanWriteType(type);
             return false;
         }
 
+        /// <inheritdoc />
         public override Task WriteResponseBodyAsync(OutputFormatterWriteContext context, Encoding selectedEncoding)
         {
-            StringSegment acceptSubtype = MediaTypeHeaderValue.Parse(context.ContentType).SubTypeWithoutSuffix;
-            string content = string.Empty;
+            MediaTypeHeaderValue contentHeader = MediaTypeHeaderValue.Parse(context.ContentType);
 
-            if (acceptSubtype.Equals("json") || acceptSubtype.Equals("jgf"))
+            // Find the correct formatter and use it to write the content.
+            string content = string.Empty;
+            if (context.Object is FreeformGraph graph)
             {
-                switch (context.Object)
+                foreach (KeyValuePair<MediaTypeHeaderValue, MediaFormatter> pair in MediaFormatters)
                 {
-                    case FreeformGraph graph:
-                        content = FormatJgf(graph);
+                    if (contentHeader.IsSubsetOf(pair.Key))
+                    {
+                        content = pair.Value(graph);
                         break;
-                    case FreeformVertex vertex:
-                        content = FormatJgf(vertex);
-                        break;
-                    case IEnumerable<FreeformVertex> vertices:
-                        content = FormatJgf(vertices);
-                        break;
-                    case IDictionary<Guid, FreeformVertex> vertices:
-                        content = FormatJgf(vertices);
-                        break;
+                    }
                 }
             }
 
+            // Write out the content to the response.
             return context.HttpContext.Response.WriteAsync(content, selectedEncoding);
         }
 
-        private static string FormatJson<T>(T obj) =>
-            JsonSerializer.Serialize<T>(obj, JsonOptions);
-        private static string FormatJgf(FreeformGraph graph) =>
-            FormatJson<Jgf>(new Jgf(graph));
-        private static string FormatJgf(FreeformVertex vertex) =>
-            FormatJson<JgfNode>(new JgfNode(vertex));
-        private static string FormatJgf(IEnumerable<FreeformVertex> vertices) =>
-            FormatJson<IEnumerable<JgfNode>>(vertices.Select(vertex => new JgfNode(vertex)));
-        private static string FormatJgf(IDictionary<Guid, FreeformVertex> vertices) =>
-            FormatJson<IDictionary<string, JgfNode>>(vertices.ToDictionary(
-                pair => pair.Key.ToString(),
-                pair => new JgfNode(pair.Value)
-            ));
-
+        private static string FormatJson<T>(T obj)
+        {
+            return JsonSerializer.Serialize<T>(obj, JsonOptions);
+        }
         private static string FormatXml<T>(T obj)
         {
             using (StringWriter sw = new StringWriter())
@@ -107,5 +112,9 @@ namespace CartaWeb.Extended.Formatters
                 return sw.ToString();
             }
         }
+
+        private static string FormatJg(FreeformGraph graph) => FormatJson<JgFormat>(new JgFormat(graph));
+        private static string FormatVis(FreeformGraph graph) => FormatJson<VisFormat>(new VisFormat(graph));
+        private static string FormatGex(FreeformGraph graph) => FormatXml<GexFormat>(new GexFormat(graph));
     }
 }
