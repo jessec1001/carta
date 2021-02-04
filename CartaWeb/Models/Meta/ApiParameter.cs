@@ -29,8 +29,8 @@ namespace CartaWeb.Models.Meta
         [JsonPropertyName("type")]
         public string TypeName
         {
-            get => Type.ToFriendlyString();
-            set => Type = value.ToFriendlyType();
+            get => TypeExtensions.TypeSerialize(Type);
+            set => Type = value.TypeDeserialize();
         }
     }
 }

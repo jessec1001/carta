@@ -286,7 +286,7 @@ namespace CartaWeb.Serialization.Json
             {
                 return new FreeformProperty
                 {
-                    Type = Type.ToFriendlyType(),
+                    Type = Type.TypeDeserialize(),
                     Value = Value
                 };
             }
@@ -301,7 +301,7 @@ namespace CartaWeb.Serialization.Json
         {
             Name = name;
 
-            Type = property.Type.ToFriendlyString();
+            Type = TypeExtensions.TypeSerialize(property.Type);
             Value = property.Value;
         }
         /// <summary>

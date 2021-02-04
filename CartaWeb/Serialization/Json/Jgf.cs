@@ -349,7 +349,7 @@ namespace CartaWeb.Serialization.Json
             get => new FreeformProperty
             {
                 Value = Value,
-                Type = Type.ToFriendlyType()
+                Type = Type.TypeDeserialize()
             };
         }
 
@@ -360,7 +360,7 @@ namespace CartaWeb.Serialization.Json
         public JgProperty(FreeformProperty property)
         {
             Value = property.Value;
-            Type = property.Type.ToFriendlyString();
+            Type = TypeExtensions.TypeSerialize(property.Type);
         }
         /// <summary>
         /// Initializes a new instance of the <see cref="JgProperty"/> class.

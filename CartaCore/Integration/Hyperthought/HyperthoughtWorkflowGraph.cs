@@ -36,7 +36,7 @@ namespace CartaCore.Integration.Hyperthought
                 HyperthoughtMetadataValue value = metadata.Value;
                 properties.Add(metadata.Key, new FreeformProperty
                 {
-                    Type = value.Type.ToString().ToFriendlyType(),
+                    Type = value.Type.ToString().TypeDeserialize(),
                     Value = value.Link
                 });
             }
