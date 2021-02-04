@@ -19,6 +19,11 @@ namespace CartaCore.Data
         /// <value><c>true</c> if the graph is finite; otherwise, <c>false</c>.</value>
         bool IsFinite { get; }
         /// <summary>
+        /// Whether the graph has directed or undirected edges.
+        /// </summary>
+        /// <value><c>true</c> if the graph has directed edges; otherwise, <c>false</c>.</value>
+        bool IsDirected { get; }
+        /// <summary>
         /// The ID of the base vertex of the graph.
         /// </summary>
         /// <remarks>

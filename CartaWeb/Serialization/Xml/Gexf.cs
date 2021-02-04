@@ -5,12 +5,11 @@ using System.Xml;
 using System.Xml.Serialization;
 
 using QuikGraph;
-using QuikGraph.Algorithms;
 
 using CartaCore.Data;
 using CartaCore.Utility;
 
-namespace CartaCore.Serialization.Xml.Gexf
+namespace CartaWeb.Serialization.Xml
 {
     using FreeformGraph = IMutableVertexAndEdgeSet<FreeformVertex, FreeformEdge>;
 

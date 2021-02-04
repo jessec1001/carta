@@ -13,18 +13,39 @@ namespace CartaCore.Integration.Hyperthought
 {
     using FreeformGraph = IMutableVertexAndEdgeSet<FreeformVertex, FreeformEdge>;
 
+    /// <summary>
+    /// Represents a sampled graph generated from data contained in a HyperThought workflow.
+    /// </summary>
     public class HyperthoughtWorkflowGraph : ISampledGraph
     {
         private readonly HyperthoughtApi Api;
         private readonly Guid Id;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="HyperthoughtWorkflowGraph"/> class using a
+        /// <see cref="HyperthoughtApi"/> instance and a workflow ID.
+        /// </summary>
+        /// <param name="api">The HyperThought API.</param>
+        /// <param name="id">The ID of the workflow.</param>
         public HyperthoughtWorkflowGraph(HyperthoughtApi api, Guid id)
         {
             Api = api;
             Id = id;
         }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="HyperthoughtWorkflowGraph"/> class using a
+        /// <see cref="HyperthoughtApi"/> instance and a workflow.
+        /// </summary>
+        /// <param name="api">The HyperThought API.</param>
+        /// <param name="workflow">The workflow.</param>
         public HyperthoughtWorkflowGraph(HyperthoughtApi api, HyperthoughtWorkflow workflow)
             : this(api, workflow.Content.PrimaryKey) { }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="HyperthoughtWorkflowGraph"/> class using a
+        /// <see cref="HyperthoughtApi"/> instance and a workflow template.
+        /// </summary>
+        /// <param name="api">The HyperThought API.</param>
+        /// <param name="template">The workflow template.</param>
         public HyperthoughtWorkflowGraph(HyperthoughtApi api, HyperthoughtWorkflowTemplate template)
             : this(api, template.PrimaryKey) { }
 
@@ -52,6 +73,8 @@ namespace CartaCore.Integration.Hyperthought
 
         /// <inheritdoc />
         public bool IsFinite => false;
+        /// <inheritdoc />
+        public bool IsDirected => true;
         /// <inheritdoc />
         public Guid BaseId => Id;
 

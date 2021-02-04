@@ -15,8 +15,8 @@ using Microsoft.Net.Http.Headers;
 using QuikGraph;
 
 using CartaCore.Data;
-using CartaCore.Serialization.Json.Jgf;
-using CartaCore.Serialization.Xml.Gexf;
+using CartaWeb.Serialization.Json;
+using CartaWeb.Serialization.Xml;
 
 namespace CartaWeb.Extended.Formatters
 {

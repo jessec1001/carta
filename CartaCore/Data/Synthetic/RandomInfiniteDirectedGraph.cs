@@ -84,11 +84,10 @@ namespace CartaCore.Data.Synthetic
             return null;
         }
 
-        /// <summary>
-        /// Whether the graph has a finite or infinite number of vertices and edges.
-        /// </summary>
-        /// <value>Always <c>false</c>.</value>
+        /// <inheritdoc />
         public bool IsFinite => false;
+        /// <inheritdoc />
+        public bool IsDirected => true;
         /// <inheritdoc />
         public Guid BaseId => (new CompoundRandom(Options.Seed)).NextGuid();
 
