@@ -63,14 +63,61 @@ namespace CartaCore.Data
         /// Gets the children of a vertex specified by ID.
         /// </summary>
         /// <param name="id">The ID of the vertex.</param>
-        /// <returns>A dictionary of ID-vertex pairs of children of the vertex.</returns>
-        IDictionary<Guid, FreeformVertex> GetChildren(Guid id)
+        /// <returns>A graph of the children of the vertex. No edges are included in the graph.</returns>
+        FreeformGraph GetChildren(Guid id)
         {
-            return GetEdges(id)
-                .ToDictionary(
-                    edge => edge.Target.Id,
-                    edge => GetProperties(edge.Target.Id)
-                );
+            // Create a graph with the correct directed variant.
+            FreeformGraph graph;
+            if (IsDirected)
+                graph = new AdjacencyGraph<FreeformVertex, FreeformEdge>(true);
+            else
+                graph = new UndirectedGraph<FreeformVertex, FreeformEdge>(true);
+
+            // Add children vertices.
+            graph.AddVertexRange
+            (
+                GetEdges(id).Select(edge => GetProperties(edge.Target.Id))
+            );
+
+            return graph;
+        }
+
+        /// <summary>
+        /// Gets the children of a vertex with their edge connects by ID.
+        /// </summary>
+        /// <param name="id">The ID of the vertex.</param>
+        /// <returns>
+        /// A graph of the children of the vertex. All in- and out-edges of the children are included in the graph.
+        /// </returns>
+        FreeformGraph GetChildrenWithEdges(Guid id)
+        {
+            // Create a graph with the correct directed variant.
+            FreeformGraph graph;
+            if (IsDirected)
+                graph = new AdjacencyGraph<FreeformVertex, FreeformEdge>(true);
+            else
+                graph = new UndirectedGraph<FreeformVertex, FreeformEdge>(true);
+
+            // Add children vertices.
+            IEnumerable<FreeformEdge> edges = GetEdges(id);
+            graph.AddVertexRange
+            (
+                edges.Select(edge => GetProperties(edge.Target.Id))
+            );
+
+            // Add parent-to-children edges.
+            graph.AddVerticesAndEdgeRange
+            (
+                edges
+            );
+
+            // Add children edges.
+            graph.AddVerticesAndEdgeRange
+            (
+                edges.SelectMany(edge => GetEdges(edge.Target.Id))
+            );
+
+            return graph;
         }
     }
 }

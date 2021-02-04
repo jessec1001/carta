@@ -70,6 +70,30 @@ namespace CartaCore.Integration.Hyperthought
             };
             return vertex;
         }
+        private IEnumerable<FreeformEdge> EdgesFromWorkflow(HyperthoughtWorkflow workflow)
+        {
+            FreeformVertex workflowVertex = new FreeformVertex(workflow.Content.PrimaryKey);
+
+            // Yield all children.
+            foreach (Guid childId in workflow.Content.ChildrenIds)
+            {
+                yield return new FreeformEdge
+                (
+                    workflowVertex,
+                    new FreeformVertex(childId)
+                );
+            }
+
+            // Yield all successors.
+            foreach (Guid successorId in workflow.Content.SuccessorIds)
+            {
+                yield return new FreeformEdge
+                (
+                    workflowVertex,
+                    new FreeformVertex(successorId)
+                );
+            }
+        }
 
         /// <inheritdoc />
         public bool IsFinite => false;
@@ -103,14 +127,55 @@ namespace CartaCore.Integration.Hyperthought
             }
         }
         /// <inheritdoc />
-        public IDictionary<Guid, FreeformVertex> GetChildren(Guid id)
+        public FreeformGraph GetChildren(Guid id)
         {
             // Get the child workflows from an API call and yield each by ID.
             IList<HyperthoughtWorkflow> workflows = Task.Run(() => Api.GetWorkflowChildrenAsync(id)).GetAwaiter().GetResult();
-            return workflows.ToDictionary(
-                workflow => workflow.Content.PrimaryKey,
-                workflow => VertexFromWorkflow(workflow)
+
+            // Create a graph with the workflow vertices.
+            FreeformGraph graph = new AdjacencyGraph<FreeformVertex, FreeformEdge>(true);
+            graph.AddVertexRange
+            (
+                workflows.Select(workflow => VertexFromWorkflow(workflow))
             );
+            return graph;
+        }
+        /// <inheritdoc />
+        public FreeformGraph GetChildrenWithEdges(Guid id)
+        {
+            // Get the child workflows from an API call and yield each by ID.
+            IList<HyperthoughtWorkflow> workflows = Task.Run(() => Api.GetWorkflowChildrenAsync(id)).GetAwaiter().GetResult();
+
+            // Create a graph.
+            FreeformGraph graph = new AdjacencyGraph<FreeformVertex, FreeformEdge>(true);
+            FreeformVertex vertex = new FreeformVertex(id);
+
+            // Add parent and children vertices.
+            graph.AddVertexRange
+            (
+                workflows.Select(workflow => VertexFromWorkflow(workflow))
+            );
+
+            // Add parent-to-children edges.
+            graph.AddVerticesAndEdgeRange
+            (
+                workflows.Select
+                (
+                    workflow => new FreeformEdge
+                    (
+                        vertex,
+                        new FreeformVertex(workflow.Content.PrimaryKey)
+                    )
+                )
+            );
+
+            // Add children edges.
+            graph.AddVerticesAndEdgeRange
+            (
+                workflows.SelectMany(workflow => EdgesFromWorkflow(workflow))
+            );
+
+            return graph;
         }
     }
 }
