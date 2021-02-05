@@ -1,189 +1,200 @@
 import React, { Component } from 'react';
 import { Vis } from '../shared/graphs/Vis';
+import { VisGraph, VisNode, VisProperty } from '../../lib/types/vis-format';
 import './GraphExplorer.css';
 
-export class GraphExplorer extends Component {
+interface GraphExplorerProps {
+    request?: string,
+
+    onPropertiesChanged?: (properties: Record<string, Array<VisProperty>>) => void
+}
+
+interface GraphExplorerState {
+    graph?: VisGraph,
+    loading: boolean
+}
+
+export class GraphExplorer extends Component<GraphExplorerProps, GraphExplorerState> {
     static displayName = GraphExplorer.name;
 
-    constructor(props) {
+    constructor(props : GraphExplorerProps) {
         super(props);
-        this.state = { loading: true, properties: {} };
+        this.state = {
+            loading: false
+        };
         
-        this.handleSingleClick = this.handleSingleClick.bind(this);
         this.handleDoubleClick = this.handleDoubleClick.bind(this);
         this.handleSelectNode = this.handleSelectNode.bind(this);
+        this.handleDeselectNode = this.handleDeselectNode.bind(this);
     }
 
-    handleSingleClick(event) {
-        const nodes = event.nodes;
-        if (nodes.length === 0) {
-            // Show no properties if no nodes are selected.
-            this.setState({
-                properties: {}
+    collectProperties(nodes: Array<VisNode>) {
+        // Collect all the properties from all of the nodes and organize them by name.
+        let properties : Record<string, Array<VisProperty>> = {};
+        nodes.forEach(node => {
+            node.properties.forEach(property => {
+                if (!(property.name in properties)) {
+                    properties[property.name] = [];
+                }
+                properties[property.name].push(property);
             });
-        }
+        });
+
+        // Set the properties in the state.
+        if (this.props.onPropertiesChanged) this.props.onPropertiesChanged(properties);
     }
-    handleDoubleClick(event) {
-        const nodes = event.nodes;
-        if (nodes.length === 1) {
+
+    handleDoubleClick(event: any) {
+        const nodes : Array<VisNode> = event.nodes;
+        nodes.forEach(node => {
             // Expand/contract the node that was double clicked on.
             // Notice that this will add the expanded property as true if the property doesn't already exist.
-            const nodeId = nodes[0];
-            const nodeData = this.state.data.graph.nodes[nodeId];
-            nodeData.expanded = !nodeData.expanded;
-            nodeData.color = nodeData.expanded ? { background: '#FFFFFF'} : {};
+            node.expanded = !node.expanded;
+            node.color = node.expanded ? { background: '#FFFFFF'} : {};
 
             // Add or remove child nodes based on expand/contract state.
-            if (nodeData.expanded) {
-                // Populate the children nodes if expanded.
-                this.populateChildren(nodeId);
-            } else {
-                // Depopulate the children nodes if contracted.
-                this.depopulateChildren(nodeId);
+            if (this.props.request) {
+                if (node.expanded) {
+                    // Populate the children nodes if expanded.
+                    this.populateChildren(this.props.request, node.id);
+                } else {
+                    // Depopulate the children nodes if contracted.
+                    this.depopulateChildren(node.id);
+                }
             }
-        }
+        });
     }
-    handleSelectNode(event) {
-        const nodes = event.nodes;
-        if (nodes.length === 1) {
-            // Show properties only if exactly one node is selected.
-            const nodeData = this.state.data.graph.nodes[nodes[0]];
-            this.setState({
-                properties: nodeData.data
-            });
-        } else if (nodes.length > 1) {
-            // Show the combined properties if multiple nodes are selected.
-            let properties = {};
-            for (let k = 0; k < nodes.length; k++) {
-                const node = this.state.data.graph.nodes[nodes[k]];
-                Object.keys(node.data).forEach(property => {
-                    if (property in properties) {
-                        properties[property].occurrences++;
-                    } else {
-                        properties[property] = {
-                            type: node.data[property].type,
-                            occurrences: 1
-                        };
-                    }
-                });
-            }
-            this.setState({
-                properties: properties
-            });
-        }
+    handleSelectNode(event: any) {
+        this.collectProperties(event.nodes);
+    }
+    handleDeselectNode(event: any) {
+        this.collectProperties(event.nodes);
     }
 
     componentDidMount() {
-        this.requestURL = (
-            this.props.location.pathname +
-            this.props.location.search
-        ).replace(this.props.match.path, '').substring(1);
-        this.populateData();
+        if (this.props.request) this.populateData(this.props.request);
+    }
+    componentDidUpdate(prevProps : GraphExplorerProps) {
+        if (this.props.request !== prevProps.request) {
+            if (this.props.request) this.populateData(this.props.request);
+            else this.setState({ graph: undefined });
+        }
     }
 
     render() {
         return (
             <Vis
-                graph={this.state.vis}
+                graph={this.state.graph}
                 options={{
-                    ...this.state.options,
                     interaction: {
                         multiselect: true
                     }
                 }}
-                onClick={this.handleSingleClick}
                 onDoubleClick={this.handleDoubleClick}
                 onSelectNode={this.handleSelectNode}
+                onDeselectNode={this.handleDeselectNode}
             />
         );
     }
 
-    addQueryParameter(URL, parameter) {
-        if (URL.includes('?'))
-            return `${URL}&${parameter}`;
+    appendQueryParam(url: string, key: string, value: string) {
+        // Encode the key and the value.
+        key = encodeURIComponent(key);
+        value = encodeURIComponent(value);
+        
+        // Return the appropriate response based on whether there are already query parameters.
+        if (url.split('?').length > 1)
+            return `${url}&${key}=${value}`;
         else
-            return `${URL}?${parameter}`;
+            return `${url}?${key}=${value}`;
     }
 
-    async populateData() {
-        const response = await fetch(`api/data/${this.requestURL}`);
-        const data = await response.json();
-        const vis = toVis(data);
-        
+    async populateData(request: string) {
+        // Set loading state to true.
         this.setState({
-            data: data,
-            vis: vis.graph,
-            options: vis.options,
+            loading: true
+        });
+
+        // Grab the data from the server.
+        const response = await fetch(`api/data/${request}`);
+        const graph : VisGraph = await response.json();
+
+        // Set loading state to false and set data.
+        this.setState({
+            graph: graph,
             loading: false
         });
     }
-
-    async populateChildren(id) {
-        const response = await fetch(`api/data/children/${this.addQueryParameter(this.requestURL, `uuid=${id}`)}`);
-        const data = await response.json();
-        
-        const newEdges = Object.keys(data).map(childId => ({
-            source: id,
-            target: childId
-        }));
-
-        const combinedNodes = { ...this.state.data.graph.nodes, ...data };
-        const combinedEdges = [ ...this.state.data.graph.edges, ...newEdges ];
-        const newData = { ...this.state.data,
-            graph: { ...this.state.data.graph,
-                nodes: combinedNodes,
-                edges: combinedEdges
-            }
-        };
-
-        const vis = toVis(newData);
+    async populateChildren(request: string, id: string) {
+        // Set loading state to true.
         this.setState({
-            data: newData,
-            vis: vis.graph,
-            options: vis.options
+            loading: true
+        });
+
+        // Grab the data from the server.
+        const response = await fetch(`api/data/${this.appendQueryParam(request, 'uuid', id)}`);
+        const graph : VisGraph = await response.json();
+        
+        // Set loading state to false and update data.
+        // Note that we need to check for duplicate nodes and edges.
+        this.setState(state => {
+            if (state.graph) {
+                graph.nodes = [
+                    ...state.graph.nodes,
+                    ...graph.nodes.filter(nodeA =>
+                        !state.graph?.nodes?.some(nodeB => nodeA.id === nodeB.id)
+                    )
+                ];
+                graph.edges = [
+                    ...state.graph.edges,
+                    ...graph.edges.filter(edgeA => 
+                        !state.graph?.edges?.some(edgeB => edgeA.from === edgeB.from && edgeA.to === edgeB.to)
+                    )
+                ];
+            }
+
+            return {
+                graph: graph,
+                loading: false
+            };
         });
     }
-
-    async depopulateChildren(id) {
-        const scanIds = [ id ];
-        const descendants = new Set();
-        while (scanIds.length) {
-            // Current node ID to scan.
-            const scanId = scanIds.pop();
-
-            // Find descendants.
-            for (let k = 0; k < this.state.data.graph.edges.length; k++) {
-                const edge = this.state.data.graph.edges[k];
-                if (edge.source === scanId)
-                {
-                    descendants.add(edge.target);
-                    scanIds.push(edge.target);
-                }
-            }
-        }
-
-        const filteredNodes = Object.keys(this.state.data.graph.nodes)
-            .filter(nodeId => !descendants.has(nodeId))
-            .reduce((obj, nodeId) => {
-                return {
-                    ...obj,
-                    [nodeId]: this.state.data.graph.nodes[nodeId]
-                };
-            }, {});
-        const filteredEdges = this.state.data.graph.edges
-            .filter(edge => !descendants.has(edge.target));
-        const newData = { ...this.state.data,
-            graph: { ...this.state.data.graph,
-                nodes: filteredNodes,
-                edges: filteredEdges
-            }
-        };
-
-        const vis = toVis(newData);
+    async depopulateChildren(id: string) {
+        // Set loading state to true.
         this.setState({
-            data: newData,
-            vis: vis.graph,
-            options: vis.options
+            loading: true
+        });
+
+        // Set loading state to false and update data.
+        this.setState(state => {
+            if (!state.graph) return { loading: false };
+
+            // Obtain all of the descendents of the selected node.
+            const connectedIds = new Set<string>();
+            const descendantIds = new Set<string>([id]);
+
+            while (descendantIds.size > 0) {
+                const descendantId : string = descendantIds.values().next().value;
+                const children = state.graph.edges
+                    .filter(edge => edge.from === descendantId)
+                    .map(edge => edge.to);
+                children.forEach(childId => {
+                    connectedIds.add(childId);
+                    descendantIds.add(childId);
+                });
+
+                descendantIds.delete(descendantId);
+            }
+
+            // Remove descendant nodes and edges
+            const graph = state.graph;
+            graph.nodes = graph.nodes.filter(node => !connectedIds.has(node.id));
+            graph.edges = graph.edges.filter(edge => !(connectedIds.has(edge.from) || connectedIds.has(edge.to)));
+
+            return {
+                graph: graph,
+                loading: false
+            };
         });
     }
 }

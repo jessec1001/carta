@@ -1,6 +1,6 @@
 import React, { Component, createRef, RefObject } from 'react';
-import { Network, NetworkEvents, Options } from 'vis-network/standalone';
 import { DataSet } from 'vis-data/standalone';
+import { Network, Options } from 'vis-network/standalone';
 import { VisGraph, VisEdge, VisNode } from '../../../lib/types/vis-format';
 import './Vis.css';
 
@@ -10,7 +10,7 @@ interface VisGraphData {
 };
 
 interface VisProps {
-    graph: VisGraph,
+    graph?: VisGraph,
     options: Options,
 
     onClick?:                        (params?: any) => void,
@@ -44,7 +44,8 @@ interface VisProps {
     onBeforeDrawing?:                (params?: any) => void,
     onAfterDrawing?:                 (params?: any) => void,
     onAnimationFinished?:            (params?: any) => void,
-    onConfigChange?:                 (params?: any) => void
+    onConfigChange?:                 (params?: any) => void,
+    onNetworkCreate?:                (params: Network) => void
 };
 
 export class Vis extends Component<VisProps> {
@@ -58,10 +59,17 @@ export class Vis extends Component<VisProps> {
         super(props);
 
         this.ref = createRef<HTMLDivElement>();
-        this.data = {
-            nodes: new DataSet(this.props.graph.nodes),
-            edges: new DataSet(this.props.graph.edges)
-        };
+        if (this.props.graph) {
+            this.data = {
+                nodes: new DataSet(this.props.graph.nodes),
+                edges: new DataSet(this.props.graph.edges)
+            };
+        } else {
+            this.data = {
+                nodes: new DataSet(),
+                edges: new DataSet()
+            }
+        }
         this.network = null;
     }
 
@@ -135,35 +143,37 @@ export class Vis extends Component<VisProps> {
     }
 
     componentDidMount() {
-        // Create the data from the passed in graph properties.
-        let graph = this.props.graph;
-        this.data = {
-            nodes: new DataSet(graph.nodes),
-            edges: new DataSet(graph.edges)
-        };
-
         // Create the network using these datasets to allow for dynamically changing the data.
         if (this.ref.current) {
             this.network = new Network(this.ref.current, this.data, this.props.options);
             this.registerEvents();
+
+            // Notify the event handler about the network being created.
+            if (this.props.onNetworkCreate) this.props.onNetworkCreate(this.network);
         }
     }
     componentDidUpdate(prevProps : VisProps) {
         // If the graph properties are not the same, we need to handle the change in data.
         if (this.props.graph !== prevProps.graph) {
-            // Update the nodes and edges data.
-            this.data.nodes.update(this.props.graph.nodes);
-            this.data.edges.update(this.props.graph.edges);
+            if (this.props.graph) {
+                // Update the nodes and edges data.
+                this.data.nodes.update(this.props.graph.nodes);
+                this.data.edges.update(this.props.graph.edges);
 
-            // Remove any excess nodes and edges left behind.
-            let nodeIds = this.props.graph.nodes.map(node => node.id);
-            let edgeIds = this.props.graph.edges.map(edge => edge.id);
-            this.data.nodes.remove(
-                this.data.nodes.getIds().filter(id => !nodeIds.includes(id as string))
-            );
-            this.data.nodes.remove(
-                this.data.edges.getIds().filter(id => !edgeIds.includes(id as number))
-            );
+                // Remove any excess nodes and edges left behind.
+                let nodeIds = this.props.graph.nodes.map(node => node.id);
+                let edgeIds = this.props.graph.edges.map(edge => edge.id);
+                this.data.nodes.remove(
+                    this.data.nodes.getIds().filter(id => !nodeIds.includes(id as string))
+                );
+                this.data.nodes.remove(
+                    this.data.edges.getIds().filter(id => !edgeIds.includes(id as number))
+                );
+            } else {
+                // Clear the nodes and edges data.
+                this.data.nodes.clear();
+                this.data.edges.clear();
+            }
         }
         
         // If the graph options changed, just reset them.

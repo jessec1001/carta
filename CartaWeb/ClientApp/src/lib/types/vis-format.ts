@@ -1,3 +1,5 @@
+import { Edge, Node } from "vis-network/standalone";
+
 /** Represents a graph property of a graph node. */
 export interface VisProperty {
     /** The name of the property. */
@@ -9,7 +11,7 @@ export interface VisProperty {
 }
 
 /** Represents a graph node that can be directly imported into Vis.js. */
-export interface VisNode {
+export interface VisNode extends Node {
     /** The unique identifier of this node. */
     id: string,
 
@@ -18,12 +20,15 @@ export interface VisNode {
     /** The description of the node which appears when each node is hovered over as a popup. */
     title?: string,
 
+    /** The expanded state of the node. */
+    expanded?: boolean
+
     /** The properties that this node is assigned. */
     properties: Array<VisProperty>
 }
 
 /** Represents a graph edge that can be directly imported into Vis.js. */
-export interface VisEdge {
+export interface VisEdge extends Edge {
     /** The unique identifier of this edge. */
     id: number,
     
