@@ -81,7 +81,10 @@ namespace CartaWeb.Serialization.Json
         {
             Directed = graph.IsDirected;
 
-            Nodes = graph.Vertices.Select(node => new VisFormatNode(node)).ToList();
+            Nodes = graph.Vertices
+                .Where(node => !(node.Properties is null))
+                .Select(node => new VisFormatNode(node))
+                .ToList();
             Edges = graph.Edges.Select((edge, index) => new VisFormatEdge(index, edge)).ToList();
         }
         /// <summary>
