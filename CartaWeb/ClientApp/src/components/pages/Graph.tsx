@@ -1,10 +1,21 @@
-import React, { Component } from "react";
-import { Row, Col } from 'reactstrap';
+import React, { Component } from 'react';
+import { 
+    Row,
+    Col,
+    Navbar,
+    Nav,
+    UncontrolledDropdown,
+    DropdownToggle,
+    DropdownMenu,
+    DropdownItem
+} from 'reactstrap';
+import Split from 'react-split-grid';
 import { RouteComponentProps } from "react-router-dom";
 import { PropertyList } from "../shared/properties/PropertyList";
 import { GraphExplorer } from '../forms/GraphExplorer';
 import { Semantics } from '../forms/Semantics';
 import { VisProperty } from '../../lib/types/vis-format';
+import './Graph.css';
 
 interface GraphProps extends RouteComponentProps { }
 interface GraphState {
@@ -38,17 +49,50 @@ export class Graph extends Component<GraphProps, GraphState> {
 
     render() {
         return (
-            <Row>
-                <Col xs="8">
-                    <GraphExplorer properties={this.state.properties} request={this.request} />
-                </Col>
-                <Col xs="4">
+            <div className="page">
+                <div className="w-75">
+                    <Navbar className="toolbar" color="light" light expand="md">
+                        <Nav navbar>
+                            <UncontrolledDropdown nav inNavbar>
+                                <DropdownToggle nav>
+                                    Select
+                                </DropdownToggle>
+                                <DropdownMenu>
+                                    <DropdownItem>
+                                        All
+                                    </DropdownItem>
+                                    <DropdownItem>
+                                        None
+                                    </DropdownItem>
+                                    <DropdownItem>
+                                        Descendants
+                                    </DropdownItem>
+                                    <DropdownItem>
+                                        Ancestors
+                                    </DropdownItem>
+                                </DropdownMenu>
+                            </UncontrolledDropdown>
+                            <UncontrolledDropdown nav inNavbar>
+                                <DropdownToggle nav>
+                                    Properties
+                                </DropdownToggle>
+                                <DropdownMenu>
+                                    <DropdownItem>
+                                        Naming
+                                    </DropdownItem>
+                                </DropdownMenu>
+                            </UncontrolledDropdown>
+                        </Nav>
+                    </Navbar>
+                    <GraphExplorer request={this.request} />
+                </div>
+                <div className="w-25">
                     <PropertyList properties={this.state.properties} semantics={this.state.semantics}>
                         <h2>Properties</h2>
                         <Semantics properties={this.state.properties} onSemanticsChanged={this.handleSemanticsChanged} />
                     </PropertyList>
-                </Col>
-            </Row>
+                </div>
+            </div>
         );
     }
 }
