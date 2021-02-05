@@ -30,7 +30,7 @@ export interface VisNode extends Node {
 /** Represents a graph edge that can be directly imported into Vis.js. */
 export interface VisEdge extends Edge {
     /** The unique identifier of this edge. */
-    id: number,
+    id: string | number,
     
     /** The unique identifier for the start node of this edge. This order is irrelevant if the graph is not directed. */
     from: string,
