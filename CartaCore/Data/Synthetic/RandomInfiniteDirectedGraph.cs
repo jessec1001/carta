@@ -126,6 +126,7 @@ namespace CartaCore.Data.Synthetic
             FreeformVertex sourceVertex = new FreeformVertex { Id = id };
 
             // Keep constructing children until the random generator doesn't sample within the current probability.
+            int child = 0;
             double probability = Options.ChildProbability;
             while (random.NextDouble() < probability)
             {
@@ -135,7 +136,8 @@ namespace CartaCore.Data.Synthetic
                 // The source of each edge is the selected vertex.
                 yield return new FreeformEdge(
                     sourceVertex,
-                    new FreeformVertex(randomId)
+                    new FreeformVertex(randomId),
+                    child++
                 );
 
                 // We lower the probability by some amount each time.

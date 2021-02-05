@@ -65,12 +65,13 @@ namespace CartaCore.Data.Synthetic
 
             // Generate the edges to randomly select from.
             // This uses a cartesian product without doubles or reversals.
+            int edgeCount = 0;
             LinkedList<FreeformEdge> edges = new LinkedList<FreeformEdge>(
                 vertices
                 .SelectMany(
                     (vertexA, indexA) => vertices
                         .Where((vertexB, indexB) => indexA < indexB),
-                    (a, b) => new FreeformEdge(a, b)
+                    (a, b) => new FreeformEdge(a, b, edgeCount++)
                 )
             );
 

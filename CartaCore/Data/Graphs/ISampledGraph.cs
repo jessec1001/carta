@@ -109,12 +109,25 @@ namespace CartaCore.Data
             graph.AddVerticesAndEdgeRange
             (
                 edges
+                    .OrderBy(edge => edge.Target)
+                    .Select((edge, index) =>
+                        {
+                            edge.Id = index;
+                            return edge;
+                        })
             );
 
             // Add children edges.
             graph.AddVerticesAndEdgeRange
             (
-                edges.SelectMany(edge => GetEdges(edge.Target.Id))
+                edges.SelectMany(edge => GetEdges(edge.Target.Id)
+                    .OrderBy(edge => edge.Target)
+                    .Select((edge, index) =>
+                        {
+                            edge.Id = index;
+                            return edge;
+                        })
+                    )
             );
 
             return graph;

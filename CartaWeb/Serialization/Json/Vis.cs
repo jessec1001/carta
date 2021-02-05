@@ -85,7 +85,7 @@ namespace CartaWeb.Serialization.Json
                 .Where(node => !(node.Properties is null))
                 .Select(node => new VisFormatNode(node))
                 .ToList();
-            Edges = graph.Edges.Select((edge, index) => new VisFormatEdge(index, edge)).ToList();
+            Edges = graph.Edges.Select(edge => new VisFormatEdge(edge)).ToList();
         }
         /// <summary>
         /// Initializes a new instance of the <see cref="VisFormat"/> class.
@@ -231,11 +231,10 @@ namespace CartaWeb.Serialization.Json
         /// <summary>
         /// Initializes a new instance of the <see cref="VisFormatEdge"/> class with the specified ID and endpoints.
         /// </summary>
-        /// <param name="id">The edge ID.</param>
         /// <param name="edge">The edge source and target to convert to a new format.</param>
-        public VisFormatEdge(int id, FreeformEdge edge)
+        public VisFormatEdge(FreeformEdge edge)
         {
-            Id = id;
+            Id = edge.Id;
 
             Source = edge.Source.Id;
             Target = edge.Target.Id;

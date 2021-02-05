@@ -73,24 +73,27 @@ namespace CartaCore.Integration.Hyperthought
         private IEnumerable<FreeformEdge> EdgesFromWorkflow(HyperthoughtWorkflow workflow)
         {
             FreeformVertex workflowVertex = new FreeformVertex(workflow.Content.PrimaryKey);
+            int edge = 0;
 
             // Yield all children.
-            foreach (Guid childId in workflow.Content.ChildrenIds)
+            foreach (Guid childId in workflow.Content.ChildrenIds.OrderBy(id => id))
             {
                 yield return new FreeformEdge
                 (
                     workflowVertex,
-                    new FreeformVertex(childId)
+                    new FreeformVertex(childId),
+                    edge++
                 );
             }
 
             // Yield all successors.
-            foreach (Guid successorId in workflow.Content.SuccessorIds)
+            foreach (Guid successorId in workflow.Content.SuccessorIds.OrderBy(id => id))
             {
                 yield return new FreeformEdge
                 (
                     workflowVertex,
-                    new FreeformVertex(successorId)
+                    new FreeformVertex(successorId),
+                    edge++
                 );
             }
         }
@@ -118,11 +121,13 @@ namespace CartaCore.Integration.Hyperthought
             // Get the workflow from an API call and yield each of the children.
             HyperthoughtWorkflow workflow = Task.Run(() => Api.GetWorkflowAsync(id)).GetAwaiter().GetResult();
             FreeformVertex thisVertex = new FreeformVertex(id);
-            foreach (Guid childId in workflow.Content.ChildrenIds)
+            int edge = 0;
+            foreach (Guid childId in workflow.Content.ChildrenIds.OrderBy(id => id))
             {
                 yield return new FreeformEdge(
                     thisVertex,
-                    new FreeformVertex(childId)
+                    new FreeformVertex(childId),
+                    edge++
                 );
             }
         }
@@ -157,16 +162,20 @@ namespace CartaCore.Integration.Hyperthought
             );
 
             // Add parent-to-children edges.
+            int edges = 0;
             graph.AddVerticesAndEdgeRange
             (
-                workflows.Select
-                (
-                    workflow => new FreeformEdge
+                workflows
+                    .OrderBy(workflow => workflow.Content.PrimaryKey)
+                    .Select
                     (
-                        vertex,
-                        new FreeformVertex(workflow.Content.PrimaryKey)
+                        workflow => new FreeformEdge
+                        (
+                            vertex,
+                            new FreeformVertex(workflow.Content.PrimaryKey),
+                            edges++
+                        )
                     )
-                )
             );
 
             // Add children edges.
