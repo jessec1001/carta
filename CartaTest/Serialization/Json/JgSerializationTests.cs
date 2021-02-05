@@ -10,9 +10,15 @@ namespace CartaTest.Serialization.Json
 {
     using FreeformGraph = IMutableVertexAndEdgeSet<FreeformVertex, FreeformEdge>;
 
+    /// <summary>
+    /// Tests the serialization of freeform graphs into JSON Graph format.
+    /// </summary>
     [TestFixture]
-    public class JgfSerializationTests
+    public class JgSerializationTests
     {
+        /// <summary>
+        /// Tests the serialization and deserialization of a simple undirected graph.
+        /// </summary>
         [Test]
         public void TestJgUndirected()
         {

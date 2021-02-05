@@ -12,9 +12,15 @@ namespace CartaTest.Serialization.Xml
 {
     using FreeformGraph = IMutableVertexAndEdgeSet<FreeformVertex, FreeformEdge>;
 
+    /// <summary>
+    /// Tests the serialization of a freeform graph into Graph Exchange XML format.
+    /// </summary>
     [TestFixture]
     public class GexfSerializationTests
     {
+        /// <summary>
+        /// Tests the serialization and deserialization of a simple undirected graph.
+        /// </summary>
         [Test]
         public void TestGexfReserialize()
         {

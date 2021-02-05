@@ -10,9 +10,15 @@ namespace CartaTest.Serialization.Json
 {
     using FreeformGraph = IMutableVertexAndEdgeSet<FreeformVertex, FreeformEdge>;
 
+    /// <summary>
+    /// Tests the serialization of freeform graphs into Vis format.
+    /// </summary>
     [TestFixture]
     public class VisSerializationTests
     {
+        /// <summary>
+        /// Tests the serialization and deserialization of a simple undirected graph.
+        /// </summary>
         [Test]
         public void TestVisUndirected()
         {
