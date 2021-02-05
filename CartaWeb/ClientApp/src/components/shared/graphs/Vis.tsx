@@ -1,16 +1,16 @@
 import React, { Component, createRef, RefObject } from 'react';
 import { DataSet } from 'vis-data/standalone';
 import { Network, Options } from 'vis-network/standalone';
-import { VisGraph, VisEdge, VisNode } from '../../../lib/types/vis-format';
+import { VisEdge, VisNode } from '../../../lib/types/vis-format';
 import './Vis.css';
 
-interface VisGraphData {
+export interface VisGraphData {
     nodes: DataSet<VisNode>,
     edges: DataSet<VisEdge>
 };
 
 interface VisProps {
-    graph?: VisGraph,
+    graph: VisGraphData,
     options: Options,
 
     onClick?:                        (params?: any) => void,
@@ -59,17 +59,10 @@ export class Vis extends Component<VisProps> {
         super(props);
 
         this.ref = createRef<HTMLDivElement>();
-        if (this.props.graph) {
-            this.data = {
-                nodes: new DataSet(this.props.graph.nodes),
-                edges: new DataSet(this.props.graph.edges)
-            };
-        } else {
-            this.data = {
-                nodes: new DataSet(),
-                edges: new DataSet()
-            }
-        }
+        this.data = {
+            nodes: this.props.graph.nodes,
+            edges: this.props.graph.edges
+        };
         this.network = null;
     }
 
@@ -153,29 +146,6 @@ export class Vis extends Component<VisProps> {
         }
     }
     componentDidUpdate(prevProps : VisProps) {
-        // If the graph properties are not the same, we need to handle the change in data.
-        if (this.props.graph !== prevProps.graph) {
-            if (this.props.graph) {
-                // Update the nodes and edges data.
-                this.data.nodes.update(this.props.graph.nodes);
-                this.data.edges.update(this.props.graph.edges);
-
-                // Remove any excess nodes and edges left behind.
-                let nodeIds = this.props.graph.nodes.map(node => node.id);
-                let edgeIds = this.props.graph.edges.map(edge => edge.id);
-                this.data.nodes.remove(
-                    this.data.nodes.getIds().filter(id => !nodeIds.includes(id as string))
-                );
-                this.data.nodes.remove(
-                    this.data.edges.getIds().filter(id => !edgeIds.includes(id as number))
-                );
-            } else {
-                // Clear the nodes and edges data.
-                this.data.nodes.clear();
-                this.data.edges.clear();
-            }
-        }
-        
         // If the graph options changed, just reset them.
         if (this.props.options !== prevProps.options) {
             if (this.network) {
