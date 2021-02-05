@@ -499,7 +499,7 @@ namespace CartaWeb.Serialization.Xml
         /// The property value.
         /// </value>
         [XmlAttribute(AttributeName = "value")]
-        public object Value { get; set; }
+        public string Value { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GexFormatProperty"/> class with the specified ID and property.
@@ -510,7 +510,7 @@ namespace CartaWeb.Serialization.Xml
         {
             Id = id;
 
-            Value = property.Value;
+            Value = property.Value.ToString();
         }
         /// <summary>
         /// Initializes a new instance of the <see cref="GexFormatProperty"/> class.

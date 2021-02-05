@@ -11,15 +11,15 @@ namespace CartaTest.Serialization.Json
     using FreeformGraph = IMutableVertexAndEdgeSet<FreeformVertex, FreeformEdge>;
 
     [TestFixture]
-    public class JgfSerializationTests
+    public class VisSerializationTests
     {
         [Test]
-        public void TestJgUndirected()
+        public void TestVisUndirected()
         {
-            JgFormat sample = new JgFormat(Helpers.UndirectedGraphSample);
+            VisFormat sample = new VisFormat(Helpers.UndirectedGraphSample);
 
-            string str = JsonSerializer.Serialize<JgFormat>(sample);
-            JgFormat data = JsonSerializer.Deserialize<JgFormat>(str);
+            string str = JsonSerializer.Serialize<VisFormat>(sample);
+            VisFormat data = JsonSerializer.Deserialize<VisFormat>(str);
 
             FreeformGraph graph = data.Graph;
 

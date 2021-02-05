@@ -26,11 +26,11 @@ namespace CartaTest.Serialization
                 FreeformGraph graph = new UndirectedGraph<FreeformVertex, FreeformEdge>();
                 FreeformVertex[] vertices = new FreeformVertex[]
                 {
-                    new FreeformVertex(Guid.NewGuid()),
-                    new FreeformVertex(Guid.NewGuid()),
-                    new FreeformVertex(Guid.NewGuid()),
-                    new FreeformVertex(Guid.NewGuid()),
-                    new FreeformVertex(Guid.NewGuid()),
+                    new FreeformVertex(Guid.NewGuid()) { Properties = new SortedList<string, FreeformProperty>() },
+                    new FreeformVertex(Guid.NewGuid()) { Properties = new SortedList<string, FreeformProperty>() },
+                    new FreeformVertex(Guid.NewGuid()) { Properties = new SortedList<string, FreeformProperty>() },
+                    new FreeformVertex(Guid.NewGuid()) { Properties = new SortedList<string, FreeformProperty>() },
+                    new FreeformVertex(Guid.NewGuid()) { Properties = new SortedList<string, FreeformProperty>() },
                 };
 
                 // Construct the vertices and edges of the graph.
@@ -60,10 +60,10 @@ namespace CartaTest.Serialization
                 FreeformGraph graph = new AdjacencyGraph<FreeformVertex, FreeformEdge>();
                 FreeformVertex[] vertices = new FreeformVertex[]
                 {
-                    new FreeformVertex(Guid.NewGuid()),
-                    new FreeformVertex(Guid.NewGuid()),
-                    new FreeformVertex(Guid.NewGuid()),
-                    new FreeformVertex(Guid.NewGuid()),
+                    new FreeformVertex(Guid.NewGuid()) { Properties = new SortedList<string, FreeformProperty>() },
+                    new FreeformVertex(Guid.NewGuid()) { Properties = new SortedList<string, FreeformProperty>() },
+                    new FreeformVertex(Guid.NewGuid()) { Properties = new SortedList<string, FreeformProperty>() },
+                    new FreeformVertex(Guid.NewGuid()) { Properties = new SortedList<string, FreeformProperty>() },
                 };
 
                 // Construct the vertices and edges of the graph.
