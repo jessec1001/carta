@@ -4,9 +4,10 @@ using System.Linq;
 using System.Xml;
 using System.Xml.Serialization;
 
-using CartaCore.Serialization.Xml.Gexf;
 using QuikGraph;
 using NUnit.Framework;
+
+using CartaWeb.Serialization.Xml;
 
 namespace CartaTest.Serialization.Xml
 {
@@ -36,8 +37,8 @@ namespace CartaTest.Serialization.Xml
             {
                 using (XmlWriter xmlWriter = XmlWriter.Create(stringWriter))
                 {
-                    Gexf graph = new Gexf(TestGraph);
-                    XmlSerializer serializer = new XmlSerializer(typeof(Gexf));
+                    GexFormat graph = new GexFormat(TestGraph);
+                    XmlSerializer serializer = new XmlSerializer(typeof(GexFormat));
 
                     serializer.Serialize(xmlWriter, graph);
                 }
@@ -74,8 +75,8 @@ namespace CartaTest.Serialization.Xml
             {
                 using (XmlReader xmlReader = XmlReader.Create(stringReader))
                 {
-                    XmlSerializer serializer = new XmlSerializer(typeof(Gexf));
-                    Gexf gexf = (Gexf)serializer.Deserialize(xmlReader);
+                    XmlSerializer serializer = new XmlSerializer(typeof(GexFormat));
+                    GexFormat gexf = (GexFormat)serializer.Deserialize(xmlReader);
                     graph = gexf.GraphValue;
                 }
             }
@@ -108,8 +109,8 @@ namespace CartaTest.Serialization.Xml
             {
                 using (XmlWriter xmlWriter = XmlWriter.Create(stringWriter))
                 {
-                    Gexf graph = new Gexf(TestGraph);
-                    XmlSerializer serializer = new XmlSerializer(typeof(Gexf));
+                    GexFormat graph = new GexFormat(TestGraph);
+                    XmlSerializer serializer = new XmlSerializer(typeof(GexFormat));
 
                     serializer.Serialize(xmlWriter, graph);
                 }
@@ -119,8 +120,8 @@ namespace CartaTest.Serialization.Xml
             {
                 using (XmlReader xmlReader = XmlReader.Create(stringReader))
                 {
-                    XmlSerializer serializer = new XmlSerializer(typeof(Gexf));
-                    gexfGraph = ((Gexf)serializer.Deserialize(xmlReader)).GraphValue;
+                    XmlSerializer serializer = new XmlSerializer(typeof(GexFormat));
+                    gexfGraph = ((GexFormat)serializer.Deserialize(xmlReader)).GraphValue;
                 }
             }
 
