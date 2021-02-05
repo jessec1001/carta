@@ -20,5 +20,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CartaCore\CartaCore.csproj" />
+    <ProjectReference Include="..\CartaWeb\CartaWeb.csproj" />
   </ItemGroup>
 </Project>

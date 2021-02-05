@@ -7,11 +7,11 @@ using QuikGraph;
 using NUnit.Framework;
 
 using CartaCore.Data;
-using CartaCore.Serialization.Json.Jgf;
+using CartaWeb.Serialization.Json;
 
 namespace CartaTest.Serialization.Json
 {
-    using FreeformGraph = IMutableVertexAndEdgeSet<FreeformVertex, Edge<FreeformVertex>>;
+    using FreeformGraph = IMutableVertexAndEdgeSet<FreeformVertex, FreeformEdge>;
 
     [TestFixture]
     public class JgfSerializationTests
@@ -30,15 +30,15 @@ namespace CartaTest.Serialization.Json
                 new FreeformVertex { Id = Guid.NewGuid() },
                 new FreeformVertex { Id = Guid.NewGuid() }
             };
-            IList<Edge<FreeformVertex>> edges = new Edge<FreeformVertex>[] {
-                new Edge<FreeformVertex>(vertices[0], vertices[1]),
-                new Edge<FreeformVertex>(vertices[0], vertices[2]),
-                new Edge<FreeformVertex>(vertices[1], vertices[3]),
-                new Edge<FreeformVertex>(vertices[2], vertices[3]),
-                new Edge<FreeformVertex>(vertices[3], vertices[4])
+            IList<FreeformEdge> edges = new FreeformEdge[] {
+                new FreeformEdge(vertices[0], vertices[1]),
+                new FreeformEdge(vertices[0], vertices[2]),
+                new FreeformEdge(vertices[1], vertices[3]),
+                new FreeformEdge(vertices[2], vertices[3]),
+                new FreeformEdge(vertices[3], vertices[4])
             };
 
-            AdjacencyGraph<FreeformVertex, Edge<FreeformVertex>> graph = new AdjacencyGraph<FreeformVertex, Edge<FreeformVertex>>();
+            AdjacencyGraph<FreeformVertex, FreeformEdge> graph = new AdjacencyGraph<FreeformVertex, FreeformEdge>();
             graph.AddVertexRange(vertices);
             graph.AddEdgeRange(edges);
             TestGraph = graph;
@@ -47,8 +47,8 @@ namespace CartaTest.Serialization.Json
         [Test]
         public void TestJgfSerialize()
         {
-            Jgf graph = new Jgf(TestGraph);
-            string str = JsonSerializer.Serialize<Jgf>(graph);
+            JgFormat graph = new JgFormat(TestGraph);
+            string str = JsonSerializer.Serialize<JgFormat>(graph);
 
             Assert.Pass();
         }
@@ -74,7 +74,7 @@ namespace CartaTest.Serialization.Json
             }
             ";
 
-            Jgf jgf = JsonSerializer.Deserialize<Jgf>(jgfString);
+            JgFormat jgf = JsonSerializer.Deserialize<JgFormat>(jgfString);
             FreeformGraph graph = jgf.Graph;
 
             Assert.AreEqual(2, graph.VertexCount);
@@ -121,9 +121,9 @@ namespace CartaTest.Serialization.Json
             string jgfString;
             FreeformGraph jgfGraph;
 
-            Jgf graph = new Jgf(TestGraph);
-            jgfString = JsonSerializer.Serialize<Jgf>(graph);
-            jgfGraph = (JsonSerializer.Deserialize<Jgf>(jgfString)).Graph;
+            JgFormat graph = new JgFormat(TestGraph);
+            jgfString = JsonSerializer.Serialize<JgFormat>(graph);
+            jgfGraph = (JsonSerializer.Deserialize<JgFormat>(jgfString)).Graph;
 
             Assert.AreEqual(TestGraph.VertexCount, jgfGraph.VertexCount);
             Assert.AreEqual(TestGraph.EdgeCount, jgfGraph.EdgeCount);
