@@ -1,24 +1,28 @@
 import React, { Component } from 'react';
+import { CaretDownFill, CaretUpFill } from 'react-bootstrap-icons';
+import { ObservationList } from './ObservationList';
 import './Property.css';
 
 export class Property extends Component {
     static displayName = Property.name;
 
-    render() {
-        let name = this.props.name;
-        let value = this.props.value;
-        let type = this.props.type;
-        let occurrences = this.props.occurrences;
-        
-        // Round to 6 sig figs if a floating point number.
-        if (value !== undefined)
-        {
-            if (type === 'double' || type === 'float')
-                value = value.toPrecision(6);
-            else
-                value = value.toString();
-        }
+    constructor(props) {
+        super(props);
 
+        this.state = {
+            expanded: false
+        };
+
+        this.handleExpand = this.handleExpand.bind(this);
+    }
+
+    handleExpand() {
+        this.setState(state => ({
+            expanded: !state.expanded
+        }));
+    }
+
+    render() {
         let className = "property";
         if (this.props.selected)
             className += " selected";
@@ -26,11 +30,18 @@ export class Property extends Component {
             className += " clickable";
 
         return (
-            <div className={className} onClick={this.props.onClick}>
-                <p className="property-name">{name}</p>
-                {!occurrences && <p className="property-value">{value}</p>}
-                {occurrences && <p className="property-occurrences">×{occurrences}</p>}
-                <p className="property-type text-muted">{type}</p>
+            <div>
+                <div className={className} onClick={this.props.onClick}>
+                    <p className="property-name">{this.props.name}:</p>
+                    <p className="property-occurrences">
+                        ×{this.props.values.length} &nbsp;
+                        <div className="d-inline property-expand" onClick={this.handleExpand}>
+                            {!this.state.expanded && <CaretDownFill />}
+                            {this.state.expanded && <CaretUpFill />}
+                        </div>
+                    </p>
+                </div>
+                {this.state.expanded && <ObservationList values={this.props.values} />}
             </div>
         );
     }

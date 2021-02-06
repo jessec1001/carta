@@ -1,12 +1,6 @@
 .property {
-  margin-top: 0.5rem;
-  padding: 0.5rem 0.75rem;
   display: flex;
-
   font-size: 0.9em;
-
-  border-radius: 0.25rem;
-  border: 1px solid rgba(0, 0, 0, 0.2);
 }
 .property.clickable {
   cursor: pointer;
@@ -21,17 +15,19 @@
 }
 .property-name {
   margin-right: 0.75rem;
-  font-weight: bold;
-}
-.property-value {
-  flex-grow: 1;
+  color: rgb(0, 133, 138);
 }
 .property-occurrences {
+  text-align: right;
   flex-grow: 1;
+}
+.property-occurrences,
+.property-occurrences a {
   color: #888;
 }
-.property-type {
-  margin-right: -0.5em;
-  margin-top: -0.5em;
-  font-size: 0.75em;
+.property-expand {
+  cursor: pointer;
+}
+.property-expand:hover {
+  color: rgb(60, 112, 114);
 }

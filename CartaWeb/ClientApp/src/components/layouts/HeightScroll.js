@@ -6,8 +6,10 @@ export class HeightScroll extends Component {
 
     render() {
         return (
-            <div className={`height-scroll ${this.props.className}`}>
-                {this.props.children}
+            <div className={`height-scroll-container`}>
+                <div className={`height-scroll ${this.props.className}`} style={this.props.style}>
+                    {this.props.children}
+                </div>
             </div>
         );
     }

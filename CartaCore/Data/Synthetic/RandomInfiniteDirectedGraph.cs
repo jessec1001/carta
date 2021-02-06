@@ -7,7 +7,7 @@ using CartaCore.Utility;
 
 namespace CartaCore.Data.Synthetic
 {
-    using FreeformGraph = IMutableVertexAndEdgeSet<FreeformVertex, Edge<FreeformVertex>>;
+    using FreeformGraph = IMutableVertexAndEdgeSet<FreeformVertex, FreeformEdge>;
 
     /// <summary>
     /// Represents graph data of a random, (practically) infinite, directed graph. Both the vertices and edges are
@@ -84,11 +84,10 @@ namespace CartaCore.Data.Synthetic
             return null;
         }
 
-        /// <summary>
-        /// Whether the graph has a finite or infinite number of vertices and edges.
-        /// </summary>
-        /// <value>Always <c>false</c>.</value>
+        /// <inheritdoc />
         public bool IsFinite => false;
+        /// <inheritdoc />
+        public bool IsDirected => true;
         /// <inheritdoc />
         public Guid BaseId => (new CompoundRandom(Options.Seed)).NextGuid();
 
@@ -102,11 +101,11 @@ namespace CartaCore.Data.Synthetic
             CompoundRandom random = new CompoundRandom(Options.Seed, id);
 
             // Construct a dictionary of random properties.
-            SortedList<string, FreeformVertexProperty> properties = new SortedList<string, FreeformVertexProperty>();
+            SortedList<string, FreeformProperty> properties = new SortedList<string, FreeformProperty>();
             foreach (KeyValuePair<string, Type> property in Properties)
             {
                 if (random.NextDouble() < Options.PropertyDensity)
-                    properties.Add(property.Key, new FreeformVertexProperty
+                    properties.Add(property.Key, new FreeformProperty
                     {
                         Type = property.Value,
                         Value = GenerateRandomValue(random, property.Value)
@@ -114,20 +113,20 @@ namespace CartaCore.Data.Synthetic
             }
 
             // Return the randomly generated vertex with properties.
-            return new FreeformVertex
+            return new FreeformVertex(id)
             {
-                Id = id,
                 Properties = properties
             };
         }
         /// <inheritdoc />
-        public IEnumerable<Edge<FreeformVertex>> GetEdges(Guid id)
+        public IEnumerable<FreeformEdge> GetEdges(Guid id)
         {
             // Create a compound random number generator using the GUID and original seed as a combined seed.
             CompoundRandom random = new CompoundRandom(Options.Seed, id);
             FreeformVertex sourceVertex = new FreeformVertex { Id = id };
 
             // Keep constructing children until the random generator doesn't sample within the current probability.
+            int child = 0;
             double probability = Options.ChildProbability;
             while (random.NextDouble() < probability)
             {
@@ -135,9 +134,10 @@ namespace CartaCore.Data.Synthetic
                 Guid randomId = random.NextGuid();
 
                 // The source of each edge is the selected vertex.
-                yield return new Edge<FreeformVertex>(
+                yield return new FreeformEdge(
                     sourceVertex,
-                    new FreeformVertex { Id = randomId }
+                    new FreeformVertex(randomId),
+                    child++
                 );
 
                 // We lower the probability by some amount each time.

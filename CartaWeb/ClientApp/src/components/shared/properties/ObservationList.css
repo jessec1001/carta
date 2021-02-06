@@ -1,0 +1,16 @@
+.observation {
+  display: flex;
+  padding-left: 1rem;
+  font-size: 0.8em;
+  border-left: 1px solid #ccc;
+}
+.observation * {
+  margin: 0;
+}
+.observation-value {
+  color: #444;
+}
+.observation-type {
+  text-align: right;
+  flex-grow: 1;
+}

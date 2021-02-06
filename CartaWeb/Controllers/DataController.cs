@@ -15,7 +15,7 @@ using CartaWeb.Models.Data;
 
 namespace CartaWeb.Controllers
 {
-    using FreeformGraph = IMutableVertexAndEdgeSet<FreeformVertex, Edge<FreeformVertex>>;
+    using FreeformGraph = IMutableVertexAndEdgeSet<FreeformVertex, FreeformEdge>;
 
     /// <summary>
     /// Serves data from multiple sources in graph format.
@@ -99,12 +99,15 @@ namespace CartaWeb.Controllers
                 }
                 else
                 {
-                    // Get the base ID from the graph.
-                    Guid nodeId = graph.BaseId;
+                    // Generate a graph with the correct directed variant.
+                    FreeformGraph data;
+                    if (graph.IsDirected)
+                        data = new AdjacencyGraph<FreeformVertex, FreeformEdge>(true, 1, 0);
+                    else
+                        data = new UndirectedGraph<FreeformVertex, FreeformEdge>(true);
 
-                    // Generate graph with starting node.
-                    AdjacencyGraph<FreeformVertex, Edge<FreeformVertex>> data = new AdjacencyGraph<FreeformVertex, Edge<FreeformVertex>>();
-                    data.AddVertex(graph.GetProperties(nodeId));
+                    // Add the single base vertex.
+                    data.AddVertex(graph.GetProperties(graph.BaseId));
                     return data;
                 }
             }
@@ -117,9 +120,9 @@ namespace CartaWeb.Controllers
         /// <param name="source">The data source.</param>
         /// <param name="resource">The resource located on the data source.</param>
         /// <param name="uuid">The UUID of the vertex.</param>
-        /// <returns>The vertex with its properties loaded.</returns>
-        [HttpGet("props/{source}/{resource?}")]
-        public async Task<FreeformVertex> GetProperties(
+        /// <returns>A graph with the requested vertex loaded with itsproperties.</returns>
+        [HttpGet("{source}/{resource?}/props")]
+        public async Task<FreeformGraph> GetProperties(
             [FromRoute] DataSource source,
             [FromRoute] string resource,
             [FromQuery] Guid uuid
@@ -129,8 +132,18 @@ namespace CartaWeb.Controllers
 
             if (!(graph is null))
             {
+                // Generate a graph with the correct directed variant.
+                FreeformGraph data;
+                if (graph.IsDirected)
+                    data = new AdjacencyGraph<FreeformVertex, FreeformEdge>(true, 1, 0);
+                else
+                    data = new UndirectedGraph<FreeformVertex, FreeformEdge>(true);
+
+                // Add the requested vertex.
+                data.AddVertex(graph.GetProperties(uuid));
+
                 // Simply return the properties of the vertex.
-                return graph.GetProperties(uuid);
+                return data;
             }
             return null;
         }
@@ -142,8 +155,8 @@ namespace CartaWeb.Controllers
         /// <param name="resource">The resource located on the data source.</param>
         /// <param name="uuid">The UUID of the vertex.</param>
         /// <returns>The vertex with its properties loaded.</returns>
-        [HttpGet("children/{source}/{resource?}")]
-        public async Task<IDictionary<Guid, FreeformVertex>> GetChildren(
+        [HttpGet("{source}/{resource?}/children")]
+        public async Task<FreeformGraph> GetChildren(
             [FromRoute] DataSource source,
             [FromRoute] string resource,
             [FromQuery] Guid uuid
@@ -153,8 +166,8 @@ namespace CartaWeb.Controllers
 
             if (!(graph is null))
             {
-                // Return a dictionary of node ID-node properties pairs.
-                return graph.GetChildren(uuid);
+                FreeformGraph data = graph.GetChildrenWithEdges(uuid);
+                return data;
             }
             return null;
         }

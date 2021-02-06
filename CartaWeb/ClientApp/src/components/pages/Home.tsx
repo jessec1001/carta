@@ -1,22 +1,20 @@
 import React, { Component } from 'react';
 import { Row, Col, Nav, NavItem, NavLink, Jumbotron, Container } from 'reactstrap';
-import { Link } from 'react-router-dom';
+import { Link, RouteComponentProps } from 'react-router-dom';
 import './Home.css';
 
-export class Home extends Component {
+interface HomeProps extends RouteComponentProps { }
+
+export class Home extends Component<HomeProps> {
   static displayName = Home.name;
 
-  constructor(props) {
+  constructor(props : HomeProps) {
     super(props);
-
-    this.state = {
-      hyperthoughtKey: ""
-    };
-
     this.handleHyperthoughtLink = this.handleHyperthoughtLink.bind(this);
   }
 
-  handleHyperthoughtLink(event) {
+  handleHyperthoughtLink(event : any) {
+    // Retrieve the HyperThought API key from the user and redirect.
     const key = prompt("Please paste your HyperThought API key.");
     if (key) {
       this.props.history.push({
@@ -46,7 +44,7 @@ export class Home extends Component {
             <Col xs="3">
               <h3>Synthetic</h3>
               <p>
-                These are randomly-generated, synthetic datasets fabricatedd by Carta on request.
+                These are randomly-generated, synthetic datasets fabricated by Carta on request.
               </p>
               <Nav vertical>
                 <NavItem>

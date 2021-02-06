@@ -47,10 +47,10 @@ namespace CartaCore.Workflow
 
             // Create the new properties list to store the transformed properties.
             // We do this instead of operating in-place because data should be immutable.
-            SortedList<string, FreeformVertexProperty> properties =
-                new SortedList<string, FreeformVertexProperty>(vertex.Properties.Count);
+            SortedList<string, FreeformProperty> properties =
+                new SortedList<string, FreeformProperty>(vertex.Properties.Count);
 
-            foreach (KeyValuePair<string, FreeformVertexProperty> pair in vertex.Properties)
+            foreach (KeyValuePair<string, FreeformProperty> pair in vertex.Properties)
             {
                 if (Mapping.TryGetValue(pair.Key, out string overriding))
                 {

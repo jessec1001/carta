@@ -26,9 +26,7 @@ export class PropertyList extends Component {
                                     <Property
                                         name={semanticKey}
                                         selected={this.props.selected && this.props.selected.includes(key)}
-                                        value={this.props.properties[key].value}
-                                        occurrences={this.props.properties[key].occurrences}
-                                        type={this.props.properties[key].type}
+                                        values={this.props.properties[key]}
                                         onClick={this.props.onClickProperty ? (event) => this.props.onClickProperty(key, event) : null}
                                     />
                                 </li>

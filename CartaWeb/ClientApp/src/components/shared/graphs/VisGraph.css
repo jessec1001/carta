@@ -1,7 +1,0 @@
-.graph-container {
-  height: calc(100% - 1rem);
-}
-.vis-network,
-.vis-network:focus {
-  outline: none;
-}
