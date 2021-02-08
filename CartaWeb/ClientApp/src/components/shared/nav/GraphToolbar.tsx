@@ -28,7 +28,7 @@ export class GraphToolbar extends Component<GraphToolbarProps> {
                                 All
                             </DropdownItem>
                             <DropdownItem>
-                                None
+                                By Name
                             </DropdownItem>
                             <DropdownItem>
                                 Descendants
