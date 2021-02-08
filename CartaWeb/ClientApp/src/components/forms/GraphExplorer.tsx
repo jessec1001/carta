@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { DataSet } from 'vis-data';
+import { Id } from 'vis-data/declarations/data-interface';
 import { Options } from 'vis-network/standalone';
 import { Vis, VisGraphData } from '../shared/graph/Vis';
 import { VisGraph, VisNode, VisEdge, VisProperty } from '../../lib/types/vis-format';
@@ -11,6 +12,7 @@ interface GraphExplorerProps {
 }
 
 interface GraphExplorerState {
+    directed: boolean,
     graph: VisGraphData,
     options: Options
     loading: boolean
@@ -22,6 +24,7 @@ export class GraphExplorer extends Component<GraphExplorerProps, GraphExplorerSt
     constructor(props : GraphExplorerProps) {
         super(props);
         this.state = {
+            directed: false,
             graph: {
                 nodes: new DataSet<VisNode>(),
                 edges: new DataSet<VisEdge>()
@@ -115,9 +118,12 @@ export class GraphExplorer extends Component<GraphExplorerProps, GraphExplorerSt
         );
     }
 
-    colorGraph(graph: VisGraphData) {
+    colorGraph(graph: VisGraphData, ids: Array<Id> | undefined = undefined) {
+        // We need to assign a colorspace to any node that does not have one.
         // Keep colorings nodes until none are left uncolored.
-        let uncoloredIds = graph.nodes.getIds();
+        let uncoloredIds = graph.nodes.get()
+            .filter(node => !node.colorspace)
+            .map(node => node.id);
         while (uncoloredIds.length > 0) {
             // Get the next uncolored node and work thought it until a node is colored.
             let uncoloredId: string | null = uncoloredIds[0] as string;
@@ -145,32 +151,17 @@ export class GraphExplorer extends Component<GraphExplorerProps, GraphExplorerSt
                         const parentColorspace = parent.colorspace;
                         const partitionSize = (parentColorspace[1] - parentColorspace[0]) / (childrenIds.length || 1);
                         childrenIds.forEach((childId, index) => { // eslint-disable-line no-loop-func
+                            // Check if child already had color set.
+                            if (uncoloredIds.indexOf(childId) < 0) return;
+
                             // Calculate the partitions of child color space.
                             const childColorspace: [number, number] = [
                                 parentColorspace[0] + partitionSize * index,
                                 parentColorspace[0] + partitionSize * (index + 1)
                             ];
-
-                            // Set the new coloration.
-                            const hue = (childColorspace[0] + childColorspace[1]) / 2;
-
-                            const color = `hsl(${hue}, 100%, 50%)`;
-                            const colorSelect = `hsl(${hue}, 100%, 75%)`;
-                            
-                            const colorOptions = graph.nodes.get(childId)?.color as object;
-                            
                             graph.nodes.update({
-                                id: childId as string,
-                                colorspace: childColorspace,
-                                color: {
-                                    background: color,
-                                    border: color,
-                                    highlight: {
-                                        border: color,
-                                        background: colorSelect
-                                    },
-                                    ...colorOptions
-                                }
+                                id: childId,
+                                colorspace: childColorspace
                             });
 
                             // Remove the child node from being uncolored.
@@ -184,25 +175,9 @@ export class GraphExplorer extends Component<GraphExplorerProps, GraphExplorerSt
                 } else if (parentIds.length === 0) {
                     // There are no parents of this node so we color it gray.
                     const colorspace: [number, number] = [0, 360];
-
-                    // Set the new coloration.
-                    const color = 'hsl(0, 0%, 50%)';
-                    const colorSelect = 'hsl(0, 0%, 75%)';
-
-                    const colorOptions = graph.nodes.get(uncoloredId)?.color as object;
-
                     graph.nodes.update({
-                        id: uncoloredId as string,
-                        colorspace: colorspace,
-                        color: {
-                            background: color,
-                            border: color,
-                            highlight: {
-                                border: color,
-                                background: colorSelect
-                            },
-                            ...colorOptions
-                        }
+                        id: uncoloredId,
+                        colorspace: colorspace
                     });
 
                     // Remove this node from being uncolored.
@@ -211,6 +186,38 @@ export class GraphExplorer extends Component<GraphExplorerProps, GraphExplorerSt
                 }
             }
         }
+
+        // Actually set the color styles on the nodes that need colored.
+        let nodes = ids ?
+            graph.nodes.get(ids) :
+            graph.nodes.get();
+        nodes.forEach(node => {
+            // Get the colorspace and use it to color the nodes.
+            if (!node.colorspace) return;
+            const colorspace = node.colorspace;
+
+            // Set the new coloration.
+            const hue = (colorspace[0] + colorspace[1]) / 2;
+            const sat = (colorspace[1] - colorspace[0] === 360) ? 0 : 100;
+
+            const color = `hsl(${hue}, ${sat}%, 50%)`;
+            const colorSelect = `hsl(${hue}, ${sat}%, 75%)`;
+            
+            const colorOptions = node.color as object;
+            
+            graph.nodes.update({
+                id: node.id,
+                color: {
+                    background: color,
+                    border: color,
+                    highlight: {
+                        border: color,
+                        background: colorSelect
+                    },
+                    ...colorOptions
+                }
+            });
+        });
     }
     prepareGraph(graph: VisGraph, state: GraphExplorerState, remove: boolean = true) {
         // We need edges to have unique IDs so we use Parent-#Child combination.
@@ -286,6 +293,7 @@ export class GraphExplorer extends Component<GraphExplorerProps, GraphExplorerSt
             
 
             return {
+                directed: graph.directed,
                 graph: this.prepareGraph(graph, state),
                 options: options,
                 loading: false
@@ -337,18 +345,18 @@ export class GraphExplorer extends Component<GraphExplorerProps, GraphExplorerSt
             }
 
             // Remove descendant nodes and edges.
-            this.state.graph.nodes.remove(descendantIds);
-            this.state.graph.edges.remove(
-                this.state.graph.edges.get().filter(edge =>
+            state.graph.nodes.remove(descendantIds);
+            state.graph.edges.remove(
+                state.graph.edges.get().filter(edge =>
                     descendantIds.includes(edge.from) || descendantIds.includes(edge.to)
                 )
-            )
+            );
+
+            // Recolor the parent node.
+            if (state.directed) this.colorGraph(state.graph, [id]);
 
             return {
-                graph: {
-                    nodes: this.state.graph.nodes,
-                    edges: this.state.graph.edges
-                },
+                graph: state.graph,
                 loading: false
             };
         });
