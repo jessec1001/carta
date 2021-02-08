@@ -36,7 +36,6 @@ export class Graph extends Component<GraphProps, GraphState> {
         this.setState({
             properties: properties
         });
-        console.log(properties);
     }
     handleSemanticsChanged(semantics: Record<string, string>) {
         this.setState({
