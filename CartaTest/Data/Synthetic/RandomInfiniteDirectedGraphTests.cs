@@ -28,10 +28,7 @@ namespace CartaTest.Data.Synthetic
         public void Setup()
         {
             Graph = new RandomInfiniteDirectedGraph(
-                new RandomInfiniteDirectedGraphOptions
-                {
-                    PropertyCount = 10
-                }
+                new RandomInfiniteDirectedGraphOptions()
             );
         }
 

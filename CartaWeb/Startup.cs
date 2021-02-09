@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 using CartaWeb.Extended.Formatters;
+using CartaWeb.Models.Binders;
 
 namespace CartaWeb
 {
@@ -45,7 +46,10 @@ namespace CartaWeb
                     options.RespectBrowserAcceptHeader = true;
                     options.ReturnHttpNotAcceptable = true;
 
-                    // Our graph formatting middleware needs to come before other formatters.
+                    // Add our custom model binder provider.
+                    options.ModelBinderProviders.Insert(0, new CustomModelBinderProvider());
+
+                    // Our custom formatting middleware needs to come before other formatters.
                     options.OutputFormatters.Insert(0, new GraphOutputFormatter());
                 }).AddJsonOptions(options =>
                 {

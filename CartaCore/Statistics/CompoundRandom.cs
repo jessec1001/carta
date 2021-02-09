@@ -3,8 +3,11 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 
-namespace CartaCore.Utility
+namespace CartaCore.Statistics
 {
+    /// <summary>
+    /// Represents a random number generator that can use arbitrary length seeds.
+    /// </summary>
     public class CompoundRandom
     {
         private static readonly string Consonants = "bcdfghjklmnpqrstvwxyz";
@@ -47,9 +50,21 @@ namespace CartaCore.Utility
 
         private Random[] Randoms { get; set; }
 
+        /// <summary>
+        /// Gets the bytes that make up the seed of the random number generator.
+        /// </summary>
+        /// <value>The bytes of the seed.</value>
         public ReadOnlyCollection<byte> Seed { get; protected set; }
+        /// <summary>
+        /// Gets the size of the seed in bytes. 
+        /// </summary>
+        /// <value>The size in bytes of the seed.</value>
         public int SeedSize { get; protected set; }
 
+        /// <summary>
+        /// Initializes an instance of the <see cref="CompoundRandom"/> class with an array of bytes for a seed.
+        /// </summary>
+        /// <param name="seed">The seed specified in a byte array.</param>
         public CompoundRandom(byte[] seed)
         {
             Seed = Array.AsReadOnly<byte>(seed);
@@ -67,16 +82,45 @@ namespace CartaCore.Utility
                 Randoms[k] = new Random(individualSeed);
             }
         }
+        /// <summary>
+        /// Initializes an instance of the <see cref="CompoundRandom"/> class with a specified seed offset by an
+        /// identifier.
+        /// </summary>
+        /// <remarks>
+        /// This is used to create deterministic random number generators for unique objects with identities.
+        /// </remarks>
+        /// <param name="seed">The seed for the random number generator.</param>
+        /// <param name="id">The offset identifier that modifies the seed.</param>
         public CompoundRandom(ulong seed, Guid id)
             : this(SeededId(seed, id)) { }
+        /// <summary>
+        /// Initializes an instance of the <see cref="CompoundRandom"/> class with a specified seed.
+        /// </summary>
+        /// <param name="seed">The seed for the random number generator.</param>
         public CompoundRandom(Guid seed)
             : this(seed.ToByteArray()) { }
+        /// <summary>
+        /// Initializes an instance of the <see cref="CompoundRandom"/> class with a specified seed.
+        /// </summary>
+        /// <param name="seed">The seed for the random number generator.</param>
         public CompoundRandom(long seed)
             : this((ulong)seed) { }
+        /// <summary>
+        /// Initializes an instance of the <see cref="CompoundRandom"/> class with a specified seed.
+        /// </summary>
+        /// <param name="seed">The seed for the random number generator.</param>
         public CompoundRandom(ulong seed)
             : this(BitConverter.GetBytes(seed)) { }
+        /// <summary>
+        /// Initializes an instance of the <see cref="CompoundRandom"/> class with a specified seed.
+        /// </summary>
+        /// <param name="seed">The seed for the random number generator.</param>
         public CompoundRandom(int seed)
             : this((uint)seed) { }
+        /// <summary>
+        /// Initializes an instance of the <see cref="CompoundRandom"/> class with a specified seed.
+        /// </summary>
+        /// <param name="seed">The seed for the random number generator.</param>
         public CompoundRandom(uint seed)
             : this(BitConverter.GetBytes(seed)) { }
 
@@ -90,6 +134,10 @@ namespace CartaCore.Utility
             return guidBytes;
         }
 
+        /// <summary>
+        /// Generates a random GUID conforming the UUID v4.
+        /// </summary>
+        /// <returns>The randomly generated GUID.</returns>
         public Guid NextGuid()
         {
             byte[] guidBytes = new byte[16];
@@ -109,10 +157,23 @@ namespace CartaCore.Utility
 
             return new Guid(guidBytes);
         }
+
+        /// <summary>
+        /// Generates a random integer between 0 (inclusive) and <paramref name="max"/> (exclusive).
+        /// </summary>
+        /// <param name="max">The maximum (exclusive) value.</param>
+        /// <returns>The randomly generated integer.</returns>
         public int NextInt(int max)
         {
             return NextInt(0, max);
         }
+        /// <summary>
+        /// Generates a random integer between <paramref name="min"/> (inclusive) and <paramref name="max"/>
+        /// (exclusive).
+        /// </summary>
+        /// <param name="min">The minimum (inclusive) value.</param>
+        /// <param name="max">The maximum (exclusive) value.</param>
+        /// <returns>The randomly generated integer.</returns>
         public int NextInt(int min, int max)
         {
             int diff = max - min;
@@ -126,6 +187,11 @@ namespace CartaCore.Utility
 
             return result;
         }
+
+        /// <summary>
+        /// Generates a random floating-point number between <c>0.0</c> (inclusive) and <c>1.0</c> (exclusive).
+        /// </summary>
+        /// <returns>The randomly generated floating-point number.</returns>
         public double NextDouble()
         {
             double result = 0.0;
@@ -134,6 +200,11 @@ namespace CartaCore.Utility
 
             return result;
         }
+
+        /// <summary>
+        /// Generates a random word made up of randomly generated syllables.
+        /// </summary>
+        /// <returns>The randomly generated word.</returns>
         public string NextPsuedoword()
         {
             StringBuilder builder = new StringBuilder();
@@ -185,6 +256,11 @@ namespace CartaCore.Utility
 
             return builder.ToString();
         }
+
+        /// <summary>
+        /// Generates a random vowel based on the distribution of letters in the English corpus.
+        /// </summary>
+        /// <returns>The randomly generated vowel.</returns>
         public char NextVowel()
         {
             double value = NextDouble() * VowelFrequency;
@@ -197,6 +273,10 @@ namespace CartaCore.Utility
             }
             return Vowels.Last();
         }
+        /// <summary>
+        /// Generates a random consonant based on the distribution of letters in the English corpus.
+        /// </summary>
+        /// <returns>The randomly generated consonant.</returns>
         public char NextConsonant()
         {
             double value = NextDouble() * ConsonantFrequency;

@@ -8,7 +8,7 @@ namespace CartaCore.Integration.Hyperthought.Data
     /// <summary>
     /// Represents the distribution version that an object is restricted to.
     /// </summary>
-    [JsonConverter(typeof(JsonFullStringEnumConverter))]
+    [JsonConverter(typeof(FullStringEnumConverter))]
     public enum HyperthoughtDistribution
     {
         /// <summary>

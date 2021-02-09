@@ -4,7 +4,7 @@ using System.Linq;
 
 using QuikGraph;
 
-using CartaCore.Utility;
+using CartaCore.Statistics;
 
 namespace CartaCore.Data.Synthetic
 {
@@ -46,12 +46,9 @@ namespace CartaCore.Data.Synthetic
             CompoundRandom random = new CompoundRandom(Options.Seed);
 
             // Generate the random number of vertices and edges.
-            int numVertices = random.NextInt(Options.MinVertices, Options.MaxVertices + 1);
+            int numVertices = Math.Max(Options.VertexCount.Sample(random), 0);
             int possibleEdges = numVertices * (numVertices - 1) / 2;
-            int numEdges = random.NextInt(
-                Math.Min(possibleEdges, Options.MinEdges),
-                Math.Min(possibleEdges, Options.MaxEdges)
-            );
+            int numEdges = Math.Clamp(Options.EdgeCount.Sample(random), 0, possibleEdges);
 
             // Generate the vertices.
             List<FreeformVertex> vertices = new List<FreeformVertex>(

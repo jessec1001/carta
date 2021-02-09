@@ -12,7 +12,7 @@ namespace CartaCore.Serialization.Json
     /// Converts between JSON strings and <see cref="Enum"/> types using a case invariant match of any
     /// <see cref="EnumMemberAttribute"/> names applied to the <see cref="Enum"/> values.
     /// </summary>
-    public class JsonFullStringEnumConverter : JsonConverterFactory
+    public class FullStringEnumConverter : JsonConverterFactory
     {
         /// <inheritdoc />
         public override bool CanConvert(Type typeToConvert)
@@ -25,7 +25,7 @@ namespace CartaCore.Serialization.Json
         public override JsonConverter CreateConverter(Type typeToConvert, JsonSerializerOptions options)
         {
             JsonConverter converter = (JsonConverter)Activator.CreateInstance(
-                typeof(JsonFullStringEnumConverterInner<>).MakeGenericType(
+                typeof(FullStringEnumConverterInner<>).MakeGenericType(
                     new Type[] { typeToConvert }
                 ),
                 BindingFlags.Instance | BindingFlags.Public,
@@ -42,14 +42,14 @@ namespace CartaCore.Serialization.Json
         /// <see cref="EnumMemberAttribute"/> names applied to the <typeparamref name="TEnum"/> values.
         /// </summary>
         /// <typeparam name="TEnum">The type of enumeration.</typeparam>
-        private class JsonFullStringEnumConverterInner<TEnum> :
+        private class FullStringEnumConverterInner<TEnum> :
             JsonConverter<TEnum> where TEnum : struct, Enum
         {
             private Dictionary<string, TEnum> Map;
             private Dictionary<TEnum, string> InverseMap;
 
             /// <inheritdoc />
-            public JsonFullStringEnumConverterInner()
+            public FullStringEnumConverterInner()
             {
                 TEnum[] values = Enum
                     .GetValues(typeof(TEnum))
