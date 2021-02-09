@@ -17,23 +17,6 @@ namespace CartaTest
     public class RandomFiniteUndirectedGraphTests
     {
         /// <summary>
-        /// The minimum (inclusive) number of vertices.
-        /// </summary>
-        protected readonly int MinVertices = 5;
-        /// <summary>
-        /// The maximum (inclusive) number of vertices.
-        /// </summary>
-        protected readonly int MaxVertices = 20;
-        /// <summary>
-        /// The minimum (inclusive) number of edges.
-        /// </summary>
-        protected readonly int MinEdges = 25;
-        /// <summary>
-        /// The maxmimum (inclusive) number of edges.
-        /// </summary>
-        protected readonly int MaxEdges = 200;
-
-        /// <summary>
         /// The graph generated to test on.
         /// </summary>
         protected FreeformGraph TestGraph;
@@ -48,11 +31,7 @@ namespace CartaTest
             ISampledGraph graph = new RandomFiniteUndirectedGraph(
                 new RandomFiniteUndirectedGraphOptions
                 {
-                    Seed = 0,
-                    MinVertices = MinVertices,
-                    MaxVertices = MaxVertices,
-                    MinEdges = MinEdges,
-                    MaxEdges = MaxEdges
+                    Seed = 0
                 }
             );
             TestGraph = graph.GetEntire();
@@ -64,8 +43,7 @@ namespace CartaTest
         [Test]
         public void TestNumberVertices()
         {
-            Assert.IsTrue(MinVertices <= TestGraph.VertexCount);
-            Assert.IsTrue(MaxVertices >= TestGraph.VertexCount);
+            Assert.IsTrue(0 <= TestGraph.VertexCount);
         }
 
         /// <summary>
@@ -77,8 +55,8 @@ namespace CartaTest
             int vertexCount = TestGraph.VertexCount;
             int edgeCountMax = vertexCount * (vertexCount - 1) / 2;
 
-            Assert.IsTrue(Math.Min(edgeCountMax, MinEdges) <= TestGraph.EdgeCount);
-            Assert.IsTrue(MaxEdges >= TestGraph.EdgeCount);
+            Assert.IsTrue(edgeCountMax >= TestGraph.EdgeCount);
+            Assert.IsTrue(0 <= TestGraph.EdgeCount);
         }
 
         /// <summary>

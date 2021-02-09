@@ -10,7 +10,7 @@ namespace CartaWeb.Models.Meta
     /// <summary>
     /// Represents the HTTP method of an API endpoint.
     /// </summary>
-    [JsonConverter(typeof(JsonFullStringEnumConverter))]
+    [JsonConverter(typeof(FullStringEnumConverter))]
     public enum ApiMethod
     {
         /// <summary>

@@ -1,3 +1,5 @@
+using CartaCore.Statistics;
+
 namespace CartaCore.Data.Synthetic
 {
     /// <summary>
@@ -12,25 +14,14 @@ namespace CartaCore.Data.Synthetic
         public ulong Seed { get; set; } = 0;
 
         /// <summary>
-        /// The minimum number (inclusive) of vertices a generated graph can have. 
+        /// Gets or sets the distribution of the number of vertices a generated graph will have.
         /// </summary>
-        /// <value>The mininum number of vertices.</value>
-        public int MinVertices { get; set; } = 1;
+        /// <returns>The vertex count distribution.</returns>
+        public IIntegerDistribution VertexCount { get; set; } = new PoissonDistribution(10);
         /// <summary>
-        /// The maximum number (inclusive) of vertices a generated graph can have.
+        /// Gets or sets the distribution of the number of edges a generated graph will have.
         /// </summary>
-        /// <value>The maximum number of vertices.</value>
-        public int MaxVertices { get; set; } = 10;
-
-        /// <summary>
-        /// The minimum number (inclusive) of edges a generated graph can have. 
-        /// </summary>
-        /// <value>The mininum number of edges.</value>
-        public int MinEdges { get; set; } = 0;
-        /// <summary>
-        /// The maximum number (inclusive) of edges a generated graph can have.
-        /// </summary>
-        /// <value>The maximum number of vertices.</value>
-        public int MaxEdges { get; set; } = 50;
+        /// <returns>The edge count distribution.</returns>
+        public IIntegerDistribution EdgeCount { get; set; } = new PoissonDistribution(30);
     }
 }

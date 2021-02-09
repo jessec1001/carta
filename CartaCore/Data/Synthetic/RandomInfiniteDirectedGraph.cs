@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 using QuikGraph;
 
-using CartaCore.Utility;
+using CartaCore.Statistics;
 
 namespace CartaCore.Data.Synthetic
 {
@@ -34,8 +34,9 @@ namespace CartaCore.Data.Synthetic
 
             // Generate our random properties.
             CompoundRandom random = new CompoundRandom(Options.Seed);
+            int propertyCount = Options.PropertyCount.Sample(random);
             Properties = new Dictionary<string, Type>();
-            while (Properties.Count < Options.PropertyCount)
+            while (Properties.Count < propertyCount)
             {
                 string key = random.NextPsuedoword();
                 Type type = GenerateRandomType(random);
@@ -104,7 +105,7 @@ namespace CartaCore.Data.Synthetic
             SortedList<string, FreeformProperty> properties = new SortedList<string, FreeformProperty>();
             foreach (KeyValuePair<string, Type> property in Properties)
             {
-                if (random.NextDouble() < Options.PropertyDensity)
+                if (random.NextDouble() < Options.PropertyInclusionProbability)
                     properties.Add(property.Key, new FreeformProperty
                     {
                         Type = property.Value,
@@ -126,9 +127,8 @@ namespace CartaCore.Data.Synthetic
             FreeformVertex sourceVertex = new FreeformVertex { Id = id };
 
             // Keep constructing children until the random generator doesn't sample within the current probability.
-            int child = 0;
-            double probability = Options.ChildProbability;
-            while (random.NextDouble() < probability)
+            int childCount = Options.ChildCount.Sample(random);
+            for (int index = 0; index < childCount; index++)
             {
                 // We must construct the ID from the random number generator and not from the system.
                 Guid randomId = random.NextGuid();
@@ -137,11 +137,8 @@ namespace CartaCore.Data.Synthetic
                 yield return new FreeformEdge(
                     sourceVertex,
                     new FreeformVertex(randomId),
-                    child++
+                    index
                 );
-
-                // We lower the probability by some amount each time.
-                probability *= Options.ChildDampener;
             }
         }
     }

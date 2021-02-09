@@ -1,3 +1,5 @@
+using CartaCore.Statistics;
+
 namespace CartaCore.Data.Synthetic
 {
     /// <summary>
@@ -6,26 +8,26 @@ namespace CartaCore.Data.Synthetic
     public class RandomInfiniteDirectedGraphOptions
     {
         /// <summary>
-        /// The seed for random generation of the graph.
+        /// Gets or sets the seed for random generation of the graph.
         /// </summary>
+        /// <value>The random seed.</value>
         public ulong Seed { get; set; } = 0;
 
         /// <summary>
-        /// The number of properties generated for the entire graph.
+        /// Gets or sets the distributioon of the number of properties generated for the entire graph.
         /// </summary>
-        public int PropertyCount { get; set; } = 20;
+        /// <value>The property count distribution.</value>
+        public IIntegerDistribution PropertyCount { get; set; } = new PoissonDistribution(20);
         /// <summary>
-        /// The average percentage of the total properties that any particular vertex obtains.
+        /// Gets or sets the probability that a property is included in a vertex.
         /// </summary>
-        public double PropertyDensity { get; set; } = 0.70;
+        /// <value>The property inclusion probability.</value>
+        public double PropertyInclusionProbability { get; set; } = 0.75;
 
         /// <summary>
-        /// The initial probability of a vertex constructing an edge to a child.
+        /// Gets or sets the distribution of the number of children each node should generate in the graph.
         /// </summary>
-        public double ChildProbability { get; set; } = 1.00;
-        /// <summary>
-        /// The amount that the child probability gets scaled by each time a child is generated.
-        /// </summary>
-        public double ChildDampener { get; set; } = 0.50;
+        /// <returns>The child count distribution.</returns>
+        public IIntegerDistribution ChildCount { get; set; } = new PoissonDistribution(2);
     }
 }
