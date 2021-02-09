@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -170,6 +169,14 @@ namespace CartaWeb.Controllers
                 return data;
             }
             return null;
+        }
+
+
+        public async Task<Selection> GetSelection(
+            [FromBody] SelectionRequest request
+        )
+        {
+
         }
     }
 }

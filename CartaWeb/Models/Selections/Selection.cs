@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace CartaWeb.Models.Data
+namespace CartaWeb.Models.Selections
 {
     /// <summary>
     /// Represents a selection of nodes requested by a client.
