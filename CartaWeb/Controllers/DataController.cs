@@ -9,8 +9,10 @@ using QuikGraph;
 using CartaCore.Data;
 using CartaCore.Data.Synthetic;
 using CartaCore.Integration.Hyperthought;
+using CartaCore.Workflow.Selection;
 
 using CartaWeb.Models.Data;
+using CartaWeb.Models.Selections;
 
 namespace CartaWeb.Controllers
 {
@@ -171,8 +173,28 @@ namespace CartaWeb.Controllers
             return null;
         }
 
-
-        public async Task<Selection> GetSelection(
+        /// <summary>
+        /// Gets the selected vertices from a subset of vertices specified by the application of a series of selectors.
+        /// </summary>
+        /// <remarks>
+        /// This endpoint is created for ease of performing a single selection or iterative selection. The
+        /// <code>ids</code> field should be specified to refine to refine the search. If <code>ids</code> is not
+        /// specified, the selection is performed on the entire graph.  
+        /// </remarks>
+        /// <example>
+        /// <code>
+        /// // Iterative selection.
+        /// ids = GET /api/data/source/resource/selection
+        ///       BODY { selectors: [...] }
+        /// ids = GET /api/data/source/resource/selection
+        ///       BODY { selectors: [...], ids }
+        /// ids = GET /api/data/source/resource/selection
+        ///       BODY { selectors: [...], ids }
+        /// </code>
+        /// </example>
+        /// <param name="request">The selection request. Made up of the identifiers to get information on and </param>
+        /// <returns></returns>
+        public async Task<List<Guid>> GetSelection(
             [FromBody] SelectionRequest request
         )
         {

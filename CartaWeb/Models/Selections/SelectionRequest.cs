@@ -12,7 +12,8 @@ namespace CartaWeb.Models.Selections
     public class SelectionRequest
     {
         /// <summary>
-        /// Gets or sets the identifiers that are requested.
+        /// Gets or sets the identifiers that are requested. This field is optional and if not specified will request
+        /// identifiers on the entire graph.
         /// </summary>
         /// <value>The identifiers of vertices to get selection information on.</value>
         [JsonPropertyName("ids")]
