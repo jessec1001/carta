@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using QuikGraph;
 
 using CartaCore.Data;
+using CartaCore.Data.Freeform;
 using CartaCore.Data.Synthetic;
 using CartaCore.Integration.Hyperthought;
 using CartaCore.Workflow.Selection;
@@ -16,8 +17,6 @@ using CartaWeb.Models.Selections;
 
 namespace CartaWeb.Controllers
 {
-    using FreeformGraph = IMutableVertexAndEdgeSet<FreeformVertex, FreeformEdge>;
-
     /// <summary>
     /// Serves data from multiple sources in graph format.
     /// </summary>
@@ -36,10 +35,10 @@ namespace CartaWeb.Controllers
 
             SyntheticResolvers = new Dictionary<string, IDataResolver>()
             {
-                [nameof(RandomFiniteUndirectedGraph).ToLower()] = new OptionsDataResolver<RandomFiniteUndirectedGraphOptions>
-                    (this, options => new RandomFiniteUndirectedGraph(options)),
-                [nameof(RandomInfiniteDirectedGraph).ToLower()] = new OptionsDataResolver<RandomInfiniteDirectedGraphOptions>
-                    (this, options => new RandomInfiniteDirectedGraph(options))
+                [nameof(FiniteUndirectedGraph).ToLower()] = new OptionsDataResolver<FiniteUndirectedGraphParameters>
+                    (this, options => new FiniteUndirectedGraph(options)),
+                [nameof(InfiniteDirectedGraph).ToLower()] = new OptionsDataResolver<InfiniteDirectedGraphParameters>
+                    (this, options => new InfiniteDirectedGraph(options))
             };
         }
 
@@ -49,7 +48,7 @@ namespace CartaWeb.Controllers
         /// <param name="source">The data source.</param>
         /// <param name="resource">The resource located on the data source</param>
         /// <returns>The graph data.</returns>
-        private async Task<ISampledGraph> LookupData(DataSource source, string resource)
+        private async Task<IFreeformGraph> LookupData(DataSource source, string resource)
         {
             switch (source)
             {

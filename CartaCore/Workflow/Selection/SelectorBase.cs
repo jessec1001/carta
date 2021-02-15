@@ -3,12 +3,10 @@ using System.Linq;
 
 using QuikGraph;
 
-using CartaCore.Data;
+using CartaCore.Data.Freeform;
 
 namespace CartaCore.Workflow.Selection
 {
-    using FreeformGraph = IMutableVertexAndEdgeSet<FreeformVertex, FreeformEdge>;
-
     /// <summary>
     /// Represents a selection of vertices and edges in a freeform graph.
     /// </summary>

@@ -1,9 +1,9 @@
 namespace CartaCore.Data.Synthetic
 {
     /// <summary>
-    /// Represents the generation options of the <see cref="RandomFiniteUndirectedGraph"/> object.
+    /// Represents the generation parameters of the <see cref="FiniteUndirectedGraph"/> object.
     /// </summary>
-    public class RandomFiniteUndirectedGraphOptions
+    public class FiniteUndirectedGraphParameters
     {
         /// <summary>
         /// The seed for random generation of the graph.

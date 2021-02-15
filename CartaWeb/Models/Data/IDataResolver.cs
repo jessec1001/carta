@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-using CartaCore.Data;
+using CartaCore.Data.Freeform;
 
 namespace CartaWeb.Models.Data
 {
@@ -12,7 +12,7 @@ namespace CartaWeb.Models.Data
         /// <summary>
         /// Generates the data asynchronously.
         /// </summary>
-        /// <returns>The sampled graph data.</returns>
-        Task<ISampledGraph> GenerateAsync();
+        /// <returns>The freeform graph data.</returns>
+        Task<IFreeformGraph> GenerateAsync();
     }
 }

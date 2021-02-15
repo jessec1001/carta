@@ -11,7 +11,7 @@ using CartaCore.Data.Synthetic;
 namespace CartaTest.Data.Synthetic
 {
     /// <summary>
-    /// Tests the generation of the <see cref="RandomInfiniteDirectedGraph"/> object.
+    /// Tests the generation of the <see cref="InfiniteDirectedGraph"/> object.
     /// </summary>
     [TestFixture]
     public class RandomInfiniteDirectedGraphTests
@@ -19,7 +19,7 @@ namespace CartaTest.Data.Synthetic
         /// <summary>
         /// The graph generated to test on.
         /// </summary>
-        protected RandomInfiniteDirectedGraph Graph;
+        protected InfiniteDirectedGraph Graph;
 
         /// <summary>
         /// Sets up the test fixture.
@@ -27,8 +27,8 @@ namespace CartaTest.Data.Synthetic
         [SetUp]
         public void Setup()
         {
-            Graph = new RandomInfiniteDirectedGraph(
-                new RandomInfiniteDirectedGraphOptions
+            Graph = new InfiniteDirectedGraph(
+                new InfiniteDirectedGraphParameters
                 {
                     PropertyCount = 10
                 }

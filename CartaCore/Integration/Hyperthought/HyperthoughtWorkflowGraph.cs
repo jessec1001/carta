@@ -3,20 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-using QuikGraph;
-
-using CartaCore.Data;
+using CartaCore.Data.Freeform;
 using CartaCore.Integration.Hyperthought.Data;
-using CartaCore.Utility;
 
 namespace CartaCore.Integration.Hyperthought
 {
-    using FreeformGraph = IMutableVertexAndEdgeSet<FreeformVertex, FreeformEdge>;
-
     /// <summary>
     /// Represents a sampled graph generated from data contained in a HyperThought workflow.
     /// </summary>
-    public class HyperthoughtWorkflowGraph : ISampledGraph
+    public class HyperthoughtWorkflowGraph : FreeformGraph
     {
         private readonly HyperthoughtApi Api;
         private readonly Guid Id;
@@ -51,18 +46,24 @@ namespace CartaCore.Integration.Hyperthought
 
         private FreeformVertex VertexFromWorkflow(HyperthoughtWorkflow workflow)
         {
-            SortedList<string, FreeformProperty> properties = new SortedList<string, FreeformProperty>();
+            IList<FreeformProperty> properties = new List<FreeformProperty>();
             foreach (HyperthoughtMetadata metadata in workflow.Metadata)
             {
                 HyperthoughtMetadataValue value = metadata.Value;
-                properties.Add(metadata.Key, new FreeformProperty
+                properties.Add(new FreeformProperty(FreeformIdentity.Create(metadata.Key))
                 {
-                    Type = value.Type.ToString().TypeDeserialize(),
-                    Value = value.Link
+                    Observations = new FreeformObservation[]
+                    {
+                        new FreeformObservation
+                        {
+                            Type = value.Type.ToString(),
+                            Value = value.Link
+                        }
+                    }
                 });
             }
 
-            FreeformVertex vertex = new FreeformVertex(workflow.Content.PrimaryKey)
+            FreeformVertex vertex = new FreeformVertex(FreeformIdentity.Create(workflow.Content.PrimaryKey))
             {
                 Label = workflow.Content.Name,
                 Description = workflow.Content.Notes,
@@ -72,17 +73,15 @@ namespace CartaCore.Integration.Hyperthought
         }
         private IEnumerable<FreeformEdge> EdgesFromWorkflow(HyperthoughtWorkflow workflow)
         {
-            FreeformVertex workflowVertex = new FreeformVertex(workflow.Content.PrimaryKey);
-            int edge = 0;
-
             // Yield all children.
+            int edge = 0;
             foreach (Guid childId in workflow.Content.ChildrenIds.OrderBy(id => id))
             {
                 yield return new FreeformEdge
                 (
-                    workflowVertex,
-                    new FreeformVertex(childId),
-                    edge++
+                    FreeformIdentity.Create(workflow.Content.PrimaryKey),
+                    FreeformIdentity.Create(childId),
+                    FreeformIdentity.Create(edge++)
                 );
             }
 
@@ -91,22 +90,70 @@ namespace CartaCore.Integration.Hyperthought
             {
                 yield return new FreeformEdge
                 (
-                    workflowVertex,
-                    new FreeformVertex(successorId),
-                    edge++
+                    FreeformIdentity.Create(workflow.Content.PrimaryKey),
+                    FreeformIdentity.Create(successorId),
+                    FreeformIdentity.Create(edge++)
                 );
             }
         }
 
+        #region FreeformGraph
         /// <inheritdoc />
-        public bool IsFinite => false;
+        public override bool IsFinite => false;
         /// <inheritdoc />
-        public bool IsDirected => true;
+        public override bool IsDirected => true;
+        /// <inheritdoc />
+        public override bool AllowParallelEdges => false;
+
         /// <inheritdoc />
         public Guid BaseId => Id;
 
         /// <inheritdoc />
-        public FreeformGraph GetEntire() => throw new NotFiniteNumberException();
+        public override bool IsVerticesEmpty => false;
+        /// <inheritdoc />
+        public override bool IsEdgesEmpty
+        {
+            get
+            {
+                HyperthoughtWorkflow workflow = Task.Run(() => Api.GetWorkflowAsync(BaseId)).GetAwaiter().GetResult();
+                return EdgesFromWorkflow(workflow).Any();
+            }
+        }
+
+        /// <inheritdoc />
+        public override int VertexCount => Vertices.Count();
+        /// <inheritdoc />
+        public override int EdgeCount => Edges.Count();
+
+        private IEnumerable<FreeformVertex> GetDescendantVertices(Guid id)
+        {
+            // Return the postorder traversal of the hierarchy.
+            HyperthoughtWorkflow workflow = Task.Run(() => Api.GetWorkflowAsync(id)).GetAwaiter().GetResult();
+            foreach (Guid childId in workflow.Content.ChildrenIds.OrderBy(id => id))
+            {
+                foreach (FreeformVertex vertex in GetDescendantVertices(childId))
+                    yield return vertex;
+            }
+            yield return VertexFromWorkflow(workflow);
+        }
+        private IEnumerable<FreeformEdge> GetDescendantEdges(Guid id)
+        {
+            // Return the postorder traversal of the hierarchy.
+            HyperthoughtWorkflow workflow = Task.Run(() => Api.GetWorkflowAsync(id)).GetAwaiter().GetResult();
+            foreach (Guid childId in workflow.Content.ChildrenIds.OrderBy(id => id))
+            {
+                foreach (FreeformEdge edge in GetDescendantEdges(childId))
+                    yield return edge;
+
+            }
+            foreach (FreeformEdge edge in EdgesFromWorkflow(workflow))
+                yield return edge;
+        }
+
+        /// <inheritdoc />
+        public override IEnumerable<FreeformVertex> Vertices => GetDescendantVertices(BaseId);
+        /// <inheritdoc />
+        public override IEnumerable<FreeformEdge> Edges => GetDescendantEdges(BaseId);
 
         /// <inheritdoc />
         public FreeformVertex GetProperties(Guid id)
@@ -120,71 +167,52 @@ namespace CartaCore.Integration.Hyperthought
         {
             // Get the workflow from an API call and yield each of the children.
             HyperthoughtWorkflow workflow = Task.Run(() => Api.GetWorkflowAsync(id)).GetAwaiter().GetResult();
-            FreeformVertex thisVertex = new FreeformVertex(id);
             int edge = 0;
             foreach (Guid childId in workflow.Content.ChildrenIds.OrderBy(id => id))
             {
                 yield return new FreeformEdge(
-                    thisVertex,
-                    new FreeformVertex(childId),
-                    edge++
+                    FreeformIdentity.Create(id),
+                    FreeformIdentity.Create(childId),
+                    FreeformIdentity.Create(edge++)
                 );
             }
         }
-        /// <inheritdoc />
-        public FreeformGraph GetChildren(Guid id)
-        {
-            // Get the child workflows from an API call and yield each by ID.
-            IList<HyperthoughtWorkflow> workflows = Task.Run(() => Api.GetWorkflowChildrenAsync(id)).GetAwaiter().GetResult();
 
-            // Create a graph with the workflow vertices.
-            FreeformGraph graph = new AdjacencyGraph<FreeformVertex, FreeformEdge>(true);
-            graph.AddVertexRange
-            (
-                workflows.Select(workflow => VertexFromWorkflow(workflow))
-            );
-            return graph;
+        /// <inheritdoc />
+        public override bool ContainsVertex(FreeformVertex vertex)
+        {
+            try
+            {
+                if (FreeformIdentity.IsType(vertex.Identifier, out Guid id))
+                {
+                    HyperthoughtWorkflow workflow = Task.Run(() => Api.GetWorkflowAsync(id)).GetAwaiter().GetResult();
+                    return true;
+                }
+                return false;
+            }
+            catch
+            {
+                return false;
+            }
         }
         /// <inheritdoc />
-        public FreeformGraph GetChildrenWithEdges(Guid id)
+        public override bool ContainsEdge(FreeformEdge edge)
         {
-            // Get the child workflows from an API call and yield each by ID.
-            IList<HyperthoughtWorkflow> workflows = Task.Run(() => Api.GetWorkflowChildrenAsync(id)).GetAwaiter().GetResult();
-
-            // Create a graph.
-            FreeformGraph graph = new AdjacencyGraph<FreeformVertex, FreeformEdge>(true);
-            FreeformVertex vertex = new FreeformVertex(id);
-
-            // Add parent and children vertices.
-            graph.AddVertexRange
-            (
-                workflows.Select(workflow => VertexFromWorkflow(workflow))
-            );
-
-            // Add parent-to-children edges.
-            int edges = 0;
-            graph.AddVerticesAndEdgeRange
-            (
-                workflows
-                    .OrderBy(workflow => workflow.Content.PrimaryKey)
-                    .Select
-                    (
-                        workflow => new FreeformEdge
-                        (
-                            vertex,
-                            new FreeformVertex(workflow.Content.PrimaryKey),
-                            edges++
-                        )
-                    )
-            );
-
-            // Add children edges.
-            graph.AddVerticesAndEdgeRange
-            (
-                workflows.SelectMany(workflow => EdgesFromWorkflow(workflow))
-            );
-
-            return graph;
+            try
+            {
+                if (FreeformIdentity.IsType(edge.Source.Identifier, out Guid sourceId) &&
+                    FreeformIdentity.IsType(edge.Target.Identifier, out Guid targetId))
+                {
+                    HyperthoughtWorkflow workflow = Task.Run(() => Api.GetWorkflowAsync(sourceId)).GetAwaiter().GetResult();
+                    return workflow.Content.ChildrenIds.Contains(targetId);
+                }
+                return false;
+            }
+            catch
+            {
+                return false;
+            }
         }
+        #endregion FreeformGraph
     }
 }

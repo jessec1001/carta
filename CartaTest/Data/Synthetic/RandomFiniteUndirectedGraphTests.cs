@@ -11,7 +11,7 @@ namespace CartaTest
     using FreeformGraph = IMutableVertexAndEdgeSet<FreeformVertex, FreeformEdge>;
 
     /// <summary>
-    /// Tests the generation of the <see cref="RandomFiniteUndirectedGraph"/> object.
+    /// Tests the generation of the <see cref="FiniteUndirectedGraph"/> object.
     /// </summary>
     [TestFixture]
     public class RandomFiniteUndirectedGraphTests
@@ -45,8 +45,8 @@ namespace CartaTest
         public void Setup()
         {
             // Generate the samples we will test.
-            ISampledGraph graph = new RandomFiniteUndirectedGraph(
-                new RandomFiniteUndirectedGraphOptions
+            ISampledGraph graph = new FiniteUndirectedGraph(
+                new FiniteUndirectedGraphParameters
                 {
                     Seed = 0,
                     MinVertices = MinVertices,
