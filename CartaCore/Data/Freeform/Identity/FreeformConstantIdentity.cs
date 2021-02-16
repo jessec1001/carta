@@ -46,6 +46,21 @@ namespace CartaCore.Data.Freeform
         }
 
         /// <inheritdoc />
+        public override bool IsType<U>(out U result)
+        {
+            if (Identity is U typed)
+            {
+                result = typed;
+                return true;
+            }
+            else
+            {
+                result = default(U);
+                return false;
+            }
+        }
+
+        /// <inheritdoc />
         public override int GetHashCode()
         {
             return Identity.GetHashCode();

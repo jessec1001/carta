@@ -16,23 +16,21 @@ namespace CartaCore.Data.Freeform
         /// <summary>
         /// Determines whether the identity can be converted to the specified type.
         /// </summary>
-        /// <param name="id">The identity.</param>
         /// <param name="result">The resulting object of the specified type.</param>
         /// <typeparam name="T">The type to convert the identity to.</typeparam>
         /// <returns><c>true</c> if the identity is of the specified type; otherwise, <c>false</c>.</returns>
-        public static bool IsType<T>(FreeformIdentity id, out T result) where T : IEquatable<T>, IComparable<T>
+        public abstract bool IsType<T>(out T result) where T : IEquatable<T>, IComparable<T>;
+        /// <summary>
+        /// Converts the identity to the specified type.
+        /// </summary>
+        /// <typeparam name="T">The type to convert the identity to.</typeparam>
+        /// <returns>The converted type if possible to convert; otherwise, <c>null</c>.</returns>
+        public virtual T AsType<T>() where T : IEquatable<T>, IComparable<T>
         {
-            if (id is FreeformConstantIdentity<T> typedId)
-            {
-                result = typedId.Identity;
-                return true;
-            }
-            else
-            {
-                result = default(T);
-                return false;
-            }
+            IsType(out T result);
+            return result;
         }
+
         /// <summary>
         /// Creates a constant identity from the specified object.
         /// </summary>

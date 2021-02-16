@@ -174,7 +174,7 @@ namespace CartaCore.Data.Freeform
         /// <inheritdoc />
         public override FreeformVertex GetVertex(FreeformIdentity id)
         {
-            if (FreeformIdentity.IsType(id, out T typedId)) return GetVertex(typedId);
+            if (id.IsType(out T typedId)) return GetVertex(typedId);
             return null;
         }
         /// <summary>
@@ -189,7 +189,7 @@ namespace CartaCore.Data.Freeform
         /// <inheritdoc />
         public override IEnumerable<FreeformEdge> GetEdges(FreeformIdentity id)
         {
-            if (FreeformIdentity.IsType(id, out T typedId)) return GetEdges(typedId);
+            if (id.IsType(out T typedId)) return GetEdges(typedId);
             return null;
         }
         /// <summary>
@@ -207,7 +207,7 @@ namespace CartaCore.Data.Freeform
         /// <inheritdoc />
         public override (FreeformVertex, IEnumerable<FreeformEdge>) GetVertexWithEdges(FreeformIdentity id)
         {
-            if (FreeformIdentity.IsType(id, out T typedId)) return GetVertexWithEdges(typedId);
+            if (id.IsType(out T typedId)) return GetVertexWithEdges(typedId);
             return (null, null);
         }
 
@@ -227,7 +227,7 @@ namespace CartaCore.Data.Freeform
         /// <inheritdoc />
         public override IEnumerable<FreeformVertex> GetChildVertices(FreeformIdentity id)
         {
-            if (FreeformIdentity.IsType(id, out T typedId)) return GetChildVertices(typedId);
+            if (id.IsType(out T typedId)) return GetChildVertices(typedId);
             return null;
         }
         /// <summary>
@@ -251,7 +251,7 @@ namespace CartaCore.Data.Freeform
         /// <inheritdoc />
         public override IEnumerable<FreeformEdge> GetChildEdges(FreeformIdentity id)
         {
-            if (FreeformIdentity.IsType(id, out T typedId)) return GetChildEdges(typedId);
+            if (id.IsType(out T typedId)) return GetChildEdges(typedId);
             return null;
         }
         /// <summary>
@@ -288,7 +288,7 @@ namespace CartaCore.Data.Freeform
         /// <inheritdoc />
         public override IEnumerable<FreeformVertex> TraversePreorderVertices(FreeformIdentity id)
         {
-            if (FreeformIdentity.IsType(id, out T typedId)) return TraversePreorderVertices(typedId);
+            if (id.IsType(out T typedId)) return TraversePreorderVertices(typedId);
             return null;
         }
         /// <summary>
@@ -309,7 +309,7 @@ namespace CartaCore.Data.Freeform
         /// <inheritdoc />
         public override IEnumerable<FreeformEdge> TraversePreorderEdges(FreeformIdentity id)
         {
-            if (FreeformIdentity.IsType(id, out T typedId)) return TraversePreorderEdges(typedId);
+            if (id.IsType(out T typedId)) return TraversePreorderEdges(typedId);
             return null;
         }
         /// <summary>
@@ -328,7 +328,7 @@ namespace CartaCore.Data.Freeform
         /// <inheritdoc />
         public override IEnumerable<FreeformVertex> TraversePostorderVertices(FreeformIdentity id)
         {
-            if (FreeformIdentity.IsType(id, out T typedId)) return TraversePostorderVertices(typedId);
+            if (id.IsType(out T typedId)) return TraversePostorderVertices(typedId);
             return null;
         }
         /// <summary>
@@ -349,7 +349,7 @@ namespace CartaCore.Data.Freeform
         /// <inheritdoc />
         public override IEnumerable<FreeformEdge> TraversePostorderEdges(FreeformIdentity id)
         {
-            if (FreeformIdentity.IsType(id, out T typedId)) return TraversePostorderEdges(typedId);
+            if (id.IsType(out T typedId)) return TraversePostorderEdges(typedId);
             return null;
         }
     }

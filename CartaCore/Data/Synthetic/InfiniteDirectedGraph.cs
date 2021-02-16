@@ -112,7 +112,7 @@ namespace CartaCore.Data.Synthetic
         public override bool ContainsEdge(FreeformEdge edge)
         {
             // Get the source vertex and check if it randomly generates the edge.
-            if (FreeformIdentity.IsType(edge.Source.Identifier, out Guid sourceId))
+            if (edge.Source.Identifier.IsType(out Guid sourceId))
                 return GetEdges(sourceId).Contains(edge);
             return false;
         }

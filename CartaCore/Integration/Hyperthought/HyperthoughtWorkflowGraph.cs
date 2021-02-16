@@ -86,7 +86,7 @@ namespace CartaCore.Integration.Hyperthought
                 FreeformProperty property = null;
                 property = properties.First
                 (
-                    prop => (FreeformIdentity.IsType(prop.Identifier, out string typedId) && typedId == metadata.Key)
+                    prop => (prop.Identifier.IsType(out string typedId) && typedId == metadata.Key)
                 );
 
                 // We create a new property if necessary.
@@ -176,7 +176,7 @@ namespace CartaCore.Integration.Hyperthought
         {
             try
             {
-                if (FreeformIdentity.IsType(vertex.Identifier, out Guid id))
+                if (vertex.Identifier.IsType(out Guid id))
                 {
                     HyperthoughtWorkflow workflow = GetWorkflowSync(id);
                     return true;
@@ -193,8 +193,8 @@ namespace CartaCore.Integration.Hyperthought
         {
             try
             {
-                if (FreeformIdentity.IsType(edge.Source.Identifier, out Guid sourceId) &&
-                    FreeformIdentity.IsType(edge.Target.Identifier, out Guid targetId))
+                if (edge.Source.Identifier.IsType(out Guid sourceId) &&
+                    edge.Target.Identifier.IsType(out Guid targetId))
                 {
                     HyperthoughtWorkflow workflow = GetWorkflowSync(sourceId);
                     return workflow.Content.ChildrenIds.Contains(targetId);
