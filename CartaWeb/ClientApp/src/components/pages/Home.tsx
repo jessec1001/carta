@@ -50,7 +50,7 @@ export class Home extends Component<HomeProps> {
                 <NavItem>
                   <NavLink
                     tag={Link}
-                    to="/graph/synthetic/RandomFiniteUndirectedGraph"
+                    to="/graph/synthetic/FiniteUndirectedGraph"
                   >
                     Finite Undirected
                   </NavLink>
@@ -58,7 +58,7 @@ export class Home extends Component<HomeProps> {
                 <NavItem>
                   <NavLink
                     tag={Link}
-                    to="/graph/synthetic/RandomInfiniteDirectedGraph"
+                    to="/graph/synthetic/InfiniteDirectedGraph"
                   >
                     Infinite Directed
                   </NavLink>

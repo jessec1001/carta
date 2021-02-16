@@ -50,5 +50,11 @@ namespace CartaCore.Data.Freeform
         {
             return Identity.GetHashCode();
         }
+
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            return Identity.ToString();
+        }
     }
 }

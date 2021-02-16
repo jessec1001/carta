@@ -1,10 +1,8 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json.Serialization;
 
 using CartaCore.Data.Freeform;
-using CartaCore.Utility;
 
 namespace CartaWeb.Serialization.Json
 {
@@ -79,10 +77,7 @@ namespace CartaWeb.Serialization.Json
         {
             Directed = graph.IsDirected;
 
-            Nodes = graph.Vertices
-                .Where(node => !(node.Properties is null))
-                .Select(node => new VisFormatNode(node))
-                .ToList();
+            Nodes = graph.Vertices.Select(node => new VisFormatNode(node)).ToList();
             Edges = graph.Edges.Select(edge => new VisFormatEdge(edge)).ToList();
         }
         /// <summary>
@@ -170,7 +165,8 @@ namespace CartaWeb.Serialization.Json
             Label = node.Label;
             Description = node.Description;
 
-            Properties = node.Properties.Select(property => new VisFormatProperty(property)).ToList();
+            if (!(node.Properties is null))
+                Properties = node.Properties.Select(property => new VisFormatProperty(property)).ToList();
         }
         /// <summary>
         /// Initializes a new instance of the <see cref="VisFormatNode"/> class.
