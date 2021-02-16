@@ -41,6 +41,18 @@ namespace CartaCore.Data.Freeform
         /// Otherwise, returns <c>null</c>.
         /// </returns>
         public abstract IEnumerable<FreeformEdge> GetEdges(FreeformIdentity id);
+        /// <summary>
+        /// Gets a vertex and its out-edges specified by an identifier.
+        /// </summary>
+        /// <param name="id">The vertex identifier.</param>
+        /// <returns>
+        /// If the vertex by the corresponding identifier exists, a tuple with the vertex and an enumerable of its
+        /// out-edges. Otherwise, returns <c>null</c>.
+        /// </returns>
+        public virtual (FreeformVertex, IEnumerable<FreeformEdge>) GetVertexWithEdges(FreeformIdentity id)
+        {
+            return (GetVertex(id), GetEdges(id));
+        }
 
         /// <summary>
         /// Gets the child vertices of a vertex specified by an identifier.
@@ -72,6 +84,18 @@ namespace CartaCore.Data.Freeform
                     yield return childEdge;
                 }
             }
+        }
+        /// <summary>
+        /// Gets the child vertices and their out-edges of a vertex specified by an identifier.
+        /// </summary>
+        /// <param name="id">The vertex identifier.</param>
+        /// <returns>
+        /// If the vertex by the corresponding identifier exists, the child vertices and their out-edges. Otherwise,
+        /// returns <c>null</c>.
+        /// </returns>
+        public virtual (IEnumerable<FreeformVertex>, IEnumerable<FreeformEdge>) GetChildVerticesWithEdges(FreeformIdentity id)
+        {
+            return (GetChildVertices(id), GetChildEdges(id));
         }
 
         /// <summary>
@@ -153,7 +177,6 @@ namespace CartaCore.Data.Freeform
             if (FreeformIdentity.IsType(id, out T typedId)) return GetVertex(typedId);
             return null;
         }
-
         /// <summary>
         /// Gets the out-edges of a vertex specified by an identifier.
         /// </summary>
@@ -168,6 +191,24 @@ namespace CartaCore.Data.Freeform
         {
             if (FreeformIdentity.IsType(id, out T typedId)) return GetEdges(typedId);
             return null;
+        }
+        /// <summary>
+        /// Gets the child vertices and their out-edges of a vertex specified by an identifier.
+        /// </summary>
+        /// <param name="id">The vertex identifier.</param>
+        /// <returns>
+        /// If the vertex by the corresponding identifier exists, the child vertices and their out-edges. Otherwise,
+        /// returns <c>null</c>.
+        /// </returns>
+        public virtual (FreeformVertex, IEnumerable<FreeformEdge>) GetVertexWithEdges(T id)
+        {
+            return (GetVertex(id), GetEdges(id));
+        }
+        /// <inheritdoc />
+        public override (FreeformVertex, IEnumerable<FreeformEdge>) GetVertexWithEdges(FreeformIdentity id)
+        {
+            if (FreeformIdentity.IsType(id, out T typedId)) return GetVertexWithEdges(typedId);
+            return (null, null);
         }
 
         /// <summary>
@@ -211,6 +252,104 @@ namespace CartaCore.Data.Freeform
         public override IEnumerable<FreeformEdge> GetChildEdges(FreeformIdentity id)
         {
             if (FreeformIdentity.IsType(id, out T typedId)) return GetChildEdges(typedId);
+            return null;
+        }
+        /// <summary>
+        /// Gets the child vertices and their out-edges of a vertex specified by an identifier.
+        /// </summary>
+        /// <param name="id">The vertex identifier.</param>
+        /// <returns>
+        /// If the vertex by the corresponding identifier exists, the child vertices and their out-edges. Otherwise,
+        /// returns <c>null</c>.
+        /// </returns>
+        public virtual (IEnumerable<FreeformVertex>, IEnumerable<FreeformEdge>) GetChildVerticesWithEdges(T id)
+        {
+            return (GetChildVertices(id), GetChildEdges(id));
+        }
+        /// <inheritdoc />
+        public override (IEnumerable<FreeformVertex>, IEnumerable<FreeformEdge>) GetChildVerticesWithEdges(FreeformIdentity id)
+        {
+            return base.GetChildVerticesWithEdges(id);
+        }
+
+        /// <summary>
+        /// Gets the preorder traversal of the graph vertices.
+        /// </summary>
+        /// <param name="id">The ancestor vertex identifier.</param>
+        /// <returns>The preorder enumerable of vertices.</returns>
+        public virtual IEnumerable<FreeformVertex> TraversePreorderVertices(T id)
+        {
+            // Return the preorder traversal of the hierarchy.
+            yield return GetVertex(id);
+            foreach (FreeformEdge edge in GetEdges(id))
+                foreach (FreeformVertex vertex in TraversePostorderVertices(edge.Target.Identifier))
+                    yield return vertex;
+        }
+        /// <inheritdoc />
+        public override IEnumerable<FreeformVertex> TraversePreorderVertices(FreeformIdentity id)
+        {
+            if (FreeformIdentity.IsType(id, out T typedId)) return TraversePreorderVertices(typedId);
+            return null;
+        }
+        /// <summary>
+        /// Gets the preorder traversal of the graph edges.
+        /// </summary>
+        /// <param name="id">The ancestor vertex identifier.</param>
+        /// <returns>The preorder enumerable of edges.</returns>
+        public virtual IEnumerable<FreeformEdge> TraversePreorderEdges(T id)
+        {
+            // Return the preorder traversal of the hierarchy.
+            foreach (FreeformEdge edge in GetEdges(id))
+            {
+                yield return edge;
+                foreach (FreeformEdge childEdge in TraversePreorderEdges(edge.Target.Identifier))
+                    yield return childEdge;
+            }
+        }
+        /// <inheritdoc />
+        public override IEnumerable<FreeformEdge> TraversePreorderEdges(FreeformIdentity id)
+        {
+            if (FreeformIdentity.IsType(id, out T typedId)) return TraversePreorderEdges(typedId);
+            return null;
+        }
+        /// <summary>
+        /// Gets the postorder traversal of the graph vertices.
+        /// </summary>
+        /// <param name="id">The ancestor vertex identifier.</param>
+        /// <returns>The postorder enumerable of vertices.</returns>
+        public virtual IEnumerable<FreeformVertex> TraversePostorderVertices(T id)
+        {
+            // Return the postorder traversal of the hierarchy.
+            foreach (FreeformEdge edge in GetEdges(id))
+                foreach (FreeformVertex vertex in TraversePostorderVertices(edge.Target.Identifier))
+                    yield return vertex;
+            yield return GetVertex(id);
+        }
+        /// <inheritdoc />
+        public override IEnumerable<FreeformVertex> TraversePostorderVertices(FreeformIdentity id)
+        {
+            if (FreeformIdentity.IsType(id, out T typedId)) return TraversePostorderVertices(typedId);
+            return null;
+        }
+        /// <summary>
+        /// Gets the postorder traversal of the graph edges.
+        /// </summary>
+        /// <param name="id">The ancestor vertex identifier.</param>
+        /// <returns>The postorder enumerable of edges.</returns>
+        public virtual IEnumerable<FreeformEdge> TraversePostorderEdges(T id)
+        {
+            // Return the postorder traversal of the hierarchy.
+            foreach (FreeformEdge edge in GetEdges(id))
+            {
+                foreach (FreeformEdge childEdge in TraversePostorderEdges(edge.Target.Identifier))
+                    yield return childEdge;
+                yield return edge;
+            }
+        }
+        /// <inheritdoc />
+        public override IEnumerable<FreeformEdge> TraversePostorderEdges(FreeformIdentity id)
+        {
+            if (FreeformIdentity.IsType(id, out T typedId)) return TraversePostorderEdges(typedId);
             return null;
         }
     }

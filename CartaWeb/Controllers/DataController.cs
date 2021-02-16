@@ -80,7 +80,7 @@ namespace CartaWeb.Controllers
         /// <param name="resource">The resource located on the data source.</param>
         /// <returns>The base graph.</returns>
         [HttpGet("{source}/{resource?}")]
-        public async ActionResult GetGraph(
+        public async Task<ActionResult<FreeformGraph>> GetGraph(
             [FromRoute] DataSource source,
             [FromRoute] string resource
         )
@@ -100,7 +100,8 @@ namespace CartaWeb.Controllers
                     FreeformSubgraph subgraph = new FreeformSubgraph
                     (
                         dynamicGraph,
-                        new FreeformIdentity[] { dynamicGraph.BaseId }
+                        new FreeformIdentity[] { dynamicGraph.BaseId },
+                        computed: true
                     );
                     return Ok(subgraph);
                 }
@@ -120,7 +121,7 @@ namespace CartaWeb.Controllers
         /// <param name="uuid">The UUID of the vertex.</param>
         /// <returns>A graph with the requested vertex loaded with itsproperties.</returns>
         [HttpGet("{source}/{resource?}/props")]
-        public async Task<FreeformGraph> GetProperties(
+        public async Task<ActionResult<FreeformGraph>> GetProperties(
             [FromRoute] DataSource source,
             [FromRoute] string resource,
             [FromQuery] Guid uuid
@@ -128,22 +129,30 @@ namespace CartaWeb.Controllers
         {
             FreeformGraph graph = await LookupData(source, resource);
 
-            if (!(graph is null))
+            if (graph is null)
             {
-                // Generate a graph with the correct directed variant.
-                FreeformGraph data;
-                if (graph.IsDirected)
-                    data = new AdjacencyGraph<FreeformVertex, FreeformEdge>(true, 1, 0);
-                else
-                    data = new UndirectedGraph<FreeformVertex, FreeformEdge>(true);
-
-                // Add the requested vertex.
-                data.AddVertex(graph.GetProperties(uuid));
-
-                // Simply return the properties of the vertex.
-                return data;
+                // We could not find the resource, we should return a not found response.
+                return NotFound();
             }
-            return null;
+            else
+            {
+                if (graph is FreeformDynamicGraph dynamicGraph)
+                {
+                    // Return the subgraph of the graph containing the requested vertex.
+                    FreeformSubgraph subgraph = new FreeformSubgraph
+                    (
+                        dynamicGraph,
+                        new FreeformIdentity[] { FreeformIdentity.Create(uuid) },
+                        computed: true
+                    );
+                    return Ok(subgraph);
+                }
+                else
+                {
+                    // Requesting the properties of a non-dynamic graph is a bad request.
+                    return BadRequest();
+                }
+            }
         }
 
         /// <summary>
@@ -154,7 +163,7 @@ namespace CartaWeb.Controllers
         /// <param name="uuid">The UUID of the vertex.</param>
         /// <returns>The vertex with its properties loaded.</returns>
         [HttpGet("{source}/{resource?}/children")]
-        public async Task<FreeformGraph> GetChildren(
+        public async Task<ActionResult<FreeformGraph>> GetChildren(
             [FromRoute] DataSource source,
             [FromRoute] string resource,
             [FromQuery] Guid uuid
@@ -162,12 +171,31 @@ namespace CartaWeb.Controllers
         {
             FreeformGraph graph = await LookupData(source, resource);
 
-            if (!(graph is null))
+            if (graph is null)
             {
-                FreeformGraph data = graph.GetChildrenWithEdges(uuid);
-                return data;
+                // We could not find the resource, we should return a not found response.
+                return NotFound();
             }
-            return null;
+            else
+            {
+                if (graph is FreeformDynamicGraph dynamicGraph)
+                {
+                    // Return the subgraph of the graph containing the requested vertex.
+                    FreeformSubgraph subgraph = new FreeformSubgraph
+                    (
+                        dynamicGraph,
+                        new FreeformIdentity[] { FreeformIdentity.Create(uuid) },
+                        children: true,
+                        computed: true
+                    );
+                    return Ok(subgraph);
+                }
+                else
+                {
+                    // Requesting the properties of a non-dynamic graph is a bad request.
+                    return BadRequest();
+                }
+            }
         }
 
         /// <summary>
