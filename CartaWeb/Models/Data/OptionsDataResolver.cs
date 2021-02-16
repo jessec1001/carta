@@ -11,7 +11,7 @@ namespace CartaWeb.Models.Data
     /// <param name="options">The options.</param>
     /// <typeparam name="TOptions">The type of options.</typeparam>
     /// <returns>A graph data object.</returns>
-    public delegate IFreeformGraph OptionsDataResolverFunction<TOptions>(TOptions options) where TOptions : new();
+    public delegate FreeformGraph OptionsDataResolverFunction<TOptions>(TOptions options) where TOptions : new();
 
     /// <summary>
     /// Represents a data resolver that creates an options object from the controller route data.
@@ -44,7 +44,7 @@ namespace CartaWeb.Models.Data
         }
 
         /// <inheritdoc />
-        public async Task<IFreeformGraph> GenerateAsync()
+        public async Task<FreeformGraph> GenerateAsync()
         {
             // Load the options from the controller.
             TOptions options = new TOptions();

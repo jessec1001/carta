@@ -98,8 +98,6 @@ namespace CartaCore.Data.Synthetic
         /// <inheritdoc />
         public override bool IsDirected => Graph.IsDirected;
         /// <inheritdoc />
-        public override bool IsFinite => true;
-        /// <inheritdoc />
         public override bool AllowParallelEdges => Graph.AllowParallelEdges;
 
         /// <inheritdoc />

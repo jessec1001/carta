@@ -36,13 +36,5 @@ namespace CartaCore.Data.Freeform
         /// <inheritdoc />
         public abstract bool ContainsEdge(FreeformEdge edge);
         #endregion
-
-        #region FreeformGraph
-        /// <summary>
-        /// Gets whether the graph is finite or infinite.
-        /// </summary>
-        /// <value><c>true</c> if the graph is finite; <c>false</c> if the graph is infinite.</value>
-        public abstract bool IsFinite { get; }
-        #endregion
     }
 }

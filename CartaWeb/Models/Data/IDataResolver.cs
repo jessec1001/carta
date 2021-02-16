@@ -13,6 +13,6 @@ namespace CartaWeb.Models.Data
         /// Generates the data asynchronously.
         /// </summary>
         /// <returns>The freeform graph data.</returns>
-        Task<IFreeformGraph> GenerateAsync();
+        Task<FreeformGraph> GenerateAsync();
     }
 }

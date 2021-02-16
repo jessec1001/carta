@@ -6,11 +6,9 @@ using Microsoft.Extensions.Logging;
 
 using QuikGraph;
 
-using CartaCore.Data;
 using CartaCore.Data.Freeform;
 using CartaCore.Data.Synthetic;
 using CartaCore.Integration.Hyperthought;
-using CartaCore.Workflow.Selection;
 
 using CartaWeb.Models.Data;
 using CartaWeb.Models.Selections;
@@ -48,7 +46,7 @@ namespace CartaWeb.Controllers
         /// <param name="source">The data source.</param>
         /// <param name="resource">The resource located on the data source</param>
         /// <returns>The graph data.</returns>
-        private async Task<IFreeformGraph> LookupData(DataSource source, string resource)
+        private async Task<FreeformGraph> LookupData(DataSource source, string resource)
         {
             switch (source)
             {
@@ -87,15 +85,14 @@ namespace CartaWeb.Controllers
             [FromRoute] string resource
         )
         {
-            ISampledGraph graph = await LookupData(source, resource);
+            FreeformGraph graph = await LookupData(source, resource);
 
             if (!(graph is null))
             {
                 if (graph.IsFinite)
                 {
-                    // Generate the entire graph.
-                    FreeformGraph data = graph.GetEntire();
-                    return data;
+                    // Return the entire graph.
+                    return graph;
                 }
                 else
                 {
@@ -128,7 +125,7 @@ namespace CartaWeb.Controllers
             [FromQuery] Guid uuid
         )
         {
-            ISampledGraph graph = await LookupData(source, resource);
+            FreeformGraph graph = await LookupData(source, resource);
 
             if (!(graph is null))
             {
@@ -162,7 +159,7 @@ namespace CartaWeb.Controllers
             [FromQuery] Guid uuid
         )
         {
-            ISampledGraph graph = await LookupData(source, resource);
+            FreeformGraph graph = await LookupData(source, resource);
 
             if (!(graph is null))
             {
@@ -191,13 +188,15 @@ namespace CartaWeb.Controllers
         ///       BODY { selectors: [...], ids }
         /// </code>
         /// </example>
-        /// <param name="request">The selection request. Made up of the identifiers to get information on and </param>
+        /// <param name="request">
+        /// The selection request. Made up of the identifiers to get information on and the stack of selectors to apply.
+        /// </param>
         /// <returns></returns>
         public async Task<List<Guid>> GetSelection(
             [FromBody] SelectionRequest request
         )
         {
-
+            throw new NotImplementedException();
         }
     }
 }

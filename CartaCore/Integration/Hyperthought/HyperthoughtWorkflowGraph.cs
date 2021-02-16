@@ -11,9 +11,15 @@ namespace CartaCore.Integration.Hyperthought
     /// <summary>
     /// Represents a sampled graph generated from data contained in a HyperThought workflow.
     /// </summary>
-    public class HyperthoughtWorkflowGraph : FreeformGraph
+    public class HyperthoughtWorkflowGraph : FreeformDynamicGraph<Guid>
     {
+        /// <summary>
+        /// The connector to the HyperThought API. 
+        /// </summary>
         private readonly HyperthoughtApi Api;
+        /// <summary>
+        /// The GUID of the HyperThought workflow object. 
+        /// </summary>
         private readonly Guid Id;
 
         /// <summary>
@@ -44,25 +50,60 @@ namespace CartaCore.Integration.Hyperthought
         public HyperthoughtWorkflowGraph(HyperthoughtApi api, HyperthoughtWorkflowTemplate template)
             : this(api, template.PrimaryKey) { }
 
+        /// <summary>
+        /// Gets a HyperThought workflow synchronously.
+        /// </summary>
+        /// <param name="id">The identifier for the HyperThought workflow.</param>
+        /// <returns>The HyperThought workflow.</returns>
+        private HyperthoughtWorkflow GetWorkflowSync(Guid id)
+        {
+            HyperthoughtWorkflow workflow = Task.Run(() => Api.GetWorkflowAsync(id)).GetAwaiter().GetResult();
+            return workflow;
+        }
+
+        /// <summary>
+        /// Converts a HyperThought workflow object into a vertex.
+        /// </summary>
+        /// <param name="workflow">The workflow object.</param>
+        /// <returns>The converted vertex.</returns>
         private FreeformVertex VertexFromWorkflow(HyperthoughtWorkflow workflow)
         {
+            // We find the properties for the vertex from the metadata.
             IList<FreeformProperty> properties = new List<FreeformProperty>();
             foreach (HyperthoughtMetadata metadata in workflow.Metadata)
             {
+                // Properties may have multiple observations which we need to account for.
+                // We search for the property by key in our current properties.
                 HyperthoughtMetadataValue value = metadata.Value;
-                properties.Add(new FreeformProperty(FreeformIdentity.Create(metadata.Key))
+                FreeformProperty property = null;
+                property = properties.First
+                (
+                    prop => (FreeformIdentity.IsType(prop.Identifier, out string typedId) && typedId == metadata.Key)
+                );
+
+                // We create a new property if necessary.
+                if (property is null)
                 {
-                    Observations = new FreeformObservation[]
+                    property = new FreeformProperty(FreeformIdentity.Create(metadata.Key))
                     {
-                        new FreeformObservation
-                        {
-                            Type = value.Type.ToString(),
-                            Value = value.Link
-                        }
+                        Observations = new List<FreeformObservation>()
+                    };
+                    properties.Add(property);
+                }
+
+                // We add the observation afterwards.
+                List<FreeformObservation> observations = property.Observations as List<FreeformObservation>;
+                observations.Add
+                (
+                    new FreeformObservation
+                    {
+                        Type = value.Type.ToString(),
+                        Value = value.Link
                     }
-                });
+                );
             }
 
+            // Create the vertex with the name and notes as labels and description respectively.
             FreeformVertex vertex = new FreeformVertex(FreeformIdentity.Create(workflow.Content.PrimaryKey))
             {
                 Label = workflow.Content.Name,
@@ -71,6 +112,11 @@ namespace CartaCore.Integration.Hyperthought
             };
             return vertex;
         }
+        /// <summary>
+        /// Converts a HyperThought workflow object into an enumerable of edges.
+        /// </summary>
+        /// <param name="workflow">The workflow object.</param>
+        /// <returns>The converted enumerable of edges.</returns>
         private IEnumerable<FreeformEdge> EdgesFromWorkflow(HyperthoughtWorkflow workflow)
         {
             // Yield all children.
@@ -97,52 +143,34 @@ namespace CartaCore.Integration.Hyperthought
             }
         }
 
-        #region FreeformGraph
-        /// <inheritdoc />
-        public override bool IsFinite => false;
-        /// <inheritdoc />
-        public override bool IsDirected => true;
-        /// <inheritdoc />
-        public override bool AllowParallelEdges => false;
-
-        /// <inheritdoc />
-        public Guid BaseId => Id;
-
-        /// <inheritdoc />
-        public override bool IsVerticesEmpty => false;
-        /// <inheritdoc />
-        public override bool IsEdgesEmpty
-        {
-            get
-            {
-                HyperthoughtWorkflow workflow = Task.Run(() => Api.GetWorkflowAsync(BaseId)).GetAwaiter().GetResult();
-                return EdgesFromWorkflow(workflow).Any();
-            }
-        }
-
-        /// <inheritdoc />
-        public override int VertexCount => Vertices.Count();
-        /// <inheritdoc />
-        public override int EdgeCount => Edges.Count();
-
-        private IEnumerable<FreeformVertex> GetDescendantVertices(Guid id)
+        /// <summary>
+        /// Traverses the child vertices of the workflow graph in postorder fashion.
+        /// </summary>
+        /// <param name="id">The identifier of the common ancestor vertex.</param>
+        /// <returns>A postorder enumerable of child vertices.</returns>
+        private IEnumerable<FreeformVertex> TraverseVertices(Guid id)
         {
             // Return the postorder traversal of the hierarchy.
-            HyperthoughtWorkflow workflow = Task.Run(() => Api.GetWorkflowAsync(id)).GetAwaiter().GetResult();
+            HyperthoughtWorkflow workflow = GetWorkflowSync(id);
             foreach (Guid childId in workflow.Content.ChildrenIds.OrderBy(id => id))
             {
-                foreach (FreeformVertex vertex in GetDescendantVertices(childId))
+                foreach (FreeformVertex vertex in TraverseVertices(childId))
                     yield return vertex;
             }
             yield return VertexFromWorkflow(workflow);
         }
-        private IEnumerable<FreeformEdge> GetDescendantEdges(Guid id)
+        /// <summary>
+        /// Traverses the child edges of the workflow graph in postorder fashion.
+        /// </summary>
+        /// <param name="id">The identifier of the common ancestor vertex.</param>
+        /// <returns>A postorder enumerable of the child edges.</returns>
+        private IEnumerable<FreeformEdge> TraverseEdges(Guid id)
         {
             // Return the postorder traversal of the hierarchy.
-            HyperthoughtWorkflow workflow = Task.Run(() => Api.GetWorkflowAsync(id)).GetAwaiter().GetResult();
+            HyperthoughtWorkflow workflow = GetWorkflowSync(id);
             foreach (Guid childId in workflow.Content.ChildrenIds.OrderBy(id => id))
             {
-                foreach (FreeformEdge edge in GetDescendantEdges(childId))
+                foreach (FreeformEdge edge in TraverseEdges(childId))
                     yield return edge;
 
             }
@@ -150,33 +178,28 @@ namespace CartaCore.Integration.Hyperthought
                 yield return edge;
         }
 
+        #region FreeformDynamicGraph
         /// <inheritdoc />
-        public override IEnumerable<FreeformVertex> Vertices => GetDescendantVertices(BaseId);
+        public override bool IsFinite => true;
         /// <inheritdoc />
-        public override IEnumerable<FreeformEdge> Edges => GetDescendantEdges(BaseId);
+        public override bool IsDirected => true;
+        /// <inheritdoc />
+        public override bool AllowParallelEdges => false;
 
         /// <inheritdoc />
-        public FreeformVertex GetProperties(Guid id)
-        {
-            // Get the workflow properties from an API call.
-            HyperthoughtWorkflow workflow = Task.Run(() => Api.GetWorkflowAsync(id)).GetAwaiter().GetResult();
-            return VertexFromWorkflow(workflow);
-        }
+        public override bool IsVerticesEmpty => false;
         /// <inheritdoc />
-        public IEnumerable<FreeformEdge> GetEdges(Guid id)
-        {
-            // Get the workflow from an API call and yield each of the children.
-            HyperthoughtWorkflow workflow = Task.Run(() => Api.GetWorkflowAsync(id)).GetAwaiter().GetResult();
-            int edge = 0;
-            foreach (Guid childId in workflow.Content.ChildrenIds.OrderBy(id => id))
-            {
-                yield return new FreeformEdge(
-                    FreeformIdentity.Create(id),
-                    FreeformIdentity.Create(childId),
-                    FreeformIdentity.Create(edge++)
-                );
-            }
-        }
+        public override bool IsEdgesEmpty => EdgesFromWorkflow(GetWorkflowSync(Id)).Any();
+
+        /// <inheritdoc />
+        public override int VertexCount => Vertices.Count();
+        /// <inheritdoc />
+        public override int EdgeCount => Edges.Count();
+
+        /// <inheritdoc />
+        public override IEnumerable<FreeformVertex> Vertices => TraverseVertices(Id);
+        /// <inheritdoc />
+        public override IEnumerable<FreeformEdge> Edges => TraverseEdges(Id);
 
         /// <inheritdoc />
         public override bool ContainsVertex(FreeformVertex vertex)
@@ -185,7 +208,7 @@ namespace CartaCore.Integration.Hyperthought
             {
                 if (FreeformIdentity.IsType(vertex.Identifier, out Guid id))
                 {
-                    HyperthoughtWorkflow workflow = Task.Run(() => Api.GetWorkflowAsync(id)).GetAwaiter().GetResult();
+                    HyperthoughtWorkflow workflow = GetWorkflowSync(id);
                     return true;
                 }
                 return false;
@@ -203,7 +226,7 @@ namespace CartaCore.Integration.Hyperthought
                 if (FreeformIdentity.IsType(edge.Source.Identifier, out Guid sourceId) &&
                     FreeformIdentity.IsType(edge.Target.Identifier, out Guid targetId))
                 {
-                    HyperthoughtWorkflow workflow = Task.Run(() => Api.GetWorkflowAsync(sourceId)).GetAwaiter().GetResult();
+                    HyperthoughtWorkflow workflow = GetWorkflowSync(sourceId);
                     return workflow.Content.ChildrenIds.Contains(targetId);
                 }
                 return false;
@@ -213,6 +236,39 @@ namespace CartaCore.Integration.Hyperthought
                 return false;
             }
         }
-        #endregion FreeformGraph
+
+        /// <inheritdoc />
+        public override FreeformVertex GetVertex(Guid id)
+        {
+            // Get the workflow properties from an API call.
+            return VertexFromWorkflow(GetWorkflowSync(id));
+        }
+        /// <inheritdoc />
+        public override IEnumerable<FreeformEdge> GetEdges(Guid id)
+        {
+            // Get the workflow from an API call and yield each of the children.
+            HyperthoughtWorkflow workflow = GetWorkflowSync(id);
+            int edge = 0;
+            foreach (Guid childId in workflow.Content.ChildrenIds.OrderBy(id => id))
+            {
+                yield return new FreeformEdge(
+                    FreeformIdentity.Create(id),
+                    FreeformIdentity.Create(childId),
+                    FreeformIdentity.Create(edge++)
+                );
+            }
+        }
+
+        /// <inheritdoc />
+        public override IEnumerable<FreeformVertex> GetChildVertices(Guid id)
+        {
+            return base.GetChildVertices(id);
+        }
+        /// <inheritdoc />
+        public override IEnumerable<FreeformEdge> GetChildEdges(Guid id)
+        {
+            return base.GetChildEdges(id);
+        }
+        #endregion
     }
 }

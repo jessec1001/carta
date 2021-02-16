@@ -11,7 +11,7 @@ namespace CartaCore.Data.Synthetic
     /// Represents graph data of a random, (practically) infinite, directed graph. Both the vertices and edges are
     /// randomly generated and connected.
     /// </summary>
-    public class InfiniteDirectedGraph : FreeformGraph, IParameterizedGraph<InfiniteDirectedGraphParameters>
+    public class InfiniteDirectedGraph : FreeformDynamicGraph<Guid>, IParameterizedGraph<InfiniteDirectedGraphParameters>
     {
         /// <inheritdoc />
         public InfiniteDirectedGraphParameters Parameters { get; set; }
@@ -82,72 +82,7 @@ namespace CartaCore.Data.Synthetic
             return null;
         }
 
-        /// <summary>
-        /// Randomly generates a vertex by its identifier.
-        /// </summary>
-        /// <param name="id">The vertex identifier.</param>
-        /// <returns>The vertex with its properties assigned.</returns>
-        protected FreeformVertex GetProperties(Guid id)
-        {
-            // Create a compound random number generator using the GUID and original seed as a combined seed.
-            CompoundRandom random = new CompoundRandom(Parameters.Seed, id);
-
-            // Construct a dictionary of random properties.
-            List<FreeformProperty> properties = new List<FreeformProperty>();
-            foreach (KeyValuePair<string, Type> property in Properties)
-            {
-                if (random.NextDouble() < Parameters.PropertyDensity)
-                    properties.Add(new FreeformProperty(FreeformIdentity.Create(property.Key))
-                    {
-                        Observations = new List<FreeformObservation>
-                        {
-                            new FreeformObservation
-                            {
-                                Type = property.Value.ToString(),
-                                Value = GenerateRandomValue(random, property.Value)
-                            }
-                        }
-                    });
-            }
-
-            // Return the randomly generated vertex with properties.
-            return new FreeformVertex(FreeformIdentity.Create(id))
-            {
-                Properties = properties
-            };
-        }
-        /// <summary>
-        /// Randomly generates an enumerable of out-edges of a vertex by its identifier.
-        /// </summary>
-        /// <param name="id">The vertex identifier.</param>
-        /// <returns>The enumerable of out-edges of the vertex.</returns>
-        protected IEnumerable<FreeformEdge> GetEdges(Guid id)
-        {
-            // Create a compound random number generator using the GUID and original seed as a combined seed.
-            CompoundRandom random = new CompoundRandom(Parameters.Seed, id);
-
-            // Keep constructing children until the random generator doesn't sample within the current probability.
-            int child = 0;
-            double probability = Parameters.ChildProbability;
-            while (random.NextDouble() < probability)
-            {
-                // We must construct the ID from the random number generator and not from the system.
-                Guid randomId = random.NextGuid();
-
-                // The source of each edge is the selected vertex.
-                yield return new FreeformEdge
-                (
-                    FreeformIdentity.Create(id),
-                    FreeformIdentity.Create(randomId),
-                    FreeformIdentity.Create(child++)
-                );
-
-                // We lower the probability by some amount each time.
-                probability *= Parameters.ChildDampener;
-            }
-        }
-
-        #region FreeformGraph
+        #region FreeformDynamicGraph
         /// <inheritdoc />
         public override bool IsDirected => true;
         /// <inheritdoc />
@@ -183,6 +118,63 @@ namespace CartaCore.Data.Synthetic
         {
             // This graph contains all vertices.
             return true;
+        }
+
+        /// <inheritdoc />
+        public override FreeformVertex GetVertex(Guid id)
+        {
+            // Create a compound random number generator using the GUID and original seed as a combined seed.
+            CompoundRandom random = new CompoundRandom(Parameters.Seed, id);
+
+            // Construct a dictionary of random properties.
+            List<FreeformProperty> properties = new List<FreeformProperty>();
+            foreach (KeyValuePair<string, Type> property in Properties)
+            {
+                if (random.NextDouble() < Parameters.PropertyDensity)
+                    properties.Add(new FreeformProperty(FreeformIdentity.Create(property.Key))
+                    {
+                        Observations = new List<FreeformObservation>
+                        {
+                            new FreeformObservation
+                            {
+                                Type = property.Value.ToString(),
+                                Value = GenerateRandomValue(random, property.Value)
+                            }
+                        }
+                    });
+            }
+
+            // Return the randomly generated vertex with properties.
+            return new FreeformVertex(FreeformIdentity.Create(id))
+            {
+                Properties = properties
+            };
+        }
+        /// <inheritdoc />
+        public override IEnumerable<FreeformEdge> GetEdges(Guid id)
+        {
+            // Create a compound random number generator using the GUID and original seed as a combined seed.
+            CompoundRandom random = new CompoundRandom(Parameters.Seed, id);
+
+            // Keep constructing children until the random generator doesn't sample within the current probability.
+            int child = 0;
+            double probability = Parameters.ChildProbability;
+            while (random.NextDouble() < probability)
+            {
+                // We must construct the ID from the random number generator and not from the system.
+                Guid randomId = random.NextGuid();
+
+                // The source of each edge is the selected vertex.
+                yield return new FreeformEdge
+                (
+                    FreeformIdentity.Create(id),
+                    FreeformIdentity.Create(randomId),
+                    FreeformIdentity.Create(child++)
+                );
+
+                // We lower the probability by some amount each time.
+                probability *= Parameters.ChildDampener;
+            }
         }
         #endregion
     }
