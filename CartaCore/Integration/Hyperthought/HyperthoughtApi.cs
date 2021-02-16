@@ -136,7 +136,7 @@ namespace CartaCore.Integration.Hyperthought
         /// </summary>
         /// <param name="template">The template workflow.</param>
         /// <returns>The list of children workflows obtained from the HyperThought API.</returns>
-        public async Task<IList<HyperthoughtWorkflow>> GetWorkflowChildren(HyperthoughtWorkflowTemplate template)
+        public async Task<IList<HyperthoughtWorkflow>> GetWorkflowChildrenAsync(HyperthoughtWorkflowTemplate template)
         {
             return await GetWorkflowChildrenAsync(template.PrimaryKey);
         }
@@ -146,7 +146,7 @@ namespace CartaCore.Integration.Hyperthought
         /// </summary>
         /// <param name="workflow">The workflow.</param>
         /// <returns>The list of children workflows obtained from the HyperThought API.</returns>
-        public async Task<IList<HyperthoughtWorkflow>> GetWorkflowChildren(HyperthoughtWorkflow workflow)
+        public async Task<IList<HyperthoughtWorkflow>> GetWorkflowChildrenAsync(HyperthoughtWorkflow workflow)
         {
             return await GetWorkflowChildrenAsync(workflow.Content.PrimaryKey);
         }

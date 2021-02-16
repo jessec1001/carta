@@ -80,35 +80,36 @@ namespace CartaWeb.Controllers
         /// <param name="resource">The resource located on the data source.</param>
         /// <returns>The base graph.</returns>
         [HttpGet("{source}/{resource?}")]
-        public async Task<FreeformGraph> GetGraph(
+        public async ActionResult GetGraph(
             [FromRoute] DataSource source,
             [FromRoute] string resource
         )
         {
             FreeformGraph graph = await LookupData(source, resource);
 
-            if (!(graph is null))
+            if (graph is null)
             {
-                if (graph.IsFinite)
+                // We could not find the resource, we should return a not found response.
+                return NotFound();
+            }
+            else
+            {
+                if (graph is FreeformDynamicGraph dynamicGraph)
                 {
-                    // Return the entire graph.
-                    return graph;
+                    // Return the subgraph of the graph containing the base vertex.
+                    FreeformSubgraph subgraph = new FreeformSubgraph
+                    (
+                        dynamicGraph,
+                        new FreeformIdentity[] { dynamicGraph.BaseId }
+                    );
+                    return Ok(subgraph);
                 }
                 else
                 {
-                    // Generate a graph with the correct directed variant.
-                    FreeformGraph data;
-                    if (graph.IsDirected)
-                        data = new AdjacencyGraph<FreeformVertex, FreeformEdge>(true, 1, 0);
-                    else
-                        data = new UndirectedGraph<FreeformVertex, FreeformEdge>(true);
-
-                    // Add the single base vertex.
-                    data.AddVertex(graph.GetProperties(graph.BaseId));
-                    return data;
+                    // Return the entire graph.
+                    return Ok(graph);
                 }
             }
-            return null;
         }
 
         /// <summary>

@@ -88,6 +88,9 @@ namespace CartaCore.Data.Synthetic
         /// <inheritdoc />
         public override bool IsFinite => false;
         /// <inheritdoc />
+        public override FreeformIdentity BaseId => FreeformIdentity.Create(new CompoundRandom(Parameters.Seed).NextGuid());
+
+        /// <inheritdoc />
         public override bool AllowParallelEdges => true;
 
         /// <inheritdoc />
@@ -96,14 +99,14 @@ namespace CartaCore.Data.Synthetic
         public override bool IsEdgesEmpty => Parameters.ChildProbability > 0;
 
         /// <inheritdoc />
-        public override int VertexCount => throw new NotImplementedException();
+        public override int VertexCount => throw new NotFiniteNumberException();
         /// <inheritdoc />
-        public override int EdgeCount => throw new NotImplementedException();
+        public override int EdgeCount => throw new NotFiniteNumberException();
 
         /// <inheritdoc />
-        public override IEnumerable<FreeformVertex> Vertices => throw new NotImplementedException();
+        public override IEnumerable<FreeformVertex> Vertices => TraversePreorderVertices(BaseId);
         /// <inheritdoc />
-        public override IEnumerable<FreeformEdge> Edges => throw new NotImplementedException();
+        public override IEnumerable<FreeformEdge> Edges => TraversePreorderEdges(BaseId);
 
         /// <inheritdoc />
         public override bool ContainsEdge(FreeformEdge edge)
