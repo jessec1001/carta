@@ -12,14 +12,12 @@ using Microsoft.Net.Http.Headers;
 
 using QuikGraph;
 
-using CartaCore.Data;
+using CartaCore.Data.Freeform;
 using CartaWeb.Serialization.Json;
 using CartaWeb.Serialization.Xml;
 
 namespace CartaWeb.Extended.Formatters
 {
-    using FreeformGraph = IMutableVertexAndEdgeSet<FreeformVertex, FreeformEdge>;
-
     /// <summary>
     /// Represents a function that transforms a freeform graph into a string.
     /// </summary>
@@ -43,12 +41,12 @@ namespace CartaWeb.Extended.Formatters
             {
                 // JSON-based formats.
                 (MediaTypeHeaderValue.Parse("application/vnd.vis+json"), FormatVis),
-                (MediaTypeHeaderValue.Parse("application/vnd.jgf+json"), FormatJg),
+                // (MediaTypeHeaderValue.Parse("application/vnd.jgf+json"), FormatJg),
                 (MediaTypeHeaderValue.Parse("application/json"), FormatVis), // Default
 
                 // XML-based formats.
-                (MediaTypeHeaderValue.Parse("application/vnd.gexf+xml"), FormatGex),
-                (MediaTypeHeaderValue.Parse("application/xml"), FormatGex), // Default
+                // (MediaTypeHeaderValue.Parse("application/vnd.gexf+xml"), FormatGex),
+                // (MediaTypeHeaderValue.Parse("application/xml"), FormatGex), // Default
             };
 
         /// <summary>
@@ -111,8 +109,8 @@ namespace CartaWeb.Extended.Formatters
             }
         }
 
-        private static string FormatJg(FreeformGraph graph) => FormatJson<JgFormat>(new JgFormat(graph));
+        // private static string FormatJg(FreeformGraph graph) => FormatJson<JgFormat>(new JgFormat(graph));
         private static string FormatVis(FreeformGraph graph) => FormatJson<VisFormat>(new VisFormat(graph));
-        private static string FormatGex(FreeformGraph graph) => FormatXml<GexFormat>(new GexFormat(graph));
+        // private static string FormatGex(FreeformGraph graph) => FormatXml<GexFormat>(new GexFormat(graph));
     }
 }
