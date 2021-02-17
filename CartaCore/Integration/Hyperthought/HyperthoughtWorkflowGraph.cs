@@ -135,7 +135,7 @@ namespace CartaCore.Integration.Hyperthought
                 (
                     FreeformIdentity.Create(workflow.Content.PrimaryKey),
                     FreeformIdentity.Create(childId),
-                    FreeformIdentity.Create(edge++)
+                    edge++
                 );
             }
 
@@ -146,7 +146,7 @@ namespace CartaCore.Integration.Hyperthought
                 (
                     FreeformIdentity.Create(workflow.Content.PrimaryKey),
                     FreeformIdentity.Create(successorId),
-                    FreeformIdentity.Create(edge++)
+                    edge++
                 );
             }
         }
@@ -217,16 +217,7 @@ namespace CartaCore.Integration.Hyperthought
         public override IEnumerable<FreeformEdge> GetEdges(Guid id)
         {
             // Get the workflow from an API call and yield each of the children.
-            HyperthoughtWorkflow workflow = GetWorkflowSync(id);
-            int edge = 0;
-            foreach (Guid childId in workflow.Content.ChildrenIds.OrderBy(id => id))
-            {
-                yield return new FreeformEdge(
-                    FreeformIdentity.Create(id),
-                    FreeformIdentity.Create(childId),
-                    FreeformIdentity.Create(edge++)
-                );
-            }
+            return EdgesFromWorkflow(GetWorkflowSync(id));
         }
         /// <inheritdoc />
         public override (FreeformVertex, IEnumerable<FreeformEdge>) GetVertexWithEdges(Guid id)

@@ -124,7 +124,7 @@ namespace CartaWeb.Controllers
         public async Task<ActionResult<FreeformGraph>> GetProperties(
             [FromRoute] DataSource source,
             [FromRoute] string resource,
-            [FromQuery] Guid uuid
+            [FromQuery] string uuid
         )
         {
             FreeformGraph graph = await LookupData(source, resource);
@@ -166,7 +166,7 @@ namespace CartaWeb.Controllers
         public async Task<ActionResult<FreeformGraph>> GetChildren(
             [FromRoute] DataSource source,
             [FromRoute] string resource,
-            [FromQuery] Guid uuid
+            [FromQuery] string uuid
         )
         {
             FreeformGraph graph = await LookupData(source, resource);

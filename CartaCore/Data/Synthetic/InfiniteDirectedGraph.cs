@@ -172,7 +172,7 @@ namespace CartaCore.Data.Synthetic
                 (
                     FreeformIdentity.Create(id),
                     FreeformIdentity.Create(randomId),
-                    FreeformIdentity.Create(child++)
+                    child++
                 );
 
                 // We lower the probability by some amount each time.

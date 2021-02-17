@@ -67,7 +67,7 @@ namespace CartaCore.Data.Synthetic
                 .SelectMany(
                     (vertexA, indexA) => vertices
                         .Where((vertexB, indexB) => indexA < indexB),
-                    (a, b) => new FreeformEdge(a.Identifier, b.Identifier, FreeformIdentity.Create(edgeCount++))
+                    (a, b) => new FreeformEdge(a.Identifier, b.Identifier, edgeCount++)
                 )
             );
 
