@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 using CartaCore.Data.Freeform;
 using CartaCore.Integration.Hyperthought.Data;
+using CartaCore.Utility;
 
 namespace CartaCore.Integration.Hyperthought
 {

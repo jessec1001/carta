@@ -140,7 +140,7 @@ namespace CartaCore.Data.Synthetic
                         {
                             new FreeformObservation
                             {
-                                Type = property.Value.ToString(),
+                                Type = property.Value.TypeSerialize(),
                                 Value = GenerateRandomValue(random, property.Value)
                             }
                         }
