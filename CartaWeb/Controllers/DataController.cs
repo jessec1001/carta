@@ -100,7 +100,7 @@ namespace CartaWeb.Controllers
                     FreeformFiniteGraph subgraph = FreeformFiniteGraph.CreateSubgraph
                     (
                         dynamicGraph,
-                        new[] { FreeformIdentity.Create(dynamicGraph.BaseId) },
+                        new[] { dynamicGraph.BaseId },
                         includeEdges: true
                     );
                     return Ok(subgraph);

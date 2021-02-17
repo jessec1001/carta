@@ -317,7 +317,7 @@ namespace CartaCore.Data.Freeform
                     {
                         (FreeformVertex vertex, IEnumerable<FreeformEdge> edges) = parent.GetVertexWithEdges(id);
                         graph.AddVertex(vertex);
-                        graph.AddEdgeRange(edges);
+                        if (!(edges is null)) graph.AddEdgeRange(edges);
                     }
                 }
                 else
@@ -362,12 +362,12 @@ namespace CartaCore.Data.Freeform
                     foreach (FreeformIdentity id in includedIds)
                     {
                         (IEnumerable<FreeformVertex> vertices, IEnumerable<FreeformEdge> edges) = parent.GetChildVerticesWithEdges(id);
-                        graph.AddVertexRange(vertices);
-                        graph.AddEdgeRange(edges);
+                        if (!(vertices is null)) graph.AddVertexRange(vertices);
+                        if (!(edges is null)) graph.AddEdgeRange(edges);
                     }
                 }
                 else
-                    graph.AddVertexRange(includedIds.SelectMany(id => parent.GetChildVertices(id)));
+                    graph.AddVertexRange(includedIds.SelectMany(id => parent.GetChildVertices(id) ?? Enumerable.Empty<FreeformVertex>()));
             }
 
             return graph;
