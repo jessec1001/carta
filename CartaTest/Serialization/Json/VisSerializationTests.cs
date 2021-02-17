@@ -1,15 +1,12 @@
 using System.Text.Json;
 
-using QuikGraph;
 using NUnit.Framework;
 
-using CartaCore.Data;
+using CartaCore.Data.Freeform;
 using CartaWeb.Serialization.Json;
 
 namespace CartaTest.Serialization.Json
 {
-    using FreeformGraph = IMutableVertexAndEdgeSet<FreeformVertex, FreeformEdge>;
-
     /// <summary>
     /// Tests the serialization of freeform graphs into Vis format.
     /// </summary>
@@ -22,7 +19,7 @@ namespace CartaTest.Serialization.Json
         [Test]
         public void TestVisUndirected()
         {
-            VisFormat sample = new VisFormat(Helpers.UndirectedGraphSample);
+            VisFormat sample = new VisFormat(GraphHelpers.UndirectedGraphSample);
 
             string str = JsonSerializer.Serialize<VisFormat>(sample);
             VisFormat data = JsonSerializer.Deserialize<VisFormat>(str);
@@ -32,6 +29,26 @@ namespace CartaTest.Serialization.Json
             Assert.NotNull(graph);
             Assert.AreEqual(5, graph.VertexCount);
             Assert.AreEqual(5, graph.EdgeCount);
+            Assert.IsTrue(graph.ContainsVertex(new FreeformVertex(FreeformIdentity.Create(0))));
+            Assert.IsTrue(graph.ContainsVertex(new FreeformVertex(FreeformIdentity.Create(4))));
+            Assert.IsTrue(graph.ContainsEdge(new FreeformEdge
+            (
+                FreeformIdentity.Create(1),
+                FreeformIdentity.Create(3),
+                FreeformIdentity.Create("1.2")
+            )));
+            Assert.IsTrue(graph.ContainsEdge(new FreeformEdge
+            (
+                FreeformIdentity.Create(2),
+                FreeformIdentity.Create(3),
+                FreeformIdentity.Create("2.3")
+            )));
+            Assert.IsTrue(graph.ContainsEdge(new FreeformEdge
+            (
+                FreeformIdentity.Create(0),
+                FreeformIdentity.Create(1),
+                FreeformIdentity.Create("0.0")
+            )));
         }
     }
 }

@@ -10,6 +10,7 @@ using CartaWeb.Serialization.Xml;
 
 namespace CartaTest.Serialization.Xml
 {
+    /*
     using FreeformGraph = IMutableVertexAndEdgeSet<FreeformVertex, FreeformEdge>;
 
     /// <summary>
@@ -25,7 +26,7 @@ namespace CartaTest.Serialization.Xml
         public void TestGexfReserialize()
         {
             XmlSerializer serializer = new XmlSerializer(typeof(GexFormat));
-            GexFormat sample = new GexFormat(Helpers.UndirectedGraphSample);
+            GexFormat sample = new GexFormat(GraphHelpers.UndirectedGraphSample);
 
             string str;
             using (StringWriter stringWriter = new StringWriter())
@@ -53,4 +54,5 @@ namespace CartaTest.Serialization.Xml
             Assert.AreEqual(5, graph.EdgeCount);
         }
     }
+    */
 }

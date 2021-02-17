@@ -41,7 +41,6 @@ namespace CartaWeb.Serialization.Json
         [JsonPropertyName("edges")]
         public List<VisFormatEdge> Edges { get; set; }
 
-        /*
         /// <summary>
         /// Gets the freeform graph.
         /// </summary>
@@ -53,21 +52,14 @@ namespace CartaWeb.Serialization.Json
         {
             get
             {
-                // Create a graph with the correct directed variant.
-                FreeformGraph graph;
-                if (Directed)
-                    graph = new AdjacencyGraph<FreeformVertex, FreeformEdge>();
-                else
-                    graph = new UndirectedGraph<FreeformVertex, FreeformEdge>();
-
-                // Add the vertices and edges.
+                // Create a graph and add the vertices and edges.
+                FreeformFiniteGraph graph = new FreeformFiniteGraph(Directed);
                 graph.AddVertexRange(Nodes.Select(node => node.Vertex));
                 graph.AddEdgeRange(Edges.Select(edge => edge.Edge));
 
                 return graph;
             }
         }
-        */
 
         /// <summary>
         /// Initializes a new instance of the <see cref="VisFormat"/> class with the specified graph.
@@ -126,7 +118,6 @@ namespace CartaWeb.Serialization.Json
         [JsonPropertyName("properties")]
         public List<VisFormatProperty> Properties { get; set; }
 
-        /*
         /// <summary>
         /// Gets the freeform vertex.
         /// </summary>
@@ -138,22 +129,14 @@ namespace CartaWeb.Serialization.Json
         {
             get
             {
-                return new FreeformVertex(Id)
+                return new FreeformVertex(FreeformIdentity.Create(Id))
                 {
                     Label = Label,
                     Description = Description,
-                    Properties = new SortedList<string, FreeformProperty>
-                    (
-                        Properties.ToDictionary
-                        (
-                            prop => prop.Name,
-                            prop => prop.Property
-                        )
-                    )
+                    Properties = Properties.Select(property => property.Property)
                 };
             }
         }
-        */
 
         /// <summary>
         /// Initializes a new instance of the <see cref="VisFormatNode"/> class with the specified node.
@@ -205,7 +188,6 @@ namespace CartaWeb.Serialization.Json
         [JsonPropertyName("to")]
         public string Target { get; set; }
 
-        /*
         /// <summary>
         /// Gets the freeform edge.
         /// </summary>
@@ -219,12 +201,12 @@ namespace CartaWeb.Serialization.Json
             {
                 return new FreeformEdge
                 (
-                    new FreeformVertex(Source),
-                    new FreeformVertex(Target)
+                    FreeformIdentity.Create(Source),
+                    FreeformIdentity.Create(Target),
+                    FreeformIdentity.Create(Id)
                 );
             }
         }
-        */
 
         /// <summary>
         /// Initializes a new instance of the <see cref="VisFormatEdge"/> class with the specified ID and endpoints.
@@ -254,8 +236,8 @@ namespace CartaWeb.Serialization.Json
         /// <value>
         /// The property name.
         /// </value>
-        [JsonPropertyName("name")]
-        public string Name { get; set; }
+        [JsonPropertyName("id")]
+        public string Id { get; set; }
         /// <summary>
         /// Gets or sets the observations of the property.
         /// </summary>
@@ -263,7 +245,6 @@ namespace CartaWeb.Serialization.Json
         [JsonPropertyName("observations")]
         public List<VisFormatObservation> Observations { get; set; }
 
-        /*
         /// <summary>
         /// Gets the freeform property.
         /// </summary>
@@ -275,14 +256,12 @@ namespace CartaWeb.Serialization.Json
         {
             get
             {
-                return new FreeformProperty
+                return new FreeformProperty(FreeformIdentity.Create(Id))
                 {
-                    Type = Type.TypeDeserialize(),
-                    Value = Value
+                    Observations = Observations.Select(observation => observation.Observation)
                 };
             }
         }
-        */
 
         /// <summary>
         /// Initializes a new instance of the <see cref="VisFormatProperty"/> class with the specified key and value.
@@ -290,7 +269,7 @@ namespace CartaWeb.Serialization.Json
         /// <param name="property">The property.</param>
         public VisFormatProperty(FreeformProperty property)
         {
-            Name = property.Identifier.ToString();
+            Id = property.Identifier.ToString();
             Observations = property.Observations.Select(observation => new VisFormatObservation(observation)).ToList();
         }
         /// <summary>
@@ -320,6 +299,23 @@ namespace CartaWeb.Serialization.Json
         /// </value>
         [JsonPropertyName("value")]
         public object Value { get; set; }
+
+        /// <summary>
+        /// Gets the freeform observation.
+        /// </summary>
+        /// <value>The freeform observation.</value>
+        [JsonIgnore]
+        public FreeformObservation Observation
+        {
+            get
+            {
+                return new FreeformObservation
+                {
+                    Type = Type,
+                    Value = Value
+                };
+            }
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="VisFormatObservation"/> class with the specified observation.

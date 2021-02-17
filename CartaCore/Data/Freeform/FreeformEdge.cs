@@ -18,15 +18,40 @@ namespace CartaCore.Data.Freeform
         /// <summary>
         /// Initializes an instance of the <see cref="FreeformEdge"/> class with the specified endpoints and identifier.
         /// </summary>
+        /// <param name="source">The source vertex.</param>
+        /// <param name="target">The target vertex.</param>
+        /// <param name="edgeId">The edge identifier.</param>
+        public FreeformEdge(FreeformVertex source, FreeformVertex target, FreeformIdentity edgeId)
+            : base(edgeId)
+        {
+            Source = source;
+            Target = target;
+        }
+        /// <summary>
+        /// Initializes an instance of the <see cref="FreeformEdge"/> class with the specified endpoints and index.
+        /// </summary>
+        /// <param name="source">The source vertex.</param>
+        /// <param name="target">The target vertex.</param>
+        /// <param name="edgeIndex">The edge index of the source vertex.</param>
+        public FreeformEdge(FreeformVertex source, FreeformVertex target, int edgeIndex)
+            : this(
+                source, target,
+                FreeformIdentity.Create(new FreeformVertexEdgeId(source.Identifier, edgeIndex))
+            )
+        { }
+        /// <summary>
+        /// Initializes an instance of the <see cref="FreeformEdge"/> class with the specified endpoints and identifier.
+        /// </summary>
         /// <param name="sourceId">The source vertex identifier.</param>
         /// <param name="targetId">The target vertex identifier.</param>
         /// <param name="edgeId">The edge identifier.</param>
         public FreeformEdge(FreeformIdentity sourceId, FreeformIdentity targetId, FreeformIdentity edgeId)
-            : base(edgeId)
-        {
-            Source = new FreeformVertex(sourceId);
-            Target = new FreeformVertex(targetId);
-        }
+            : this(
+                new FreeformVertex(sourceId),
+                new FreeformVertex(targetId),
+                edgeId
+            )
+        { }
         /// <summary>
         /// Initializes an instance of the <see cref="FreeformEdge"/> class with the specified endpoints and index.
         /// </summary>
@@ -34,7 +59,8 @@ namespace CartaCore.Data.Freeform
         /// <param name="targetId">The target vertex identifier.</param>
         /// <param name="edgeIndex">The edge index of the source vertex.</param>
         public FreeformEdge(FreeformIdentity sourceId, FreeformIdentity targetId, int edgeIndex)
-            : this(sourceId, targetId,
+            : this(
+                sourceId, targetId,
                 FreeformIdentity.Create(new FreeformVertexEdgeId(sourceId, edgeIndex))
             )
         { }

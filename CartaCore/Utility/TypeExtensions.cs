@@ -4,6 +4,9 @@ using System.Linq;
 
 namespace CartaCore.Utility
 {
+    /// <summary>
+    /// Provides extension methods to convert between types and string representations.
+    /// </summary>
     public static class TypeExtensions
     {
         private static IDictionary<Type, string> Primatives;

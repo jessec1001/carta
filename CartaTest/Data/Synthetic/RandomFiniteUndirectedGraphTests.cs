@@ -3,13 +3,11 @@ using System;
 using QuikGraph;
 using NUnit.Framework;
 
-using CartaCore.Data;
+using CartaCore.Data.Freeform;
 using CartaCore.Data.Synthetic;
 
 namespace CartaTest
 {
-    using FreeformGraph = IMutableVertexAndEdgeSet<FreeformVertex, FreeformEdge>;
-
     /// <summary>
     /// Tests the generation of the <see cref="FiniteUndirectedGraph"/> object.
     /// </summary>
@@ -36,7 +34,7 @@ namespace CartaTest
         /// <summary>
         /// The graph generated to test on.
         /// </summary>
-        protected FreeformGraph TestGraph;
+        protected FreeformGraph Graph;
 
         /// <summary>
         /// Sets up the test fixture.
@@ -45,7 +43,7 @@ namespace CartaTest
         public void Setup()
         {
             // Generate the samples we will test.
-            ISampledGraph graph = new FiniteUndirectedGraph(
+            Graph = new FiniteUndirectedGraph(
                 new FiniteUndirectedGraphParameters
                 {
                     Seed = 0,
@@ -55,7 +53,6 @@ namespace CartaTest
                     MaxEdges = MaxEdges
                 }
             );
-            TestGraph = graph.GetEntire();
         }
 
         /// <summary>
@@ -64,8 +61,8 @@ namespace CartaTest
         [Test]
         public void TestNumberVertices()
         {
-            Assert.IsTrue(MinVertices <= TestGraph.VertexCount);
-            Assert.IsTrue(MaxVertices >= TestGraph.VertexCount);
+            Assert.IsTrue(MinVertices <= Graph.VertexCount);
+            Assert.IsTrue(MaxVertices >= Graph.VertexCount);
         }
 
         /// <summary>
@@ -74,11 +71,11 @@ namespace CartaTest
         [Test]
         public void TestNumberEdges()
         {
-            int vertexCount = TestGraph.VertexCount;
+            int vertexCount = Graph.VertexCount;
             int edgeCountMax = vertexCount * (vertexCount - 1) / 2;
 
-            Assert.IsTrue(Math.Min(edgeCountMax, MinEdges) <= TestGraph.EdgeCount);
-            Assert.IsTrue(MaxEdges >= TestGraph.EdgeCount);
+            Assert.IsTrue(Math.Min(edgeCountMax, MinEdges) <= Graph.EdgeCount);
+            Assert.IsTrue(MaxEdges >= Graph.EdgeCount);
         }
 
         /// <summary>
@@ -87,7 +84,7 @@ namespace CartaTest
         [Test]
         public void TestNoSelfEdges()
         {
-            foreach (Edge<FreeformVertex> edge in TestGraph.Edges)
+            foreach (FreeformEdge edge in Graph.Edges)
             {
                 Assert.IsFalse(edge.IsSelfEdge());
             }
