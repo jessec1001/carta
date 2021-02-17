@@ -6,7 +6,7 @@ using QuikGraph;
 using NUnit.Framework;
 
 using CartaCore.Data;
-using CartaWeb.Serialization.Xml;
+// using CartaWeb.Serialization.Xml;
 
 namespace CartaTest.Serialization.Xml
 {

@@ -133,7 +133,7 @@ namespace CartaWeb.Serialization.Json
                 {
                     Label = Label,
                     Description = Description,
-                    Properties = Properties.Select(property => property.Property)
+                    Properties = Properties?.Select(property => property.Property)
                 };
             }
         }

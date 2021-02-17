@@ -31,6 +31,7 @@ namespace CartaTest.Serialization.Json
             Assert.AreEqual(5, graph.EdgeCount);
             Assert.IsTrue(graph.ContainsVertex(new FreeformVertex(FreeformIdentity.Create(0))));
             Assert.IsTrue(graph.ContainsVertex(new FreeformVertex(FreeformIdentity.Create(4))));
+            Assert.IsFalse(graph.ContainsVertex(new FreeformVertex(FreeformIdentity.Create(5))));
             Assert.IsTrue(graph.ContainsEdge(new FreeformEdge
             (
                 FreeformIdentity.Create(1),
@@ -48,6 +49,12 @@ namespace CartaTest.Serialization.Json
                 FreeformIdentity.Create(0),
                 FreeformIdentity.Create(1),
                 FreeformIdentity.Create("0.0")
+            )));
+            Assert.IsFalse(graph.ContainsEdge(new FreeformEdge
+            (
+                FreeformIdentity.Create(0),
+                FreeformIdentity.Create(1),
+                FreeformIdentity.Create("0.3")
             )));
         }
     }
