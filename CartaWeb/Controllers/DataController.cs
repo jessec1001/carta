@@ -97,11 +97,11 @@ namespace CartaWeb.Controllers
                 if (graph is FreeformDynamicGraph dynamicGraph)
                 {
                     // Return the subgraph of the graph containing the base vertex.
-                    FreeformSubgraph subgraph = new FreeformSubgraph
+                    FreeformFiniteGraph subgraph = FreeformFiniteGraph.CreateSubgraph
                     (
                         dynamicGraph,
-                        new FreeformIdentity[] { dynamicGraph.BaseId },
-                        computed: true
+                        new[] { FreeformIdentity.Create(dynamicGraph.BaseId) },
+                        includeEdges: true
                     );
                     return Ok(subgraph);
                 }
@@ -139,11 +139,11 @@ namespace CartaWeb.Controllers
                 if (graph is FreeformDynamicGraph dynamicGraph)
                 {
                     // Return the subgraph of the graph containing the requested vertex.
-                    FreeformSubgraph subgraph = new FreeformSubgraph
+                    FreeformFiniteGraph subgraph = FreeformFiniteGraph.CreateSubgraph
                     (
                         dynamicGraph,
-                        new FreeformIdentity[] { FreeformIdentity.Create(uuid) },
-                        computed: true
+                        new[] { FreeformIdentity.Create(uuid) },
+                        includeEdges: true
                     );
                     return Ok(subgraph);
                 }
@@ -181,12 +181,11 @@ namespace CartaWeb.Controllers
                 if (graph is FreeformDynamicGraph dynamicGraph)
                 {
                     // Return the subgraph of the graph containing the requested vertex.
-                    FreeformSubgraph subgraph = new FreeformSubgraph
+                    FreeformFiniteGraph subgraph = FreeformFiniteGraph.CreateChildSubgraph
                     (
                         dynamicGraph,
-                        new FreeformIdentity[] { FreeformIdentity.Create(uuid) },
-                        children: true,
-                        computed: true
+                        new[] { FreeformIdentity.Create(uuid) },
+                        includeEdges: true
                     );
                     return Ok(subgraph);
                 }
