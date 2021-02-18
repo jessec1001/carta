@@ -1,12 +1,24 @@
-import React, { Component } from 'react';
+import React, { Component, MouseEvent } from 'react';
 import { CaretDownFill, CaretUpFill } from 'react-bootstrap-icons';
+import { VisObservation, VisProperty } from '../../../lib/types/vis-format';
 import { ObservationList } from './ObservationList';
 import './Property.css';
 
-export class Property extends Component {
+interface PropertyProps {
+    property: VisProperty,
+    selected?: boolean,
+
+    onClick?: (event: MouseEvent) => void
+}
+
+interface PropertyState {
+    expanded: boolean
+}
+
+export class Property extends Component<PropertyProps, PropertyState> {
     static displayName = Property.name;
 
-    constructor(props) {
+    constructor(props: PropertyProps) {
         super(props);
 
         this.state = {
@@ -32,16 +44,16 @@ export class Property extends Component {
         return (
             <div>
                 <div className={className} onClick={this.props.onClick}>
-                    <p className="property-name">{this.props.name}:</p>
-                    <p className="property-occurrences">
-                        ×{this.props.values.length} &nbsp;
+                    <p className="property-name">{this.props.property.id}:</p>
+                    <div className="property-occurrences">
+                        ×{this.props.property.observations.length} &nbsp;
                         <div className="d-inline property-expand" onClick={this.handleExpand}>
                             {!this.state.expanded && <CaretDownFill />}
                             {this.state.expanded && <CaretUpFill />}
                         </div>
-                    </p>
+                    </div>
                 </div>
-                {this.state.expanded && <ObservationList values={this.props.values} />}
+                {this.state.expanded && <ObservationList observations={this.props.property.observations} />}
             </div>
         );
     }

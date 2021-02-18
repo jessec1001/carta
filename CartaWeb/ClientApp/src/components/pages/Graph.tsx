@@ -9,8 +9,7 @@ import './Graph.css';
 
 interface GraphProps extends RouteComponentProps { }
 interface GraphState {
-    properties: Record<string, Array<VisProperty>>,
-    semantics: Record<string, string>
+    properties: Array<VisProperty>
 }
 
 export class Graph extends Component<GraphProps, GraphState> {
@@ -24,22 +23,15 @@ export class Graph extends Component<GraphProps, GraphState> {
             this.props.location.search
         ).replace(this.props.match.path, '').substring(1);
         this.state = {
-            properties: {},
-            semantics: {}
+            properties: []
         };
 
         this.handlePropertiesChanges = this.handlePropertiesChanges.bind(this);
-        this.handleSemanticsChanged = this.handleSemanticsChanged.bind(this);
     }
 
-    handlePropertiesChanges(properties: Record<string, Array<VisProperty>>) {
+    handlePropertiesChanges(properties: Array<VisProperty>) {
         this.setState({
             properties: properties
-        });
-    }
-    handleSemanticsChanged(semantics: Record<string, string>) {
-        this.setState({
-            semantics: semantics
         });
     }
 
@@ -52,7 +44,7 @@ export class Graph extends Component<GraphProps, GraphState> {
                 </div>
                 <div className="w-25 h-100">
                     <HeightScroll className="sidebar">
-                        <PropertyList properties={this.state.properties} semantics={this.state.semantics} />
+                        <PropertyList properties={this.state.properties} />
                     </HeightScroll>
                 </div>
             </div>

@@ -8,7 +8,7 @@ import { VisGraph, VisNode, VisEdge, VisProperty } from '../../lib/types/vis-for
 interface GraphExplorerProps {
     request?: string,
 
-    onPropertiesChanged?: (properties: Record<string, Array<VisProperty>>) => void
+    onPropertiesChanged?: (properties: Array<VisProperty>) => void
 }
 
 interface GraphExplorerState {
@@ -29,17 +29,7 @@ export class GraphExplorer extends Component<GraphExplorerProps, GraphExplorerSt
                 nodes: new DataSet<VisNode>(),
                 edges: new DataSet<VisEdge>()
             },
-            options: {
-                nodes: {
-                    borderWidth: 2,
-                    shape: 'dot',
-                    size: 15
-                },
-                edges: {},
-                interaction: {
-                    multiselect: true
-                }
-            },
+            options: this.getDefaultOptions(),
             loading: false
         };
         
@@ -48,19 +38,40 @@ export class GraphExplorer extends Component<GraphExplorerProps, GraphExplorerSt
         this.handleDeselectNode = this.handleDeselectNode.bind(this);
     }
 
+    getDefaultOptions() {
+        return {
+            nodes: {
+                borderWidth: 2,
+                shape: 'dot',
+                size: 15
+            },
+            edges: {},
+            interaction: {
+                multiselect: true
+            }
+        };
+    }
+
     collectProperties(nodeIds: Array<string>) {
-        // Collect all the properties from all of the nodes and organize them by name.
-        let properties : Record<string, Array<VisProperty>> = {};
+        // Collect all the observation per property from all of the nodes.
+        let properties : Array<VisProperty> = [];
         nodeIds
             .map(id => this.state.graph.nodes.get(id))
             .forEach(node => {
                 node = node as VisNode;
-                node.properties.forEach(property => {
-                    if (!(property.name in properties)) {
-                        properties[property.name] = [];
-                    }
-                    properties[property.name].push(property);
-                });
+                if (node.properties) {
+                    node.properties.forEach(nodeProp => {
+                        let property = properties.find(prop => nodeProp.id === prop.id);
+                        if (!property) {
+                            property = {
+                                id: nodeProp.id,
+                                observations: []
+                            };
+                            properties.push(property);
+                        }
+                        property.observations.push(...nodeProp.observations);
+                    });
+                }
             });
 
         // Set the properties in the state.

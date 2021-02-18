@@ -5,9 +5,3 @@
   overflow-x: hidden;
   overflow-y: auto;
 }
-
-.property-list-header {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-}

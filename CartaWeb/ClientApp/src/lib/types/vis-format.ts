@@ -1,13 +1,20 @@
 import { Edge, Node } from "vis-network/standalone";
 
+/** Represents a graph observation of a graph property. */
+export interface VisObservation {
+    /** The type of the observation. */
+    type: string,
+    /** The value of the observation. */
+    value: any
+}
+
 /** Represents a graph property of a graph node. */
 export interface VisProperty {
-    /** The name of the property. */
-    name: string,
-    /** The value type of the property. */
-    type: string,
-    /** The value assigned to the property. */
-    value: unknown
+    /** The id of the property. */
+    id: string,
+
+    /** The observations of the property. */
+    observations: Array<VisObservation>
 }
 
 /** Represents a graph node that can be directly imported into Vis.js. */
@@ -26,13 +33,13 @@ export interface VisNode extends Node {
     colorspace?: [number, number]
 
     /** The properties that this node is assigned. */
-    properties: Array<VisProperty>
+    properties?: Array<VisProperty>
 }
 
 /** Represents a graph edge that can be directly imported into Vis.js. */
 export interface VisEdge extends Edge {
     /** The unique identifier of this edge. */
-    id: string | number,
+    id: string,
     
     /** The unique identifier for the start node of this edge. This order is irrelevant if the graph is not directed. */
     from: string,
