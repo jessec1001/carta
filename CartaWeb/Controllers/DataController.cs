@@ -4,11 +4,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
-using QuikGraph;
-
 using CartaCore.Data.Freeform;
 using CartaCore.Data.Synthetic;
-using CartaCore.Integration.Hyperthought;
 
 using CartaWeb.Models.Data;
 using CartaWeb.Models.Selections;
@@ -24,20 +21,30 @@ namespace CartaWeb.Controllers
     {
         private readonly ILogger<DataController> _logger;
 
-        private Dictionary<string, IDataResolver> SyntheticResolvers;
+        private static Dictionary<string, IDataResolver> SyntheticResolvers;
+        private static IDataResolver HyperthoughtResolver;
+
+        static DataController()
+        {
+            // Create the data resolvers.
+            SyntheticResolvers = new Dictionary<string, IDataResolver>
+            (
+                new Dictionary<string, IDataResolver>
+                {
+                    [nameof(FiniteUndirectedGraph)] = new OptionsDataResolver<FiniteUndirectedGraphParameters>
+                        (options => new FiniteUndirectedGraph(options)),
+                    [nameof(InfiniteDirectedGraph)] = new OptionsDataResolver<InfiniteDirectedGraphParameters>
+                        (options => new InfiniteDirectedGraph(options)),
+                },
+                StringComparer.OrdinalIgnoreCase
+            );
+            HyperthoughtResolver = new HyperthoughtDataResolver();
+        }
 
         /// <inheritdoc />
         public DataController(ILogger<DataController> logger)
         {
             _logger = logger;
-
-            SyntheticResolvers = new Dictionary<string, IDataResolver>()
-            {
-                [nameof(FiniteUndirectedGraph).ToLower()] = new OptionsDataResolver<FiniteUndirectedGraphParameters>
-                    (this, options => new FiniteUndirectedGraph(options)),
-                [nameof(InfiniteDirectedGraph).ToLower()] = new OptionsDataResolver<InfiniteDirectedGraphParameters>
-                    (this, options => new InfiniteDirectedGraph(options))
-            };
         }
 
         /// <summary>
@@ -51,20 +58,12 @@ namespace CartaWeb.Controllers
             switch (source)
             {
                 case DataSource.Synthetic:
-                    if (!(resource is null) && SyntheticResolvers.TryGetValue(resource.ToLower(), out IDataResolver resolver))
-                    {
-                        return await resolver.GenerateAsync();
-                    }
+                    if (!(resource is null) && SyntheticResolvers.TryGetValue(resource, out IDataResolver resolver))
+                        return await resolver.GenerateAsync(this, resource);
                     break;
                 case DataSource.HyperThought:
                     if (!(resource is null))
-                    {
-                        if (Request.Query.ContainsKey("api"))
-                        {
-                            HyperthoughtApi api = new HyperthoughtApi(Request.Query["api"].ToString());
-                            return new HyperthoughtWorkflowGraph(api, Guid.Parse(resource));
-                        }
-                    }
+                        return await HyperthoughtResolver.GenerateAsync(this, resource);
                     break;
             }
             return null;

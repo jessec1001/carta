@@ -85,7 +85,7 @@ namespace CartaCore.Integration.Hyperthought
                 // We search for the property by key in our current properties.
                 HyperthoughtMetadataValue value = metadata.Value;
                 FreeformProperty property = null;
-                property = properties.First
+                property = properties.FirstOrDefault
                 (
                     prop => (prop.Identifier.IsType(out string typedId) && typedId == metadata.Key)
                 );

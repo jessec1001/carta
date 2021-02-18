@@ -269,7 +269,8 @@ namespace CartaCore.Data.Freeform
         /// <inheritdoc />
         public override (IEnumerable<FreeformVertex>, IEnumerable<FreeformEdge>) GetChildVerticesWithEdges(FreeformIdentity id)
         {
-            return base.GetChildVerticesWithEdges(id);
+            if (id.IsType(out T typedId)) return GetChildVerticesWithEdges(typedId);
+            return (null, null);
         }
 
         /// <summary>

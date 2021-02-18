@@ -21,10 +21,6 @@ namespace CartaWeb.Models.Data
         where TOptions : class, new()
     {
         /// <summary>
-        /// The controller generating the request.
-        /// </summary>
-        private ControllerBase Controller;
-        /// <summary>
         /// The resolver function.
         /// </summary>
         private OptionsDataResolverFunction<TOptions> Resolver;
@@ -32,23 +28,18 @@ namespace CartaWeb.Models.Data
         /// <summary>
         /// Creates a new options data resolver with a specified controller and resolver.
         /// </summary>
-        /// <param name="controller">The controller used to generate the data request.</param>
         /// <param name="resolver">The function to resolve the data.</param>
-        public OptionsDataResolver(
-            ControllerBase controller,
-            OptionsDataResolverFunction<TOptions> resolver
-        )
+        public OptionsDataResolver(OptionsDataResolverFunction<TOptions> resolver)
         {
-            Controller = controller;
             Resolver = resolver;
         }
 
         /// <inheritdoc />
-        public async Task<FreeformGraph> GenerateAsync()
+        public async Task<FreeformGraph> GenerateAsync(ControllerBase controller, string resource)
         {
             // Load the options from the controller.
             TOptions options = new TOptions();
-            await Controller.TryUpdateModelAsync<TOptions>(options);
+            await controller.TryUpdateModelAsync<TOptions>(options);
 
             // Return the results of the resolver.
             return Resolver(options);

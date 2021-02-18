@@ -136,6 +136,7 @@ export class GraphExplorer extends Component<GraphExplorerProps, GraphExplorerSt
             .filter(node => !node.colorspace)
             .map(node => node.id);
         while (uncoloredIds.length > 0) {
+            console.log(uncoloredIds);
             // Get the next uncolored node and work thought it until a node is colored.
             let uncoloredId: string | null = uncoloredIds[0] as string;
             while (uncoloredId) {
@@ -145,7 +146,7 @@ export class GraphExplorer extends Component<GraphExplorerProps, GraphExplorerSt
                     .filter(edge => edge.to === uncoloredId) // eslint-disable-line no-loop-func
                     .map(edge => edge.from);
 
-                if (parentIds.length === 1) {
+                if (parentIds.length > 0) {
                     // There is a parent - for now we assume only one.
                     const parentId = parentIds[0];
                     const parent = graph.nodes.get(parentId);
@@ -231,9 +232,6 @@ export class GraphExplorer extends Component<GraphExplorerProps, GraphExplorerSt
         });
     }
     prepareGraph(graph: VisGraph, state: GraphExplorerState, remove: boolean = true) {
-        // We need edges to have unique IDs so we use Parent-#Child combination.
-        graph.edges.forEach(edge => edge.id = `${edge.from}-${edge.id}`);
-
         // Update the nodes and edges data.
         state.graph.nodes.update(graph.nodes);
         state.graph.edges.update(graph.edges);
@@ -257,8 +255,10 @@ export class GraphExplorer extends Component<GraphExplorerProps, GraphExplorerSt
         };
 
         // Color the data.
+        console.log("Start color.");
         if (graph.directed) this.colorGraph(data);
-
+        console.log("End color.");
+    
         return data;
     }
 
