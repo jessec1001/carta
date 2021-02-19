@@ -150,6 +150,7 @@ namespace CartaCore.Data.Synthetic
             // Return the randomly generated vertex with properties.
             return new FreeformVertex(FreeformIdentity.Create(id))
             {
+                Label = Parameters.Labeled ? random.NextPsuedoword() : null,
                 Properties = properties
             };
         }

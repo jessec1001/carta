@@ -7,6 +7,8 @@ namespace CartaCore.Workflow.Selection
     /// </summary>
     public abstract class SelectorBase
     {
+        public abstract string Type { get; }
+
         /// <summary>
         /// Determines whether the selector contains the specified vertex.
         /// </summary>

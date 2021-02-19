@@ -146,7 +146,7 @@ namespace CartaWeb.Serialization.Json
         {
             Id = node.Identifier.ToString();
             Label = node.Label;
-            Description = node.Description;
+            Description = string.IsNullOrEmpty(node.Description) ? null : node.Description;
 
             if (!(node.Properties is null))
                 Properties = node.Properties.Select(property => new VisFormatProperty(property)).ToList();

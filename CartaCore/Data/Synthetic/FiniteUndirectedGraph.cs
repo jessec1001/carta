@@ -56,7 +56,12 @@ namespace CartaCore.Data.Synthetic
             List<FreeformVertex> vertices = new List<FreeformVertex>(
                 Enumerable
                 .Range(0, numVertices)
-                .Select(_ => new FreeformVertex(FreeformIdentity.Create(random.NextGuid())))
+                .Select
+                (_ => new FreeformVertex(FreeformIdentity.Create(random.NextGuid()))
+                {
+                    Label = (Parameters.Labeled ? random.NextPsuedoword() : null)
+                }
+                )
             );
 
             // Generate the edges to randomly select from.

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
+using CartaCore.Integration.Hyperthought;
 using QuikGraph;
 
 namespace CartaCore.Data.Freeform
@@ -321,7 +321,16 @@ namespace CartaCore.Data.Freeform
                     }
                 }
                 else
-                    graph.AddVertexRange(includedIds.Select(id => parent.GetVertex(id)));
+                {
+                    if (parent is HyperthoughtWorkflowGraph htParent)
+                    {
+                        graph.AddVertexRange(htParent.GetVertices(includedIds));
+                    }
+                    else
+                    {
+                        graph.AddVertexRange(includedIds.Select(id => parent.GetVertex(id)));
+                    }
+                }
             }
 
             return graph;

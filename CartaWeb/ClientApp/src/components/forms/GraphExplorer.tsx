@@ -7,8 +7,10 @@ import { VisGraph, VisNode, VisEdge, VisProperty } from '../../lib/types/vis-for
 
 interface GraphExplorerProps {
     request?: string,
+    selection: Array<string>,
 
-    onPropertiesChanged?: (properties: Array<VisProperty>) => void
+    onPropertiesChanged?: (properties: Array<VisProperty>) => void,
+    onSelection?: (selection: Array<string>) => void
 }
 
 interface GraphExplorerState {
@@ -103,9 +105,13 @@ export class GraphExplorer extends Component<GraphExplorerProps, GraphExplorerSt
     }
     handleSelectNode(event: any) {
         this.collectProperties(event.nodes);
+        if (this.props.onSelection)
+            this.props.onSelection(event.nodes);
     }
     handleDeselectNode(event: any) {
         this.collectProperties(event.nodes);
+        if (this.props.onSelection)
+            this.props.onSelection(event.nodes);
     }
 
     componentDidMount() {
@@ -115,6 +121,22 @@ export class GraphExplorer extends Component<GraphExplorerProps, GraphExplorerSt
         if (this.props.request !== prevProps.request) {
             if (this.props.request) this.populateData(this.props.request);
         }
+
+        if (this.props.selection !== prevProps.selection) {
+            if (this.props.selection && prevProps.selection) {
+                // Check that the selection is actually different.
+                let different = false;
+                for (let k = 0; k < this.props.selection.length; k++) {
+                    if (this.props.selection[k] !== prevProps.selection[k]) {
+                        different = true;
+                        break;
+                    }
+                }
+                if (different) this.collectProperties(this.props.selection);
+            }
+            if (this.props.selection) this.collectProperties(this.props.selection);
+            else this.collectProperties([]);
+        }
     }
 
     render() {
@@ -122,6 +144,7 @@ export class GraphExplorer extends Component<GraphExplorerProps, GraphExplorerSt
             <Vis
                 graph={this.state.graph}
                 options={this.state.options}
+                selection={this.props.selection}
                 onDoubleClick={this.handleDoubleClick}
                 onSelectNode={this.handleSelectNode}
                 onDeselectNode={this.handleDeselectNode}
@@ -136,7 +159,6 @@ export class GraphExplorer extends Component<GraphExplorerProps, GraphExplorerSt
             .filter(node => !node.colorspace)
             .map(node => node.id);
         while (uncoloredIds.length > 0) {
-            console.log(uncoloredIds);
             // Get the next uncolored node and work thought it until a node is colored.
             let uncoloredId: string | null = uncoloredIds[0] as string;
             while (uncoloredId) {
@@ -255,9 +277,7 @@ export class GraphExplorer extends Component<GraphExplorerProps, GraphExplorerSt
         };
 
         // Color the data.
-        console.log("Start color.");
         if (graph.directed) this.colorGraph(data);
-        console.log("End color.");
     
         return data;
     }

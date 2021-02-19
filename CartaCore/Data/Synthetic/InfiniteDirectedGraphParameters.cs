@@ -11,6 +11,11 @@ namespace CartaCore.Data.Synthetic
         public ulong Seed { get; set; } = 0;
 
         /// <summary>
+        /// Whether the nodes in the graph should be labeled.
+        /// </summary>
+        public bool Labeled { get; set; } = true;
+
+        /// <summary>
         /// The number of properties generated for the entire graph.
         /// </summary>
         public int PropertyCount { get; set; } = 20;

@@ -188,7 +188,7 @@ namespace CartaCore.Integration.Hyperthought
             for (int k = 2; k < pathParts.Length; k++)
             {
                 HyperthoughtWorkflow workflow = (await GetWorkflowChildrenAsync(uuid))
-                    .Where(workflow => workflow.Content.Name == pathParts[k].ToLower())
+                    .Where(workflow => workflow.Content.Name.ToLower() == pathParts[k].ToLower())
                     .FirstOrDefault();
                 if (workflow is null) return Guid.Empty;
                 uuid = workflow.Content.PrimaryKey;

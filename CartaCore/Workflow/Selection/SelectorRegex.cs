@@ -13,6 +13,8 @@ namespace CartaCore.Workflow.Selection
         private Regex Regex;
         private string RegexPattern;
 
+        public override string Type => "regex";
+
         /// <summary>
         /// The maximum amount of time that an instance of the <see cref="SelectorRegex"/> class will be able to filter
         /// before aborting its operation.

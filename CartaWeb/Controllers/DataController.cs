@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
 using CartaCore.Data.Freeform;
 using CartaCore.Data.Synthetic;
+using CartaCore.Workflow.Selection;
 
 using CartaWeb.Models.Data;
 using CartaWeb.Models.Selections;
@@ -215,15 +217,49 @@ namespace CartaWeb.Controllers
         ///       BODY { selectors: [...], ids }
         /// </code>
         /// </example>
+        /// <param name="source">The data source.</param>
+        /// <param name="resource">The resource located on the data source.</param>
         /// <param name="request">
         /// The selection request. Made up of the identifiers to get information on and the stack of selectors to apply.
         /// </param>
         /// <returns></returns>
-        public async Task<List<Guid>> GetSelection(
+        [HttpPost("{source}/{resource?}/select")]
+        public async Task<IEnumerable<string>> GetSelection(
+            [FromRoute] DataSource source,
+            [FromRoute] string resource,
             [FromBody] SelectionRequest request
         )
         {
-            throw new NotImplementedException();
+            FreeformGraph graph = await LookupData(source, resource);
+            FreeformDynamicGraph dynamicGraph = graph as FreeformDynamicGraph;
+
+            // When no identifiers are specified, we simply retrieve all identifiers that match the selection.
+            FreeformFiniteGraph subgraph;
+            if (request.Ids is null)
+            {
+                if (dynamicGraph is null)
+                    subgraph = FreeformFiniteGraph.CreateSubgraph(graph, null, includeEdges: false);
+                else
+                    subgraph = FreeformFiniteGraph.CreateSubgraph(dynamicGraph, null, includeEdges: false);
+            }
+            else
+            {
+                IEnumerable<FreeformIdentity> includedIds = request.Ids.Select(id => FreeformIdentity.Create(id));
+                if (dynamicGraph is null)
+                    subgraph = FreeformFiniteGraph.CreateSubgraph(graph, includedIds, includeEdges: false);
+                else
+                    subgraph = FreeformFiniteGraph.CreateSubgraph(dynamicGraph, includedIds, includeEdges: false);
+            }
+            foreach (SelectorBase selector in request.Selectors)
+            {
+                subgraph = FreeformFiniteGraph.CreateSubgraph(subgraph,
+                    subgraph.Vertices
+                        .Where(vertex => selector.Contains(vertex))
+                        .Select(vertex => vertex.Identifier),
+                    includeEdges: false
+                );
+            }
+            return subgraph.Vertices.Select(vertex => vertex.Identifier.ToString());
         }
     }
 }
