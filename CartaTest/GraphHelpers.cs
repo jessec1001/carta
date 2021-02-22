@@ -3,16 +3,14 @@ using System.Collections.Generic;
 
 using QuikGraph;
 
-using CartaCore.Data;
+using CartaCore.Data.Freeform;
 
-namespace CartaTest.Serialization
+namespace CartaTest
 {
-    using FreeformGraph = IMutableVertexAndEdgeSet<FreeformVertex, FreeformEdge>;
-
     /// <summary>
     /// A class of helpers for executing graph serialization tests.
     /// </summary>
-    public static class Helpers
+    public static class GraphHelpers
     {
         /// <summary>
         /// Gets an undirected graph sample usable in testing.
@@ -22,15 +20,21 @@ namespace CartaTest.Serialization
         {
             get
             {
+                /* Graph Connections
+                    0 - 1 - 3
+                    0 - 2 - 3
+                    3 - 4
+                */
+
                 // Setup the graph information.
-                FreeformGraph graph = new UndirectedGraph<FreeformVertex, FreeformEdge>();
+                FreeformFiniteGraph graph = new FreeformFiniteGraph(false);
                 FreeformVertex[] vertices = new FreeformVertex[]
                 {
-                    new FreeformVertex(Guid.NewGuid()) { Properties = new SortedList<string, FreeformProperty>() },
-                    new FreeformVertex(Guid.NewGuid()) { Properties = new SortedList<string, FreeformProperty>() },
-                    new FreeformVertex(Guid.NewGuid()) { Properties = new SortedList<string, FreeformProperty>() },
-                    new FreeformVertex(Guid.NewGuid()) { Properties = new SortedList<string, FreeformProperty>() },
-                    new FreeformVertex(Guid.NewGuid()) { Properties = new SortedList<string, FreeformProperty>() },
+                    new FreeformVertex(FreeformIdentity.Create(0)),
+                    new FreeformVertex(FreeformIdentity.Create(1)),
+                    new FreeformVertex(FreeformIdentity.Create(2)),
+                    new FreeformVertex(FreeformIdentity.Create(3)),
+                    new FreeformVertex(FreeformIdentity.Create(4)),
                 };
 
                 // Construct the vertices and edges of the graph.
@@ -56,14 +60,19 @@ namespace CartaTest.Serialization
         {
             get
             {
+                /* Graph Connections
+                    0 -> 1 -> 2 -> 3
+                    0 -> 2
+                */
+
                 // Setup the graph information.
-                FreeformGraph graph = new AdjacencyGraph<FreeformVertex, FreeformEdge>();
+                FreeformFiniteGraph graph = new FreeformFiniteGraph(true);
                 FreeformVertex[] vertices = new FreeformVertex[]
                 {
-                    new FreeformVertex(Guid.NewGuid()) { Properties = new SortedList<string, FreeformProperty>() },
-                    new FreeformVertex(Guid.NewGuid()) { Properties = new SortedList<string, FreeformProperty>() },
-                    new FreeformVertex(Guid.NewGuid()) { Properties = new SortedList<string, FreeformProperty>() },
-                    new FreeformVertex(Guid.NewGuid()) { Properties = new SortedList<string, FreeformProperty>() },
+                    new FreeformVertex(FreeformIdentity.Create(0)),
+                    new FreeformVertex(FreeformIdentity.Create(1)),
+                    new FreeformVertex(FreeformIdentity.Create(2)),
+                    new FreeformVertex(FreeformIdentity.Create(3)),
                 };
 
                 // Construct the vertices and edges of the graph.
@@ -88,24 +97,47 @@ namespace CartaTest.Serialization
         {
             get
             {
+                /* Graph Connections
+                    0 - 1 - 2
+                */
+
                 // Setup the graph information.
-                FreeformGraph graph = new UndirectedGraph<FreeformVertex, FreeformEdge>();
+                FreeformFiniteGraph graph = new FreeformFiniteGraph(false);
                 FreeformVertex[] vertices = new FreeformVertex[]
                 {
-                    new FreeformVertex(Guid.NewGuid())
+                    new FreeformVertex(FreeformIdentity.Create(0))
                     {
-                        Properties = new SortedList<string, FreeformProperty>()
+                        Properties = new List<FreeformProperty>()
                         {
-                            ["myNum"] = new FreeformProperty { Type = typeof(int), Value = 2},
-                            ["myFruit"] = new FreeformProperty { Type = typeof(string), Value = "orange"}
+                            new FreeformProperty(FreeformIdentity.Create("myNum"))
+                            {
+                                Observations = new List<FreeformObservation>()
+                                {
+                                    new FreeformObservation { Type = "int", Value = 2 },
+                                    new FreeformObservation { Type = "int", Value = 5 },
+                                }
+                            },
+                            new FreeformProperty(FreeformIdentity.Create("myFruit"))
+                            {
+                                Observations = new List<FreeformObservation>()
+                                {
+                                    new FreeformObservation { Type = "string", Value = "orange" }
+                                }
+                            }
                         }
                     },
-                    new FreeformVertex(Guid.NewGuid()),
-                    new FreeformVertex(Guid.NewGuid())
+                    new FreeformVertex(FreeformIdentity.Create(1)),
+                    new FreeformVertex(FreeformIdentity.Create(2))
                     {
-                        Properties = new SortedList<string, FreeformProperty>()
+                        Properties = new List<FreeformProperty>()
                         {
-                            ["myShoeSize"] = new FreeformProperty { Type = typeof(double), Value = 11.50},
+                            new FreeformProperty(FreeformIdentity.Create("myShoeSize"))
+                            {
+                                Observations = new List<FreeformObservation>()
+                                {
+                                    new FreeformObservation { Type = "double", Value = 11.50 }
+                                }
+                            }
                         }
                     },
                 };

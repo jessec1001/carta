@@ -2,16 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using QuikGraph;
 using NUnit.Framework;
 
-using CartaCore.Data;
+using CartaCore.Data.Freeform;
 using CartaCore.Data.Synthetic;
 
 namespace CartaTest.Data.Synthetic
 {
     /// <summary>
-    /// Tests the generation of the <see cref="RandomInfiniteDirectedGraph"/> object.
+    /// Tests the generation of the <see cref="InfiniteDirectedGraph"/> object.
     /// </summary>
     [TestFixture]
     public class RandomInfiniteDirectedGraphTests
@@ -19,7 +18,7 @@ namespace CartaTest.Data.Synthetic
         /// <summary>
         /// The graph generated to test on.
         /// </summary>
-        protected RandomInfiniteDirectedGraph Graph;
+        protected FreeformDynamicGraph<Guid> Graph;
 
         /// <summary>
         /// Sets up the test fixture.
@@ -27,9 +26,7 @@ namespace CartaTest.Data.Synthetic
         [SetUp]
         public void Setup()
         {
-            Graph = new RandomInfiniteDirectedGraph(
-                new RandomInfiniteDirectedGraphOptions()
-            );
+            Graph = new InfiniteDirectedGraph(new InfiniteDirectedGraphParameters());
         }
 
         /// <summary>
@@ -42,7 +39,7 @@ namespace CartaTest.Data.Synthetic
             Guid id = Guid.NewGuid();
 
             // Generate the properties and edges of the vertex.
-            FreeformVertex vertex = Graph.GetProperties(id);
+            FreeformVertex vertex = Graph.GetVertex(id);
             IList<FreeformEdge> edges = Graph.GetEdges(id).ToList();
 
             Assert.Pass();
@@ -59,20 +56,28 @@ namespace CartaTest.Data.Synthetic
             Guid id = Guid.NewGuid();
 
             // Generate the two instances of the vertex properties and edges.
-            FreeformVertex vertex1 = Graph.GetProperties(id);
+            FreeformVertex vertex1 = Graph.GetVertex(id);
             IList<FreeformEdge> edges1 = Graph.GetEdges(id).ToList();
 
-            FreeformVertex vertex2 = Graph.GetProperties(id);
+            FreeformVertex vertex2 = Graph.GetVertex(id);
             IList<FreeformEdge> edges2 = Graph.GetEdges(id).ToList();
 
             // Check that the vertex properties are the same.
-            Assert.AreEqual(vertex1.Id, vertex2.Id);
-            Assert.AreEqual(vertex1.Properties.Count, vertex2.Properties.Count);
-            for (int k = 0; k < vertex1.Properties.Count; k++)
+            IList<FreeformProperty> Properties1 = vertex1.Properties.ToList();
+            IList<FreeformProperty> Properties2 = vertex2.Properties.ToList();
+            Assert.AreEqual(vertex1.Identifier, vertex2.Identifier);
+            Assert.AreEqual(Properties1.Count, Properties2.Count);
+            for (int k = 0; k < Properties1.Count; k++)
             {
-                Assert.AreEqual(vertex1.Properties.Keys[k], vertex2.Properties.Keys[k]);
-                Assert.AreEqual(vertex1.Properties.Values[k].Type, vertex2.Properties.Values[k].Type);
-                Assert.AreEqual(vertex1.Properties.Values[k].Value, vertex2.Properties.Values[k].Value);
+                IList<FreeformObservation> Observations1 = Properties1[k].Observations.ToList();
+                IList<FreeformObservation> Observations2 = Properties2[k].Observations.ToList();
+                Assert.AreEqual(Properties1[k].Identifier, Properties2[k].Identifier);
+                Assert.AreEqual(Observations1.Count, Observations2.Count);
+                for (int l = 0; l < Observations1.Count; l++)
+                {
+                    Assert.AreEqual(Observations1[l].Type, Observations2[l].Type);
+                    Assert.AreEqual(Observations1[l].Value, Observations2[l].Value);
+                }
             }
 
             // Check that the vertex edges are the same.

@@ -50,7 +50,7 @@ export class Home extends Component<HomeProps> {
                 <NavItem>
                   <NavLink
                     tag={Link}
-                    to="/graph/synthetic/RandomFiniteUndirectedGraph"
+                    to="/graph/synthetic/FiniteUndirectedGraph"
                   >
                     Finite Undirected
                   </NavLink>
@@ -58,7 +58,7 @@ export class Home extends Component<HomeProps> {
                 <NavItem>
                   <NavLink
                     tag={Link}
-                    to="/graph/synthetic/RandomInfiniteDirectedGraph"
+                    to="/graph/synthetic/InfiniteDirectedGraph"
                   >
                     Infinite Directed
                   </NavLink>
@@ -74,7 +74,7 @@ export class Home extends Component<HomeProps> {
               <NavItem>
                   <NavLink
                     tag={Link}
-                    to="/graph/hyperthought/254fdd9f-264a-4301-b372-46810b51f39b"
+                    to="/graph/hyperthought/CAMDEN.NAVAIR"
                     onClick={this.handleHyperthoughtLink}
                   >
                     NAVAIR
@@ -83,7 +83,7 @@ export class Home extends Component<HomeProps> {
                 <NavItem>
                   <NavLink
                     tag={Link}
-                    to="/graph/hyperthought/1badcce7-ac18-4664-962a-f730559223fc"
+                    to="/graph/hyperthought/CAMDEN.TTCP"
                     onClick={this.handleHyperthoughtLink}
                   >
                     TTCP
@@ -92,7 +92,7 @@ export class Home extends Component<HomeProps> {
                 <NavItem>
                   <NavLink
                     tag={Link}
-                    to="/graph/hyperthought/f494e24a-a2e8-4a11-a34a-dad36bb70515"
+                    to="/graph/hyperthought/CAMDEN.UDRI"
                     onClick={this.handleHyperthoughtLink}
                   >
                     UDRI

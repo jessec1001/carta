@@ -3,9 +3,9 @@ using CartaCore.Statistics;
 namespace CartaCore.Data.Synthetic
 {
     /// <summary>
-    /// Represents the generation options of the <see cref="RandomFiniteUndirectedGraph"/> object.
+    /// Represents the generation parameters of the <see cref="FiniteUndirectedGraph"/> object.
     /// </summary>
-    public class RandomFiniteUndirectedGraphOptions
+    public class FiniteUndirectedGraphParameters
     {
         /// <summary>
         /// The seed for random generation of the graph.
@@ -14,7 +14,12 @@ namespace CartaCore.Data.Synthetic
         public ulong Seed { get; set; } = 0;
 
         /// <summary>
-        /// Gets or sets the distribution of the number of vertices a generated graph will have.
+        /// Whether the nodes in the graph should be labeled.
+        /// </summary>
+        public bool Labeled { get; set; } = true;
+
+        /// <summary>
+        /// The minimum number (inclusive) of edges a generated graph can have. 
         /// </summary>
         /// <returns>The vertex count distribution.</returns>
         public IIntegerDistribution VertexCount { get; set; } = new PoissonDistribution(10);

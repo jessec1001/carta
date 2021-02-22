@@ -7,6 +7,7 @@ using Microsoft.Extensions.Hosting;
 
 using CartaWeb.Extended.Formatters;
 using CartaWeb.Models.Binders;
+using CartaWeb.Models.Selections;
 
 namespace CartaWeb
 {
@@ -54,6 +55,7 @@ namespace CartaWeb
                 }).AddJsonOptions(options =>
                 {
                     options.JsonSerializerOptions.IgnoreNullValues = true;
+                    options.JsonSerializerOptions.Converters.Insert(0, new SelectorBaseConverter());
                 });
 
             // In production, the React files will be served from this directory

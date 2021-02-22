@@ -5,13 +5,12 @@ using System.Text.Json.Serialization;
 
 using QuikGraph;
 
-using CartaCore.Data;
+using CartaCore.Data.Freeform;
 using CartaCore.Utility;
 
 namespace CartaWeb.Serialization.Json
 {
-    using FreeformGraph = IMutableVertexAndEdgeSet<FreeformVertex, FreeformEdge>;
-
+    /*
     /// <summary>
     /// Represents a single or multiple freeform graph in JSON Graph format.
     /// </summary>
@@ -166,7 +165,7 @@ namespace CartaWeb.Serialization.Json
             Directed = graph.IsDirected;
 
             Nodes = graph.Vertices.ToDictionary(
-                vertex => vertex.Id.ToString(),
+                vertex => vertex.Identifier.ToString(),
                 vertex => new JgFormatNode(vertex)
             );
             Edges = graph.Edges.Select(
@@ -367,4 +366,5 @@ namespace CartaWeb.Serialization.Json
         /// </summary>
         public JgProperty() { }
     }
+    */
 }

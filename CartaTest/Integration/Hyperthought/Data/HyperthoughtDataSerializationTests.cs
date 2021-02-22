@@ -3,14 +3,21 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 
-using CartaCore.Integration.Hyperthought.Data;
 using NUnit.Framework;
+
+using CartaCore.Integration.Hyperthought.Data;
 
 namespace CartaTest.Integration.Hyperthought.Data
 {
+    /// <summary>
+    /// Tests the deserialization of JSON returned from HyperThought API calls.
+    /// </summary>
     [TestFixture]
     public class TestHyperthoughtDataSerialization
     {
+        /// <summary>
+        /// Tests the deserialization of multiple HyperThought workflow processes.
+        /// </summary>
         [Test]
         public void TestApiWorkflowProcess()
         {
@@ -112,6 +119,9 @@ namespace CartaTest.Integration.Hyperthought.Data
             Assert.AreEqual(HyperthoughtExportControl.ITAR, workflow.Restrictions.ExportControl);
         }
 
+        /// <summary>
+        /// Tests the deserialization of a single HyperThought workflow process.
+        /// </summary>
         [Test]
         public void TestApiWorkflowProcessKey()
         {
@@ -209,6 +219,9 @@ namespace CartaTest.Integration.Hyperthought.Data
             Assert.AreEqual(HyperthoughtExportControl.EAR, workflow.Restrictions.ExportControl);
         }
 
+        /// <summary>
+        /// Tests the deserialization of multiple HyperThought files.
+        /// </summary>
         [Test]
         public void TestApiFiles()
         {
@@ -285,6 +298,9 @@ namespace CartaTest.Integration.Hyperthought.Data
             Assert.AreEqual("/files/filesystementry/00dfb7b9-b675-4303-b2e6-4916c813ca31/versions/0", file.Headers.Uri);
         }
 
+        /// <summary>
+        /// Tests the deserialization of a single HyperThought file.
+        /// </summary>
         [Test]
         public void TestApiFilesKey()
         {

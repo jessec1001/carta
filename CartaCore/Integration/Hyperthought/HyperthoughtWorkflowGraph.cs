@@ -3,22 +3,24 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-using QuikGraph;
-
-using CartaCore.Data;
+using CartaCore.Data.Freeform;
 using CartaCore.Integration.Hyperthought.Data;
 using CartaCore.Utility;
 
 namespace CartaCore.Integration.Hyperthought
 {
-    using FreeformGraph = IMutableVertexAndEdgeSet<FreeformVertex, FreeformEdge>;
-
     /// <summary>
     /// Represents a sampled graph generated from data contained in a HyperThought workflow.
     /// </summary>
-    public class HyperthoughtWorkflowGraph : ISampledGraph
+    public class HyperthoughtWorkflowGraph : FreeformDynamicGraph<Guid>
     {
+        /// <summary>
+        /// The connector to the HyperThought API. 
+        /// </summary>
         private readonly HyperthoughtApi Api;
+        /// <summary>
+        /// The GUID of the HyperThought workflow object. 
+        /// </summary>
         private readonly Guid Id;
 
         /// <summary>
@@ -49,20 +51,69 @@ namespace CartaCore.Integration.Hyperthought
         public HyperthoughtWorkflowGraph(HyperthoughtApi api, HyperthoughtWorkflowTemplate template)
             : this(api, template.PrimaryKey) { }
 
+        /// <summary>
+        /// Gets a HyperThought workflow synchronously.
+        /// </summary>
+        /// <param name="id">The identifier for the HyperThought workflow.</param>
+        /// <returns>The HyperThought workflow.</returns>
+        private HyperthoughtWorkflow GetWorkflowSync(Guid id)
+        {
+            return Task.Run(() => Api.GetWorkflowAsync(id)).GetAwaiter().GetResult();
+        }
+        /// <summary>
+        /// Gets the children workflows of a HyperThought workflow synchronously.
+        /// </summary>
+        /// <param name="id">The identifier for the HyperThought parent workflow.</param>
+        /// <returns>The HyperThought children workflows.</returns>
+        private IEnumerable<HyperthoughtWorkflow> GetWorkflowChildrenSync(Guid id)
+        {
+            return Task.Run(() => Api.GetWorkflowChildrenAsync(id)).GetAwaiter().GetResult();
+        }
+
+        /// <summary>
+        /// Converts a HyperThought workflow object into a vertex.
+        /// </summary>
+        /// <param name="workflow">The workflow object.</param>
+        /// <returns>The converted vertex.</returns>
         private FreeformVertex VertexFromWorkflow(HyperthoughtWorkflow workflow)
         {
-            SortedList<string, FreeformProperty> properties = new SortedList<string, FreeformProperty>();
+            // We find the properties for the vertex from the metadata.
+            IList<FreeformProperty> properties = new List<FreeformProperty>();
             foreach (HyperthoughtMetadata metadata in workflow.Metadata)
             {
+                // Properties may have multiple observations which we need to account for.
+                // We search for the property by key in our current properties.
                 HyperthoughtMetadataValue value = metadata.Value;
-                properties.Add(metadata.Key, new FreeformProperty
+                FreeformProperty property = null;
+                property = properties.FirstOrDefault
+                (
+                    prop => (prop.Identifier.IsType(out string typedId) && typedId == metadata.Key)
+                );
+
+                // We create a new property if necessary.
+                if (property is null)
                 {
-                    Type = value.Type.ToString().TypeDeserialize(),
-                    Value = value.Link
-                });
+                    property = new FreeformProperty(FreeformIdentity.Create(metadata.Key))
+                    {
+                        Observations = new List<FreeformObservation>()
+                    };
+                    properties.Add(property);
+                }
+
+                // We add the observation afterwards.
+                List<FreeformObservation> observations = property.Observations as List<FreeformObservation>;
+                observations.Add
+                (
+                    new FreeformObservation
+                    {
+                        Type = value.Type.ToString(),
+                        Value = value.Link
+                    }
+                );
             }
 
-            FreeformVertex vertex = new FreeformVertex(workflow.Content.PrimaryKey)
+            // Create the vertex with the name and notes as labels and description respectively.
+            FreeformVertex vertex = new FreeformVertex(FreeformIdentity.Create(workflow.Content.PrimaryKey))
             {
                 Label = workflow.Content.Name,
                 Description = workflow.Content.Notes,
@@ -70,18 +121,21 @@ namespace CartaCore.Integration.Hyperthought
             };
             return vertex;
         }
+        /// <summary>
+        /// Converts a HyperThought workflow object into an enumerable of edges.
+        /// </summary>
+        /// <param name="workflow">The workflow object.</param>
+        /// <returns>The converted enumerable of edges.</returns>
         private IEnumerable<FreeformEdge> EdgesFromWorkflow(HyperthoughtWorkflow workflow)
         {
-            FreeformVertex workflowVertex = new FreeformVertex(workflow.Content.PrimaryKey);
-            int edge = 0;
-
             // Yield all children.
+            int edge = 0;
             foreach (Guid childId in workflow.Content.ChildrenIds.OrderBy(id => id))
             {
                 yield return new FreeformEdge
                 (
-                    workflowVertex,
-                    new FreeformVertex(childId),
+                    FreeformIdentity.Create(workflow.Content.PrimaryKey),
+                    FreeformIdentity.Create(childId),
                     edge++
                 );
             }
@@ -91,100 +145,239 @@ namespace CartaCore.Integration.Hyperthought
             {
                 yield return new FreeformEdge
                 (
-                    workflowVertex,
-                    new FreeformVertex(successorId),
+                    FreeformIdentity.Create(workflow.Content.PrimaryKey),
+                    FreeformIdentity.Create(successorId),
                     edge++
                 );
             }
         }
 
+        #region FreeformDynamicGraph
         /// <inheritdoc />
-        public bool IsFinite => false;
+        public override bool IsFinite => true;
         /// <inheritdoc />
-        public bool IsDirected => true;
+        public override bool IsDirected => true;
         /// <inheritdoc />
-        public Guid BaseId => Id;
+        public override FreeformIdentity BaseId => FreeformIdentity.Create(Id);
+        /// <inheritdoc />
+        public override bool AllowParallelEdges => false;
 
         /// <inheritdoc />
-        public FreeformGraph GetEntire() => throw new NotFiniteNumberException();
+        public override bool IsVerticesEmpty => false;
+        /// <inheritdoc />
+        public override bool IsEdgesEmpty => EdgesFromWorkflow(GetWorkflowSync(Id)).Any();
 
         /// <inheritdoc />
-        public FreeformVertex GetProperties(Guid id)
+        public override int VertexCount => Vertices.Count();
+        /// <inheritdoc />
+        public override int EdgeCount => Edges.Count();
+
+        /// <inheritdoc />
+        public override bool ContainsVertex(FreeformVertex vertex)
+        {
+            try
+            {
+                if (vertex.Identifier.IsType(out Guid id))
+                {
+                    HyperthoughtWorkflow workflow = GetWorkflowSync(id);
+                    return true;
+                }
+                return false;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+        /// <inheritdoc />
+        public override bool ContainsEdge(FreeformEdge edge)
+        {
+            try
+            {
+                if (edge.Source.Identifier.IsType(out Guid sourceId) &&
+                    edge.Target.Identifier.IsType(out Guid targetId))
+                {
+                    HyperthoughtWorkflow workflow = GetWorkflowSync(sourceId);
+                    return workflow.Content.ChildrenIds.Contains(targetId);
+                }
+                return false;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Temporarily handles obtaining workflow vertices from the HyperThought API efficiently.
+        /// </summary>
+        /// <param name="ids">The identifiers of all the workflow nodes to query.</param>
+        /// <returns>An enumerable of the workflow objects.</returns>
+        public IEnumerable<FreeformVertex> GetVertices(IEnumerable<FreeformIdentity> ids)
+        {
+            List<FreeformIdentity> idList = ids.ToList();
+            Task<HyperthoughtWorkflow>[] workflowTasks = new Task<HyperthoughtWorkflow>[idList.Count];
+
+            // Get all of the workflows.
+            for (int k = 0; k < idList.Count; k++)
+                workflowTasks[k] = Api.GetWorkflowAsync(idList[k].AsType<Guid>());
+
+            Task.WaitAll(workflowTasks.ToArray());
+            for (int k = 0; k < idList.Count; k++)
+                yield return VertexFromWorkflow(workflowTasks[k].Result);
+        }
+
+        /// <inheritdoc />
+        public override FreeformVertex GetVertex(Guid id)
         {
             // Get the workflow properties from an API call.
-            HyperthoughtWorkflow workflow = Task.Run(() => Api.GetWorkflowAsync(id)).GetAwaiter().GetResult();
-            return VertexFromWorkflow(workflow);
+            return VertexFromWorkflow(GetWorkflowSync(id));
         }
         /// <inheritdoc />
-        public IEnumerable<FreeformEdge> GetEdges(Guid id)
+        public override IEnumerable<FreeformEdge> GetEdges(Guid id)
         {
             // Get the workflow from an API call and yield each of the children.
-            HyperthoughtWorkflow workflow = Task.Run(() => Api.GetWorkflowAsync(id)).GetAwaiter().GetResult();
-            FreeformVertex thisVertex = new FreeformVertex(id);
-            int edge = 0;
-            foreach (Guid childId in workflow.Content.ChildrenIds.OrderBy(id => id))
+            return EdgesFromWorkflow(GetWorkflowSync(id));
+        }
+        /// <inheritdoc />
+        public override (FreeformVertex, IEnumerable<FreeformEdge>) GetVertexWithEdges(Guid id)
+        {
+            // This is an optimization over separate calls to get vertex and get edges.
+            HyperthoughtWorkflow workflow = GetWorkflowSync(id);
+            return (VertexFromWorkflow(workflow), EdgesFromWorkflow(workflow));
+        }
+
+        /// <inheritdoc />
+        public override IEnumerable<FreeformVertex> GetChildVertices(Guid id)
+        {
+            foreach (HyperthoughtWorkflow workflow in GetWorkflowChildrenSync(id))
+                yield return VertexFromWorkflow(workflow);
+        }
+        /// <inheritdoc />
+        public override IEnumerable<FreeformEdge> GetChildEdges(Guid id)
+        {
+            foreach (HyperthoughtWorkflow workflow in GetWorkflowChildrenSync(id))
+                foreach (FreeformEdge edge in EdgesFromWorkflow(workflow))
+                    yield return edge;
+        }
+        /// <inheritdoc />
+        public override (IEnumerable<FreeformVertex>, IEnumerable<FreeformEdge>) GetChildVerticesWithEdges(Guid id)
+        {
+            IEnumerable<HyperthoughtWorkflow> workflows = GetWorkflowChildrenSync(id);
+            return
+            (
+                workflows.Select(workflow => VertexFromWorkflow(workflow)),
+                workflows.SelectMany(workflow => EdgesFromWorkflow(workflow))
+            );
+        }
+
+        /// <summary>
+        /// Traverses the child vertices of the workflow graph in preorder fashion asynchronously.
+        /// </summary>
+        /// <param name="id">The identifier of the common ancestor vertex.</param>
+        /// <returns>A preorder enumerable of child vertices.</returns>
+        public async IAsyncEnumerable<FreeformVertex> TraversePreorderVerticesAsync(Guid id)
+        {
+            List<Task<IList<HyperthoughtWorkflow>>> workflowTasks = new List<Task<IList<HyperthoughtWorkflow>>>();
+
+            // Initialize the workflow tasks with the base vertex.
+            HyperthoughtWorkflow workflow = await Api.GetWorkflowAsync(id);
+            yield return VertexFromWorkflow(workflow);
+
+            // Get children until the vertices are traversed.
+            workflowTasks.Add(Api.GetWorkflowChildrenAsync(id));
+            while (workflowTasks.Count > 0)
             {
-                yield return new FreeformEdge(
-                    thisVertex,
-                    new FreeformVertex(childId),
-                    edge++
+                int taskIndex = Task.WaitAny(workflowTasks.ToArray());
+
+                IList<HyperthoughtWorkflow> workflows = workflowTasks[taskIndex].Result;
+                foreach (HyperthoughtWorkflow childWorkflow in workflows)
+                    yield return VertexFromWorkflow(childWorkflow);
+
+                workflowTasks.RemoveAt(taskIndex);
+                workflowTasks.AddRange(workflows
+                    .Where(workflow => workflow.Content.ChildrenIds.Any())
+                    .Select(workflow => Api.GetWorkflowChildrenAsync(workflow.Content.PrimaryKey))
                 );
             }
         }
-        /// <inheritdoc />
-        public FreeformGraph GetChildren(Guid id)
+
+        /// <summary>
+        /// Traverses the child vertices of the workflow graph in preorder fashion.
+        /// </summary>
+        /// <param name="id">The identifier of the common ancestor vertex.</param>
+        /// <returns>A preorder enumerable of child vertices.</returns>
+        public override IEnumerable<FreeformVertex> TraversePreorderVertices(Guid id)
         {
-            // Get the child workflows from an API call and yield each by ID.
-            IList<HyperthoughtWorkflow> workflows = Task.Run(() => Api.GetWorkflowChildrenAsync(id)).GetAwaiter().GetResult();
-
-            // Create a graph with the workflow vertices.
-            FreeformGraph graph = new AdjacencyGraph<FreeformVertex, FreeformEdge>(true);
-            graph.AddVertexRange
-            (
-                workflows.Select(workflow => VertexFromWorkflow(workflow))
-            );
-            return graph;
+            return Task.Run(() => TraversePreorderVerticesAsync(id).ToListAsync().AsTask()).GetAwaiter().GetResult();
         }
-        /// <inheritdoc />
-        public FreeformGraph GetChildrenWithEdges(Guid id)
+        /// <summary>
+        /// Traverses the child vertices of the workflow graph in postorder fashion.
+        /// </summary>
+        /// <param name="id">The identifier of the common ancestor vertex.</param>
+        /// <returns>A postorder enumerable of child vertices.</returns>
+        public override IEnumerable<FreeformVertex> TraversePostorderVertices(Guid id)
         {
-            // Get the child workflows from an API call and yield each by ID.
-            IList<HyperthoughtWorkflow> workflows = Task.Run(() => Api.GetWorkflowChildrenAsync(id)).GetAwaiter().GetResult();
-
-            // Create a graph.
-            FreeformGraph graph = new AdjacencyGraph<FreeformVertex, FreeformEdge>(true);
-            FreeformVertex vertex = new FreeformVertex(id);
-
-            // Add parent and children vertices.
-            graph.AddVertexRange
-            (
-                workflows.Select(workflow => VertexFromWorkflow(workflow))
-            );
-
-            // Add parent-to-children edges.
-            int edges = 0;
-            graph.AddVerticesAndEdgeRange
-            (
-                workflows
-                    .OrderBy(workflow => workflow.Content.PrimaryKey)
-                    .Select
-                    (
-                        workflow => new FreeformEdge
-                        (
-                            vertex,
-                            new FreeformVertex(workflow.Content.PrimaryKey),
-                            edges++
-                        )
-                    )
-            );
-
-            // Add children edges.
-            graph.AddVerticesAndEdgeRange
-            (
-                workflows.SelectMany(workflow => EdgesFromWorkflow(workflow))
-            );
-
-            return graph;
+            // Return the postorder traversal of the hierarchy.
+            foreach (HyperthoughtWorkflow childWorkflow in GetWorkflowChildrenSync(id))
+            {
+                if (childWorkflow.Content.ChildrenIds.Any())
+                    foreach (FreeformVertex vertex in TraversePreorderVertices(childWorkflow.Content.PrimaryKey))
+                        yield return vertex;
+                yield return VertexFromWorkflow(childWorkflow);
+            }
+            if (id == BaseId.AsType<Guid>())
+            {
+                HyperthoughtWorkflow workflow = GetWorkflowSync(id);
+                yield return VertexFromWorkflow(workflow);
+            }
         }
+        /// <summary>
+        /// Traverses the child edges of the workflow graph in preorder fashion.
+        /// </summary>
+        /// <param name="id">The identifier of the common ancestor vertex.</param>
+        /// <returns>A preorder enumerable of the child edges.</returns>
+        public override IEnumerable<FreeformEdge> TraversePreorderEdges(Guid id)
+        {
+            // Return the preorder traversal of the hierarchy.
+            if (id == BaseId.AsType<Guid>())
+            {
+                HyperthoughtWorkflow workflow = GetWorkflowSync(id);
+                foreach (FreeformEdge edge in EdgesFromWorkflow(workflow))
+                    yield return edge;
+            }
+            foreach (HyperthoughtWorkflow childWorkflow in GetWorkflowChildrenSync(id))
+            {
+                foreach (FreeformEdge edge in EdgesFromWorkflow(childWorkflow))
+                    yield return edge;
+                if (childWorkflow.Content.ChildrenIds.Any())
+                    foreach (FreeformEdge edge in TraversePreorderEdges(childWorkflow.Content.PrimaryKey))
+                        yield return edge;
+            }
+        }
+        /// <summary>
+        /// Traverses the child edges of the workflow graph in postorder fashion.
+        /// </summary>
+        /// <param name="id">The identifier of the common ancestor vertex.</param>
+        /// <returns>A postorder enumerable of the child edges.</returns>
+        public override IEnumerable<FreeformEdge> TraversePostorderEdges(Guid id)
+        {
+            // Return the postorder traversal of the hierarchy.
+            foreach (HyperthoughtWorkflow childWorkflow in GetWorkflowChildrenSync(id))
+            {
+                if (childWorkflow.Content.ChildrenIds.Any())
+                    foreach (FreeformEdge edge in TraversePreorderEdges(childWorkflow.Content.PrimaryKey))
+                        yield return edge;
+                foreach (FreeformEdge edge in EdgesFromWorkflow(childWorkflow))
+                    yield return edge;
+            }
+            if (id == BaseId.AsType<Guid>())
+            {
+                HyperthoughtWorkflow workflow = GetWorkflowSync(id);
+                foreach (FreeformEdge edge in EdgesFromWorkflow(workflow))
+                    yield return edge;
+            }
+        }
+        #endregion
     }
 }

@@ -6,13 +6,12 @@ using System.Xml.Serialization;
 
 using QuikGraph;
 
-using CartaCore.Data;
+using CartaCore.Data.Freeform;
 using CartaCore.Utility;
 
 namespace CartaWeb.Serialization.Xml
 {
-    using FreeformGraph = IMutableVertexAndEdgeSet<FreeformVertex, FreeformEdge>;
-
+    /*
     /// <summary>
     /// Represents a freeform graph with metadata in Graph Exchange XML format.
     /// </summary>
@@ -517,4 +516,5 @@ namespace CartaWeb.Serialization.Xml
         /// </summary>
         public GexFormatProperty() { }
     }
+    */
 }

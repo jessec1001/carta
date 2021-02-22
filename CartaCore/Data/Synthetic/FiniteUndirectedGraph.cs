@@ -5,19 +5,18 @@ using System.Linq;
 using QuikGraph;
 
 using CartaCore.Statistics;
+using CartaCore.Data.Freeform;
 
 namespace CartaCore.Data.Synthetic
 {
-    using FreeformGraph = IMutableVertexAndEdgeSet<FreeformVertex, FreeformEdge>;
-
     /// <summary>
     /// Represents graph data of a random, finite, undirected graph. Both the vertices and edges are randomly generated
     /// and connected.
     /// </summary>
-    public class RandomFiniteUndirectedGraph : ISampledGraph, IOptionsGraph<RandomFiniteUndirectedGraphOptions>
+    public class FiniteUndirectedGraph : FreeformGraph, IParameterizedGraph<FiniteUndirectedGraphParameters>
     {
         /// <inheritdoc />
-        public RandomFiniteUndirectedGraphOptions Options { get; set; }
+        public FiniteUndirectedGraphParameters Parameters { get; set; }
 
         /// <summary>
         /// The entirety of the graph generated.
@@ -28,11 +27,11 @@ namespace CartaCore.Data.Synthetic
         /// <summary>
         /// Creates a new random sampled, finite, undirected graph with the specified parameters.
         /// </summary>
-        /// <param name="options">The options to generate the graph with.</param>
-        public RandomFiniteUndirectedGraph(RandomFiniteUndirectedGraphOptions options = default(RandomFiniteUndirectedGraphOptions))
+        /// <param name="parameters">The parameters to generate the graph with.</param>
+        public FiniteUndirectedGraph(FiniteUndirectedGraphParameters parameters = default(FiniteUndirectedGraphParameters))
         {
             // We generate all the graph data after setting the parameters.
-            Options = options;
+            Parameters = parameters;
             Graph = GenerateGraph();
         }
 
@@ -40,24 +39,26 @@ namespace CartaCore.Data.Synthetic
         /// Generates the random graph data.
         /// </summary>
         /// <returns>The random graph data.</returns>
-        protected FreeformGraph GenerateGraph()
+        protected UndirectedGraph<FreeformVertex, FreeformEdge> GenerateGraph()
         {
             // Random number generator that is seeded with whatever seed was specified.
-            CompoundRandom random = new CompoundRandom(Options.Seed);
+            CompoundRandom random = new CompoundRandom(Parameters.Seed);
 
             // Generate the random number of vertices and edges.
-            int numVertices = Math.Max(Options.VertexCount.Sample(random), 0);
+            int numVertices = Math.Max(Parameters.VertexCount.Sample(random), 0);
             int possibleEdges = numVertices * (numVertices - 1) / 2;
-            int numEdges = Math.Clamp(Options.EdgeCount.Sample(random), 0, possibleEdges);
+            int numEdges = Math.Clamp(Parameters.EdgeCount.Sample(random), 0, possibleEdges);
 
             // Generate the vertices.
             List<FreeformVertex> vertices = new List<FreeformVertex>(
                 Enumerable
                 .Range(0, numVertices)
-                .Select(_ => new FreeformVertex(random.NextGuid())
+                .Select
+                (_ => new FreeformVertex(FreeformIdentity.Create(random.NextGuid()))
                 {
-                    Properties = new SortedList<string, FreeformProperty>()
-                })
+                    Label = (Parameters.Labeled ? random.NextPsuedoword() : null)
+                }
+                )
             );
 
             // Generate the edges to randomly select from.
@@ -68,7 +69,7 @@ namespace CartaCore.Data.Synthetic
                 .SelectMany(
                     (vertexA, indexA) => vertices
                         .Where((vertexB, indexB) => indexA < indexB),
-                    (a, b) => new FreeformEdge(a, b, edgeCount++)
+                    (a, b) => new FreeformEdge(a.Identifier, b.Identifier, edgeCount++)
                 )
             );
 
@@ -89,39 +90,43 @@ namespace CartaCore.Data.Synthetic
             }
 
             // We convert the edge list to a undirected graph and return.
-            FreeformGraph graph = new UndirectedGraph<FreeformVertex, FreeformEdge>();
+            UndirectedGraph<FreeformVertex, FreeformEdge> graph = new UndirectedGraph<FreeformVertex, FreeformEdge>();
             graph.AddVertexRange(vertices);
             graph.AddEdgeRange(edgesSelected);
             return graph;
         }
 
+        #region FreeformGraph
         /// <inheritdoc />
-        public bool IsFinite => true;
+        public override bool IsDirected => Graph.IsDirected;
         /// <inheritdoc />
-        public bool IsDirected => false;
-        /// <inheritdoc />
-        public Guid BaseId => Graph.Vertices.FirstOrDefault().Id;
+        public override bool AllowParallelEdges => Graph.AllowParallelEdges;
 
         /// <inheritdoc />
-        public FreeformGraph GetEntire() => Graph;
+        public override bool IsVerticesEmpty => Graph.IsVerticesEmpty;
+        /// <inheritdoc />
+        public override bool IsEdgesEmpty => Graph.IsEdgesEmpty;
 
         /// <inheritdoc />
-        public FreeformVertex GetProperties(Guid id)
+        public override int VertexCount => Graph.VertexCount;
+        /// <inheritdoc />
+        public override int EdgeCount => Graph.EdgeCount;
+
+        /// <inheritdoc />
+        public override IEnumerable<FreeformVertex> Vertices => Graph.Vertices;
+        /// <inheritdoc />
+        public override IEnumerable<FreeformEdge> Edges => Graph.Edges;
+
+        /// <inheritdoc />
+        public override bool ContainsEdge(FreeformEdge edge)
         {
-            // Return the properties of the vertex whose ID matches.
-            return Graph.Vertices
-                .Where(vertex => vertex.Id == id)
-                .FirstOrDefault();
+            return Graph.ContainsEdge(edge);
         }
         /// <inheritdoc />
-        public IEnumerable<FreeformEdge> GetEdges(Guid id)
+        public override bool ContainsVertex(FreeformVertex vertex)
         {
-            // Return the out-edges and in-edges of the vertex whose ID matches.
-            // It doesn't matter whether the edge is an out-edge or an in-edge because this is an undirected graph.
-            return Graph.Edges
-                .Where(edge =>
-                    edge.Source.Id == id ||
-                    edge.Target.Id == id);
+            return Graph.ContainsVertex(vertex);
         }
+        #endregion
     }
 }

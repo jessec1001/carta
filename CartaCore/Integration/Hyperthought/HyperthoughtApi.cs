@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -136,7 +137,7 @@ namespace CartaCore.Integration.Hyperthought
         /// </summary>
         /// <param name="template">The template workflow.</param>
         /// <returns>The list of children workflows obtained from the HyperThought API.</returns>
-        public async Task<IList<HyperthoughtWorkflow>> GetWorkflowChildren(HyperthoughtWorkflowTemplate template)
+        public async Task<IList<HyperthoughtWorkflow>> GetWorkflowChildrenAsync(HyperthoughtWorkflowTemplate template)
         {
             return await GetWorkflowChildrenAsync(template.PrimaryKey);
         }
@@ -146,9 +147,53 @@ namespace CartaCore.Integration.Hyperthought
         /// </summary>
         /// <param name="workflow">The workflow.</param>
         /// <returns>The list of children workflows obtained from the HyperThought API.</returns>
-        public async Task<IList<HyperthoughtWorkflow>> GetWorkflowChildren(HyperthoughtWorkflow workflow)
+        public async Task<IList<HyperthoughtWorkflow>> GetWorkflowChildrenAsync(HyperthoughtWorkflow workflow)
         {
             return await GetWorkflowChildrenAsync(workflow.Content.PrimaryKey);
+        }
+
+        /// <summary>
+        /// Obtains the UUID for a workflow specified by a dot-separated path.
+        /// </summary>
+        /// <param name="path">
+        /// The dot-separated path in the form of <c>"Project.Template.WorkflowA.WorkflowB"</c> and so forth.
+        /// </param>
+        /// <returns>
+        /// The UUID of the workflow specified by a path if it exists. Otherwise, returns <see cref="Guid.Empty"/>.
+        /// </returns>
+        public async Task<Guid> GetWorkflowIdFromPathAsync(string path)
+        {
+            // Get the parts of the path.
+            if (path is null) return Guid.Empty;
+            string[] pathParts = path.Split('.');
+
+            // These path parts are required.
+            string projectPath = pathParts.Length > 0 ? pathParts[0] : null;
+            string templatePath = pathParts.Length > 1 ? pathParts[1] : null;
+            if (projectPath is null || templatePath is null) return Guid.Empty;
+
+            // Get the project.
+            HyperthoughtProject project = (await GetProjectsAsync())
+                .Where(project => project.Content.Title.ToLower() == projectPath.ToLower())
+                .FirstOrDefault();
+            if (project is null) return Guid.Empty;
+            // Get the workflow template.
+            HyperthoughtWorkflowTemplate template = (await GetWorkflowTemplatesAsync(project))
+                .Where(template => template.Title.ToLower() == templatePath.ToLower())
+                .FirstOrDefault();
+            if (template is null) return Guid.Empty;
+
+            // Get workflows from the remaining path parts.
+            Guid uuid = template.PrimaryKey;
+            for (int k = 2; k < pathParts.Length; k++)
+            {
+                HyperthoughtWorkflow workflow = (await GetWorkflowChildrenAsync(uuid))
+                    .Where(workflow => workflow.Content.Name.ToLower() == pathParts[k].ToLower())
+                    .FirstOrDefault();
+                if (workflow is null) return Guid.Empty;
+                uuid = workflow.Content.PrimaryKey;
+            }
+            return uuid;
         }
     }
 }

@@ -6,12 +6,13 @@ import './Vis.css';
 
 export interface VisGraphData {
     nodes: DataSet<VisNode>,
-    edges: DataSet<VisEdge>
+    edges: DataSet<VisEdge>,
 };
 
 interface VisProps {
     graph: VisGraphData,
     options: Options,
+    selection?: Array<string>,
 
     onClick?:                        (params?: any) => void,
     onDoubleClick?:                  (params?: any) => void,
@@ -157,6 +158,21 @@ export class Vis extends Component<VisProps> {
             if (this.network) {
                 this.network.setOptions(this.props.options);
             }
+        }
+        if (this.props.selection !== prevProps.selection) {
+            if (this.props.selection && prevProps.selection) {
+                // Check that the selection is actually different.
+                let different = false;
+                for (let k = 0; k < this.props.selection.length; k++) {
+                    if (this.props.selection[k] !== prevProps.selection[k]) {
+                        different = true;
+                        break;
+                    }
+                }
+                if (different) this.network?.selectNodes(this.props.selection);
+            }
+            if (this.props.selection) this.network?.selectNodes(this.props.selection);
+            else this.network?.selectNodes([]);
         }
     }
 

@@ -7,8 +7,10 @@ import { VisGraph, VisNode, VisEdge, VisProperty } from '../../lib/types/vis-for
 
 interface GraphExplorerProps {
     request?: string,
+    selection: Array<string>,
 
-    onPropertiesChanged?: (properties: Record<string, Array<VisProperty>>) => void
+    onPropertiesChanged?: (properties: Array<VisProperty>) => void,
+    onSelection?: (selection: Array<string>) => void
 }
 
 interface GraphExplorerState {
@@ -29,17 +31,7 @@ export class GraphExplorer extends Component<GraphExplorerProps, GraphExplorerSt
                 nodes: new DataSet<VisNode>(),
                 edges: new DataSet<VisEdge>()
             },
-            options: {
-                nodes: {
-                    borderWidth: 2,
-                    shape: 'dot',
-                    size: 15
-                },
-                edges: {},
-                interaction: {
-                    multiselect: true
-                }
-            },
+            options: this.getDefaultOptions(),
             loading: false
         };
         
@@ -48,19 +40,40 @@ export class GraphExplorer extends Component<GraphExplorerProps, GraphExplorerSt
         this.handleDeselectNode = this.handleDeselectNode.bind(this);
     }
 
+    getDefaultOptions() {
+        return {
+            nodes: {
+                borderWidth: 2,
+                shape: 'dot',
+                size: 15
+            },
+            edges: {},
+            interaction: {
+                multiselect: true
+            }
+        };
+    }
+
     collectProperties(nodeIds: Array<string>) {
-        // Collect all the properties from all of the nodes and organize them by name.
-        let properties : Record<string, Array<VisProperty>> = {};
+        // Collect all the observation per property from all of the nodes.
+        let properties : Array<VisProperty> = [];
         nodeIds
             .map(id => this.state.graph.nodes.get(id))
             .forEach(node => {
                 node = node as VisNode;
-                node.properties.forEach(property => {
-                    if (!(property.name in properties)) {
-                        properties[property.name] = [];
-                    }
-                    properties[property.name].push(property);
-                });
+                if (node.properties) {
+                    node.properties.forEach(nodeProp => {
+                        let property = properties.find(prop => nodeProp.id === prop.id);
+                        if (!property) {
+                            property = {
+                                id: nodeProp.id,
+                                observations: []
+                            };
+                            properties.push(property);
+                        }
+                        property.observations.push(...nodeProp.observations);
+                    });
+                }
             });
 
         // Set the properties in the state.
@@ -92,9 +105,13 @@ export class GraphExplorer extends Component<GraphExplorerProps, GraphExplorerSt
     }
     handleSelectNode(event: any) {
         this.collectProperties(event.nodes);
+        if (this.props.onSelection)
+            this.props.onSelection(event.nodes);
     }
     handleDeselectNode(event: any) {
         this.collectProperties(event.nodes);
+        if (this.props.onSelection)
+            this.props.onSelection(event.nodes);
     }
 
     componentDidMount() {
@@ -104,6 +121,22 @@ export class GraphExplorer extends Component<GraphExplorerProps, GraphExplorerSt
         if (this.props.request !== prevProps.request) {
             if (this.props.request) this.populateData(this.props.request);
         }
+
+        if (this.props.selection !== prevProps.selection) {
+            if (this.props.selection && prevProps.selection) {
+                // Check that the selection is actually different.
+                let different = false;
+                for (let k = 0; k < this.props.selection.length; k++) {
+                    if (this.props.selection[k] !== prevProps.selection[k]) {
+                        different = true;
+                        break;
+                    }
+                }
+                if (different) this.collectProperties(this.props.selection);
+            }
+            if (this.props.selection) this.collectProperties(this.props.selection);
+            else this.collectProperties([]);
+        }
     }
 
     render() {
@@ -111,6 +144,7 @@ export class GraphExplorer extends Component<GraphExplorerProps, GraphExplorerSt
             <Vis
                 graph={this.state.graph}
                 options={this.state.options}
+                selection={this.props.selection}
                 onDoubleClick={this.handleDoubleClick}
                 onSelectNode={this.handleSelectNode}
                 onDeselectNode={this.handleDeselectNode}
@@ -134,7 +168,7 @@ export class GraphExplorer extends Component<GraphExplorerProps, GraphExplorerSt
                     .filter(edge => edge.to === uncoloredId) // eslint-disable-line no-loop-func
                     .map(edge => edge.from);
 
-                if (parentIds.length === 1) {
+                if (parentIds.length > 0) {
                     // There is a parent - for now we assume only one.
                     const parentId = parentIds[0];
                     const parent = graph.nodes.get(parentId);
@@ -220,9 +254,6 @@ export class GraphExplorer extends Component<GraphExplorerProps, GraphExplorerSt
         });
     }
     prepareGraph(graph: VisGraph, state: GraphExplorerState, remove: boolean = true) {
-        // We need edges to have unique IDs so we use Parent-#Child combination.
-        graph.edges.forEach(edge => edge.id = `${edge.from}-${edge.id}`);
-
         // Update the nodes and edges data.
         state.graph.nodes.update(graph.nodes);
         state.graph.edges.update(graph.edges);
@@ -247,7 +278,7 @@ export class GraphExplorer extends Component<GraphExplorerProps, GraphExplorerSt
 
         // Color the data.
         if (graph.directed) this.colorGraph(data);
-
+    
         return data;
     }
 
@@ -348,7 +379,7 @@ export class GraphExplorer extends Component<GraphExplorerProps, GraphExplorerSt
             state.graph.nodes.remove(descendantIds);
             state.graph.edges.remove(
                 state.graph.edges.get().filter(edge =>
-                    descendantIds.includes(edge.from) || descendantIds.includes(edge.to)
+                    descendantIds.includes(edge.from)
                 )
             );
 

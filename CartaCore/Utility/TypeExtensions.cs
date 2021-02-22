@@ -4,6 +4,9 @@ using System.Linq;
 
 namespace CartaCore.Utility
 {
+    /// <summary>
+    /// Provides extension methods to convert between types and string representations.
+    /// </summary>
     public static class TypeExtensions
     {
         private static IDictionary<Type, string> Primatives;
@@ -39,16 +42,35 @@ namespace CartaCore.Utility
             );
         }
 
+        /// <summary>
+        /// Converts a type to a corresponding string representation that is human-friendly.
+        /// </summary>
+        /// <param name="type">The type to serialize.</param>
+        /// <returns>The string representation of the type.</returns>
         public static string TypeSerialize(this Type type)
         {
             if (!(type is null) && Primatives.TryGetValue(type, out string result))
                 return result;
             return type.Name;
         }
+        /// <summary>
+        /// Converts a string representation of a type to its corresponding type object.
+        /// </summary>
+        /// <param name="str">The string representation of a type to deserialize.</param>
+        /// <returns>The type object, if found.</returns>
         public static Type TypeDeserialize(this string str)
         {
-            if (!(str is null) && Names.TryGetValue(str, out Type result))
-                return result;
+            if (!(str is null))
+            {
+                if (Names.TryGetValue(str, out Type result))
+                    return result;
+                try
+                {
+                    return Type.GetType(str);
+                }
+                catch { }
+            }
+
             return typeof(string);
         }
     }
