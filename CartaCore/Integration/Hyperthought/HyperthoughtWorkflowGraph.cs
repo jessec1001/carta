@@ -286,7 +286,6 @@ namespace CartaCore.Integration.Hyperthought
                 int taskIndex = Task.WaitAny(workflowTasks.ToArray());
 
                 IList<HyperthoughtWorkflow> workflows = workflowTasks[taskIndex].Result;
-                Console.WriteLine($"Get children: {taskIndex} - {workflows.Count}");
                 foreach (HyperthoughtWorkflow childWorkflow in workflows)
                     yield return VertexFromWorkflow(childWorkflow);
 
@@ -296,27 +295,6 @@ namespace CartaCore.Integration.Hyperthought
                     .Select(workflow => Api.GetWorkflowChildrenAsync(workflow.Content.PrimaryKey))
                 );
             }
-
-            // // Get data asynchronously.
-            // if (id == BaseId.AsType<Guid>())
-            // {
-            //     HyperthoughtWorkflow workflow = await Api.GetWorkflowAsync(id);
-            //     yield return VertexFromWorkflow(workflow);
-            // }
-            // IList<HyperthoughtWorkflow> childWorkflows = await Api.GetWorkflowChildrenAsync(id);
-            // Console.WriteLine($"Get children: {id} - {childWorkflows.Count}");
-
-            // // Recursively traverse asynchronously.
-            // ValueTask<List<FreeformVertex>>[] childTasks = new ValueTask<List<FreeformVertex>>[childWorkflows.Count];
-            // for (int k = 0; k < childWorkflows.Count; k++)
-            //     childTasks[k] = TraversePreorderVerticesAsync(childWorkflows[k].Content.PrimaryKey).ToListAsync();
-
-            // for (int k = 0; k < childWorkflows.Count; k++)
-            // {
-            //     yield return VertexFromWorkflow(childWorkflows[k]);
-            //     foreach (FreeformVertex vertex in childTasks[k].Result)
-            //         yield return vertex;
-            // }
         }
 
         /// <summary>
@@ -327,19 +305,6 @@ namespace CartaCore.Integration.Hyperthought
         public override IEnumerable<FreeformVertex> TraversePreorderVertices(Guid id)
         {
             return Task.Run(() => TraversePreorderVerticesAsync(id).ToListAsync().AsTask()).GetAwaiter().GetResult();
-            // // Return the preorder traversal of the hierarchy.
-            // if (id == BaseId.AsType<Guid>())
-            // {
-            //     HyperthoughtWorkflow workflow = GetWorkflowSync(id);
-            //     yield return VertexFromWorkflow(workflow);
-            // }
-            // foreach (HyperthoughtWorkflow childWorkflow in GetWorkflowChildrenSync(id))
-            // {
-            //     yield return VertexFromWorkflow(childWorkflow);
-            //     if (childWorkflow.Content.ChildrenIds.Any())
-            //         foreach (FreeformVertex vertex in TraversePreorderVertices(childWorkflow.Content.PrimaryKey))
-            //             yield return vertex;
-            // }
         }
         /// <summary>
         /// Traverses the child vertices of the workflow graph in postorder fashion.

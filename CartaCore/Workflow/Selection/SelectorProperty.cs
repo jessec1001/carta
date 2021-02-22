@@ -21,9 +21,6 @@ namespace CartaCore.Workflow.Selection
         /// <inheritdoc />
         public override bool Contains(FreeformVertex vertex)
         {
-            foreach (FreeformProperty property in vertex.Properties)
-                Console.WriteLine($"{property.Identifier.ToString().ToLower()} - {Property.ToLower()}");
-
             if (vertex.Properties.Any(property => property.Identifier.ToString().ToLower() == Property.ToLower())) return true;
             return false;
         }
