@@ -124,7 +124,7 @@ namespace CartaCore.Data.Freeform
         /// <inheritdoc />
         public override int GetHashCode()
         {
-            return Identity.GetHashCode();
+            return ToString().GetHashCode();
         }
 
         /// <inheritdoc />
