@@ -1,6 +1,6 @@
 import React, { Component, MouseEvent } from 'react';
 import { CaretDownFill, CaretUpFill } from 'react-bootstrap-icons';
-import { VisObservation, VisProperty } from '../../../lib/types/vis-format';
+import { VisProperty } from '../../../lib/types/vis-format';
 import { ObservationList } from './ObservationList';
 import './Property.css';
 

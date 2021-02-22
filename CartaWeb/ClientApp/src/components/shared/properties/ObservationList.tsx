@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { VisObservation, VisProperty } from "../../../lib/types/vis-format";
+import { VisObservation } from "../../../lib/types/vis-format";
 import './ObservationList.css';
 
 interface ObservationListProps {

@@ -379,7 +379,7 @@ export class GraphExplorer extends Component<GraphExplorerProps, GraphExplorerSt
             state.graph.nodes.remove(descendantIds);
             state.graph.edges.remove(
                 state.graph.edges.get().filter(edge =>
-                    descendantIds.includes(edge.from) || descendantIds.includes(edge.to)
+                    descendantIds.includes(edge.from)
                 )
             );
 

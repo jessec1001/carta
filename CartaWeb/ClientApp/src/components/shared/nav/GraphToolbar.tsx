@@ -8,7 +8,6 @@ import {
     DropdownItem
 } from 'reactstrap';
 import CSS from 'csstype';
-import { stripTrailingSlash } from 'history/PathUtils';
 
 interface GraphToolbarProps {
     className?: string
