@@ -4,19 +4,19 @@
 
 Carta is a web-based API and application that provides graph-based tools for accessing, exploring, and transforming existing datasets and models. 
 
-In this repository, there are three projects that implement the Carta infrastructure. All of the projects utilize the .NET Core framework and are written in [C# 8.0](https://docs.microsoft.com/en-us/dotnet/csharp/).
+In this repository, there are three projects that implement the Carta infrastructure. All of the projects utilize the .NET Core framework and are written in [C# 9.0](https://docs.microsoft.com/en-us/dotnet/csharp/).
 - `CartaCore` contains the primary data structures and algorithms that allow Carta to run.
 - `CartaTest` contains unit tests written using the [NUnit3](https://nunit.org/) framework to test the functionality of `CartaCore`.
 - `CartaWeb` contains Model-View-Controller (MVC) logic that runs a web API and a client-facing interface. `CartaWeb` is written using [ASP.NET](https://dotnet.microsoft.com/apps/aspnet) on the backend and [ReactJS](https://reactjs.org/) on the frontend.
 
 ## Requisites
-In order to run the Carta projects locally, you will need to have [.NET Core 3.1 SDK](https://dotnet.microsoft.com/download/dotnet-core/3.1) installed. It is installable on Windows, Linux, and Mac.
+In order to run the Carta projects locally, you will need to have [.NET 5.0 SDK](https://dotnet.microsoft.com/download/dotnet/5.0) installed. It is installable on Windows, Linux, and Mac.
 
 To check if .NET Core was successfully installed, you can run:
 ```bash
 dotnet --list-sdks
 ```
-This should produce a version matching `3.1.x`.
+This should produce a version matching `5.0.x`.
 
 ## Usage
 The `CartaCore` project is only built and referenced by `CartaTest` and `CartaWeb`. It is not executable by itself. You can run tests and the web application by following the instructions in the proceding sections.
