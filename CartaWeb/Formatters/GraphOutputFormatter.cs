@@ -10,9 +10,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.Net.Http.Headers;
 
-using QuikGraph;
-
-using CartaCore.Data.Freeform;
+using CartaCore.Data;
 using CartaWeb.Serialization.Json;
 using CartaWeb.Serialization.Xml;
 
@@ -23,7 +21,7 @@ namespace CartaWeb.Extended.Formatters
     /// </summary>
     /// <param name="graph">The freeform graph.</param>
     /// <returns>The formatted string representation.</returns>
-    public delegate string MediaFormatter(FreeformGraph graph);
+    public delegate Task<string> MediaFormatter(IEntireGraph graph);
 
     /// <summary>
     /// Represents a text output formatter that is able to perform content negotiation and formatting for freeform
@@ -64,32 +62,32 @@ namespace CartaWeb.Extended.Formatters
         /// <inheritdoc />
         protected override bool CanWriteType(Type type)
         {
-            if (typeof(FreeformGraph).IsAssignableFrom(type))
+            if (typeof(IEntireGraph).IsAssignableFrom(type))
                 return base.CanWriteType(type);
             return false;
         }
 
         /// <inheritdoc />
-        public override Task WriteResponseBodyAsync(OutputFormatterWriteContext context, Encoding selectedEncoding)
+        public override async Task WriteResponseBodyAsync(OutputFormatterWriteContext context, Encoding selectedEncoding)
         {
             MediaTypeHeaderValue contentHeader = MediaTypeHeaderValue.Parse(context.ContentType);
 
             // Find the correct formatter and use it to write the content.
             string content = string.Empty;
-            if (context.Object is FreeformGraph graph)
+            if (context.Object is IEntireGraph graph)
             {
                 foreach (var formatter in MediaFormatters)
                 {
                     if (contentHeader.IsSubsetOf(formatter.MediaHeader))
                     {
-                        content = formatter.Formatter(graph);
+                        content = await formatter.Formatter(graph);
                         break;
                     }
                 }
             }
 
             // Write out the content to the response.
-            return context.HttpContext.Response.WriteAsync(content, selectedEncoding);
+            await context.HttpContext.Response.WriteAsync(content, selectedEncoding);
         }
 
         private static string FormatJson<T>(T obj)
@@ -110,7 +108,7 @@ namespace CartaWeb.Extended.Formatters
         }
 
         // private static string FormatJg(FreeformGraph graph) => FormatJson<JgFormat>(new JgFormat(graph));
-        private static string FormatVis(FreeformGraph graph) => FormatJson<VisFormat>(new VisFormat(graph));
+        private static async Task<string> FormatVis(IEntireGraph graph) => FormatJson<VisFormat>(await VisFormat.CreateAsync(graph));
         // private static string FormatGex(FreeformGraph graph) => FormatXml<GexFormat>(new GexFormat(graph));
     }
 }

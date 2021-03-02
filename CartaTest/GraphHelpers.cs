@@ -1,9 +1,6 @@
-using System;
 using System.Collections.Generic;
 
-using QuikGraph;
-
-using CartaCore.Data.Freeform;
+using CartaCore.Data;
 
 namespace CartaTest
 {
@@ -16,7 +13,7 @@ namespace CartaTest
         /// Gets an undirected graph sample usable in testing.
         /// </summary>
         /// <value>An undirected graph with no properties on the nodes.</value>
-        public static FreeformGraph UndirectedGraphSample
+        public static FiniteGraph UndirectedGraphSample
         {
             get
             {
@@ -27,25 +24,25 @@ namespace CartaTest
                 */
 
                 // Setup the graph information.
-                FreeformFiniteGraph graph = new FreeformFiniteGraph(false);
-                FreeformVertex[] vertices = new FreeformVertex[]
+                FiniteGraph graph = new FiniteGraph(Identity.Create("Undirected w/o Properties"), false);
+                Vertex[] vertices = new Vertex[]
                 {
-                    new FreeformVertex(FreeformIdentity.Create(0)),
-                    new FreeformVertex(FreeformIdentity.Create(1)),
-                    new FreeformVertex(FreeformIdentity.Create(2)),
-                    new FreeformVertex(FreeformIdentity.Create(3)),
-                    new FreeformVertex(FreeformIdentity.Create(4)),
+                    new Vertex(Identity.Create(0)),
+                    new Vertex(Identity.Create(1)),
+                    new Vertex(Identity.Create(2)),
+                    new Vertex(Identity.Create(3)),
+                    new Vertex(Identity.Create(4)),
                 };
 
                 // Construct the vertices and edges of the graph.
                 graph.AddVertexRange(vertices);
-                graph.AddEdgeRange(new FreeformEdge[]
+                graph.AddEdgeRange(new Edge[]
                 {
-                    new FreeformEdge(vertices[0], vertices[1], 0),
-                    new FreeformEdge(vertices[0], vertices[2], 1),
-                    new FreeformEdge(vertices[1], vertices[3], 2),
-                    new FreeformEdge(vertices[2], vertices[3], 3),
-                    new FreeformEdge(vertices[3], vertices[4], 4),
+                    new Edge(vertices[0], vertices[1]),
+                    new Edge(vertices[0], vertices[2]),
+                    new Edge(vertices[1], vertices[3]),
+                    new Edge(vertices[2], vertices[3]),
+                    new Edge(vertices[3], vertices[4]),
                 });
 
                 return graph;
@@ -56,7 +53,7 @@ namespace CartaTest
         /// Gets a directed graph sample usable in testing.
         /// </summary>
         /// <value>A directed graph with no properties on the nodes.</value>
-        public static FreeformGraph DirectedGraphSample
+        public static FiniteGraph DirectedGraphSample
         {
             get
             {
@@ -66,23 +63,23 @@ namespace CartaTest
                 */
 
                 // Setup the graph information.
-                FreeformFiniteGraph graph = new FreeformFiniteGraph(true);
-                FreeformVertex[] vertices = new FreeformVertex[]
+                FiniteGraph graph = new FiniteGraph(Identity.Create("Directed w/o Properties"), true);
+                Vertex[] vertices = new Vertex[]
                 {
-                    new FreeformVertex(FreeformIdentity.Create(0)),
-                    new FreeformVertex(FreeformIdentity.Create(1)),
-                    new FreeformVertex(FreeformIdentity.Create(2)),
-                    new FreeformVertex(FreeformIdentity.Create(3)),
+                    new Vertex(Identity.Create(0)),
+                    new Vertex(Identity.Create(1)),
+                    new Vertex(Identity.Create(2)),
+                    new Vertex(Identity.Create(3)),
                 };
 
                 // Construct the vertices and edges of the graph.
                 graph.AddVertexRange(vertices);
-                graph.AddEdgeRange(new FreeformEdge[]
+                graph.AddEdgeRange(new Edge[]
                 {
-                    new FreeformEdge(vertices[0], vertices[1], 0),
-                    new FreeformEdge(vertices[0], vertices[2], 1),
-                    new FreeformEdge(vertices[1], vertices[2], 0),
-                    new FreeformEdge(vertices[2], vertices[3], 0),
+                    new Edge(vertices[0], vertices[1]),
+                    new Edge(vertices[0], vertices[2]),
+                    new Edge(vertices[1], vertices[2]),
+                    new Edge(vertices[2], vertices[3]),
                 });
 
                 return graph;
@@ -93,7 +90,7 @@ namespace CartaTest
         /// Gets an undirected graph sample with properties usable in testing.
         /// </summary>
         /// <value>An undirected graph with properties on the nodes.</value>
-        public static FreeformGraph UndirectedPropertyGraphSample
+        public static FiniteGraph UndirectedPropertyGraphSample
         {
             get
             {
@@ -102,52 +99,57 @@ namespace CartaTest
                 */
 
                 // Setup the graph information.
-                FreeformFiniteGraph graph = new FreeformFiniteGraph(false);
-                FreeformVertex[] vertices = new FreeformVertex[]
+                FiniteGraph graph = new FiniteGraph(Identity.Create("Undirected w/ Properties"), false);
+                Vertex[] vertices = new Vertex[]
                 {
-                    new FreeformVertex(FreeformIdentity.Create(0))
-                    {
-                        Properties = new List<FreeformProperty>()
+                    new Vertex
+                    (
+                        Identity.Create(0),
+                        new List<Property>()
                         {
-                            new FreeformProperty(FreeformIdentity.Create("myNum"))
-                            {
-                                Observations = new List<FreeformObservation>()
+                            new Property
+                            (
+                                Identity.Create("myNum"),
+                                new List<Observation>()
                                 {
-                                    new FreeformObservation { Type = "int", Value = 2 },
-                                    new FreeformObservation { Type = "int", Value = 5 },
+                                    new Observation { Type = "int", Value = 2 },
+                                    new Observation { Type = "int", Value = 5 },
                                 }
-                            },
-                            new FreeformProperty(FreeformIdentity.Create("myFruit"))
-                            {
-                                Observations = new List<FreeformObservation>()
+                            ),
+                            new Property
+                            (
+                                Identity.Create("myFruit"),
+                                new List<Observation>()
                                 {
-                                    new FreeformObservation { Type = "string", Value = "orange" }
+                                    new Observation { Type = "string", Value = "orange" }
                                 }
-                            }
+                            )
                         }
-                    },
-                    new FreeformVertex(FreeformIdentity.Create(1)),
-                    new FreeformVertex(FreeformIdentity.Create(2))
-                    {
-                        Properties = new List<FreeformProperty>()
+                    ),
+                    new Vertex(Identity.Create(1)),
+                    new Vertex
+                    (
+                        Identity.Create(2),
+                        new List<Property>()
                         {
-                            new FreeformProperty(FreeformIdentity.Create("myShoeSize"))
-                            {
-                                Observations = new List<FreeformObservation>()
+                            new Property
+                            (
+                                Identity.Create("myShoeSize"),
+                                new List<Observation>()
                                 {
-                                    new FreeformObservation { Type = "double", Value = 11.50 }
+                                    new Observation { Type = "double", Value = 11.50 }
                                 }
-                            }
+                            )
                         }
-                    },
+                    )
                 };
 
                 // Construct the vertices and edges of the graph.
                 graph.AddVertexRange(vertices);
-                graph.AddEdgeRange(new FreeformEdge[]
+                graph.AddEdgeRange(new Edge[]
                 {
-                    new FreeformEdge(vertices[0], vertices[1], 0),
-                    new FreeformEdge(vertices[1], vertices[2], 1)
+                    new Edge(vertices[0], vertices[1]),
+                    new Edge(vertices[1], vertices[2])
                 });
 
                 return graph;

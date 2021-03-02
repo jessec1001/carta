@@ -10,7 +10,7 @@ import './Graph.css';
 interface GraphProps extends RouteComponentProps { }
 interface GraphState {
     properties: Array<VisProperty>,
-    selection: Array<string>
+    selection: Array<string> | string
 }
 
 export class Graph extends Component<GraphProps, GraphState> {
@@ -39,7 +39,11 @@ export class Graph extends Component<GraphProps, GraphState> {
         });
     }
     handleSelect(selector: any) {
-        this.getSelection(selector);
+        if (typeof selector === "string") {
+            this.setState({
+                selection: selector
+            })
+        } else this.getSelection(selector);
     }
     handleSelection(selection: Array<string>) {
         this.setState({

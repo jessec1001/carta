@@ -5,9 +5,15 @@ import { Options } from 'vis-network/standalone';
 import { Vis, VisGraphData } from '../shared/graph/Vis';
 import { VisGraph, VisNode, VisEdge, VisProperty } from '../../lib/types/vis-format';
 
+interface GraphExplorerBatch {
+    size: number,
+    active: number,
+    queue: Array<string>
+}
+
 interface GraphExplorerProps {
     request?: string,
-    selection: Array<string>,
+    selection: Array<string> | string,
 
     onPropertiesChanged?: (properties: Array<VisProperty>) => void,
     onSelection?: (selection: Array<string>) => void
@@ -15,25 +21,40 @@ interface GraphExplorerProps {
 
 interface GraphExplorerState {
     directed: boolean,
-    graph: VisGraphData,
-    options: Options
-    loading: boolean
+    graphData: VisGraphData,
+    options: Options,
+    loadCount: number,
+    bufferData: VisGraphData
 }
 
 export class GraphExplorer extends Component<GraphExplorerProps, GraphExplorerState> {
     static displayName = GraphExplorer.name;
 
+    loadBatch: GraphExplorerBatch
+    expandQueue: Array<string>
+
     constructor(props : GraphExplorerProps) {
         super(props);
         this.state = {
             directed: false,
-            graph: {
+            graphData: {
+                nodes: new DataSet<VisNode>(),
+                edges: new DataSet<VisEdge>()
+            },
+            bufferData: {
                 nodes: new DataSet<VisNode>(),
                 edges: new DataSet<VisEdge>()
             },
             options: this.getDefaultOptions(),
-            loading: false
+            loadCount: 0
         };
+
+        this.loadBatch = {
+            size: 16,
+            active: 0,
+            queue: []
+        };
+        this.expandQueue = [];
         
         this.handleDoubleClick = this.handleDoubleClick.bind(this);
         this.handleSelectNode = this.handleSelectNode.bind(this);
@@ -58,7 +79,7 @@ export class GraphExplorer extends Component<GraphExplorerProps, GraphExplorerSt
         // Collect all the observation per property from all of the nodes.
         let properties : Array<VisProperty> = [];
         nodeIds
-            .map(id => this.state.graph.nodes.get(id))
+            .map(id => this.state.graphData.nodes.get(id))
             .forEach(node => {
                 node = node as VisNode;
                 if (node.properties) {
@@ -83,22 +104,27 @@ export class GraphExplorer extends Component<GraphExplorerProps, GraphExplorerSt
     handleDoubleClick(event: any) {
         const nodesIds : Array<string> = event.nodes;
         nodesIds
-            .map(id => this.state.graph.nodes.get(id))
+            .map(id => this.state.graphData.nodes.get(id))
             .forEach(node => {
                 // Expand/contract the node that was double clicked on.
                 // Notice that this will add the expanded property as true if the property doesn't already exist.
                 node = node as VisNode;
                 node.expanded = !node.expanded;
-                node.color = node.expanded ? { background: '#fff'} : {};
+                node.color = node.expanded ? {
+                    background: '#fff',
+                    highlight: {
+                        background: '#fff'
+                    }
+                } : {};
 
                 // Add or remove child nodes based on expand/contract state.
                 if (this.props.request) {
                     if (node.expanded) {
                         // Populate the children nodes if expanded.
-                        this.populateChildren(this.props.request, node.id);
+                        this.expandNode(this.props.request, node.id);
                     } else {
-                        // Depopulate the children nodes if contracted.
-                        this.depopulateChildren(node.id);
+                        // Depopulate the children nodes if collapsed.
+                        this.collapseNode(node.id);
                     }
                 }
             });
@@ -115,34 +141,56 @@ export class GraphExplorer extends Component<GraphExplorerProps, GraphExplorerSt
     }
 
     componentDidMount() {
-        if (this.props.request) this.populateData(this.props.request);
+        if (this.props.request) this.fetchGraph(this.props.request);
     }
     componentDidUpdate(prevProps : GraphExplorerProps) {
         if (this.props.request !== prevProps.request) {
-            if (this.props.request) this.populateData(this.props.request);
+            if (this.props.request) this.fetchGraph(this.props.request);
         }
 
         if (this.props.selection !== prevProps.selection) {
-            if (this.props.selection && prevProps.selection) {
-                // Check that the selection is actually different.
-                let different = false;
-                for (let k = 0; k < this.props.selection.length; k++) {
-                    if (this.props.selection[k] !== prevProps.selection[k]) {
-                        different = true;
-                        break;
+            if (typeof this.props.selection === "string") {
+                if (this.props.onSelection) {
+                    let selected;
+                    switch (this.props.selection) {
+                        case "expanded":
+                            selected = this.state.graphData.nodes
+                                .get()
+                                .filter(node => node.expanded)
+                                .map(node => node.id);
+                            this.props.onSelection(selected);
+                            break;
+                        case "collapsed":
+                            selected = this.state.graphData.nodes
+                                .get()
+                                .filter(node => !node.expanded)
+                                .map(node => node.id);
+                            this.props.onSelection(selected);
+                            break;
                     }
                 }
-                if (different) this.collectProperties(this.props.selection);
+            } else {
+                if (this.props.selection && prevProps.selection) {
+                    // Check that the selection is actually different.
+                    let different = false;
+                    for (let k = 0; k < this.props.selection.length; k++) {
+                        if (this.props.selection[k] !== prevProps.selection[k]) {
+                            different = true;
+                            break;
+                        }
+                    }
+                    if (different) this.collectProperties(this.props.selection);
+                }
+                if (this.props.selection) this.collectProperties(this.props.selection);
+                else this.collectProperties([]);
             }
-            if (this.props.selection) this.collectProperties(this.props.selection);
-            else this.collectProperties([]);
         }
     }
 
     render() {
         return (
             <Vis
-                graph={this.state.graph}
+                graph={this.state.graphData}
                 options={this.state.options}
                 selection={this.props.selection}
                 onDoubleClick={this.handleDoubleClick}
@@ -253,34 +301,6 @@ export class GraphExplorer extends Component<GraphExplorerProps, GraphExplorerSt
             });
         });
     }
-    prepareGraph(graph: VisGraph, state: GraphExplorerState, remove: boolean = true) {
-        // Update the nodes and edges data.
-        state.graph.nodes.update(graph.nodes);
-        state.graph.edges.update(graph.edges);
-
-        // Remove any excess nodes and edges left behind.
-        if (remove) {
-            let nodeIds = graph.nodes.map(node => node.id);
-            let edgeIds = graph.edges.map(edge => edge.id);
-            state.graph.nodes.remove(
-                state.graph.nodes.getIds().filter(id => !nodeIds.includes(id as string))
-            );
-            state.graph.edges.remove(
-                state.graph.edges.getIds().filter(id => !edgeIds.includes(id as string))
-            );
-        }
-
-        // Set the data state.
-        const data: VisGraphData = {
-            nodes: state.graph.nodes,
-            edges: state.graph.edges
-        };
-
-        // Color the data.
-        if (graph.directed) this.colorGraph(data);
-    
-        return data;
-    }
 
     appendQueryParam(url: string, key: string, value: string) {
         // Encode the key and the value.
@@ -301,16 +321,37 @@ export class GraphExplorer extends Component<GraphExplorerProps, GraphExplorerSt
         return `${url.substring(0, searchIndex)}/${route}${url.substring(searchIndex)}`;
     }
 
-    async populateData(request: string) {
-        // Set loading state to true.
-        this.setState({
-            loading: true
-        });
+    updateData(graph: VisGraph, bufferData: VisGraphData, getChildren: boolean = true) {
+        // Update the nodes and edges data.
+        bufferData.nodes.update(graph.nodes);
+        bufferData.edges.update(graph.edges);
+
+        // Check for nodes that are loaded that do not have children.
+        if (getChildren) {
+            const unloadedNodes = bufferData.nodes.get().filter(node => !node.loaded);
+            unloadedNodes.forEach(node => {
+                this.fetchChildren(this.props.request as string, node.id, bufferData);
+            });
+        }
+
+        // Color the data.
+        if (graph.directed) this.colorGraph(bufferData);
+    }
+
+    async fetchGraph(request: string) {
+        // We are loading data.
+        this.setState(state => ({
+            loadCount: state.loadCount + 1
+        }));
 
         // Grab the data from the server.
         const response = await fetch(`api/data/${request}`);
         const graph : VisGraph = await response.json();
-
+        
+        // Update the graph data.
+        this.updateData(graph, this.state.bufferData, true);
+        this.state.graphData.nodes.add(this.state.bufferData.nodes.get());
+        this.state.graphData.edges.add(this.state.bufferData.edges.get());
         
         // Set loading state to false and set data.
         this.setState(state => {
@@ -322,74 +363,126 @@ export class GraphExplorer extends Component<GraphExplorerProps, GraphExplorerSt
             else
                 delete options.edges.arrows;
             
-
             return {
                 directed: graph.directed,
-                graph: this.prepareGraph(graph, state),
                 options: options,
-                loading: false
+                loadCount: state.loadCount - 1
             }
         });
     }
-    async populateChildren(request: string, id: string) {
-        // Set loading state to true.
-        this.setState({
-            loading: true
-        });
+    async fetchChildren(request: string, id: string | null, bufferData: VisGraphData, force: boolean = false) {
+        // We are loading data.
+        this.setState(state => ({
+            loadCount: state.loadCount + 1
+        }));
+
+        // Add the requested ID to the buffer (if not null).
+        if (id) {
+            const index = this.loadBatch.queue.indexOf(id) as number;
+            if (index >= 0) this.loadBatch.queue.splice(index, 1);
+            this.loadBatch.queue.push(id);
+        }
+
+        // Try to get an ID that was requesting if we have active batches or are forced.
+        let fetchId : string;
+        if ((this.loadBatch.active < this.loadBatch.size && this.loadBatch.queue.length > 0) || force) {
+            fetchId = this.loadBatch.queue.pop() as string;
+            this.loadBatch.active++;
+        } else return;
 
         // Grab the data from the server.
-        const route = this.appendQueryParam(this.appendRoute(request, 'children'), 'uuid', id);
+        const route = this.appendQueryParam(this.appendRoute(request, 'children'), 'id', fetchId);
         const response = await fetch(`api/data/${route}`);
         const graph : VisGraph = await response.json();
-        
-        // Set loading state to false and update data.
-        // Note that we need to check for duplicate nodes and edges.
-        this.setState(state => {
-            return {
-                graph: this.prepareGraph(graph, state, false),
-                loading: false
-            };
-        });
+
+        // Update the nodes and edges data.
+        bufferData.nodes.update({ id: fetchId, loaded: true });
+        this.updateData(graph, bufferData, false);
+        this.setState(state => ({
+            loadCount: state.loadCount - 1
+        }));
+
+        // Recall the method and expand any queued nodes. once the active load count goes down.
+        this.loadBatch.active--;
+        this.fetchChildren(request, null, bufferData);
+        this.expandNode(request, null);
     }
-    async depopulateChildren(id: string) {
-        // Set loading state to true.
-        this.setState({
-            loading: true
-        });
+    async expandNode(request: string, id: string | null) {
+        if (!id) {
+            if (this.expandQueue.length > 0) id = this.expandQueue.pop() as string;
+            else return;            
+        }
 
-        // Set loading state to false and update data.
-        this.setState(state => {
-            // Obtain all of the descendents of the selected node.
-            const descendantIds: Array<string> = [];
-            const openIds: Array<string> = [id];
-
-            while (openIds.length > 0) {
-                const descendantId: string = openIds.pop() as string;
-                const children = state.graph.edges
+        const parent = this.state.bufferData.nodes.get(id);
+        if (parent)
+        {
+            if (parent.loaded)
+            {
+                // Find the unadded edges and nodes.
+                const unaddedNodeEdges = this.state.bufferData.edges
                     .get()
-                    .filter(edge => edge.from === descendantId)
-                    .map(edge => edge.to);
-                children.forEach(childId => {
-                    descendantIds.push(childId);
-                    openIds.push(childId);
+                    .filter(edge => edge.from === parent.id)
+                    .filter(edge => !this.state.graphData.nodes.get(edge.to));
+                const nodeTotalIds = this.state.graphData.nodes.getIds();
+                const nodeIds = unaddedNodeEdges.map(edge => edge.to);
+                const edgeIds = unaddedNodeEdges.map(edge => edge.id);
+                const unaddedNodes = this.state.bufferData.nodes.get(nodeIds);
+                const unaddedEdges = this.state.bufferData.edges.get(edgeIds);
+                const unaddedSiblingEdges = this.state.bufferData.edges.get(
+                    this.state.bufferData.edges
+                        .get()
+                        .filter(edge => nodeIds.includes(edge.from))
+                        .filter(edge => nodeTotalIds.includes(edge.to))
+                        .map(edge => edge.id)
+                );
+
+                // Add the nodes and edges to the graph data.
+                this.state.graphData.nodes.update(unaddedNodes);
+                this.state.graphData.edges.update(unaddedEdges);
+                this.state.graphData.edges.update(unaddedSiblingEdges);
+
+                // Start fetching children of newly added nodes.
+                unaddedNodes.forEach(node => {
+                    if (!node.loaded) {
+                        this.fetchChildren(request, node.id, this.state.bufferData);
+                    }
                 });
+            } else {
+                // Force preempting the current parent if not loaded.
+                this.expandQueue.push(id);
+                this.fetchChildren(request, id, this.state.bufferData, true);
             }
+        }
 
-            // Remove descendant nodes and edges.
-            state.graph.nodes.remove(descendantIds);
-            state.graph.edges.remove(
-                state.graph.edges.get().filter(edge =>
-                    descendantIds.includes(edge.from)
-                )
-            );
+        // Recolor the parent node.
+        if (this.state.directed) this.colorGraph(this.state.graphData, [id]);
+    }
+    async collapseNode(id: string) {
+        // Obtain all of the descendents of the selected node.
+        const descendantIds: Array<string> = [];
+        const openIds: Array<string> = [id];
 
-            // Recolor the parent node.
-            if (state.directed) this.colorGraph(state.graph, [id]);
+        while (openIds.length > 0) {
+            const descendantId: string = openIds.pop() as string;
+            const children = this.state.graphData.edges
+                .get()
+                .filter(edge => edge.from === descendantId)
+                .map(edge => edge.to);
+            children.forEach(childId => {
+                descendantIds.push(childId);
+                openIds.push(childId);
+            });
+        }
 
-            return {
-                graph: state.graph,
-                loading: false
-            };
-        });
+        // Remove descendant nodes and edges.
+        this.state.graphData.nodes.remove(descendantIds);
+        this.state.graphData.edges.remove(
+            this.state.graphData.edges.get().filter(edge =>
+                descendantIds.includes(edge.from)
+            )
+        );
+
+        // Recolor the parent node.
+        if (this.state.directed) this.colorGraph(this.state.graphData, [id]);
     }
 }

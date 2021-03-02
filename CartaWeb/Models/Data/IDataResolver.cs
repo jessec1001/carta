@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-using CartaCore.Data.Freeform;
+using CartaCore.Data;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CartaWeb.Models.Data
@@ -16,6 +16,6 @@ namespace CartaWeb.Models.Data
         /// <param name="controller">The controller generating the request.</param>
         /// <param name="resource">The resource to generate.</param>
         /// <returns>The freeform graph data.</returns>
-        Task<FreeformGraph> GenerateAsync(ControllerBase controller, string resource);
+        Task<Graph> GenerateAsync(ControllerBase controller, string resource);
     }
 }

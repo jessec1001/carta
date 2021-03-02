@@ -9,6 +9,8 @@ import {
 } from 'reactstrap';
 import CSS from 'csstype';
 
+import './GraphToolbar.css';
+
 interface GraphToolbarProps {
     className?: string
     style?: CSS.Properties
@@ -22,6 +24,8 @@ export class GraphToolbar extends Component<GraphToolbarProps> {
 
         this.handleSelectByName = this.handleSelectByName.bind(this);
         this.handleSelectByProperty = this.handleSelectByProperty.bind(this);
+        this.handleSelectExpanded = this.handleSelectExpanded.bind(this);
+        this.handleSelectCollapsed = this.handleSelectCollapsed.bind(this);
     }
 
     handleSelectByName() {
@@ -43,6 +47,17 @@ export class GraphToolbar extends Component<GraphToolbarProps> {
         }
     }
 
+    handleSelectExpanded() {
+        if (this.props.onSelect) {
+            this.props.onSelect("expanded");
+        }
+    }
+    handleSelectCollapsed() {
+        if (this.props.onSelect) {
+            this.props.onSelect("collapsed");
+        }
+    }
+
     render() {
         return (
             <Navbar className={this.props.className} light style={this.props.style} expand="md">
@@ -56,10 +71,17 @@ export class GraphToolbar extends Component<GraphToolbarProps> {
                                 All
                             </DropdownItem> */}
                             <DropdownItem onClick={this.handleSelectByName}>
-                                By Name
+                                Select by Name
                             </DropdownItem>
                             <DropdownItem onClick={this.handleSelectByProperty}>
-                                By Property
+                                Select by Property
+                            </DropdownItem>
+                            <hr />
+                            <DropdownItem onClick={this.handleSelectExpanded}>
+                                Select Expanded
+                            </DropdownItem>
+                            <DropdownItem onClick={this.handleSelectCollapsed}>
+                                Select Collapsed
                             </DropdownItem>
                             {/* <DropdownItem>
                                 Descendants

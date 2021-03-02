@@ -1,18 +1,14 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json.Serialization;
+using System.Threading.Tasks;
 
-using QuikGraph;
-
-using CartaCore.Data.Freeform;
-using CartaCore.Utility;
+using CartaCore.Data;
 
 namespace CartaWeb.Serialization.Json
 {
-    /*
     /// <summary>
-    /// Represents a single or multiple freeform graph in JSON Graph format.
+    /// Represents a single or multiple graph in JSON Graph format.
     /// </summary>
     /// <remarks>
     /// This class allows for easy serialization and deserialization to and from JSON specified by the JSON Graph
@@ -38,13 +34,13 @@ namespace CartaWeb.Serialization.Json
         public List<JgFormatGraph> GraphsMultiple { get; set; }
 
         /// <summary>
-        /// Gets the freeform graph.
+        /// Gets the graph.
         /// </summary>
         /// <value>
-        /// The freeform graph.
+        /// The graph.
         /// </value>
         [JsonIgnore]
-        public FreeformGraph Graph
+        public FiniteGraph Graph
         {
             get
             {
@@ -55,13 +51,13 @@ namespace CartaWeb.Serialization.Json
             }
         }
         /// <summary>
-        /// Gets the freeform graphs.
+        /// Gets the graphs.
         /// </summary>
         /// <value>
-        /// The freeform graphs.
+        /// The graphs.
         /// </value>
         [JsonIgnore]
-        public IEnumerable<FreeformGraph> Graphs
+        public IEnumerable<FiniteGraph> Graphs
         {
             get
             {
@@ -73,29 +69,39 @@ namespace CartaWeb.Serialization.Json
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="JgFormat"/> class with the specified graph.
-        /// </summary>
-        /// <param name="graph">The graph to convert to a new format.</param>
-        public JgFormat(FreeformGraph graph)
-        {
-            GraphSingle = new JgFormatGraph(graph);
-        }
-        /// <summary>
-        /// Initializes a new instance of the <see cref="JgFormat"/> class with the specified enumerable of graphs.
-        /// </summary>
-        /// <param name="graphs">The graphs to convert to a new format.</param>
-        public JgFormat(IEnumerable<FreeformGraph> graphs)
-        {
-            GraphsMultiple = graphs.Select(graph => new JgFormatGraph(graph)).ToList();
-        }
-        /// <summary>
         /// Initializes a new instance of the <see cref="JgFormat"/> class.
         /// </summary>
         public JgFormat() { }
+
+        /// <summary>
+        /// Constructs a <see cref="JgFormat"/> version of the specified graph.
+        /// </summary>
+        /// <param name="graph">The graph to convert to JG format.</param>
+        /// <returns>The JG formatted graph.</returns>
+        public static async Task<JgFormat> CreateAsync(IEntireGraph graph)
+        {
+            JgFormat jgFormat = new JgFormat();
+            jgFormat.GraphSingle = await JgFormatGraph.CreateAsync(graph);
+            return jgFormat;
+        }
+        /// <summary>
+        /// Constructs a <see cref="JgFormat"/> version of the specified graphs.
+        /// </summary>
+        /// <param name="graphs">The enumerable of graphs to convert to JG format.</param>
+        /// <returns>The JG formatted graphs.</returns>
+        public static async Task<JgFormat> CreateAsync(IEnumerable<IEntireGraph> graphs)
+        {
+            JgFormat jgFormat = new JgFormat();
+            jgFormat.GraphsMultiple = new List<JgFormatGraph>
+            (
+                await Task.WhenAll(graphs.Select(async graph => await JgFormatGraph.CreateAsync(graph)))
+            );
+            return jgFormat;
+        }
     }
 
     /// <summary>
-    /// Represents a freeform graph in JSON Graph format.
+    /// Represents a graph in JSON Graph format.
     /// </summary>
     public class JgFormatGraph
     {
@@ -126,29 +132,26 @@ namespace CartaWeb.Serialization.Json
         public List<JgFormatEdge> Edges { get; set; }
 
         /// <summary>
-        /// Gets the freeform graph.
+        /// Gets the graph.
         /// </summary>
         /// <value>
-        /// The freeform graph.
+        /// The graph.
         /// </value>
         [JsonIgnore]
-        public FreeformGraph Graph
+        public FiniteGraph Graph
         {
             get
             {
-                // Create a graph with the correct directed variant.
-                FreeformGraph graph;
-                if (Directed)
-                    graph = new AdjacencyGraph<FreeformVertex, FreeformEdge>();
-                else
-                    graph = new UndirectedGraph<FreeformVertex, FreeformEdge>();
-
-                // Add the vertices and edges.
-                graph.AddVertexRange(Nodes.Select(pair => new FreeformVertex(Guid.Parse(pair.Key))
+                // Create a graph and add the vertices and edges.
+                FiniteGraph graph = new FiniteGraph(null, Directed);
+                graph.AddVertexRange(Nodes.Select(pair => new Vertex
+                (
+                    Identity.Create(pair.Key),
+                    pair.Value.Properties
+                )
                 {
                     Label = pair.Value.Label,
-                    Description = pair.Value.Description,
-                    Properties = pair.Value.Properties
+                    Description = pair.Value.Description
                 }));
                 graph.AddEdgeRange(Edges.Select(edge => edge.Edge));
 
@@ -157,29 +160,36 @@ namespace CartaWeb.Serialization.Json
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="JgFormatGraph"/> class with the specified graph.
-        /// </summary>
-        /// <param name="graph">The graph to convert to a new format.</param>
-        public JgFormatGraph(FreeformGraph graph)
-        {
-            Directed = graph.IsDirected;
-
-            Nodes = graph.Vertices.ToDictionary(
-                vertex => vertex.Identifier.ToString(),
-                vertex => new JgFormatNode(vertex)
-            );
-            Edges = graph.Edges.Select(
-                edge => new JgFormatEdge(edge)
-            ).ToList();
-        }
-        /// <summary>
         /// Initializes a new instance of the <see cref="JgFormatGraph"/> class.
         /// </summary>
         public JgFormatGraph() { }
+
+        /// <summary>
+        /// Constructes a <see cref="JgFormatGraph"/> version of the specified graph.
+        /// </summary>
+        /// <param name="graph">The graph to convert to JG format.</param>
+        /// <returns>The JG formatted graph.</returns>
+        public static async Task<JgFormatGraph> CreateAsync(IEntireGraph graph)
+        {
+            JgFormatGraph jgFormatGraph = new JgFormatGraph();
+
+            jgFormatGraph.Directed = graph.IsDirected;
+            jgFormatGraph.Nodes = await graph.Vertices.ToDictionaryAwaitAsync
+            (
+                node => new ValueTask<string>(Task.FromResult(node.Identifier.ToString())),
+                node => new ValueTask<JgFormatNode>(Task.FromResult(new JgFormatNode(node)))
+            );
+            jgFormatGraph.Edges = await graph.Edges.SelectAwait
+            (
+                edge => new ValueTask<JgFormatEdge>(Task.FromResult(new JgFormatEdge(edge)))
+            ).ToListAsync();
+
+            return jgFormatGraph;
+        }
     }
 
     /// <summary>
-    /// Represents a freeform vertex in JSON Graph format.
+    /// Represents a vertex in JSON Graph format.
     /// </summary>
     public class JgFormatNode
     {
@@ -207,30 +217,30 @@ namespace CartaWeb.Serialization.Json
         /// The vertex metadata.
         /// </value>
         [JsonPropertyName("metadata")]
-        public SortedList<string, JgProperty> Metadata { get; set; }
+        public Dictionary<string, List<JgFormatObservation>> Metadata { get; set; }
 
         /// <summary>
-        /// Gets the freeform properties.
+        /// Gets the properties.
         /// </summary>
         /// <value>
-        /// The freeform properties.
+        /// The properties.
         /// </value>
         [JsonIgnore]
-        public SortedList<string, FreeformProperty> Properties
+        public List<Property> Properties
         {
             get
             {
                 // Check for no metadata before trying to read it.
-                if (Metadata == null)
-                    return new SortedList<string, FreeformProperty>();
+                if (Metadata is null)
+                    return new List<Property>();
 
                 // Return the metadata parsed into a sorted list.
-                return new SortedList<string, FreeformProperty>(
-                    Metadata.ToDictionary(
-                        pair => pair.Key,
-                        pair => pair.Value.Property
-                    )
-                );
+                return Metadata
+                    .Select(pair => new Property
+                    (
+                        Identity.Create(pair.Key),
+                        pair.Value.Select(observation => observation.Observation).ToList()
+                    )).ToList();
             }
         }
 
@@ -238,19 +248,21 @@ namespace CartaWeb.Serialization.Json
         /// Initializes a new instance of the <see cref="JgFormatNode"/> class with the specified node.
         /// </summary>
         /// <param name="vertex">The vertex to convert to a new format.</param>
-        public JgFormatNode(FreeformVertex vertex)
+        public JgFormatNode(IVertex vertex)
         {
             Label = vertex.Label;
             Description = vertex.Description;
 
-            Metadata = vertex.Properties == null ? null :
-            new SortedList<string, JgProperty>(
-                vertex.Properties
+            if (vertex.Properties is not null)
+            {
+                Metadata = vertex.Properties
                     .ToDictionary(
-                        pair => pair.Key,
-                        pair => new JgProperty(pair.Value)
-                    )
-            );
+                        property => property.Identifier.ToString(),
+                        property => property.Observations
+                            .Select(observation => new JgFormatObservation(observation))
+                            .ToList()
+                    );
+            }
         }
         /// <summary>
         /// Initializes a new instance of the <see cref="JgFormatNode"/> class.
@@ -259,10 +271,17 @@ namespace CartaWeb.Serialization.Json
     }
 
     /// <summary>
-    /// Represents a freeform edge in JSON Graph format.
+    /// Represents a edge in JSON Graph format.
     /// </summary>
     public class JgFormatEdge
     {
+        /// <summary>
+        /// Gets or sets the ID.
+        /// </summary>
+        /// <value>The edge ID.</value>
+        [JsonPropertyName("id")]
+        public string Id { get; set; }
+
         /// <summary>
         /// Gets or sets the source vertex ID.
         /// </summary>
@@ -270,7 +289,7 @@ namespace CartaWeb.Serialization.Json
         /// The source vertex ID.
         /// </value>
         [JsonPropertyName("source")]
-        public Guid Source { get; set; }
+        public string Source { get; set; }
         /// <summary>
         /// Gets or sets the target vertex ID.
         /// </summary>
@@ -278,23 +297,23 @@ namespace CartaWeb.Serialization.Json
         /// The target vertex ID.
         /// </value>
         [JsonPropertyName("target")]
-        public Guid Target { get; set; }
+        public string Target { get; set; }
 
         /// <summary>
-        /// Gets the freeform edge.
+        /// Gets the edge.
         /// </summary>
         /// <value>
-        /// The freeform edge.
+        /// The edge.
         /// </value>
         [JsonIgnore]
-        public FreeformEdge Edge
+        public Edge Edge
         {
             get
             {
-                return new FreeformEdge
+                return new Edge
                 (
-                    new FreeformVertex(Source),
-                    new FreeformVertex(Target)
+                    Identity.Create(Source),
+                    Identity.Create(Target)
                 );
             }
         }
@@ -303,10 +322,11 @@ namespace CartaWeb.Serialization.Json
         /// Initializes a new instance of the <see cref="JgFormatEdge"/> class with the specified edge.
         /// </summary>
         /// <param name="edge">The edge to convert to a new format.</param>
-        public JgFormatEdge(FreeformEdge edge)
+        public JgFormatEdge(Edge edge)
         {
-            Source = edge.Source.Id;
-            Target = edge.Target.Id;
+            Id = edge.Identifier.ToString();
+            Source = edge.Source.ToString();
+            Target = edge.Target.ToString();
         }
         /// <summary>
         /// Initializes a new instance of the <see cref="JgFormatEdge"/> class.
@@ -315,56 +335,52 @@ namespace CartaWeb.Serialization.Json
     }
 
     /// <summary>
-    /// Represents a vertex property in JSON Graph format.
+    /// Represents an observation for a property in JSON Graph format.
     /// </summary>
-    public class JgProperty
+    public class JgFormatObservation
     {
         /// <summary>
-        /// Gets or sets the property type.
+        /// Gets or sets the observation type.
         /// </summary>
-        /// <value>
-        /// The property type.
-        /// </value>
+        /// <value>The human-readable observation type.</value>
         [JsonPropertyName("type")]
         public string Type { get; set; }
         /// <summary>
-        /// Gets or sets the property value.
+        /// Gets or sets the observation value.
         /// </summary>
-        /// <value>
-        /// The property value.
-        /// </value>
+        /// <value>The observation value.</value>
         [JsonPropertyName("value")]
         public object Value { get; set; }
 
         /// <summary>
-        /// Gets the freeform property.
+        /// Gets the observation.
         /// </summary>
-        /// <value>
-        /// The freeform property.
-        /// </value>
+        /// <value>The observation.</value>
         [JsonIgnore]
-        public FreeformProperty Property
+        public Observation Observation
         {
-            get => new FreeformProperty
+            get
             {
-                Value = Value,
-                Type = Type.TypeDeserialize()
-            };
+                return new Observation
+                {
+                    Type = Type,
+                    Value = Value
+                };
+            }
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="JgProperty"/> class with the specified property.
+        /// Initializes an instance of the <see cref="JgFormatObservation"/> class with the specified observation.
         /// </summary>
-        /// <param name="property">The property to convert to a new format.</param>
-        public JgProperty(FreeformProperty property)
+        /// <param name="observation">The observation.</param>
+        public JgFormatObservation(Observation observation)
         {
-            Value = property.Value;
-            Type = TypeExtensions.TypeSerialize(property.Type);
+            Type = observation.Type;
+            Value = observation.Value;
         }
         /// <summary>
-        /// Initializes a new instance of the <see cref="JgProperty"/> class.
+        /// Initializes an instance of the <see cref="JgFormatObservation"/> class.
         /// </summary>
-        public JgProperty() { }
+        public JgFormatObservation() { }
     }
-    */
 }

@@ -1,8 +1,6 @@
-using System;
 using System.Linq;
-using System.Text.RegularExpressions;
 
-using CartaCore.Data.Freeform;
+using CartaCore.Data;
 
 namespace CartaCore.Workflow.Selection
 {
@@ -20,7 +18,7 @@ namespace CartaCore.Workflow.Selection
         public string Property { get; set; }
 
         /// <inheritdoc />
-        public override bool Contains(FreeformVertex vertex)
+        public override bool Contains(Vertex vertex)
         {
             if (vertex.Properties.Any(property => property.Identifier.ToString().ToLower() == Property.ToLower())) return true;
             return false;

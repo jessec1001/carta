@@ -13,7 +13,6 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="5.0.3" />
-    <PackageReference Include="QuikGraph" Version="2.2.0" />
   </ItemGroup>
 
   <ItemGroup>

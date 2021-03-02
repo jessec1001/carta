@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 
-using CartaCore.Data.Freeform;
+using CartaCore.Data;
 using CartaCore.Integration.Hyperthought;
 
 namespace CartaWeb.Models.Data
@@ -26,7 +26,7 @@ namespace CartaWeb.Models.Data
         }
 
         /// <inheritdoc />
-        public async Task<FreeformGraph> GenerateAsync(ControllerBase controller, string resource)
+        public async Task<Graph> GenerateAsync(ControllerBase controller, string resource)
         {
             if (controller.Request.Query.ContainsKey("api"))
             {
