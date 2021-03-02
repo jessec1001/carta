@@ -1,18 +1,16 @@
 using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
 
-using QuikGraph;
 using NUnit.Framework;
 
 using CartaCore.Data;
-// using CartaWeb.Serialization.Xml;
+using CartaWeb.Serialization.Xml;
 
 namespace CartaTest.Serialization.Xml
 {
-    /*
-    using FreeformGraph = IMutableVertexAndEdgeSet<FreeformVertex, FreeformEdge>;
-
     /// <summary>
     /// Tests the serialization of a freeform graph into Graph Exchange XML format.
     /// </summary>
@@ -23,10 +21,10 @@ namespace CartaTest.Serialization.Xml
         /// Tests the serialization and deserialization of a simple undirected graph.
         /// </summary>
         [Test]
-        public void TestGexfReserialize()
+        public async Task TestGexfReserialize()
         {
             XmlSerializer serializer = new XmlSerializer(typeof(GexFormat));
-            GexFormat sample = new GexFormat(GraphHelpers.UndirectedGraphSample);
+            GexFormat sample = await GexFormat.CreateAsync(GraphHelpers.UndirectedGraphSample);
 
             string str;
             using (StringWriter stringWriter = new StringWriter())
@@ -47,12 +45,11 @@ namespace CartaTest.Serialization.Xml
                 }
             }
 
-            FreeformGraph graph = data.Graph;
+            FiniteGraph graph = data.Graph;
 
             Assert.NotNull(graph);
-            Assert.AreEqual(5, graph.VertexCount);
-            Assert.AreEqual(5, graph.EdgeCount);
+            Assert.AreEqual(5, await graph.Vertices.CountAsync());
+            Assert.AreEqual(5, await graph.Edges.CountAsync());
         }
     }
-    */
 }

@@ -1,6 +1,7 @@
+using System.Linq;
 using System.Text.Json;
+using System.Threading.Tasks;
 
-using QuikGraph;
 using NUnit.Framework;
 
 using CartaCore.Data;
@@ -8,9 +9,6 @@ using CartaWeb.Serialization.Json;
 
 namespace CartaTest.Serialization.Json
 {
-    /*
-    using FreeformGraph = IMutableVertexAndEdgeSet<FreeformVertex, FreeformEdge>;
-
     /// <summary>
     /// Tests the serialization of freeform graphs into JSON Graph format.
     /// </summary>
@@ -21,19 +19,18 @@ namespace CartaTest.Serialization.Json
         /// Tests the serialization and deserialization of a simple undirected graph.
         /// </summary>
         [Test]
-        public void TestJgUndirected()
+        public async Task TestJgUndirected()
         {
-            JgFormat sample = new JgFormat(GraphHelpers.UndirectedGraphSample);
+            JgFormat sample = await JgFormat.CreateAsync(GraphHelpers.UndirectedGraphSample);
 
             string str = JsonSerializer.Serialize<JgFormat>(sample);
             JgFormat data = JsonSerializer.Deserialize<JgFormat>(str);
 
-            FreeformGraph graph = data.Graph;
+            FiniteGraph graph = data.Graph;
 
             Assert.NotNull(graph);
-            Assert.AreEqual(5, graph.VertexCount);
-            Assert.AreEqual(5, graph.EdgeCount);
+            Assert.AreEqual(5, await graph.Vertices.CountAsync());
+            Assert.AreEqual(5, await graph.Edges.CountAsync());
         }
     }
-    */
 }

@@ -1,28 +1,26 @@
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 
-namespace CartaCore.Data.Freeform
+namespace CartaCore.Data
 {
     /// <summary>
-    /// Represents an identity that is compared on the basis of a constant value.
+    /// Represents a unique identity that is compared on the basis of a constant value.
     /// </summary>
     /// <typeparam name="T">The type of equatable and comparable constant value.</typeparam>
-    public class FreeformConstantIdentity<T> : FreeformIdentity, IEquatable<T>, IComparable<T>
-        where T : IEquatable<T>, IComparable<T>
+    public class ConstantIdentity<T> : Identity, IEquatable<T>, IComparable<T> where T : IEquatable<T>, IComparable<T>
     {
         /// <summary>
         /// Gets or sets the identity value.
         /// </summary>
-        /// <value>The identitiy.</value>
-        public T Identity { get; set; }
+        /// <value>The unique identitiy. The value of this identity does not change after initialized.</value>
+        public T Identity { get; protected init; }
 
         /// <summary>
-        /// Initializes an instance of the <see cref="FreeformConstantIdentity{T}"/> class with the specified identifier.
+        /// Initializes an instance of the <see cref="ConstantIdentity{T}"/> class with the specified identifier.
         /// </summary>
         /// <param name="id">The identifier object.</param>
-        public FreeformConstantIdentity(T id)
+        public ConstantIdentity(T id)
         {
             Identity = id;
         }
@@ -64,38 +62,38 @@ namespace CartaCore.Data.Freeform
         }
 
         /// <inheritdoc />
-        public bool Equals([AllowNull] T other)
+        public int CompareTo(T other)
+        {
+            return Identity.CompareTo(other);
+        }
+        /// <inheritdoc />
+        public override int CompareTo(Identity other)
+        {
+            if (other is ConstantIdentity<T> constantOther) return Identity.CompareTo(constantOther.Identity);
+            if (other is ConstantIdentity<string> stringOther &&
+                TryParse(stringOther.Identity, out T parsedOther)) return Identity.CompareTo(parsedOther);
+            return other.CompareTo(this);
+        }
+
+        /// <inheritdoc />
+        public bool Equals(T other)
         {
             return Identity.Equals(other);
         }
         /// <inheritdoc />
-        public override bool Equals([AllowNull] FreeformIdentity other)
+        public override bool Equals(Identity other)
         {
-            if (other is FreeformConstantIdentity<T> constantOther) return Identity.Equals(constantOther.Identity);
-            if (other is FreeformConstantIdentity<string> stringOther &&
+            if (other is ConstantIdentity<T> constantOther) return Identity.Equals(constantOther.Identity);
+            if (other is ConstantIdentity<string> stringOther &&
                 TryParse(stringOther.Identity, out T parsedOther)) return Identity.Equals(parsedOther);
             else return other.Equals(this);
         }
         /// <inheritdoc />
         public override bool Equals(object obj)
         {
-            if (obj is FreeformIdentity other) return Equals(other);
+            if (obj is Identity other) return Equals(other);
             if (obj is T otherIdentity) return Equals(otherIdentity);
             return false;
-        }
-
-        /// <inheritdoc />
-        public int CompareTo([AllowNull] T other)
-        {
-            return Identity.CompareTo(other);
-        }
-        /// <inheritdoc />
-        public override int CompareTo([AllowNull] FreeformIdentity other)
-        {
-            if (other is FreeformConstantIdentity<T> constantOther) return Identity.CompareTo(constantOther.Identity);
-            if (other is FreeformConstantIdentity<string> stringOther &&
-                TryParse(stringOther.Identity, out T parsedOther)) return Identity.CompareTo(parsedOther);
-            return other.CompareTo(this);
         }
 
         /// <inheritdoc />

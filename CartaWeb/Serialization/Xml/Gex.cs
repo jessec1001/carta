@@ -1,19 +1,15 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
 
-using QuikGraph;
-
-using CartaCore.Data.Freeform;
-using CartaCore.Utility;
+using CartaCore.Data;
 
 namespace CartaWeb.Serialization.Xml
 {
-    /*
     /// <summary>
-    /// Represents a freeform graph with metadata in Graph Exchange XML format.
+    /// Represents a graph with metadata in Graph Exchange XML format.
     /// </summary>
     [XmlRoot(ElementName = "gexf", Namespace = "http://www.gexf.net/1.2draft")]
     public class GexFormat
@@ -28,29 +24,33 @@ namespace CartaWeb.Serialization.Xml
         public GexFormatGraph Data { get; set; }
 
         /// <summary>
-        /// Gets the freeform graph.
+        /// Gets the graph.
         /// </summary>
         /// <value>
-        /// The freeform graph.
+        /// The graph.
         /// </value>
         [XmlIgnore]
-        public FreeformGraph Graph
+        public FiniteGraph Graph
         {
             get => Data.Graph;
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GexFormat"/> class with the specified graph.
-        /// </summary>
-        /// <param name="graph">The graph to be converted to a new format.</param>
-        public GexFormat(FreeformGraph graph)
-        {
-            Data = new GexFormatGraph(graph);
-        }
-        /// <summary>
         /// Initializes a new instance of the <see cref="GexFormat"/> class.
         /// </summary>
         public GexFormat() { }
+
+        /// <summary>
+        /// Constructs a <see cref="GexFormat"/> version of the specified graph.
+        /// </summary>
+        /// <param name="graph">The graph to convert to GEX format.</param>
+        /// <returns>The GEX formatted graph.</returns>
+        public static async Task<GexFormat> CreateAsync(IEntireGraph graph)
+        {
+            GexFormat gexFormat = new GexFormat();
+            gexFormat.Data = await GexFormatGraph.CreateAsync(graph);
+            return gexFormat;
+        }
     }
 
     /// <summary>
@@ -83,7 +83,7 @@ namespace CartaWeb.Serialization.Xml
     }
 
     /// <summary>
-    /// Represents a freeform graph in Graph Exchange XML format.
+    /// Represents a graph in Graph Exchange XML format.
     /// </summary>
     public class GexFormatGraph
     {
@@ -127,56 +127,45 @@ namespace CartaWeb.Serialization.Xml
         public GexFormatPropertyDefinitionList PropertyDefinitions { get; set; }
 
         /// <summary>
-        /// Gets the freeform graph.
+        /// Gets the graph.
         /// </summary>
         /// <value>
-        /// The freeform graph.
+        /// The graph.
         /// </value>
-        public FreeformGraph Graph
+        public FiniteGraph Graph
         {
             get
             {
-                // Create a graph with the correct directed variant.
-                FreeformGraph graph;
-                if (EdgeType == GexFormatEdgeType.Directed)
-                    graph = new AdjacencyGraph<FreeformVertex, FreeformEdge>();
-                else
-                    graph = new UndirectedGraph<FreeformVertex, FreeformEdge>();
+                // Create a graph.
+                FiniteGraph graph = new FiniteGraph(null, EdgeType == GexFormatEdgeType.Directed);
 
                 // Get the property mapping.
-                Dictionary<int, (string Name, FreeformProperty Property)> properties = PropertyDefinitions.Definitions
+                Dictionary<int, (string Name, Property Property)> properties = PropertyDefinitions.Definitions
                     .ToDictionary
                     (
                         def => def.Id,
                         def => (def.Name,
-                        new FreeformProperty
-                        {
-                            Type = def.Type.TypeDeserialize()
-                        })
+                        new Property(Identity.Create(def.Name)))
                     );
 
                 // Add the vertices and edges.
-                graph.AddVertexRange(Nodes.Select(node => new FreeformVertex(node.Id)
-                {
-                    Label = node.Label,
-                    Description = node.Description,
-                    Properties = new SortedList<string, FreeformProperty>
+                graph.AddVertexRange(Nodes.Select(node =>
+                    new Vertex
                     (
-                        node.Properties.ToDictionary
+                        Identity.Create(node.Id),
+                        node.Properties.Select
                         (
-                            prop => properties[prop.Id].Name,
-                            prop =>
-                            {
-                                (string _, FreeformProperty property) = properties[prop.Id];
-                                return new FreeformProperty
-                                {
-                                    Type = property.Type,
-                                    Value = prop.Value
-                                };
-                            }
-                        )
+                            property => new Property
+                            (
+                                Identity.Create(property.Id),
+                                property.Observations
+                            )
+                        ).ToList()
                     )
-                }));
+                    {
+                        Label = node.Label,
+                        Description = node.Description
+                    }));
                 graph.AddEdgeRange(Edges.Select(edge => edge.Edge));
 
                 return graph;
@@ -184,26 +173,34 @@ namespace CartaWeb.Serialization.Xml
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GexFormatGraph"/> class with the specified graph.
+        /// Initializes a new instance of the <see cref="GexFormatGraph"/> class.
         /// </summary>
-        /// <param name="graph">The graph to convert to a new format.</param>
-        public GexFormatGraph(FreeformGraph graph)
+        public GexFormatGraph() { }
+
+        /// <summary>
+        /// Constructs a <see cref="GexFormatGraph"/> version of the specified graph.
+        /// </summary>
+        /// <param name="graph">The graph to convert to GEX format.</param>
+        /// <returns>The GEX formatted graph.</returns>
+        public static async Task<GexFormatGraph> CreateAsync(IEntireGraph graph)
         {
+            GexFormatGraph gexFormatGraph = new GexFormatGraph();
+
             // We need the property mapping before creating the nodes.
-            Dictionary<string, (int index, FreeformProperty prop)> properties =
-                new Dictionary<string, (int index, FreeformProperty prop)>();
-            foreach (FreeformVertex vertex in graph.Vertices)
+            Dictionary<string, (int index, Property prop)> properties =
+                new Dictionary<string, (int index, Property prop)>();
+            await foreach (Vertex vertex in graph.Vertices)
             {
-                foreach (KeyValuePair<string, FreeformProperty> property in vertex.Properties)
+                foreach (Property property in vertex.Properties)
                 {
-                    if (!properties.ContainsKey(property.Key))
+                    if (!properties.ContainsKey(property.Identifier.ToString()))
                     {
                         properties.Add
                         (
-                            property.Key,
+                            property.Identifier.ToString(),
                             (
                                 properties.Count,
-                                property.Value
+                                property
                             )
                         );
                     }
@@ -215,22 +212,25 @@ namespace CartaWeb.Serialization.Xml
                 pair => pair.Value.index
             );
 
-            Nodes = graph.Vertices.Select(vertex => new GexFormatNode(vertex, propertyIds)).ToList();
-            Edges = graph.Edges.Select((edge, index) => new GexFormatEdge(index, edge)).ToList();
+            // Set the nodes and edges.
+            gexFormatGraph.Nodes = await graph.Vertices
+                .Select(vertex => new GexFormatNode(vertex, propertyIds))
+                .ToListAsync();
+            gexFormatGraph.Edges = await graph.Edges
+                .Select(edge => new GexFormatEdge(edge))
+                .ToListAsync();
 
-            Mode = GexFormatMode.Static;
-            EdgeType = graph.IsDirected ? GexFormatEdgeType.Directed : GexFormatEdgeType.Undirected;
+            // Set the graph properties.
+            gexFormatGraph.Mode = GexFormatMode.Static;
+            gexFormatGraph.EdgeType = graph.IsDirected ? GexFormatEdgeType.Directed : GexFormatEdgeType.Undirected;
+            gexFormatGraph.PropertyDefinitions = new GexFormatPropertyDefinitionList(properties);
 
-            PropertyDefinitions = new GexFormatPropertyDefinitionList(properties);
+            return gexFormatGraph;
         }
-        /// <summary>
-        /// Initializes a new instance of the <see cref="GexFormatGraph"/> class.
-        /// </summary>
-        public GexFormatGraph() { }
     }
 
     /// <summary>
-    /// Represents a freeform vertex in Graph Exchange XML format.
+    /// Represents a vertex in Graph Exchange XML format.
     /// </summary>
     public class GexFormatNode
     {
@@ -241,7 +241,7 @@ namespace CartaWeb.Serialization.Xml
         /// The vertex ID.
         /// </value>
         [XmlAttribute(AttributeName = "id")]
-        public Guid Id { get; set; }
+        public string Id { get; set; }
 
         /// <summary>
         /// Gets or sets the vertex label.
@@ -276,16 +276,16 @@ namespace CartaWeb.Serialization.Xml
         /// </summary>
         /// <param name="vertex">The vertex to convert to a new format.</param>
         /// <param name="properties">The property mapping.</param>
-        public GexFormatNode(FreeformVertex vertex, Dictionary<string, int> properties)
+        public GexFormatNode(IVertex vertex, Dictionary<string, int> properties)
         {
-            Id = vertex.Id;
+            Id = vertex.Identifier.ToString();
 
             Label = vertex.Label;
             Description = vertex.Description;
 
-            Properties = vertex.Properties.Select(pair =>
+            Properties = vertex.Properties.Select(property =>
             {
-                return new GexFormatProperty(properties[pair.Key], pair.Value);
+                return new GexFormatProperty(properties[property.Identifier.ToString()], property);
             }).ToList();
         }
         /// <summary>
@@ -295,7 +295,7 @@ namespace CartaWeb.Serialization.Xml
     }
 
     /// <summary>
-    /// Represents an freeform edge in Graph Exchange XML format.
+    /// Represents an edge in Graph Exchange XML format.
     /// </summary>
     public class GexFormatEdge
     {
@@ -306,7 +306,7 @@ namespace CartaWeb.Serialization.Xml
         /// The edge ID.
         /// </value>
         [XmlAttribute(AttributeName = "id")]
-        public int Id { get; set; }
+        public string Id { get; set; }
 
         /// <summary>
         /// Gets or sets the source vertex ID.
@@ -315,7 +315,7 @@ namespace CartaWeb.Serialization.Xml
         /// The source vertex ID.
         /// </value>
         [XmlAttribute(AttributeName = "source")]
-        public Guid Source { get; set; }
+        public string Source { get; set; }
         /// <summary>
         /// Gets or sets the target vertex ID.
         /// </summary>
@@ -323,23 +323,23 @@ namespace CartaWeb.Serialization.Xml
         /// The target vertex ID.
         /// </value>
         [XmlAttribute(AttributeName = "target")]
-        public Guid Target { get; set; }
+        public string Target { get; set; }
 
         /// <summary>
-        /// Gets the freeform edge.
+        /// Gets the edge.
         /// </summary>
         /// <value>
-        /// The freeform edge.
+        /// The edge.
         /// </value>
         [XmlIgnore]
-        public FreeformEdge Edge
+        public Edge Edge
         {
             get
             {
-                return new FreeformEdge
+                return new Edge
                 (
-                    new FreeformVertex(Source),
-                    new FreeformVertex(Target)
+                    Identity.Create(Source),
+                    Identity.Create(Target)
                 );
             }
         }
@@ -347,14 +347,12 @@ namespace CartaWeb.Serialization.Xml
         /// <summary>
         /// Initializes a new instance of the <see cref="GexFormatEdge"/> class with the specified ID and endpoints.
         /// </summary>
-        /// <param name="id">The edge ID.</param>
         /// <param name="edge">The edge source and target to convert to a new format.</param>
-        public GexFormatEdge(int id, FreeformEdge edge)
+        public GexFormatEdge(Edge edge)
         {
-            Id = id;
-
-            Source = edge.Source.Id;
-            Target = edge.Target.Id;
+            Id = edge.Identifier.ToString();
+            Source = edge.Source.ToString();
+            Target = edge.Target.ToString();
         }
         /// <summary>
         /// Initializes a new instance of the <see cref="GexFormatEdge"/> class.
@@ -407,7 +405,7 @@ namespace CartaWeb.Serialization.Xml
         /// properties.
         /// </summary>
         /// <param name="properties">The properties to convert to a new format.</param>
-        public GexFormatPropertyDefinitionList(Dictionary<string, (int index, FreeformProperty prop)> properties)
+        public GexFormatPropertyDefinitionList(Dictionary<string, (int index, Property prop)> properties)
         {
             Class = GexFormatClassType.Node;
             Definitions = properties.Select
@@ -464,12 +462,12 @@ namespace CartaWeb.Serialization.Xml
         /// <param name="id">The property ID.</param>
         /// <param name="name">The property name.</param>
         /// <param name="property">The property to convert to a new format.</param>
-        public GexFormatPropertyDefinition(int id, string name, FreeformProperty property)
+        public GexFormatPropertyDefinition(int id, string name, Property property)
         {
             Id = id;
 
             Name = name;
-            Type = property.Type.TypeSerialize();
+            Type = property.Observations.FirstOrDefault().Type;
         }
         /// <summary>
         /// Initializes a new instance of the <see cref="GexFormatPropertyDefinition"/> class.
@@ -492,29 +490,93 @@ namespace CartaWeb.Serialization.Xml
         public int Id { get; set; }
 
         /// <summary>
-        /// Gets or sets the property value.
+        /// Gets or sets the property observations.
         /// </summary>
-        /// <value>
-        /// The property value.
-        /// </value>
-        [XmlAttribute(AttributeName = "value")]
-        public string Value { get; set; }
+        /// <value>The property observations.</value>
+        [XmlArray(ElementName = "values")]
+        [XmlArrayItem(ElementName = "value")]
+        public List<GexFormatObservation> Values { get; set; }
+
+        /// <summary>
+        /// Gets the property observations.
+        /// </summary>
+        /// <value>The property observations.</value>
+        [XmlIgnore]
+        public IEnumerable<Observation> Observations
+        {
+            get
+            {
+                return Values.Select(observation => observation.Observation);
+            }
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GexFormatProperty"/> class with the specified ID and property.
         /// </summary>
         /// <param name="id">The property ID.</param>
         /// <param name="property">The property to convert to a new format.</param>
-        public GexFormatProperty(int id, FreeformProperty property)
+        public GexFormatProperty(int id, Property property)
         {
             Id = id;
-
-            Value = property.Value.ToString();
+            Values = property.Observations
+                .Select(observation => new GexFormatObservation(observation))
+                .ToList();
         }
         /// <summary>
         /// Initializes a new instance of the <see cref="GexFormatProperty"/> class.
         /// </summary>
         public GexFormatProperty() { }
     }
-    */
+
+    /// <summary>
+    /// Represents a property observation in Graph Exchange XML format.
+    /// </summary>
+    public class GexFormatObservation
+    {
+        /// <summary>
+        /// Gets or sets the observation value.
+        /// </summary>
+        /// <value>
+        /// The observation value.
+        /// </value>
+        [XmlAttribute(AttributeName = "value")]
+        public string Value { get; set; }
+        /// <summary>
+        /// Gets or sets the observation type.
+        /// </summary>
+        /// <value>The human-readable observation type.</value>
+        [XmlAttribute(AttributeName = "type")]
+        public string Type { get; set; }
+
+        /// <summary>
+        /// Gets the observation.
+        /// </summary>
+        /// <value>The observation.</value>
+        [XmlIgnore]
+        public Observation Observation
+        {
+            get
+            {
+                return new Observation
+                {
+                    Value = Value,
+                    Type = Type
+                };
+            }
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GexFormatObservation"/> class with the specified observation.
+        /// </summary>
+        /// <param name="observation">The observation of a property.</param>
+        public GexFormatObservation(Observation observation)
+        {
+            Value = observation.Value.ToString();
+            Type = observation.Type;
+        }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GexFormatObservation"/> class.
+        /// </summary>
+        public GexFormatObservation() { }
+    }
 }

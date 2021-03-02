@@ -1,7 +1,9 @@
-using QuikGraph;
+using System.Linq;
+using System.Threading.Tasks;
+
 using NUnit.Framework;
 
-using CartaCore.Data.Freeform;
+using CartaCore.Data;
 using CartaCore.Data.Synthetic;
 
 namespace CartaTest
@@ -15,7 +17,7 @@ namespace CartaTest
         /// <summary>
         /// The graph generated to test on.
         /// </summary>
-        protected FreeformGraph Graph;
+        protected FiniteGraph Graph;
 
         /// <summary>
         /// Sets up the test fixture.
@@ -36,34 +38,32 @@ namespace CartaTest
         /// Tests that the number of vertices in the test graph is within our minimum and maximum. 
         /// </summary>
         [Test]
-        public void TestNumberVertices()
+        public async Task TestNumberVertices()
         {
-            Assert.IsTrue(0 <= Graph.VertexCount);
+            Assert.IsTrue(0 <= await Graph.Vertices.CountAsync());
         }
 
         /// <summary>
         /// Tests that the number of edges in the test graph is within our minimum and maximum.
         /// </summary>
         [Test]
-        public void TestNumberEdges()
+        public async Task TestNumberEdges()
         {
-            int vertexCount = Graph.VertexCount;
+            int vertexCount = await Graph.Vertices.CountAsync();
             int edgeCountMax = vertexCount * (vertexCount - 1) / 2;
 
-            Assert.IsTrue(edgeCountMax >= Graph.EdgeCount);
-            Assert.IsTrue(0 <= Graph.EdgeCount);
+            Assert.IsTrue(edgeCountMax >= await Graph.Edges.CountAsync());
+            Assert.IsTrue(0 <= await Graph.Edges.CountAsync());
         }
 
         /// <summary>
         /// Tests that there are no self edges in the test graph.
         /// </summary>
         [Test]
-        public void TestNoSelfEdges()
+        public async Task TestNoSelfEdges()
         {
-            foreach (FreeformEdge edge in Graph.Edges)
-            {
-                Assert.IsFalse(edge.IsSelfEdge());
-            }
+            await foreach (Edge edge in Graph.Edges)
+                Assert.IsFalse(edge.Source == edge.Target);
         }
     }
 }

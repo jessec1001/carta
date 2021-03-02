@@ -1,17 +1,17 @@
 using System;
-using System.Diagnostics.CodeAnalysis;
 
-namespace CartaCore.Data.Freeform
+namespace CartaCore.Data
 {
     /// <summary>
-    /// Represents an identity for a freeform object.
+    /// Represents a unique identity for an object.
     /// </summary>
-    public abstract class FreeformIdentity : IEquatable<FreeformIdentity>, IComparable<FreeformIdentity>
+    public abstract class Identity : IEquatable<Identity>, IComparable<Identity>
     {
         /// <inheritdoc />
-        public abstract bool Equals([AllowNull] FreeformIdentity other);
+        public abstract int CompareTo(Identity other);
+
         /// <inheritdoc />
-        public abstract int CompareTo([AllowNull] FreeformIdentity other);
+        public abstract bool Equals(Identity other);
 
         /// <summary>
         /// Determines whether the identity can be converted to the specified type.
@@ -37,9 +37,9 @@ namespace CartaCore.Data.Freeform
         /// <param name="obj">The object to convert into an identity.</param>
         /// <typeparam name="T">The type to convert.</typeparam>
         /// <returns>The created constant identity.</returns>
-        public static FreeformIdentity Create<T>(T obj) where T : IEquatable<T>, IComparable<T>
+        public static Identity Create<T>(T obj) where T : IEquatable<T>, IComparable<T>
         {
-            return new FreeformConstantIdentity<T>(obj);
+            return new ConstantIdentity<T>(obj);
         }
     }
 }

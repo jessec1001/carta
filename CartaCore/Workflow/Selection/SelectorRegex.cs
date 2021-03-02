@@ -1,7 +1,7 @@
 using System;
 using System.Text.RegularExpressions;
 
-using CartaCore.Data.Freeform;
+using CartaCore.Data;
 
 namespace CartaCore.Workflow.Selection
 {
@@ -46,7 +46,7 @@ namespace CartaCore.Workflow.Selection
         }
 
         /// <inheritdoc />
-        public override bool Contains(FreeformVertex vertex)
+        public override bool Contains(Vertex vertex)
         {
             if (Regex is null) return true;
             return !(vertex.Label is null) && Regex.IsMatch(vertex.Label);

@@ -12,7 +12,7 @@ export interface VisGraphData {
 interface VisProps {
     graph: VisGraphData,
     options: Options,
-    selection?: Array<string>,
+    selection?: Array<string> | string,
 
     onClick?:                        (params?: any) => void,
     onDoubleClick?:                  (params?: any) => void,
@@ -159,7 +159,7 @@ export class Vis extends Component<VisProps> {
                 this.network.setOptions(this.props.options);
             }
         }
-        if (this.props.selection !== prevProps.selection) {
+        if (this.props.selection !== prevProps.selection && typeof this.props.selection != "string") {
             if (this.props.selection && prevProps.selection) {
                 // Check that the selection is actually different.
                 let different = false;

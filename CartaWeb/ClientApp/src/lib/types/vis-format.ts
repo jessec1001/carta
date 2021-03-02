@@ -31,6 +31,8 @@ export interface VisNode extends Node {
     expanded?: boolean
     /** The color space of the node. */
     colorspace?: [number, number]
+    /** Whether the children of this node have been loaded. */
+    loaded?: boolean
 
     /** The properties that this node is assigned. */
     properties?: Array<VisProperty>

@@ -2,10 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using QuikGraph;
-
 using CartaCore.Statistics;
-using CartaCore.Data.Freeform;
 
 namespace CartaCore.Data.Synthetic
 {
@@ -13,33 +10,29 @@ namespace CartaCore.Data.Synthetic
     /// Represents graph data of a random, finite, undirected graph. Both the vertices and edges are randomly generated
     /// and connected.
     /// </summary>
-    public class FiniteUndirectedGraph : FreeformGraph, IParameterizedGraph<FiniteUndirectedGraphParameters>
+    public class FiniteUndirectedGraph : FiniteGraph,
+        IParameterizedGraph<FiniteUndirectedGraphParameters>
     {
         /// <inheritdoc />
         public FiniteUndirectedGraphParameters Parameters { get; set; }
-
-        /// <summary>
-        /// The entirety of the graph generated.
-        /// </summary>
-        /// <value>The randomly generated graph.</value>
-        private IMutableVertexAndEdgeSet<FreeformVertex, FreeformEdge> Graph { get; set; }
 
         /// <summary>
         /// Creates a new random sampled, finite, undirected graph with the specified parameters.
         /// </summary>
         /// <param name="parameters">The parameters to generate the graph with.</param>
         public FiniteUndirectedGraph(FiniteUndirectedGraphParameters parameters = default(FiniteUndirectedGraphParameters))
+            : base(Identity.Create(nameof(FiniteUndirectedGraph)), directed: false)
         {
             // We generate all the graph data after setting the parameters.
             Parameters = parameters;
-            Graph = GenerateGraph();
+            GenerateGraph();
         }
 
         /// <summary>
         /// Generates the random graph data.
         /// </summary>
         /// <returns>The random graph data.</returns>
-        protected UndirectedGraph<FreeformVertex, FreeformEdge> GenerateGraph()
+        protected void GenerateGraph()
         {
             // Random number generator that is seeded with whatever seed was specified.
             CompoundRandom random = new CompoundRandom(Parameters.Seed);
@@ -50,11 +43,11 @@ namespace CartaCore.Data.Synthetic
             int numEdges = Math.Clamp(Parameters.EdgeCount.Sample(random), 0, possibleEdges);
 
             // Generate the vertices.
-            List<FreeformVertex> vertices = new List<FreeformVertex>(
+            List<Vertex> vertices = new List<Vertex>(
                 Enumerable
                 .Range(0, numVertices)
                 .Select
-                (_ => new FreeformVertex(FreeformIdentity.Create(random.NextGuid()))
+                (_ => new Vertex(Identity.Create(random.NextGuid()))
                 {
                     Label = (Parameters.Labeled ? random.NextPsuedoword() : null)
                 }
@@ -63,24 +56,23 @@ namespace CartaCore.Data.Synthetic
 
             // Generate the edges to randomly select from.
             // This uses a cartesian product without doubles or reversals.
-            int edgeCount = 0;
-            LinkedList<FreeformEdge> edges = new LinkedList<FreeformEdge>(
+            LinkedList<Edge> edges = new LinkedList<Edge>(
                 vertices
                 .SelectMany(
                     (vertexA, indexA) => vertices
                         .Where((vertexB, indexB) => indexA < indexB),
-                    (a, b) => new FreeformEdge(a.Identifier, b.Identifier, edgeCount++)
+                    (a, b) => new Edge(a, b)
                 )
             );
 
             // Randomly select the edges from our list of plausible edges.
-            LinkedList<FreeformEdge> edgesSelected = new LinkedList<FreeformEdge>();
+            LinkedList<Edge> edgesSelected = new LinkedList<Edge>();
             for (int e = 0; e < numEdges; e++)
             {
                 // This here is probably a bit inefficient and sloppy but it performs better than reallocating
                 // arrays and this is the best we can accomplish with a linked list.
                 int offset = random.NextInt(edges.Count);
-                LinkedListNode<FreeformEdge> edgesNode = edges.First;
+                LinkedListNode<Edge> edgesNode = edges.First;
                 for (int j = 0; j < offset; j++)
                     edgesNode = edgesNode.Next;
 
@@ -89,44 +81,9 @@ namespace CartaCore.Data.Synthetic
                 edges.Remove(edgesNode);
             }
 
-            // We convert the edge list to a undirected graph and return.
-            UndirectedGraph<FreeformVertex, FreeformEdge> graph = new UndirectedGraph<FreeformVertex, FreeformEdge>();
-            graph.AddVertexRange(vertices);
-            graph.AddEdgeRange(edgesSelected);
-            return graph;
+            // We add the vertices and edges directly to this object.
+            AddVertexRange(vertices);
+            AddEdgeRange(edgesSelected);
         }
-
-        #region FreeformGraph
-        /// <inheritdoc />
-        public override bool IsDirected => Graph.IsDirected;
-        /// <inheritdoc />
-        public override bool AllowParallelEdges => Graph.AllowParallelEdges;
-
-        /// <inheritdoc />
-        public override bool IsVerticesEmpty => Graph.IsVerticesEmpty;
-        /// <inheritdoc />
-        public override bool IsEdgesEmpty => Graph.IsEdgesEmpty;
-
-        /// <inheritdoc />
-        public override int VertexCount => Graph.VertexCount;
-        /// <inheritdoc />
-        public override int EdgeCount => Graph.EdgeCount;
-
-        /// <inheritdoc />
-        public override IEnumerable<FreeformVertex> Vertices => Graph.Vertices;
-        /// <inheritdoc />
-        public override IEnumerable<FreeformEdge> Edges => Graph.Edges;
-
-        /// <inheritdoc />
-        public override bool ContainsEdge(FreeformEdge edge)
-        {
-            return Graph.ContainsEdge(edge);
-        }
-        /// <inheritdoc />
-        public override bool ContainsVertex(FreeformVertex vertex)
-        {
-            return Graph.ContainsVertex(vertex);
-        }
-        #endregion
     }
 }

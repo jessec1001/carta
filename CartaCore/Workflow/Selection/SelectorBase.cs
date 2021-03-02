@@ -1,4 +1,4 @@
-using CartaCore.Data.Freeform;
+using CartaCore.Data;
 
 namespace CartaCore.Workflow.Selection
 {
@@ -18,6 +18,6 @@ namespace CartaCore.Workflow.Selection
         /// </summary>
         /// <param name="vertex">The vertex.</param>
         /// <returns><c>true</c> if the selector contains the vertex; otherwise <c>false</c>.</returns>
-        public abstract bool Contains(FreeformVertex vertex);
+        public abstract bool Contains(Vertex vertex);
     }
 }

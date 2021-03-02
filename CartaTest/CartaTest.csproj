@@ -13,9 +13,9 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.9.1" />
+    <PackageReference Include="MorseCode.ITask" Version="2.0.3" />
     <PackageReference Include="NUnit" Version="3.13.1" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.17.0" />
-    <PackageReference Include="QuikGraph" Version="2.2.0" />
   </ItemGroup>
 
   <ItemGroup>

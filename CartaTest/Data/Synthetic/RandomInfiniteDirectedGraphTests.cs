@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 using NUnit.Framework;
 
-using CartaCore.Data.Freeform;
+using CartaCore.Data;
 using CartaCore.Data.Synthetic;
 
 namespace CartaTest.Data.Synthetic
@@ -18,7 +19,7 @@ namespace CartaTest.Data.Synthetic
         /// <summary>
         /// The graph generated to test on.
         /// </summary>
-        protected FreeformDynamicGraph<Guid> Graph;
+        protected IDynamicOutGraph<OutVertex> Graph;
 
         /// <summary>
         /// Sets up the test fixture.
@@ -33,15 +34,15 @@ namespace CartaTest.Data.Synthetic
         /// Tests that we can generate a random vertex without error.
         /// </summary>
         [Test]
-        public void TestVertexGeneration()
+        public async Task TestVertexGeneration()
         {
             // Get a random vertex ID.
-            Guid id = Guid.NewGuid();
+            Identity id = Identity.Create(Guid.NewGuid());
 
             // Generate the properties and edges of the vertex.
-            FreeformVertex vertex = Graph.GetVertex(id);
-            IList<FreeformEdge> edges = Graph.GetEdges(id).ToList();
+            OutVertex vertex = await Graph.GetVertex(id);
 
+            Assert.IsNotNull(vertex.OutEdges);
             Assert.Pass();
         }
 
@@ -50,37 +51,36 @@ namespace CartaTest.Data.Synthetic
         /// edges. 
         /// </summary>
         [Test]
-        public void TestDeterministic()
+        public async Task TestDeterministic()
         {
             // Get a random vertex ID.
-            Guid id = Guid.NewGuid();
+            Identity id = Identity.Create(Guid.NewGuid());
 
             // Generate the two instances of the vertex properties and edges.
-            FreeformVertex vertex1 = Graph.GetVertex(id);
-            IList<FreeformEdge> edges1 = Graph.GetEdges(id).ToList();
-
-            FreeformVertex vertex2 = Graph.GetVertex(id);
-            IList<FreeformEdge> edges2 = Graph.GetEdges(id).ToList();
+            OutVertex vertex1 = await Graph.GetVertex(id);
+            OutVertex vertex2 = await Graph.GetVertex(id);
 
             // Check that the vertex properties are the same.
-            IList<FreeformProperty> Properties1 = vertex1.Properties.ToList();
-            IList<FreeformProperty> Properties2 = vertex2.Properties.ToList();
+            IList<Property> properties1 = vertex1.Properties.ToList();
+            IList<Property> properties2 = vertex2.Properties.ToList();
             Assert.AreEqual(vertex1.Identifier, vertex2.Identifier);
-            Assert.AreEqual(Properties1.Count, Properties2.Count);
-            for (int k = 0; k < Properties1.Count; k++)
+            Assert.AreEqual(properties1.Count, properties2.Count);
+            for (int k = 0; k < properties1.Count; k++)
             {
-                IList<FreeformObservation> Observations1 = Properties1[k].Observations.ToList();
-                IList<FreeformObservation> Observations2 = Properties2[k].Observations.ToList();
-                Assert.AreEqual(Properties1[k].Identifier, Properties2[k].Identifier);
-                Assert.AreEqual(Observations1.Count, Observations2.Count);
-                for (int l = 0; l < Observations1.Count; l++)
+                IList<Observation> observations1 = properties1[k].Observations.ToList();
+                IList<Observation> observations2 = properties2[k].Observations.ToList();
+                Assert.AreEqual(properties1[k].Identifier, properties2[k].Identifier);
+                Assert.AreEqual(observations1.Count, observations2.Count);
+                for (int l = 0; l < observations1.Count; l++)
                 {
-                    Assert.AreEqual(Observations1[l].Type, Observations2[l].Type);
-                    Assert.AreEqual(Observations1[l].Value, Observations2[l].Value);
+                    Assert.AreEqual(observations1[l].Type, observations2[l].Type);
+                    Assert.AreEqual(observations1[l].Value, observations2[l].Value);
                 }
             }
 
             // Check that the vertex edges are the same.
+            IList<Edge> edges1 = vertex1.OutEdges.ToList();
+            IList<Edge> edges2 = vertex2.OutEdges.ToList();
             Assert.AreEqual(edges1.Count, edges2.Count);
             for (int k = 0; k < edges1.Count; k++)
             {

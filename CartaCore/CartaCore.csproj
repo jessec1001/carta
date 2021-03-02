@@ -7,8 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="QuikGraph" Version="2.2.0" />
-    <PackageReference Include="QuikGraph.Serialization" Version="2.2.2" />
+    <PackageReference Include="MorseCode.ITask" Version="2.0.3" />
     <PackageReference Include="System.Linq.Async" Version="5.0.0" />
   </ItemGroup>
 </Project>

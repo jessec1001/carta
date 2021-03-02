@@ -1,8 +1,10 @@
+using System.Linq;
 using System.Text.Json;
+using System.Threading.Tasks;
 
 using NUnit.Framework;
 
-using CartaCore.Data.Freeform;
+using CartaCore.Data;
 using CartaWeb.Serialization.Json;
 
 namespace CartaTest.Serialization.Json
@@ -17,45 +19,18 @@ namespace CartaTest.Serialization.Json
         /// Tests the serialization and deserialization of a simple undirected graph.
         /// </summary>
         [Test]
-        public void TestVisUndirected()
+        public async Task TestVisUndirected()
         {
-            VisFormat sample = new VisFormat(GraphHelpers.UndirectedGraphSample);
+            VisFormat sample = await VisFormat.CreateAsync(GraphHelpers.UndirectedGraphSample);
 
             string str = JsonSerializer.Serialize<VisFormat>(sample);
             VisFormat data = JsonSerializer.Deserialize<VisFormat>(str);
 
-            FreeformGraph graph = data.Graph;
+            FiniteGraph graph = data.Graph;
 
             Assert.NotNull(graph);
-            Assert.AreEqual(5, graph.VertexCount);
-            Assert.AreEqual(5, graph.EdgeCount);
-            Assert.IsTrue(graph.ContainsVertex(new FreeformVertex(FreeformIdentity.Create(0))));
-            Assert.IsTrue(graph.ContainsVertex(new FreeformVertex(FreeformIdentity.Create(4))));
-            Assert.IsFalse(graph.ContainsVertex(new FreeformVertex(FreeformIdentity.Create(5))));
-            Assert.IsTrue(graph.ContainsEdge(new FreeformEdge
-            (
-                FreeformIdentity.Create(1),
-                FreeformIdentity.Create(3),
-                FreeformIdentity.Create("1.2")
-            )));
-            Assert.IsTrue(graph.ContainsEdge(new FreeformEdge
-            (
-                FreeformIdentity.Create(2),
-                FreeformIdentity.Create(3),
-                FreeformIdentity.Create("2.3")
-            )));
-            Assert.IsTrue(graph.ContainsEdge(new FreeformEdge
-            (
-                FreeformIdentity.Create(0),
-                FreeformIdentity.Create(1),
-                FreeformIdentity.Create("0.0")
-            )));
-            Assert.IsFalse(graph.ContainsEdge(new FreeformEdge
-            (
-                FreeformIdentity.Create(0),
-                FreeformIdentity.Create(1),
-                FreeformIdentity.Create("0.3")
-            )));
+            Assert.AreEqual(5, await graph.Vertices.CountAsync());
+            Assert.AreEqual(5, await graph.Edges.CountAsync());
         }
     }
 }
