@@ -21,10 +21,28 @@ namespace CartaWeb.Models.Meta
         [JsonPropertyName("path")]
         public string Path { get; set; }
         /// <summary>
+        /// The description of the endpoint.
+        /// </summary>
+        /// <value>The description.</value>
+        [JsonPropertyName("description")]
+        public string Description { get; set; }
+        /// <summary>
         /// The list of parameters of the endpoint.
         /// </summary>
         /// <value>The parameters.</value>
         [JsonPropertyName("parameters")]
         public List<ApiParameter> Parameters { get; set; }
+        /// <summary>
+        /// A list of sample requests to the endpoint.
+        /// </summary>
+        /// <value>The sample requests.</value>
+        [JsonPropertyName("requests")]
+        public List<ApiRequest> Requests { get; set; }
+        /// <summary>
+        /// A dictionary of status-description pairs on the returns of the endpoint.
+        /// </summary>
+        /// <value>The endpoint returns descriptions.</value>
+        [JsonPropertyName("returns")]
+        public Dictionary<int, string> Returns { get; set; }
     }
 }

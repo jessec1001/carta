@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -11,7 +12,11 @@ using CartaWeb.Models.Data;
 namespace CartaWeb.Controllers
 {
     /// <summary>
-    /// Serves data from multiple sources in graph format.
+    /// Serves data resources from multiple sources in a graph format. Each data source is generally a repository of
+    /// many data resources. Each data resource has a unique identifier distinguishing it from other resources in the
+    /// same data source. The data source and resource identifiers are required for accessing graph data. The default
+    /// graph format returned by this API can be directly imported into Vis.js for ease of use in client applications.
+    /// To specify a different format, use the "Accept" header to specify the desired format.
     /// </summary>
     [ApiController]
     [Route("api/[controller]")]
@@ -19,24 +24,27 @@ namespace CartaWeb.Controllers
     {
         private readonly ILogger<DataController> _logger;
 
-        private static Dictionary<string, IDataResolver> SyntheticResolvers;
-        private static IDataResolver HyperthoughtResolver;
+        private static Dictionary<DataSource, IDataResolver> DataResolvers;
 
         static DataController()
         {
             // Create the data resolvers.
-            SyntheticResolvers = new Dictionary<string, IDataResolver>
+            DataResolvers = new Dictionary<DataSource, IDataResolver>();
+            DataResolvers.Add(DataSource.Synthetic, new OptionsDataResolver
             (
-                new Dictionary<string, IDataResolver>
-                {
-                    [nameof(FiniteUndirectedGraph)] = new OptionsDataResolver<FiniteUndirectedGraphParameters>
-                        (options => new FiniteUndirectedGraph(options)),
-                    [nameof(InfiniteDirectedGraph)] = new OptionsDataResolver<InfiniteDirectedGraphParameters>
-                        (options => new InfiniteDirectedGraph(options)),
-                },
-                StringComparer.OrdinalIgnoreCase
-            );
-            HyperthoughtResolver = new HyperthoughtDataResolver();
+                new Dictionary<string, OptionsResourceResolver>
+                (
+                    new Dictionary<string, OptionsResourceResolver>
+                    {
+                        [nameof(FiniteUndirectedGraph)] = new OptionsResourceResolver<FiniteUndirectedGraphParameters>
+                            (options => new FiniteUndirectedGraph(options)),
+                        [nameof(InfiniteDirectedGraph)] = new OptionsResourceResolver<InfiniteDirectedGraphParameters>
+                            (options => new InfiniteDirectedGraph(options)),
+                    },
+                    StringComparer.OrdinalIgnoreCase
+                )
+            ));
+            DataResolvers.Add(DataSource.HyperThought, new HyperthoughtDataResolver());
         }
 
         /// <inheritdoc />
@@ -53,30 +61,74 @@ namespace CartaWeb.Controllers
         /// <returns>The graph data.</returns>
         private async Task<Graph> LookupData(DataSource source, string resource)
         {
-            switch (source)
-            {
-                case DataSource.Synthetic:
-                    if (!(resource is null) && SyntheticResolvers.TryGetValue(resource, out IDataResolver resolver))
-                        return await resolver.GenerateAsync(this, resource);
-                    break;
-                case DataSource.HyperThought:
-                    if (!(resource is null))
-                        return await HyperthoughtResolver.GenerateAsync(this, resource);
-                    break;
-            }
+            if (resource is not null && DataResolvers.TryGetValue(source, out IDataResolver resolver))
+                return await resolver.GenerateAsync(this, resource);
             return null;
         }
 
         /// <summary>
-        /// Gets the base graph for a particular data source.
+        /// Gets the valid sources to access data from. Note that this includes data sources that the user may not have
+        /// authorization to access. In querying the valid data sources, no data is actually retrieved.
         /// </summary>
-        /// <remarks>
-        /// If the data is infinite, a graph with only vertex is returned. Otherwise, the entire graph is returned. 
-        /// </remarks>
+        /// <request name="Example"></request>
+        /// <returns status="200">A list of the valid data source identifiers.</returns>
+        [HttpGet]
+        public ActionResult<IList<DataSource>> GetSources()
+        {
+            return Ok(Enum.GetValues<DataSource>().ToList());
+        }
+        /// <summary>
+        /// Gets the valid resources located at a specific data source. This will query the data source with any
+        /// provided authentication to determine available resources.
+        /// </summary>
         /// <param name="source">The data source.</param>
-        /// <param name="resource">The resource located on the data source.</param>
-        /// <returns>The base graph.</returns>
-        [HttpGet("{source}/{resource?}")]
+        /// <request name="Synthetic">
+        ///     <arg name="source">synthetic</arg>
+        /// </request>
+        /// <request name="HyperThought">
+        ///     <arg name="source">hyperthought</arg>
+        /// </request>
+        /// <returns status="200">A list of resource identifiers.</returns>
+        /// <returns status="404">
+        /// Occurs when the specified data source is invalid or cannot be accessed with the provided authentication.
+        /// </returns>
+        [HttpGet("{source}")]
+        public async Task<ActionResult<IList<string>>> GetResources(
+            [FromRoute] DataSource source
+        )
+        {
+            IList<string> resources = await DataResolvers[source].FindResourcesAsync(this);
+            if (resources is null) return NotFound();
+            else return Ok(resources);
+        }
+
+        /// <summary>
+        /// Gets the base graph for the specified data resource. If the resource contains infinite or directed data, the
+        /// base graph only contains a singular root vertex. Use the other Data API functionality to extract more
+        /// information from these types of graphs. If the resource contains finite or undirected data, the base graph
+        /// contains all of the vertices and edges.
+        /// </summary>
+        /// <param name="source">The data source identifier.</param>
+        /// <param name="resource">The data resource identifier located on the data source.</param>
+        /// <request name="Synthetic Graph">
+        ///     <arg name="source">synthetic</arg>
+        ///     <arg name="resource">infiniteDirectedGraph</arg>
+        /// </request>
+        /// <request name="HyperThought Workflow">
+        ///     <arg name="source">hyperthought</arg>
+        ///     <arg name="resource">Sandbox.Test01</arg>
+        /// </request>
+        /// <returns status="200">
+        /// The base graph containing vertices and edges constructed from the data resource.
+        /// </returns>
+        /// <returns status="400">
+        /// Occurs when the data resource cannot be represented as a finite nor dynamic graph.
+        /// </returns>
+        /// <returns status="404">
+        /// Occurs if the data resource or source could not be found or cannot be accessed with the provided
+        /// authentication.
+        /// </returns>
+        [HttpGet("{source}/{resource}")]
         public async Task<ActionResult<FiniteGraph>> GetGraph(
             [FromRoute] DataSource source,
             [FromRoute] string resource
@@ -92,12 +144,16 @@ namespace CartaWeb.Controllers
             switch (graph)
             {
                 case IDynamicOutGraph<IOutVertex> outGraph:
+                    // Return the subgraph of the graph containing the base vertex.
                     subgraph = await FiniteGraph.CreateSubgraph(outGraph, new[] { outGraph.BaseIdentifier });
                     return Ok(subgraph);
                 case IDynamicGraph<Vertex> dynGraph:
                     // Return the subgraph of the graph containing the base vertex.
                     subgraph = await FiniteGraph.CreateSubgraph(dynGraph, new[] { dynGraph.BaseIdentifier });
                     return Ok(subgraph);
+                case FiniteGraph finiteGraph:
+                    // Return entire graph.
+                    return Ok(finiteGraph);
                 default:
                     // If a graph does not match a previous type, we cannot retrieve it.
                     return BadRequest();
@@ -105,13 +161,36 @@ namespace CartaWeb.Controllers
         }
 
         /// <summary>
-        /// Gets the properties of a specific vertex for a particular data source.
+        /// Gets a graph containing only a particular vertex for the specified data resource. The data source must
+        /// support queryable vertices by unique identifiers for this functionality to apply. The vertex will contain
+        /// all of its properties and observations. Additionally, all of the in-edges or out-edges, depending on the
+        /// capabilities of the data source, will be included in the produced graph.
         /// </summary>
-        /// <param name="source">The data source.</param>
-        /// <param name="resource">The resource located on the data source.</param>
-        /// <param name="id">The UUID of the vertex.</param>
-        /// <returns>A graph with the requested vertex loaded with itsproperties.</returns>
-        [HttpGet("{source}/{resource?}/props")]
+        /// <param name="source">The data source identifier.</param>
+        /// <param name="resource">The data resource identifier located on the data source.</param>
+        /// <param name="id">The unique identifier of the vertex.</param>
+        /// <request name="Synthetic Graph 1">
+        ///     <arg name="source">synthetic</arg>
+        ///     <arg name="resource">infiniteDirectedGraph</arg>
+        ///     <arg name="id">123e4567-e89b-12d3-a456-426614174000</arg>
+        /// </request>
+        /// <request name="Synthetic Graph 2">
+        ///     <arg name="source">synthetic</arg>
+        ///     <arg name="resource">infiniteDirectedGraph</arg>
+        ///     <arg name="id">fd712a01-ac32-47d1-05fd-a619c088dbe1</arg>
+        ///     <arg name="seed">1234</arg>
+        /// </request>
+        /// <returns status="200">
+        /// A graph with the requested vertex loaded with its properties and observations and its corresponding edges.
+        /// </returns>
+        /// <returns status="400">
+        /// Occurs when the data resource cannot be queried for a specific vertex.
+        /// </returns>
+        /// <returns status="404">
+        /// Occurs if the data resource or source could not be found or cannot be accessed with the provided
+        /// authentication.
+        /// </returns>
+        [HttpGet("{source}/{resource}/props")]
         public async Task<ActionResult<FiniteGraph>> GetProperties(
             [FromRoute] DataSource source,
             [FromRoute] string resource,
@@ -142,13 +221,38 @@ namespace CartaWeb.Controllers
         }
 
         /// <summary>
-        /// Gets the children vertices of a specific vertex for a particular data source.
+        /// Gets a graph containing the children of a particular vertex for the specified data resource. The data source
+        /// must support queryable vertices by unique identifiers and must support obtaining out-edges/children
+        /// connections for a vertex for this functionality to apply. The loaded children vertices and all of their
+        /// in-edges or out-edges, depending on the capabilities of the data source, will be included in the produced
+        /// graph.
         /// </summary>
-        /// <param name="source">The data source.</param>
-        /// <param name="resource">The resource located on the data source.</param>
-        /// <param name="id">The UUID of the vertex.</param>
-        /// <returns>The vertex with its properties loaded.</returns>
-        [HttpGet("{source}/{resource?}/children")]
+        /// <param name="source">The data source identifier.</param>
+        /// <param name="resource">The data resource identifier located on the data source.</param>
+        /// <param name="id">The unique identifier of the vertex.</param>
+        /// <request name="Synthetic Graph - No Children">
+        ///     <arg name="source">synthetic</arg>
+        ///     <arg name="resource">infiniteDirectedGraph</arg>
+        ///     <arg name="id">123e4567-e89b-12d3-a456-426614174000</arg>
+        /// </request>
+        /// <request name="Synthetic Graph - Children">
+        ///     <arg name="source">synthetic</arg>
+        ///     <arg name="resource">infiniteDirectedGraph</arg>
+        ///     <arg name="id">fd712a01-ac32-47d1-05fd-a619c088dbe1</arg>
+        ///     <arg name="seed">0</arg>
+        /// </request>
+        /// <returns status="200">
+        /// A graph with the children of the requested vertex and their corresponding edges. This is equivalent to
+        /// aggregating individual calls to retrieve each of the child vertices of the requested vertex.
+        /// </returns>
+        /// <returns status="400">
+        /// Occurs when the data resource cannot be queries for a specific vertex or the out-edges cannot be obtained.
+        /// </returns>
+        /// <returns status="404">
+        /// Occurs if the data resource or source could not be found or cannot be accessed with the provided
+        /// authentication.
+        /// </returns>
+        [HttpGet("{source}/{resource}/children")]
         public async Task<ActionResult<Graph>> GetChildren(
             [FromRoute] DataSource source,
             [FromRoute] string resource,

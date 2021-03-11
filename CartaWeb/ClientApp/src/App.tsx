@@ -1,20 +1,19 @@
-import React, { Component } from 'react';
-import { Route } from 'react-router';
-import { Layout } from './components/layouts/Layout';
-import { Home } from './components/pages/Home';
-import { Graph } from './components/pages/Graph';
-import { Docs } from './components/pages/Docs';
-import './custom.css'
+import React, { Component } from "react";
+import { Route } from "react-router";
+import { Layout } from "./components/layouts/Layout";
+import { HomePage, GraphPage, DocsPage, UserPage } from "./pages";
+import "./custom.css";
 
 export default class App extends Component {
   static displayName = App.name;
 
-  render () {
+  render() {
     return (
       <Layout>
-        <Route exact path='/' component={Home} />
-        <Route path='/graph' component={Graph} />
-        <Route path='/docs' component={Docs} />
+        <Route exact path="/" component={HomePage} />
+        <Route path="/graph" component={GraphPage} />
+        <Route path="/docs" component={DocsPage} />
+        <Route path="/user" component={UserPage} />
       </Layout>
     );
   }

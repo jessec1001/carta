@@ -1,4 +1,12 @@
-hr {
+.dropdown {
+  font-size: 0.85rem;
+}
+.dropdown-item {
+  padding: 0rem 1rem;
+  font-size: 0.9rem;
+}
+
+hr.divider {
   margin-top: 0.25rem;
   margin-bottom: 0.25rem;
 }

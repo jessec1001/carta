@@ -1,4 +1,5 @@
 using System;
+using System.Text.RegularExpressions;
 using System.Text.Json.Serialization;
 
 using CartaCore.Utility;
@@ -29,8 +30,20 @@ namespace CartaWeb.Models.Meta
         [JsonPropertyName("type")]
         public string TypeName
         {
-            get => TypeExtensions.TypeSerialize(Type);
-            set => Type = value.TypeDeserialize();
+            // We make type names more user-friendly by splitting code names.
+            get => Regex.Replace(Type.TypeSerialize(), @"([a-z])([A-Z])", "$1 $2");
         }
+        /// <summary>
+        /// Gets or sets the format that the parameter is received in.
+        /// </summary>
+        /// <value>The parameter format.</value>
+        [JsonPropertyName("format")]
+        public ApiParameterFormat Format { get; set; }
+        /// <summary>
+        /// Gets or sets the parameter description.
+        /// </summary>
+        /// <value>A description string of text for the parameter.</value>
+        [JsonPropertyName("description")]
+        public string Description { get; set; }
     }
 }

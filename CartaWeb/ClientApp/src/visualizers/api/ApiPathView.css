@@ -1,0 +1,42 @@
+.api-path {
+  display: flex;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 0.25rem;
+}
+.api-path.bottom {
+  border-radius: 0.25rem 0.25rem 0rem 0rem;
+}
+.api-path > * {
+  margin: 0;
+}
+
+.api-path .api-path-method {
+  border-radius: 0.25rem 0rem 0rem 0.25rem
+}
+.api-path.bottom .api-path-method {
+  border-radius: 0.25rem 0rem 0rem 0rem
+}
+
+.api-path-method {
+  width: 8em;
+  padding: 0.25rem;
+  text-align: center;
+  text-transform: uppercase;
+  border-right: 1px solid rgba(0, 0, 0, 0.2);
+  background-color: rgba(64, 64, 128, 0.1);
+}
+.api-path-method.clickable {
+  background-color: rgb(74, 163, 236);
+  color: rgb(255, 255, 255);
+  cursor: pointer;
+}
+.api-path-method.clickable:hover {
+  background-color: rgb(64, 145, 211);
+  color: rgb(255, 255, 255);
+}
+
+.api-path-url {
+  flex-grow: 1;
+  padding: 0.25rem 0.75rem;
+  display: table-cell;
+}

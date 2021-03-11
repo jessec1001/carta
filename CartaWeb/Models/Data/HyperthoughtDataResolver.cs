@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 
 using CartaCore.Data;
 using CartaCore.Integration.Hyperthought;
+using CartaCore.Integration.Hyperthought.Data;
 
 namespace CartaWeb.Models.Data
 {
@@ -48,6 +50,34 @@ namespace CartaWeb.Models.Data
                     }
                 }
                 return new HyperthoughtWorkflowGraph(api, uuid);
+            }
+            return null;
+        }
+
+        /// <inheritdoc />
+        public async Task<IList<string>> FindResourcesAsync(ControllerBase controller)
+        {
+            if (controller.Request.Query.ContainsKey("api"))
+            {
+                // Get all of the workflow templates for all of the projects from the API.
+                // Using the user's API key, this should only return resources accessible to the user.
+                HyperthoughtApi api = new HyperthoughtApi(controller.Request.Query["api"].ToString());
+                IList<HyperthoughtProject> projects = await api.GetProjectsAsync();
+                IList<Task<IList<HyperthoughtWorkflowTemplate>>> templateTasks = projects
+                    .Select(project => api.GetWorkflowTemplatesAsync(project))
+                    .ToList();
+
+                // Construct the resources list.
+                // Each resource should be of the form "Project.Template"
+                List<string> resources = new List<string>();
+                for (int k = 0; k < projects.Count; k++)
+                {
+                    foreach (HyperthoughtWorkflowTemplate template in await templateTasks[k])
+                    {
+                        resources.Add($"{projects[k].Content.Title}.{template.Title}");
+                    }
+                }
+                return resources;
             }
             return null;
         }

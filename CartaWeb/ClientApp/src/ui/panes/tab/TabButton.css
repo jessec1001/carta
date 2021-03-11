@@ -1,0 +1,42 @@
+.tab-button {
+  /* Display using flex to vertically align everything. */
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+
+  /* Get rid of annoying default button styles. */
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: none;
+  border: none;
+
+  /* Give some padding on sides and leave a small margin between tab buttons. */
+  margin: 0px 1px 0px 0px;
+  padding: 0rem 0.5rem;
+  /* border-radius: 2px 2px 0px 0px; */
+
+  /* Use a smaller font. */
+  font-size: 0.9rem;
+}
+.tab-button:focus {
+  /* Get rid of annoying default button styles. */
+  outline: none;
+}
+
+.tab-icon {
+  color: #666;
+  padding-right: 0.5rem;
+  font-size: 0.6rem;
+}
+.tab-close {
+  /* Give some space between the label and the close button. */
+  padding-left: 0.5rem;
+
+  /* Use larger text for close button to make it more visible. */
+  font-size: 1.0rem;
+}
+.tab-close:hover {
+  /* Highlight the close button when hovered over. */
+  color: #800;
+}
