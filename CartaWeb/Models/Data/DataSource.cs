@@ -1,11 +1,14 @@
 using System.Text.Json.Serialization;
 
+using CartaWeb.Models.Meta;
+
 namespace CartaWeb.Models.Data
 {
     /// <summary>
     /// Represents the source of a data resource.
     /// </summary>
     [JsonConverter(typeof(JsonStringEnumConverter))]
+    [ApiType(typeof(string))]
     public enum DataSource
     {
         /// <summary>

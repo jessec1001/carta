@@ -1,0 +1,17 @@
+.api-endpoint {
+  margin-top: 1rem;
+}
+.api-endpoint-content {
+  padding: 1rem;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-top: none;
+  border-radius: 0rem 0rem 0.25rem 0.25rem;
+  font-size: 0.9rem;
+}
+.api-endpoint-content > * {
+  margin: 0;
+}
+.api-endpoint-content-label {
+  margin: 1rem 0rem 0.5rem 0rem;
+  font-size: 1.10rem;
+}

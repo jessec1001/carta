@@ -1,0 +1,10 @@
+.form-graphOpen {
+    padding: 1rem;
+}
+.form-graphOpen .lead {
+    padding: 0.5rem 0rem 0rem 0rem;
+}
+.form-graphOpen .nav-link {
+    padding: 0rem 0.5rem;
+    border-left: 1px solid #bbb;
+}

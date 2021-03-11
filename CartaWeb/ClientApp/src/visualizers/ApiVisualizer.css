@@ -1,0 +1,22 @@
+.api-collection-list {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.api-description-table {
+  width: 100%;
+}
+.api-description-table th {
+  border-bottom: 1px solid #888;
+  font-size: 0.8rem;
+  font-weight: normal;
+}
+.api-description-table td,
+.api-description-table th {
+  padding: 0rem 1rem 0rem 0rem;
+}
+.api-description-table .grow {
+  width: 100%;
+}

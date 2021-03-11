@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 
@@ -6,43 +8,37 @@ using CartaCore.Data;
 namespace CartaWeb.Models.Data
 {
     /// <summary>
-    /// Represents a function to create a graph from an options object.
-    /// </summary>
-    /// <param name="options">The options.</param>
-    /// <typeparam name="TOptions">The type of options.</typeparam>
-    /// <returns>A graph data object.</returns>
-    public delegate Graph OptionsDataResolverFunction<TOptions>(TOptions options) where TOptions : new();
-
-    /// <summary>
     /// Represents a data resolver that creates an options object from the controller route data.
     /// </summary>
-    /// <typeparam name="TOptions">The type of options.</typeparam>
-    public class OptionsDataResolver<TOptions> : IDataResolver
-        where TOptions : class, new()
+    public class OptionsDataResolver : IDataResolver
     {
         /// <summary>
-        /// The resolver function.
+        /// Gets the resolvers for each resource.
         /// </summary>
-        private OptionsDataResolverFunction<TOptions> Resolver;
+        /// <value>The map of resource keys to resolver values.</value>
+        public Dictionary<string, OptionsResourceResolver> Resolvers { get; protected init; }
 
         /// <summary>
-        /// Creates a new options data resolver with a specified controller and resolver.
+        /// Creates a new options data resolver with the specified resolvers.
         /// </summary>
-        /// <param name="resolver">The function to resolve the data.</param>
-        public OptionsDataResolver(OptionsDataResolverFunction<TOptions> resolver)
+        /// <param name="resolvers">The resolvers for each resource.</param>
+        public OptionsDataResolver(Dictionary<string, OptionsResourceResolver> resolvers)
         {
-            Resolver = resolver;
+            Resolvers = resolvers;
         }
 
         /// <inheritdoc />
         public async Task<Graph> GenerateAsync(ControllerBase controller, string resource)
         {
-            // Load the options from the controller.
-            TOptions options = new TOptions();
-            await controller.TryUpdateModelAsync<TOptions>(options);
+            if (Resolvers.TryGetValue(resource, out OptionsResourceResolver resolver))
+                return await resolver.GenerateAsync(controller);
+            return null;
+        }
 
-            // Return the results of the resolver.
-            return Resolver(options);
+        /// <inheritdoc />
+        public Task<IList<string>> FindResourcesAsync(ControllerBase controller)
+        {
+            return Task.FromResult((IList<string>)Resolvers.Keys.ToList());
         }
     }
 }

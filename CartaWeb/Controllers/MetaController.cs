@@ -11,7 +11,9 @@ using CartaWeb.Models.Meta;
 namespace CartaWeb.Controllers
 {
     /// <summary>
-    /// Contains endpoints for obtaining information about active API endpoints.
+    /// Serves information about active API endpoints accessible by the server. Each endpoint is uniquely specified by
+    /// the HTTP method and the endpoint path. Additional information is provided on the schema of the API, default
+    /// values, descriptions of endpoints and parameters, return values, and example requests.
     /// </summary>
     [ApiController]
     [Route("api/[controller]")]
@@ -97,29 +99,13 @@ namespace CartaWeb.Controllers
                     .Trim('/');
 
                 // We add the query string, if any, to the action route.
-                string queryString = string.Join('&',
-                    method
+                string queryString = string.Join('&', method
                         .GetParameters()
                         .Select(param => ResolveParameterString(param))
                         .Where(paramStr => !string.IsNullOrEmpty(paramStr))
                 );
                 route = string.IsNullOrEmpty(queryString) ? route : $"{route}?{queryString}";
-
-                // We get the parameter list.
-                List<ApiParameter> parameters =
-                    method
-                        .GetParameters()
-                        .Select(param =>
-                        {
-                            string name = param.GetCustomAttribute<FromQueryAttribute>()?.Name ?? param.Name;
-
-                            return new ApiParameter
-                            {
-                                Name = name,
-                                Type = param.ParameterType
-                            };
-                        })
-                        .ToList();
+                List<ApiParameter> parameters = ResolveActionParameters(method);
 
                 // The complete route is the concatenation of the controller and action route.
                 foreach (string controllerRoute in controllerRoutes)
@@ -139,10 +125,52 @@ namespace CartaWeb.Controllers
                     {
                         Method = actionMethod,
                         Path = actionRoute,
-                        Parameters = parameters
+                        Parameters = parameters,
+                        Requests = method.GetDocsRequests(),
+                        Description = method.GetDocsSummary(),
+                        Returns = method.GetDocsReturns(),
                     };
                 }
             }
+        }
+        /// <summary>
+        /// Resolves the list of parameters to a controller action.
+        /// </summary>
+        /// <param name="method">The controller action.</param>
+        /// <returns>A list of API parameters.</returns>
+        private List<ApiParameter> ResolveActionParameters(MethodInfo method)
+        {
+            // We get the parameter list.
+            List<ApiParameter> parameters =
+                method
+                    .GetParameters()
+                    .Select(param =>
+                    {
+                        // We check for a custom name specified by its query name.
+                        string name = param.GetCustomAttribute<FromQueryAttribute>()?.Name ?? param.Name;
+
+                        // We get the type of the parameter.
+                        // We check for a different underlying type using our meta attribute.
+                        Type parameterType = param.ParameterType;
+                        parameterType = parameterType.GetCustomAttribute<ApiTypeAttribute>()?.UnderlyingType ?? parameterType;
+
+                        // Figure out the parameter receiving format.
+                        ApiParameterFormat format = ApiParameterFormat.Query;
+                        if (param.GetCustomAttribute<FromRouteAttribute>() is not null)
+                            format = ApiParameterFormat.Route;
+                        if (param.GetCustomAttribute<FromQueryAttribute>() is not null)
+                            format = ApiParameterFormat.Query;
+
+                        return new ApiParameter
+                        {
+                            Name = name,
+                            Type = parameterType,
+                            Format = format,
+                            Description = param.GetDocsSummary()
+                        };
+                    })
+                    .ToList();
+            return parameters;
         }
         /// <summary>
         /// Resolves a parameter to a query string component.
@@ -165,13 +193,18 @@ namespace CartaWeb.Controllers
         }
 
         /// <summary>
-        /// Gets the list of all active API endpoints and associated information.
+        /// Gets the list of all active API endpoints and associated documentation. The information provided should be
+        /// sufficient to construct a request to one of the endpoints. Note that the documentation is updated when the
+        /// application is built and deployed.
         /// </summary>
-        /// <returns>A list of API endpoints sorted by controller.</returns>
+        /// <request name="Example"></request>
+        /// <returns status="200">
+        /// A list of API endpoints grouped together into collections of related functionality.
+        /// </returns>
         [HttpGet]
-        public IDictionary<string, IList<ApiEndpoint>> Get()
+        public List<ApiCollection> Get()
         {
-            IDictionary<string, IList<ApiEndpoint>> endpoints = new Dictionary<string, IList<ApiEndpoint>>();
+            List<ApiCollection> endpoints = new List<ApiCollection>();
 
             // Get each controller type in this assembly.
             IList<Type> controllerTypes = Assembly
@@ -186,7 +219,15 @@ namespace CartaWeb.Controllers
                 // We add a list of endpoints per controller.
                 string controllerName = ResolveControllerName(controllerType);
                 List<ApiEndpoint> controllerEndpoints = new List<ApiEndpoint>();
-                endpoints.Add(controllerName, controllerEndpoints);
+                endpoints.Add
+                (
+                    new ApiCollection
+                    {
+                        Name = controllerName,
+                        Endpoints = controllerEndpoints,
+                        Description = controllerType.GetDocsSummary()
+                    }
+                );
 
                 // We resolve the routes to each individual method and add it to the results.
                 foreach (MethodInfo actionMethod in controllerType.GetMethods())
