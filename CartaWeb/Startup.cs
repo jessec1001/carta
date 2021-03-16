@@ -1,13 +1,17 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Headers;
 using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Net.Http.Headers;
 
 using CartaWeb.Extended.Formatters;
 using CartaWeb.Models.Binders;
 using CartaWeb.Models.Selections;
+using System;
 
 namespace CartaWeb
 {
@@ -87,12 +91,51 @@ namespace CartaWeb
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
-            app.UseSpaStaticFiles();
+            app.UseSpaStaticFiles(new StaticFileOptions()
+            {
+                OnPrepareResponse = (options) =>
+                {
+                    // Get the headers so we can modify the cache-control header.
+                    ResponseHeaders headers = options.Context.Response.GetTypedHeaders();
+
+                    // Static resources are cached for 1 year.
+                    if (options.Context.Request.Path.StartsWithSegments("/static"))
+                    {
+                        headers.CacheControl = new CacheControlHeaderValue
+                        {
+                            Public = true,
+                            MaxAge = TimeSpan.FromDays(365)
+                        };
+                    }
+                    // Non-static resources are not ever cached.
+                    else
+                    {
+                        headers.CacheControl = new CacheControlHeaderValue
+                        {
+                            Public = true,
+                            MaxAge = TimeSpan.FromDays(0)
+                        };
+                    }
+                }
+            });
             app.UseRouting();
             app.UseEndpoints(endpoints => endpoints.MapDefaultControllerRoute());
             app.UseSpa(spa =>
             {
                 spa.Options.SourcePath = "ClientApp";
+                spa.Options.DefaultPageStaticFileOptions = new StaticFileOptions()
+                {
+                    OnPrepareResponse = (options) =>
+                    {
+                        // Get the headers so we can modify the cache-control header.
+                        ResponseHeaders headers = options.Context.Response.GetTypedHeaders();
+                        headers.CacheControl = new CacheControlHeaderValue
+                        {
+                            Public = true,
+                            MaxAge = TimeSpan.FromDays(0)
+                        };
+                    }
+                };
 
                 if (env.IsDevelopment())
                 {
