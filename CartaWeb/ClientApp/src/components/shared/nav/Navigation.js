@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import { version } from "../../../../package.json";
 import {
   Collapse,
   Container,
@@ -38,7 +39,7 @@ export class Navigation extends Component {
         >
           <Container>
             <NavbarBrand tag={Link} to="/">
-              Carta
+              Carta <span className="text-muted version">v{version}</span>
             </NavbarBrand>
             <NavbarToggler onClick={this.toggleNavbar} className="mr-2" />
             <Collapse
