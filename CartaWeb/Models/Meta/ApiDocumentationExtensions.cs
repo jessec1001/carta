@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Xml;
 
@@ -60,6 +61,21 @@ namespace CartaWeb.Models.Meta
             if (memberName is not null) key += $".{memberName}";
             return key;
         }
+        private static string DocumentationGetTypeName(Type type)
+        {
+            if (type.IsGenericType)
+            {
+                string genericArgumentNames = string.Join
+                (',', type
+                    .GetGenericArguments()
+                    .Select(genericType => DocumentationGetTypeName(genericType))
+                );
+                string genericTypeName = type.FullName.Substring
+                    (0, type.FullName.IndexOf('`'));
+                return $"{genericTypeName}{{{genericArgumentNames}}}";
+            }
+            else return type.FullName;
+        }
         /// <summary>
         /// Selects the text of child elements by an XPath path.
         /// </summary>
@@ -80,6 +96,7 @@ namespace CartaWeb.Models.Meta
         /// <returns>The cleaned text.</returns>
         private static string DocumentationCleanString(string text)
         {
+            if (text is null) return text;
             return Regex.Replace(text, @"\s+", " ").Trim();
         }
 
@@ -98,7 +115,10 @@ namespace CartaWeb.Models.Meta
         {
             string paramsKey = String.Join(',', method
                 .GetParameters()
-                .Select(param => DocumentationKeyFormatter(param.ParameterType.FullName, null))
+                .Select
+                (param => DocumentationKeyFormatter
+                    (DocumentationGetTypeName(param.ParameterType), null)
+                )
             );
             if (String.IsNullOrEmpty(paramsKey))
                 return $"M:{DocumentationKeyFormatter(method.DeclaringType.FullName, method.Name)}";
@@ -219,6 +239,15 @@ namespace CartaWeb.Models.Meta
 
                 // Check for a body.
                 XmlNode bodyNode = requestNode.SelectSingleNode("body");
+                JsonDocument bodyJson = null;
+                if (bodyNode is not null)
+                {
+                    bodyJson = JsonSerializer.Deserialize<JsonDocument>
+                    (
+                        bodyNode.InnerText,
+                        new JsonSerializerOptions(JsonSerializerDefaults.Web)
+                    );
+                }
 
                 // Check for arguments.
                 Dictionary<string, string> arguments = new Dictionary<string, string>();
@@ -236,7 +265,7 @@ namespace CartaWeb.Models.Meta
                     new ApiRequest
                     {
                         Name = name,
-                        Body = null,
+                        Body = bodyJson,
                         Arguments = arguments
                     }
                 );

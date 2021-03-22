@@ -1,13 +1,18 @@
 .api-request {
-    padding: 1rem;
+  padding: 1rem;
 }
 
-.api-response {
-    max-height: 24rem;
-    overflow-y: auto;
-    margin: 0.5rem 0rem 0rem 0rem;
-    padding: 0.5rem;
-    border-radius: 0.25rem;
-    background-color: rgb(26, 29, 32);
-    color: rgb(184, 215, 230);
+.api-json {
+  max-height: 24rem;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  background-color: rgb(26, 29, 32);
+  color: rgb(184, 215, 230);
+}
+.api-type {
+  text-transform: uppercase;
+  margin: 0;
+  margin-top: 0.5rem;
 }

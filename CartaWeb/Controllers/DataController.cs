@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 
 using CartaCore.Data;
 using CartaCore.Data.Synthetic;
+using CartaCore.Workflow;
 using CartaWeb.Models.Data;
 
 namespace CartaWeb.Controllers
@@ -106,15 +107,22 @@ namespace CartaWeb.Controllers
         /// Gets the base graph for the specified data resource. If the resource contains infinite or directed data, the
         /// base graph only contains a singular root vertex. Use the other Data API functionality to extract more
         /// information from these types of graphs. If the resource contains finite or undirected data, the base graph
-        /// contains all of the vertices and edges.
+        /// contains all of the vertices and edges. The graph may have an optional workflow, specified by the Workflow
+        /// API, applied to it.
         /// </summary>
         /// <param name="source">The data source identifier.</param>
         /// <param name="resource">The data resource identifier located on the data source.</param>
+        /// <param name="workflowId">The identifier of the workflow to be applied to the graph.</param>
         /// <request name="Synthetic Graph">
         ///     <arg name="source">synthetic</arg>
         ///     <arg name="resource">infiniteDirectedGraph</arg>
         /// </request>
-        /// <request name="HyperThought Workflow">
+        /// <request name="Synthetic Graph with Workflow">
+        ///     <arg name="source">synthetic</arg>
+        ///     <arg name="resource">infiniteDirectedGraph</arg>
+        ///     <arg name="workflow">0</arg>
+        /// </request>
+        /// <request name="HyperThought Workflow Graph">
         ///     <arg name="source">hyperthought</arg>
         ///     <arg name="resource">Sandbox.Test01</arg>
         /// </request>
@@ -131,7 +139,8 @@ namespace CartaWeb.Controllers
         [HttpGet("{source}/{resource}")]
         public async Task<ActionResult<FiniteGraph>> GetGraph(
             [FromRoute] DataSource source,
-            [FromRoute] string resource
+            [FromRoute] string resource,
+            [FromQuery(Name = "workflow")] int? workflowId = null
         )
         {
             Graph graph = await LookupData(source, resource);
@@ -146,29 +155,41 @@ namespace CartaWeb.Controllers
                 case IDynamicOutGraph<IOutVertex> outGraph:
                     // Return the subgraph of the graph containing the base vertex.
                     subgraph = await FiniteGraph.CreateSubgraph(outGraph, new[] { outGraph.BaseIdentifier });
-                    return Ok(subgraph);
+                    break;
                 case IDynamicGraph<Vertex> dynGraph:
                     // Return the subgraph of the graph containing the base vertex.
                     subgraph = await FiniteGraph.CreateSubgraph(dynGraph, new[] { dynGraph.BaseIdentifier });
-                    return Ok(subgraph);
+                    break;
                 case FiniteGraph finiteGraph:
                     // Return entire graph.
-                    return Ok(finiteGraph);
+                    subgraph = finiteGraph;
+                    break;
                 default:
                     // If a graph does not match a previous type, we cannot retrieve it.
                     return BadRequest();
             }
+
+            // We apply a workflow if requested.
+            if (workflowId.HasValue)
+            {
+                Workflow workflow = await WorkflowController.LoadWorkflowAsync(workflowId.Value);
+                subgraph = await workflow.ApplyAsync(subgraph);
+            }
+
+            return Ok(subgraph);
         }
 
         /// <summary>
         /// Gets a graph containing only a particular vertex for the specified data resource. The data source must
         /// support queryable vertices by unique identifiers for this functionality to apply. The vertex will contain
         /// all of its properties and observations. Additionally, all of the in-edges or out-edges, depending on the
-        /// capabilities of the data source, will be included in the produced graph.
+        /// capabilities of the data source, will be included in the produced graph. The graph may have an optional
+        /// workflow, specified by the Workflow API, applied to it.
         /// </summary>
         /// <param name="source">The data source identifier.</param>
         /// <param name="resource">The data resource identifier located on the data source.</param>
         /// <param name="id">The unique identifier of the vertex.</param>
+        /// <param name="workflowId">The identifier of the workflow to be applied to the graph.</param>
         /// <request name="Synthetic Graph 1">
         ///     <arg name="source">synthetic</arg>
         ///     <arg name="resource">infiniteDirectedGraph</arg>
@@ -179,6 +200,13 @@ namespace CartaWeb.Controllers
         ///     <arg name="resource">infiniteDirectedGraph</arg>
         ///     <arg name="id">fd712a01-ac32-47d1-05fd-a619c088dbe1</arg>
         ///     <arg name="seed">1234</arg>
+        /// </request>
+        /// <request name="Synthetic Graph 2 with Workflow">
+        ///     <arg name="source">synthetic</arg>
+        ///     <arg name="resource">infiniteDirectedGraph</arg>
+        ///     <arg name="id">fd712a01-ac32-47d1-05fd-a619c088dbe1</arg>
+        ///     <arg name="seed">1234</arg>
+        ///     <arg name="workflow">0</arg>
         /// </request>
         /// <returns status="200">
         /// A graph with the requested vertex loaded with its properties and observations and its corresponding edges.
@@ -194,7 +222,8 @@ namespace CartaWeb.Controllers
         public async Task<ActionResult<FiniteGraph>> GetProperties(
             [FromRoute] DataSource source,
             [FromRoute] string resource,
-            [FromQuery] string id
+            [FromQuery] string id,
+            [FromQuery(Name = "workflow")] int? workflowId = null
         )
         {
             Graph graph = await LookupData(source, resource);
@@ -209,15 +238,24 @@ namespace CartaWeb.Controllers
                 case IDynamicOutGraph<IOutVertex> outGraph:
                     // Return the subgraph of the graph containing the requested vertex.
                     subgraph = await FiniteGraph.CreateSubgraph(outGraph, new[] { Identity.Create(id) });
-                    return Ok(subgraph);
+                    break;
                 case IDynamicGraph<Vertex> dynGraph:
                     // Return the subgraph of the graph containing the base vertex.
                     subgraph = await FiniteGraph.CreateSubgraph(dynGraph, new[] { Identity.Create(id) });
-                    return Ok(subgraph);
+                    break;
                 default:
                     // If a graph does not match a previous type, we cannot retrieve it.
                     return BadRequest();
             }
+
+            // We apply a workflow if requested.
+            if (workflowId.HasValue)
+            {
+                Workflow workflow = await WorkflowController.LoadWorkflowAsync(workflowId.Value);
+                subgraph = await workflow.ApplyAsync(subgraph);
+            }
+
+            return Ok(subgraph);
         }
 
         /// <summary>
@@ -225,11 +263,12 @@ namespace CartaWeb.Controllers
         /// must support queryable vertices by unique identifiers and must support obtaining out-edges/children
         /// connections for a vertex for this functionality to apply. The loaded children vertices and all of their
         /// in-edges or out-edges, depending on the capabilities of the data source, will be included in the produced
-        /// graph.
+        /// graph. The graph may have an optional workflow, specified by the Workflow API, applied to it.
         /// </summary>
         /// <param name="source">The data source identifier.</param>
         /// <param name="resource">The data resource identifier located on the data source.</param>
         /// <param name="id">The unique identifier of the vertex.</param>
+        /// <param name="workflowId">The identifier of the workflow to be applied to the graph.</param>
         /// <request name="Synthetic Graph - No Children">
         ///     <arg name="source">synthetic</arg>
         ///     <arg name="resource">infiniteDirectedGraph</arg>
@@ -256,7 +295,8 @@ namespace CartaWeb.Controllers
         public async Task<ActionResult<Graph>> GetChildren(
             [FromRoute] DataSource source,
             [FromRoute] string resource,
-            [FromQuery] string id
+            [FromQuery] string id,
+            [FromQuery(Name = "workflow")] int? workflowId = null
         )
         {
             Graph graph = await LookupData(source, resource);
@@ -271,79 +311,24 @@ namespace CartaWeb.Controllers
                 case IDynamicOutGraph<InOutVertex> inoutGraph:
                     // Return the subgraph of the graph containing the requested vertex.
                     subgraph = await FiniteGraph.CreateChildSubgraph(inoutGraph, new[] { Identity.Create(id) });
-                    return Ok(subgraph);
+                    break;
                 case IDynamicOutGraph<OutVertex> outGraph:
                     // Return the subgraph of the graph containing the requested vertex.
                     subgraph = await FiniteGraph.CreateChildSubgraph(outGraph, new[] { Identity.Create(id) });
-                    return Ok(subgraph);
+                    break;
                 default:
                     // If a graph does not match a previous type, we cannot retrieve it.
                     return BadRequest();
             }
+
+            // We apply a workflow if requested.
+            if (workflowId.HasValue)
+            {
+                Workflow workflow = await WorkflowController.LoadWorkflowAsync(workflowId.Value);
+                subgraph = await workflow.ApplyAsync(subgraph);
+            }
+
+            return Ok(subgraph);
         }
-
-        // /// <summary>
-        // /// Gets the selected vertices from a subset of vertices specified by the application of a series of selectors.
-        // /// </summary>
-        // /// <remarks>
-        // /// This endpoint is created for ease of performing a single selection or iterative selection. The
-        // /// <code>ids</code> field should be specified to refine to refine the search. If <code>ids</code> is not
-        // /// specified, the selection is performed on the entire graph.  
-        // /// </remarks>
-        // /// <example>
-        // /// <code>
-        // /// // Iterative selection.
-        // /// ids = GET /api/data/source/resource/selection
-        // ///       BODY { selectors: [...] }
-        // /// ids = GET /api/data/source/resource/selection
-        // ///       BODY { selectors: [...], ids }
-        // /// ids = GET /api/data/source/resource/selection
-        // ///       BODY { selectors: [...], ids }
-        // /// </code>
-        // /// </example>
-        // /// <param name="source">The data source.</param>
-        // /// <param name="resource">The resource located on the data source.</param>
-        // /// <param name="request">
-        // /// The selection request. Made up of the identifiers to get information on and the stack of selectors to apply.
-        // /// </param>
-        // /// <returns></returns>
-        // [HttpPost("{source}/{resource?}/select")]
-        // public async Task<IEnumerable<string>> GetSelection(
-        //     [FromRoute] DataSource source,
-        //     [FromRoute] string resource,
-        //     [FromBody] SelectionRequest request
-        // )
-        // {
-        //     Graph graph = await LookupData(source, resource);
-        //     FreeformDynamicGraph dynamicGraph = graph as FreeformDynamicGraph;
-
-        //     // When no identifiers are specified, we simply retrieve all identifiers that match the selection.
-        //     FreeformFiniteGraph subgraph;
-        //     if (request.Ids is null)
-        //     {
-        //         if (dynamicGraph is null)
-        //             subgraph = FreeformFiniteGraph.CreateSubgraph(graph, null, includeEdges: false);
-        //         else
-        //             subgraph = FreeformFiniteGraph.CreateSubgraph(dynamicGraph, null, includeEdges: false);
-        //     }
-        //     else
-        //     {
-        //         IEnumerable<Identity> includedIds = request.Ids.Select(id => Identity.Create(id));
-        //         if (dynamicGraph is null)
-        //             subgraph = FreeformFiniteGraph.CreateSubgraph(graph, includedIds, includeEdges: false);
-        //         else
-        //             subgraph = FreeformFiniteGraph.CreateSubgraph(dynamicGraph, includedIds, includeEdges: false);
-        //     }
-        //     foreach (SelectorBase selector in request.Selectors)
-        //     {
-        //         subgraph = FreeformFiniteGraph.CreateSubgraph(subgraph,
-        //             subgraph.Vertices
-        //                 .Where(vertex => selector.Contains(vertex))
-        //                 .Select(vertex => vertex.Identifier),
-        //             includeEdges: false
-        //         );
-        //     }
-        //     return subgraph.Vertices.Select(vertex => vertex.Identifier.ToString());
-        // }
     }
 }

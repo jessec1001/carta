@@ -49,6 +49,10 @@ namespace CartaCore.Utility
         /// <returns>The string representation of the type.</returns>
         public static string TypeSerialize(this Type type)
         {
+            Type nullableType = Nullable.GetUnderlyingType(type);
+            if (nullableType is not null)
+                return $"{nullableType.TypeSerialize()}?";
+
             if (!(type is null) && Primatives.TryGetValue(type, out string result))
                 return result;
             return type.Name;

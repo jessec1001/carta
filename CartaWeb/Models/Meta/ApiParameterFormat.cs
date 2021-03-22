@@ -16,6 +16,9 @@ namespace CartaWeb.Models.Meta
         Route,
         /// <summary>The parameter was retrieved from query.</summary>
         [EnumMember(Value = "query")]
-        Query
+        Query,
+        /// <summary>The parameter was retrieved from body.</summary>
+        [EnumMember(Value = "body")]
+        Body
     }
 }

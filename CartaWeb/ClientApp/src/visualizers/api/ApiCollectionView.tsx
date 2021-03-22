@@ -20,7 +20,7 @@ export default class ApiCollectionView extends Component<ApiCollectionViewProps>
         <p>{this.props.collection.description}</p>
         <ul className="api-endpoint-list">
           {this.props.collection.endpoints.map((endpoint) => (
-            <ApiEndpointView key={endpoint.path} endpoint={endpoint} />
+            <ApiEndpointView key={`${endpoint.method} ${endpoint.path}`} endpoint={endpoint} />
           ))}
         </ul>
       </li>

@@ -151,6 +151,7 @@ namespace CartaWeb.Controllers
 
                         // We get the type of the parameter.
                         // We check for a different underlying type using our meta attribute.
+                        // We also need to check for nullability.
                         Type parameterType = param.ParameterType;
                         parameterType = parameterType.GetCustomAttribute<ApiTypeAttribute>()?.UnderlyingType ?? parameterType;
 
@@ -160,6 +161,8 @@ namespace CartaWeb.Controllers
                             format = ApiParameterFormat.Route;
                         if (param.GetCustomAttribute<FromQueryAttribute>() is not null)
                             format = ApiParameterFormat.Query;
+                        if (param.GetCustomAttribute<FromBodyAttribute>() is not null)
+                            format = ApiParameterFormat.Body;
 
                         return new ApiParameter
                         {
@@ -186,7 +189,9 @@ namespace CartaWeb.Controllers
                 .FirstOrDefault();
 
             // The parameter value is only set if the parameter has a default value.
-            string parameterValue = parameter.HasDefaultValue ? parameter.DefaultValue.ToString() : null;
+            string parameterValue = parameter.HasDefaultValue
+                ? (parameter.DefaultValue is null ? "null" : parameter.DefaultValue.ToString())
+                : null;
 
             // If there is no default value, use 'param=value'; otherwise, use 'param'.
             return (parameterValue is null) ? parameterName : $"{parameterName}={parameterValue}";
@@ -202,7 +207,7 @@ namespace CartaWeb.Controllers
         /// A list of API endpoints grouped together into collections of related functionality.
         /// </returns>
         [HttpGet]
-        public List<ApiCollection> Get()
+        public List<ApiCollection> GetEndpoints()
         {
             List<ApiCollection> endpoints = new List<ApiCollection>();
 

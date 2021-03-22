@@ -9,12 +9,12 @@ namespace CartaCore.Data
         /// Gets or sets the observation value.
         /// </summary>
         /// <value>The observation value.</value>
-        public object Value { get; init; }
+        public object Value { get; set; }
         /// <summary>
         /// Gets or sets the observation type.
         /// </summary>
         /// <value>The observation type as a string representation.</value>
-        public string Type { get; init; }
+        public string Type { get; set; }
 
         /// <summary>
         /// Initializes an instance of the <see cref="Observation"/> class with the specified identifier.

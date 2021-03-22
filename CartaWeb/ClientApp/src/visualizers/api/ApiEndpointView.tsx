@@ -35,11 +35,16 @@ export default class ApiEndpointView extends Component<ApiEndpointViewProps> {
             </>
           )}
 
-          <h5 className="api-endpoint-content-label">Returns</h5>
-          <ApiReturnsView returns={this.props.endpoint.returns} />
+          {/* We don't need to display the returns table if there are no returns. */}
+          {this.props.endpoint.returns && (
+            <>
+              <h5 className="api-endpoint-content-label">Returns</h5>
+              <ApiReturnsView returns={this.props.endpoint.returns} />
+            </>
+          )}
 
           {/* We don't need to display the requests table if there are no sample requests. */}
-          {this.props.endpoint.requests.length > 0 && (
+          {this.props.endpoint.requests && this.props.endpoint.requests.length > 0 && (
             <>
               <h5 className="api-endpoint-content-label">Example Requests</h5>
               <ApiRequestCollectionView

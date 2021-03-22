@@ -1,3 +1,4 @@
+using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -8,10 +9,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Net.Http.Headers;
 
+using CartaCore.Serialization.Json;
 using CartaWeb.Extended.Formatters;
 using CartaWeb.Models.Binders;
-using CartaWeb.Models.Selections;
-using System;
 
 namespace CartaWeb
 {
@@ -59,7 +59,7 @@ namespace CartaWeb
                 }).AddJsonOptions(options =>
                 {
                     options.JsonSerializerOptions.IgnoreNullValues = true;
-                    options.JsonSerializerOptions.Converters.Insert(0, new SelectorBaseConverter());
+                    options.JsonSerializerOptions.Converters.Insert(0, new DiscriminantConverter());
                 });
 
             // In production, the React files will be served from this directory
