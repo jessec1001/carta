@@ -1,28 +1,26 @@
 using System;
 using System.Text.RegularExpressions;
 
-using CartaCore.Data;
-
 namespace CartaCore.Workflow.Selection
 {
     /// <summary>
-    /// Represents a selection of vertices based on a regular expression match of vertex labels.
+    /// Represents a base selection based on a regular expression match.
     /// </summary>
-    public class SelectorRegex : SelectorBase
+    public abstract class SelectorRegexBase : SelectorBase
     {
-        private Regex Regex;
+        /// <summary>
+        /// The regular expression pattern that can be used to test for matches in naming.
+        /// </summary>
+        protected Regex Regex;
         private string RegexPattern;
 
-        /// <inheritdoc />
-        public override string Type => "regex";
-
         /// <summary>
-        /// The maximum amount of time that an instance of the <see cref="SelectorRegex"/> class will be able to filter
+        /// The maximum amount of time that an instance of the <see cref="SelectorVertexName"/> class will be able to filter
         /// before aborting its operation.
         /// </summary>
         public static readonly TimeSpan Timeout = TimeSpan.FromSeconds(1.0);
         /// <summary>
-        /// The regular expression pattern to use to match labels on vertices.
+        /// The regular expression pattern to use to match naming.
         /// </summary>
         public string Pattern
         {
@@ -43,13 +41,6 @@ namespace CartaCore.Workflow.Selection
                     );
                 }
             }
-        }
-
-        /// <inheritdoc />
-        public override bool Contains(Vertex vertex)
-        {
-            if (Regex is null) return true;
-            return !(vertex.Label is null) && Regex.IsMatch(vertex.Label);
         }
     }
 }
