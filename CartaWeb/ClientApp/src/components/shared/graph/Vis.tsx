@@ -57,6 +57,7 @@ export class Vis extends Component<VisProps> {
   ref: RefObject<HTMLDivElement>;
   data: VisGraphData;
   network: Network | null;
+  focus: { x: number; y: number };
 
   constructor(props: VisProps) {
     super(props);
@@ -67,6 +68,30 @@ export class Vis extends Component<VisProps> {
       edges: this.props.graph.edges,
     };
     this.network = null;
+    this.focus = { x: 0, y: 0 };
+
+    this.handleRedraw = this.handleRedraw.bind(this);
+    this.handleResize = this.handleResize.bind(this);
+  }
+
+  handleRedraw() {
+    if (this.network) {
+      this.focus = this.network.getViewPosition();
+    }
+  }
+  handleResize(event: {
+    width: number;
+    height: number;
+    oldWidth: number;
+    oldHeight: number;
+  }) {
+    if (this.network) {
+      if (event.oldWidth === 0 && event.oldHeight === 0) {
+        this.network.moveTo({
+          position: this.focus,
+        });
+      }
+    }
   }
 
   registerEvents() {
@@ -141,6 +166,10 @@ export class Vis extends Component<VisProps> {
       if (!this.props.onDeselectNode) return;
       if (event.nodes.length === 0) this.props.onDeselectNode(event);
     });
+
+    // Custom behavior.
+    this.network.on("beforeDrawing", this.handleRedraw);
+    this.network.on("resize", this.handleResize);
   }
 
   componentDidMount() {
@@ -152,6 +181,9 @@ export class Vis extends Component<VisProps> {
         this.props.options
       );
       this.registerEvents();
+      this.network.moveTo({
+        position: this.focus,
+      });
 
       // Notify the event handler about the network being created.
       if (this.props.onNetworkCreate) this.props.onNetworkCreate(this.network);
@@ -179,9 +211,7 @@ export class Vis extends Component<VisProps> {
     }
 
     // If the graph selection changed, update the selected nodes.
-    if (
-      this.props.selection !== prevProps.selection
-    ) {
+    if (this.props.selection !== prevProps.selection) {
       if (this.props.selection && prevProps.selection) {
         // Check that the selection is actually different.
         let different = false;
