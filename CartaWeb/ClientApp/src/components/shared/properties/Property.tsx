@@ -35,15 +35,15 @@ export class PropertyItem extends Component<PropertyProps, PropertyState> {
   }
 
   render() {
-    let className = "property";
+    let className = "property-item";
     if (this.props.selected) className += " selected";
     if (this.props.onClick) className += " clickable";
 
     return (
       <div>
         <div className={className} onClick={this.props.onClick}>
-          <p className="property-name">{this.props.property.id}:</p>
-          <div className="property-occurrences">
+          <p className="property-item-name">{this.props.property.id}:</p>
+          <div className="property-item-occurrences">
             ×{this.props.property.observations.length} &nbsp;
             <div
               className="d-inline property-expand"

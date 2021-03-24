@@ -1,1 +1,0 @@
-{"id":0,"name":"Property Range Workflow","operations":[{"name":"Increment (\u002B1) Values (\u003C0.5)","selector":{"type":"property range","property":"saur","minimum":null,"maximum":0.5},"action":{"type":"increment","amount":1}}]}

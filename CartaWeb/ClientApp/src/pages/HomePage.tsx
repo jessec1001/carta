@@ -15,15 +15,13 @@ import {
   ModalFooter,
 } from "reactstrap";
 import { Link, RouteComponentProps } from "react-router-dom";
-
 import "./HomePage.css";
 
 export interface HomePageProps extends RouteComponentProps {}
-
 export interface HomePageState {
   hyperthoughtModalOpen: boolean;
   hyperthoughtKey: string;
-  hyperthoughtRedirect?: { pathname: string; };
+  hyperthoughtRedirect?: { pathname: string };
 }
 
 export default class HomePage extends Component<HomePageProps, HomePageState> {
@@ -56,12 +54,12 @@ export default class HomePage extends Component<HomePageProps, HomePageState> {
       this.setState({
         hyperthoughtModalOpen: true,
         hyperthoughtRedirect: {
-          pathname: event.target.getAttribute("href")
-        }
+          pathname: event.target.getAttribute("href"),
+        },
       });
     } else {
       this.props.history.push({
-        pathname: event.target.getAttribute("href")
+        pathname: event.target.getAttribute("href"),
       });
     }
     event.preventDefault();
@@ -92,7 +90,7 @@ export default class HomePage extends Component<HomePageProps, HomePageState> {
       <div>
         <Modal
           isOpen={this.state.hyperthoughtModalOpen}
-          toggle={this.state.hyperthoughtModalOpen}
+          toggle={this.handleHyperthoughtModalToggle}
         >
           <ModalHeader>HyperThought&trade; Access</ModalHeader>
           <ModalBody>

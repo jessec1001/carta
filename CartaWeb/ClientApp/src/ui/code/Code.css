@@ -1,0 +1,12 @@
+pre[class*="language-"] {
+  margin: 0rem;
+  padding: 0.5rem 6rem 0.5rem 1rem;
+}
+.code-block {
+  min-height: 2em;
+  max-height: 20em;
+}
+.code-label {
+  text-transform: uppercase;
+  font-size: 0.9em;
+}
