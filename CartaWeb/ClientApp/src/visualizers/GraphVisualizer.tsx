@@ -11,7 +11,7 @@ import {
   updateViewVertex,
 } from "../lib/graphstore";
 
-import { Vis } from "../components/shared/graph/Vis";
+import { VisWrapper } from "../wrappers";
 import { Edge, Node, Property } from "../lib/types/graph";
 
 export interface VisualizeNode extends Node {
@@ -527,7 +527,7 @@ export default class GraphVisualizer extends Component<
 
   render() {
     return (
-      <Vis
+      <VisWrapper
         graph={this.view as any}
         options={this.state.options}
         cursor={this.state.cursor}

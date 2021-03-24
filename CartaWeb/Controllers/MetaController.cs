@@ -101,6 +101,7 @@ namespace CartaWeb.Controllers
                 // We add the query string, if any, to the action route.
                 string queryString = string.Join('&', method
                         .GetParameters()
+                        .Where(param => Nullable.GetUnderlyingType(param.ParameterType) is null)
                         .Select(param => ResolveParameterString(param))
                         .Where(paramStr => !string.IsNullOrEmpty(paramStr))
                 );

@@ -1,15 +1,17 @@
 import React, { Component, createRef, RefObject } from "react";
+
 import { DataSet } from "vis-data/standalone";
 import { Network, Options } from "vis-network/standalone";
-import { Edge, Node } from "../../../lib/types/graph";
-import "./Vis.css";
+import { Edge, Node } from "../lib/types/graph";
+
+import "./VisWrapper.css";
 
 export interface VisGraphData {
   nodes: DataSet<Node>;
   edges: DataSet<Edge>;
 }
 
-interface VisProps {
+export interface VisWrapperProps {
   graph: VisGraphData;
   options: Options;
   selection?: string[];
@@ -51,15 +53,15 @@ interface VisProps {
   onNetworkCreate?: (params: Network) => void;
 }
 
-export class Vis extends Component<VisProps> {
-  static displayName = Vis.name;
+export default class VisWrapper extends Component<VisWrapperProps> {
+  static displayName = VisWrapper.name;
 
   ref: RefObject<HTMLDivElement>;
   data: VisGraphData;
   network: Network | null;
   focus: { x: number; y: number };
 
-  constructor(props: VisProps) {
+  constructor(props: VisWrapperProps) {
     super(props);
 
     this.ref = createRef<HTMLDivElement>();
@@ -194,7 +196,7 @@ export class Vis extends Component<VisProps> {
       }
     }
   }
-  componentDidUpdate(prevProps: VisProps) {
+  componentDidUpdate(prevProps: VisWrapperProps) {
     // If the graph options changed, just reset them.
     if (this.props.options !== prevProps.options) {
       if (this.network) {
@@ -229,6 +231,6 @@ export class Vis extends Component<VisProps> {
   }
 
   render() {
-    return <div className="graph-container" ref={this.ref} />;
+    return <div className="vis-container" ref={this.ref} />;
   }
 }

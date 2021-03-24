@@ -1,1 +1,0 @@
-{"id":0,"name":"My Test Workflow","operations":[{"name":"My New Operation","selector":{"type":"vertex name","pattern":"e.*e"},"action":{"type":"increment","amount":5}}]}

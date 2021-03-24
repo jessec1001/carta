@@ -1,28 +1,28 @@
-.property {
+.property-item {
   display: flex;
   font-size: 0.9em;
 }
-.property.clickable {
+.property-item.clickable {
   cursor: pointer;
 }
-.property.selected {
+.property-item.selected {
   border-color: rgba(64, 128, 0, 0.4);
   background-color: rgba(128, 255, 0, 0.2);
 }
 
-.property * {
+.property-item * {
   margin: 0;
 }
-.property-name {
+.property-item-name {
   margin-right: 0.75rem;
   color: rgb(0, 133, 138);
 }
-.property-occurrences {
+.property-item-occurrences {
   text-align: right;
   flex-grow: 1;
 }
-.property-occurrences,
-.property-occurrences a {
+.property-item-occurrences,
+.property-item-occurrences a {
   color: #888;
 }
 .property-expand {

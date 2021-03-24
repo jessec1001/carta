@@ -41,6 +41,7 @@ export async function dataGetGraph(
   resource: string,
   parameters?: Record<string, any>
 ) {
+  console.log("Get Graph:", source, resource, parameters, getStoredParameters(source, resource));
   return (await generalRequest(`api/data/${source}/${resource}`, {
     ...getStoredParameters(source, resource),
     ...parameters,
