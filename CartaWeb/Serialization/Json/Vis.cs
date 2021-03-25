@@ -17,6 +17,13 @@ namespace CartaWeb.Serialization.Json
     public class VisFormat
     {
         /// <summary>
+        /// Gets or sets the graph identifier.
+        /// </summary>
+        /// <value>The graph identifier.</value>
+        [JsonPropertyName("id")]
+        public string Id { get; set; }
+
+        /// <summary>
         /// Gets or sets whether the graph is directed.
         /// </summary>
         /// <value>
@@ -24,6 +31,12 @@ namespace CartaWeb.Serialization.Json
         /// </value>
         [JsonPropertyName("directed")]
         public bool Directed { get; set; }
+        /// <summary>
+        /// Gets or sets whether the graph is dynamic.
+        /// </summary>
+        /// <value><c>true</c> if the graph is dynamic; otherwise <c>false</c>.</value>
+        [JsonPropertyName("dynamic")]
+        public bool Dynamic { get; set; }
 
         /// <summary>
         /// Gets or sets the graph nodes.
@@ -54,7 +67,7 @@ namespace CartaWeb.Serialization.Json
             get
             {
                 // Create a graph and add the vertices and edges.
-                FiniteGraph graph = new FiniteGraph(null, Directed);
+                FiniteGraph graph = new FiniteGraph(Identity.Create(Id), Directed);
                 graph.AddVertexRange(Nodes.Select(node => node.Vertex));
                 graph.AddEdgeRange(Edges.Select(edge => edge.Edge));
 
@@ -76,6 +89,8 @@ namespace CartaWeb.Serialization.Json
         {
             VisFormat visFormat = new VisFormat();
 
+            if (graph is Graph baseGraph) visFormat.Id = baseGraph.Identifier.ToString();
+            if (graph is IDynamicGraph<IVertex>) visFormat.Dynamic = true;
             visFormat.Directed = graph.IsDirected;
             visFormat.Nodes = await graph.Vertices.SelectAwait
             (
