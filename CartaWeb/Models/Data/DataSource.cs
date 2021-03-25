@@ -16,6 +16,10 @@ namespace CartaWeb.Models.Data
         /// </summary>
         Synthetic,
         /// <summary>
+        /// The internal, user-generated data source.
+        /// </summary>
+        User,
+        /// <summary>
         /// The external data source from HyperThought.
         /// </summary>
         HyperThought

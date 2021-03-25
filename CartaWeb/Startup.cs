@@ -10,7 +10,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Net.Http.Headers;
 
 using CartaCore.Serialization.Json;
-using CartaWeb.Extended.Formatters;
+using CartaWeb.Formatters;
 using CartaWeb.Models.Binders;
 
 namespace CartaWeb
@@ -55,6 +55,7 @@ namespace CartaWeb
                     options.ModelBinderProviders.Insert(0, new CustomModelBinderProvider());
 
                     // Our custom formatting middleware needs to come before other formatters.
+                    options.InputFormatters.Insert(0, new GraphInputFormatter());
                     options.OutputFormatters.Insert(0, new GraphOutputFormatter());
                 }).AddJsonOptions(options =>
                 {

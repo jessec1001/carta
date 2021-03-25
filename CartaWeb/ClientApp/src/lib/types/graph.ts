@@ -46,6 +46,7 @@ export interface Edge extends VisEdge {
 export interface Graph {
   /** Whether or not the edges of the graph are directed. */
   directed: boolean;
+  dynamic: boolean;
 
   /** The nodes contained in the graph. */
   nodes: Array<Node>;

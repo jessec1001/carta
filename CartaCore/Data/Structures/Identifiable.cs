@@ -11,7 +11,7 @@ namespace CartaCore.Data
         /// Gets or sets the identifier that uniquely represents this object. 
         /// </summary>
         /// <value>The identifier of this object. This value cannot be changed after initialization.</value>
-        public Identity Identifier { get; protected init; }
+        public Identity Identifier { get; set; }
 
         /// <summary>
         /// Initializes an instance of the <see cref="Identifiable{T}"/> class with its specified identifier.

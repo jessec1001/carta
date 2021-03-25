@@ -79,7 +79,7 @@ export async function generalRequest(
 
   const response = await fetch(url, {
     method: method,
-    body: body,
+    body: JSON.stringify(body),
     headers: {
       "Content-Type": "application/json",
     },
@@ -98,7 +98,6 @@ export async function unknownRequest(
     const request: RequestInfo = knownRequests[k];
     const pathRegex = `^${request.path.replace(/\{(.*?)\}/g, "(?<$1>[^/]*?)")}$`;
     const match = path.match(new RegExp(pathRegex));
-    console.log(path, pathRegex, match);
     if (method === request.method && match !== null) {
       return request.endpoint(match.groups ?? {}, parameters);
     }

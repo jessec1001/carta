@@ -128,6 +128,7 @@ namespace CartaCore.Data
         /// <inheritdoc />
         public override string ToString()
         {
+            if (Identity is null) return null;
             return Identity.ToString();
         }
     }

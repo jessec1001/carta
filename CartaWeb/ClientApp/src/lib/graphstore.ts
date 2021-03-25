@@ -33,6 +33,7 @@ export interface GraphIds {
 }
 export interface GraphProperties {
   directed?: boolean;
+  dynamic?: boolean;
 }
 export interface GraphDataSet {
   id: number;
@@ -233,6 +234,7 @@ async function initData(graph: GraphBuffer) {
     graph.parameters
   );
   graph.properties.directed = data.directed;
+  graph.properties.dynamic = data.dynamic;
 
   // Set the initial identifiers for the graph.
   const initialNodes = data.nodes.map((node) => node.id);
@@ -318,7 +320,7 @@ function addVertexToView(
     });
 
     // Make a request to get the children of the node if necessary.
-    if (node.childrenLoaded === undefined) {
+    if (node.childrenLoaded === undefined && graph.properties.dynamic) {
       makeRequest(() => addDataChildrenVertices(graph, node.id));
     }
   }
@@ -404,6 +406,7 @@ export function showViewChildrenVertices(
   if (graphId !== undefined) {
     const graph = graphData[graphId];
     const node = graph.nodes.get(id);
+    if (!graph.properties.dynamic) return Promise.resolve();
     if (node) {
       if (node.childrenLoaded === true) {
         // If the children are loaded, we can copy them over to the view.

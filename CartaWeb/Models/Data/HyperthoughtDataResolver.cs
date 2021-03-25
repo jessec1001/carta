@@ -15,16 +15,17 @@ namespace CartaWeb.Models.Data
     /// </summary>
     public class HyperthoughtDataResolver : IDataResolver
     {
+        private static TimeSpan AliasExpiration = TimeSpan.FromMinutes(15.00);
         private static readonly int AliasCount = short.MaxValue;
 
-        private SortedList<string, Guid> Aliases;
+        private SortedList<string, (DateTime, Guid)> Aliases;
 
         /// <summary>
         /// Creates a new instance of the <see cref="HyperthoughtDataResolver"/> class with a specified controller.
         /// </summary>
         public HyperthoughtDataResolver()
         {
-            Aliases = new SortedList<string, Guid>(AliasCount, StringComparer.OrdinalIgnoreCase);
+            Aliases = new SortedList<string, (DateTime, Guid)>(AliasCount, StringComparer.OrdinalIgnoreCase);
         }
 
         /// <inheritdoc />
@@ -37,8 +38,9 @@ namespace CartaWeb.Models.Data
                 Guid uuid = Guid.Empty;
                 if (!Guid.TryParse(resource, out uuid))
                 {
-                    // Find the alias if we don't currently have it.
-                    if (!Aliases.TryGetValue(resource, out uuid))
+                    // Find the alias if we don't currently have it or it is outdated.
+                    if (!Aliases.TryGetValue(resource, out (DateTime timestamp, Guid uuid) alias) ||
+                        (DateTime.Now - alias.timestamp) > AliasExpiration)
                     {
                         // Get the alias.
                         uuid = await api.GetWorkflowIdFromPathAsync(resource);
@@ -46,7 +48,12 @@ namespace CartaWeb.Models.Data
 
                         // Make sure we don't use too many aliases and add the new alias.
                         if (Aliases.Count >= AliasCount) Aliases.Clear();
-                        Aliases.Add(resource, uuid);
+                        Aliases.Remove(resource);
+                        Aliases.Add(resource, (DateTime.Now, uuid));
+                    }
+                    else
+                    {
+                        uuid = alias.uuid;
                     }
                 }
                 return new HyperthoughtWorkflowGraph(api, uuid);

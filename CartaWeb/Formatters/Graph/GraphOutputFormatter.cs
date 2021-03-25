@@ -14,18 +14,17 @@ using CartaCore.Data;
 using CartaWeb.Serialization.Json;
 using CartaWeb.Serialization.Xml;
 
-namespace CartaWeb.Extended.Formatters
+namespace CartaWeb.Formatters
 {
     /// <summary>
-    /// Represents a function that transforms a freeform graph into a string.
+    /// Represents a function that transforms a graph into a string.
     /// </summary>
-    /// <param name="graph">The freeform graph.</param>
+    /// <param name="graph">The graph.</param>
     /// <returns>The formatted string representation.</returns>
     public delegate Task<string> MediaFormatter(IEntireGraph graph);
 
     /// <summary>
-    /// Represents a text output formatter that is able to perform content negotiation and formatting for freeform
-    /// graphs.
+    /// Represents a text output formatter that is able to perform content negotiation and formatting for graphs.
     /// </summary>
     public class GraphOutputFormatter : TextOutputFormatter
     {
@@ -90,11 +89,11 @@ namespace CartaWeb.Extended.Formatters
             await context.HttpContext.Response.WriteAsync(content, selectedEncoding);
         }
 
-        private static string FormatJson<T>(T obj)
+        private static string SerializeJson<T>(T obj)
         {
             return JsonSerializer.Serialize<T>(obj, JsonOptions);
         }
-        private static string FormatXml<T>(T obj)
+        private static string SerializeXml<T>(T obj)
         {
             using (StringWriter sw = new StringWriter())
             {
@@ -107,8 +106,8 @@ namespace CartaWeb.Extended.Formatters
             }
         }
 
-        private static async Task<string> FormatJg(IEntireGraph graph) => FormatJson<JgFormat>(await JgFormat.CreateAsync(graph));
-        private static async Task<string> FormatVis(IEntireGraph graph) => FormatJson<VisFormat>(await VisFormat.CreateAsync(graph));
-        private static async Task<string> FormatGex(IEntireGraph graph) => FormatXml<GexFormat>(await GexFormat.CreateAsync(graph));
+        private static async Task<string> FormatJg(IEntireGraph graph) => SerializeJson<JgFormat>(await JgFormat.CreateAsync(graph));
+        private static async Task<string> FormatVis(IEntireGraph graph) => SerializeJson<VisFormat>(await VisFormat.CreateAsync(graph));
+        private static async Task<string> FormatGex(IEntireGraph graph) => SerializeXml<GexFormat>(await GexFormat.CreateAsync(graph));
     }
 }
