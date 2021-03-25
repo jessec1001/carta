@@ -11,6 +11,8 @@ namespace CartaCore.Data
         /// <inheritdoc />
         public abstract bool IsDirected { get; }
         /// <inheritdoc />
+        public abstract bool IsDynamic { get; }
+        /// <inheritdoc />
         public abstract bool IsFinite { get; }
 
         /// <summary>

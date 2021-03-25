@@ -132,6 +132,8 @@ namespace CartaCore.Integration.Hyperthought
         public override bool IsFinite => true;
         /// <inheritdoc />
         public override bool IsDirected => true;
+        /// <inheritdoc />
+        public override bool IsDynamic => true;
 
         /// <inheritdoc />
         public Identity BaseIdentifier => Identity.Create(Id);

@@ -14,6 +14,13 @@ namespace CartaCore.Data
         /// </value>
         bool IsDirected { get; }
         /// <summary>
+        /// Gets whether the graph can be loaded dynamically.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if the graph and its vertices can be loaded dynamically.
+        /// </value>
+        bool IsDynamic { get; }
+        /// <summary>
         /// Gets whether the graph is finite or infinite.
         /// </summary>
         /// <value>

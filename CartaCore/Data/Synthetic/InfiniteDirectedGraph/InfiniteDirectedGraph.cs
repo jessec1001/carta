@@ -93,6 +93,8 @@ namespace CartaCore.Data.Synthetic
         /// <inheritdoc />
         public override bool IsDirected => true;
         /// <inheritdoc />
+        public override bool IsDynamic => true;
+        /// <inheritdoc />
         public override bool IsFinite => false;
 
         /// <inheritdoc />

@@ -235,6 +235,7 @@ async function initData(graph: GraphBuffer) {
   );
   graph.properties.directed = data.directed;
   graph.properties.dynamic = data.dynamic;
+  console.log(graph);
 
   // Set the initial identifiers for the graph.
   const initialNodes = data.nodes.map((node) => node.id);

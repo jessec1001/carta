@@ -16,6 +16,11 @@ namespace CartaCore.Data
         /// <value><c>true</c> if the graph edges are directed; otherwise, <c>false</c>.</value>
         private bool Directed { get; init; }
         /// <summary>
+        /// Gets whether the graph is dynamically loaded or not.
+        /// </summary>
+        /// <value><c>true</c> if the graph is dynamic; otherwise, <c>false</c>.</value>
+        private bool Dynamic { get; init; }
+        /// <summary>
         /// Gets the set of vertices.
         /// </summary>
         /// <value>The set of vertices.</value>
@@ -28,6 +33,8 @@ namespace CartaCore.Data
 
         /// <inheritdoc />
         public override bool IsDirected => Directed;
+        /// <inheritdoc />
+        public override bool IsDynamic => Dynamic;
         /// <inheritdoc />
         public override bool IsFinite => true;
 
@@ -43,10 +50,15 @@ namespace CartaCore.Data
         /// <param name="id">The graph identifier.</param>
         /// <param name="properties">The properties assigned to the graph.</param>
         /// <param name="directed"><c>true</c> if the edges are directed; otherwise, <c>false</c>.</param>
-        public FiniteGraph(Identity id, IEnumerable<Property> properties, bool directed = true)
-            : base(id, properties)
+        /// <param name="dynamic"><c>true</c> if the graph is dynamic; otherwise, <c>false</c>.</param>
+        public FiniteGraph(
+            Identity id, IEnumerable<Property> properties,
+            bool directed = true,
+            bool dynamic = true
+        ) : base(id, properties)
         {
             Directed = directed;
+            Dynamic = dynamic;
             VertexSet = new HashSet<IVertex>();
             EdgeSet = new HashSet<Edge>();
         }
@@ -56,10 +68,12 @@ namespace CartaCore.Data
         /// </summary>
         /// <param name="id">The graph identifier.</param>
         /// <param name="directed"><c>true</c> if the edges are directed; otherwise, <c>false</c>.</param>
-        public FiniteGraph(Identity id, bool directed = true)
+        /// <param name="dynamic"><c>true</c> if the graph is dynamic; otherwise, <c>false</c>.</param>
+        public FiniteGraph(Identity id, bool directed = true, bool dynamic = true)
             : base(id)
         {
             Directed = directed;
+            Dynamic = dynamic;
             VertexSet = new HashSet<IVertex>();
             EdgeSet = new HashSet<Edge>();
         }
