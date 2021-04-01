@@ -70,7 +70,7 @@ namespace CartaCore.Integration.Hyperthought.Data
         /// The status of this project.
         /// </summary>
         [JsonPropertyName("status")]
-        public HyperthoughtProcessStatus Status { get; set; }
+        public string Status { get; set; }
         #endregion
     }
 }

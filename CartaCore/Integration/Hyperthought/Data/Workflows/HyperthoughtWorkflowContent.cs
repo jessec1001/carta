@@ -104,7 +104,7 @@ namespace CartaCore.Integration.Hyperthought.Data
         /// The status of this workflow.
         /// </summary>
         [JsonPropertyName("status")]
-        public HyperthoughtProcessStatus Status { get; set; }
+        public string Status { get; set; }
         /// <summary>
         /// When this workflow was started.
         /// </summary>
