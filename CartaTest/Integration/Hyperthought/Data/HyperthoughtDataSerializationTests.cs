@@ -107,7 +107,7 @@ namespace CartaTest.Integration.Hyperthought.Data
 
             // Assert a collection of random values.
             Assert.AreEqual(1, workflows.Count);
-            Assert.AreEqual(HyperthoughtProcessStatus.None, workflow.Content.Status);
+            Assert.AreEqual("", workflow.Content.Status);
             Assert.AreEqual("string", workflow.Content.Name);
             Assert.AreEqual(Guid.Parse("3fa85f64-5717-4562-b3fc-2c963f66afa6"), workflow.Content.ClientId);
             Assert.AreEqual(1, workflow.Content.ChildrenIds.Count);
@@ -207,7 +207,7 @@ namespace CartaTest.Integration.Hyperthought.Data
             HyperthoughtWorkflow workflow = JsonSerializer.Deserialize<HyperthoughtWorkflow>(jsonPkg);
 
             // Assert a collection of random values.
-            Assert.AreEqual(HyperthoughtProcessStatus.None, workflow.Content.Status);
+            Assert.AreEqual("", workflow.Content.Status);
             Assert.AreEqual("string", workflow.Content.Name);
             Assert.AreEqual(Guid.Parse("3fa85f64-5717-4562-b3fc-2c963f66afa6"), workflow.Content.ClientId);
             Assert.AreEqual(1, workflow.Content.ChildrenIds.Count);
