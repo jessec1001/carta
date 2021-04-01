@@ -269,8 +269,10 @@ namespace CartaWeb.Serialization.Json
         /// Gets or sets the observations of the property.
         /// </summary>
         /// <value>The property observations.</value>
-        [JsonPropertyName("observations")]
-        public List<VisFormatObservation> Observations { get; set; }
+        [JsonPropertyName("values")]
+        public List<object> Values { get; set; }
+        [JsonPropertyName("properties")]
+        public List<VisFormatProperty> Subproperties { get; set; }
 
         /// <summary>
         /// Gets the property.
@@ -286,8 +288,11 @@ namespace CartaWeb.Serialization.Json
                 return new Property
                 (
                     Identity.Create(Id),
-                    Observations.Select(observation => observation.Observation)
-                );
+                    Values
+                )
+                {
+                    Subproperties = Subproperties?.Select(subproperty => subproperty.Property)
+                };
             }
         }
 
@@ -298,65 +303,12 @@ namespace CartaWeb.Serialization.Json
         public VisFormatProperty(Property property)
         {
             Id = property.Identifier.ToString();
-            Observations = property.Observations.Select(observation => new VisFormatObservation(observation)).ToList();
+            Values = property.Values.ToList();
+            Subproperties = property.Subproperties?.Select(subproperty => new VisFormatProperty(subproperty)).ToList();
         }
         /// <summary>
         /// Initializes a new instance of the <see cref="VisFormatProperty"/> class.
         /// </summary>
         public VisFormatProperty() { }
-    }
-
-    /// <summary>
-    /// Represents an observation in Vis format.
-    /// </summary>
-    public class VisFormatObservation
-    {
-        /// <summary>
-        /// Gets or sets the observation type.
-        /// </summary>
-        /// <value>
-        /// The human-readable observation type.
-        /// </value>
-        [JsonPropertyName("type")]
-        public string Type { get; set; }
-        /// <summary>
-        /// Gets or sets the observation value.
-        /// </summary>
-        /// <value>
-        /// The observation value.
-        /// </value>
-        [JsonPropertyName("value")]
-        public object Value { get; set; }
-
-        /// <summary>
-        /// Gets the observation.
-        /// </summary>
-        /// <value>The observation.</value>
-        [JsonIgnore]
-        public Observation Observation
-        {
-            get
-            {
-                return new Observation
-                {
-                    Type = Type,
-                    Value = Value
-                };
-            }
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="VisFormatObservation"/> class with the specified observation.
-        /// </summary>
-        /// <param name="observation">The observation.</param>
-        public VisFormatObservation(Observation observation)
-        {
-            Type = observation.Type;
-            Value = observation.Value;
-        }
-        /// <summary>
-        /// Initializes a new instance of the <see cref="VisFormatObservation"/> class.
-        /// </summary>
-        public VisFormatObservation() { }
     }
 }

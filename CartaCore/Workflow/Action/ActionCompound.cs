@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 using CartaCore.Data;
 using CartaCore.Serialization.Json;
@@ -18,10 +19,10 @@ namespace CartaCore.Workflow.Action
         public List<ActionBase> Actions { get; set; } = new List<ActionBase>();
 
         /// <inheritdoc />
-        public override IVertex ApplyToVertex(IVertex vertex)
+        public async override Task<IVertex> ApplyToVertex(IGraph graph, IVertex vertex)
         {
             foreach (ActionBase action in Actions)
-                vertex = action.ApplyToVertex(vertex);
+                vertex = await action.ApplyToVertex(graph, vertex);
             return vertex;
         }
     }

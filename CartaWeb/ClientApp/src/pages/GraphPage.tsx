@@ -1,4 +1,4 @@
-import React, { Component, MouseEvent } from "react";
+import React, { Component } from "react";
 import queryString from "query-string";
 
 import { RouteComponentProps } from "react-router-dom";
@@ -9,30 +9,25 @@ import { GraphToolbar } from "../components/shared/nav/GraphToolbar";
 import { Property } from "../lib/types/graph";
 import { SplitPane, Tab, TabPane } from "../ui/panes";
 import GraphOpenForm from "../forms/GraphOpenForm";
+import { GraphData, GraphWorkflow } from "../lib/graph";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faProjectDiagram, faCogs } from "@fortawesome/free-solid-svg-icons";
 
 import "./GraphPage.css";
-import ContextMenu from "../ui/menu/context/ContextMenu";
-
-interface GraphProperties {
-  source: string;
-  resource: string;
-  parameters?: Record<string, any>;
-  index: number;
-}
+import WorkflowCreateForm from "../forms/workflow/WorkflowCreateForm";
+import WorkflowApplyForm from "../forms/workflow/WorkflowApplyForm";
 
 export interface GraphPageProps extends RouteComponentProps {}
 export interface GraphPageState {
-  tabs: GraphProperties[];
+  graphs: { index: number; data: GraphData }[];
   properties: Property[];
-  selection?: { type: string; [key: string]: any };
 
-  tabContextMenuVisible: boolean;
-  tabContextMenuPosition: { x: number; y: number };
-  tabContextTabIndex?: number;
-  nodeContextMenuVisible: boolean;
+  workflowCreator: ((workflow: any) => void) | null;
+  workflowApplying?: boolean;
+
+  selectedGraph?: number;
+  openingGraph: boolean;
 }
 
 export default class GraphPage extends Component<
@@ -46,39 +41,54 @@ export default class GraphPage extends Component<
   constructor(props: GraphPageProps) {
     super(props);
 
+    this.handlePropertiesChanges = this.handlePropertiesChanges.bind(this);
+    this.handleCreateWorkflow = this.handleCreateWorkflow.bind(this);
+    this.handleApplyWorkflow = this.handleApplyWorkflow.bind(this);
+    this.handleOpenGraph = this.handleOpenGraph.bind(this);
+    this.handleCloseGraph = this.handleCloseGraph.bind(this);
+    this.handleSelectGraph = this.handleSelectGraph.bind(this);
+    this.handleRequestOpenGraph = this.handleRequestOpenGraph.bind(this);
+    this.handleRequestCloseGraph = this.handleRequestCloseGraph.bind(this);
+    this.handleRequestDuplicateGraph = this.handleRequestDuplicateGraph.bind(
+      this
+    );
+
     this.request = (this.props.location.pathname + this.props.location.search)
       .replace(this.props.match.path, "")
       .substring(1);
 
     const parsedRequest = queryString.parseUrl(this.request);
-    const requests: string[] = parsedRequest.url.split(",");
+    const requests: string[] = parsedRequest.url
+      .split(",")
+      .filter((request) => request.length > 0);
 
     const parameters = parsedRequest.query;
     this.parameters = parsedRequest.query;
 
+    const graphs = requests.map((request) => {
+      const source = request.split("/")[0];
+      const resource = request.split("/")[1];
+      const index = this.index++;
+
+      return {
+        index,
+        data: new GraphData(
+          source,
+          resource,
+          new GraphWorkflow(undefined, this.handleCreateWorkflow),
+          parameters
+        ),
+      };
+    });
+
     this.index = 0;
     this.state = {
-      tabs: requests
-        .filter((request) => request.length > 0)
-        .map((request) => ({
-          source: request.split("/")[0],
-          resource: request.split("/")[1],
-          parameters,
-          index: this.index++,
-        })),
+      graphs: graphs,
+      workflowCreator: null,
+      openingGraph: graphs.length === 0,
+      selectedGraph: graphs.length === 0 ? -1 : requests.length - 1,
       properties: [],
-
-      tabContextMenuVisible: false,
-      tabContextMenuPosition: { x: 0, y: 0 },
-      nodeContextMenuVisible: false,
     };
-
-    this.handlePropertiesChanges = this.handlePropertiesChanges.bind(this);
-    this.handleSelect = this.handleSelect.bind(this);
-    this.handleOpenGraph = this.handleOpenGraph.bind(this);
-    this.handleCloseGraph = this.handleCloseGraph.bind(this);
-    this.handleOpenTabContextMenu = this.handleOpenTabContextMenu.bind(this);
-    this.handleCloseTabContextMenu = this.handleCloseTabContextMenu.bind(this);
   }
 
   handlePropertiesChanges(properties: Array<Property>) {
@@ -86,9 +96,43 @@ export default class GraphPage extends Component<
       properties: properties,
     });
   }
-  handleSelect(selector: any) {
+
+  addGraph(graph: GraphData) {
+    this.setState((state) => {
+      const graphs = [
+        ...state.graphs,
+
+        {
+          index: this.index++,
+          data: graph,
+        },
+      ];
+
+      this.props.history.push({
+        pathname: `/graph/${graphs.map(
+          (graph) => `${graph.data._source}/${graph.data._resource}`
+        )}`,
+      });
+
+      return { graphs, selectedGraph: graphs.length - 1 };
+    });
+  }
+
+  handleCreateWorkflow(): Promise<any> {
+    return new Promise((resolve) => {
+      this.setState({
+        workflowCreator: (workflow: any) => {
+          resolve(workflow);
+          this.setState({
+            workflowCreator: null,
+          });
+        },
+      });
+    });
+  }
+  handleApplyWorkflow() {
     this.setState({
-      selection: selector,
+      workflowApplying: true,
     });
   }
 
@@ -97,95 +141,149 @@ export default class GraphPage extends Component<
     resource: string,
     parameters?: Record<string, any>
   ) {
-    this.setState((state) => {
-      const tabs = [
-        ...state.tabs,
-        { source, resource, parameters, index: this.index++ },
-      ];
+    this.addGraph(
+      new GraphData(
+        source,
+        resource,
+        new GraphWorkflow(undefined, this.handleCreateWorkflow),
+        parameters
+      )
+    );
 
-      this.props.history.push({
-        pathname: `/graph/${tabs.map(
-          (tab) => `${tab.source}/${tab.resource}`
-        )}`,
-      });
-
-      return { tabs };
-    });
+    this.setState({ openingGraph: false });
   }
   handleCloseGraph(index: number) {
-    this.setState((state) => {
-      const tabs = [
-        ...state.tabs.slice(0, index),
-        ...state.tabs.slice(index + 1),
-      ];
-
-      this.props.history.push({
-        pathname: `/graph/${tabs.map(
-          (tab) => `${tab.source}/${tab.resource}`
-        )}`,
+    if (index === this.state.graphs.length) {
+      this.setState((state) => {
+        let selectedGraph = state.selectedGraph;
+        if (selectedGraph === -1) {
+          if (state.graphs.length > 0) selectedGraph = state.graphs.length - 1;
+          else selectedGraph = undefined;
+        }
+        return { openingGraph: false, selectedGraph };
       });
+    } else {
+      this.setState((state) => {
+        let selectedGraph = state.selectedGraph;
+        if (selectedGraph === index) {
+          if (state.graphs.length > 1) selectedGraph = Math.max(0, index - 1);
+          else if (state.openingGraph) selectedGraph = -1;
+          else selectedGraph = undefined;
+        }
+        const graphs = [
+          ...state.graphs.slice(0, index),
+          ...state.graphs.slice(index + 1),
+        ];
 
-      return { tabs };
+        this.props.history.push({
+          pathname: `/graph/${graphs.map(
+            (graph) => `${graph.data._source}/${graph.data._resource}`
+          )}`,
+        });
+
+        return { graphs, selectedGraph };
+      });
+    }
+  }
+  handleSelectGraph(index: number) {
+    this.setState({
+      selectedGraph: index === this.state.graphs.length ? -1 : index,
     });
   }
 
-  handleOpenTabContextMenu(event: MouseEvent, index: number) {
-    this.setState({
-      tabContextMenuVisible: true,
-      tabContextMenuPosition: { x: event.pageX, y: event.pageY },
-      tabContextTabIndex: index,
-    });
-    event.preventDefault();
+  handleRequestOpenGraph() {
+    this.setState({ openingGraph: true, selectedGraph: -1 });
   }
-  handleCloseTabContextMenu() {
-    this.setState({
-      tabContextMenuVisible: false,
-    });
+  handleRequestCloseGraph() {
+    if (this.state.selectedGraph === undefined) return;
+    if (this.state.selectedGraph === -1) return;
+    this.handleCloseGraph(this.state.selectedGraph);
   }
-  handleSelectTabContextMenu(key: string) {
-    // switch (key) {
-      // case "duplicate":
-        // if (this.state.tabContextTabIndex) {
-        //   const tab = this.state.tabs.find(tab => tab.index === this.state.tabContextTabIndex);
-        //   if (!tab) return;
-        //   // this.handleOpenGraph();
-        // }
-        // break;
-    // }
+  handleRequestDuplicateGraph() {
+    const selectedGraph = this.state.selectedGraph;
+    const graphs = this.state.graphs;
+    if (selectedGraph !== undefined && selectedGraph !== -1) {
+      this.addGraph(graphs[selectedGraph].data.duplicate());
+    }
   }
 
   render() {
+    let graph: GraphData | undefined;
+    if (
+      this.state.selectedGraph !== undefined &&
+      this.state.selectedGraph !== -1
+    )
+      graph = this.state.graphs[this.state.selectedGraph].data;
+
     return (
-      <SplitPane direction="horizontal">
+      <SplitPane direction="horizontal" initialSizes={[3, 1]}>
         <div className="d-flex flex-column h-100">
-          <GraphToolbar className="toolbar" onSelect={this.handleSelect} />
-          <ContextMenu
-            visible={this.state.tabContextMenuVisible}
-            entries={[{ key: "duplicate", label: "Duplicate Graph" }]}
-            position={this.state.tabContextMenuPosition}
-            onExit={this.handleCloseTabContextMenu}
-            onSelect={this.handleSelectTabContextMenu}
-          />
-          <TabPane onClose={this.handleCloseGraph}>
-            {this.state.tabs.map((tab) => (
-              <Tab
-                key={tab.index}
-                icon={<FontAwesomeIcon icon={faProjectDiagram} />}
-                label={`${tab.source} - ${tab.resource}`}
-                closable={true}
-                onContextMenu={(event) =>
-                  this.handleOpenTabContextMenu(event, tab.index)
+          {this.state.workflowCreator && (
+            <WorkflowCreateForm
+              open
+              onContinue={this.state.workflowCreator}
+              onCancel={this.state.workflowCreator}
+            />
+          )}
+          {this.state.workflowApplying && (
+            <WorkflowApplyForm
+              open
+              onSelect={(workflowId: number) => {
+                if (graph) {
+                  const workflow = new GraphWorkflow(
+                    workflowId,
+                    this.handleCreateWorkflow
+                  );
+                  graph.setWorkflow(workflow);
                 }
+                this.setState({ workflowApplying: false });
+              }}
+              onCancel={() => {
+                this.setState({ workflowApplying: false });
+              }}
+            />
+          )}
+          <GraphToolbar
+            className="toolbar"
+            graph={graph}
+            onOpenGraph={this.handleRequestOpenGraph}
+            onCloseGraph={this.handleRequestCloseGraph}
+            onDuplicateGraph={this.handleRequestDuplicateGraph}
+            onCreateWorkflow={this.handleCreateWorkflow}
+            onApplyWorkflow={this.handleApplyWorkflow}
+          />
+          <TabPane
+            onClose={this.handleCloseGraph}
+            onSelect={this.handleSelectGraph}
+          >
+            {this.state.graphs.map((graph, index) => (
+              <Tab
+                key={graph.index}
+                icon={<FontAwesomeIcon icon={faProjectDiagram} />}
+                label={`${graph.data._source} - ${graph.data._resource}`}
+                closable
+                selected={this.state.selectedGraph === index}
               >
                 <GraphVisualizer
-                  source={tab.source}
-                  resource={tab.resource}
-                  parameters={tab.parameters}
-                  selector={this.state.selection}
+                  graph={graph.data}
                   onPropertiesChanged={this.handlePropertiesChanges}
                 />
               </Tab>
             ))}
+            {this.state.openingGraph && (
+              <Tab
+                key={-1}
+                icon={<FontAwesomeIcon icon={faCogs} />}
+                label="Open Graph"
+                closable
+                selected={this.state.selectedGraph === -1}
+              >
+                <GraphOpenForm
+                  parameters={this.parameters}
+                  onOpenGraph={this.handleOpenGraph}
+                />
+              </Tab>
+            )}
           </TabPane>
         </div>
         <TabPane className="side-tabs">
@@ -193,12 +291,6 @@ export default class GraphPage extends Component<
             <HeightScroll className="sidebar h-100">
               <PropertyList properties={this.state.properties} />
             </HeightScroll>
-          </Tab>
-          <Tab icon={<FontAwesomeIcon icon={faCogs} />} label="Open Graph">
-            <GraphOpenForm
-              parameters={this.parameters}
-              onOpenGraph={this.handleOpenGraph}
-            />
           </Tab>
         </TabPane>
       </SplitPane>

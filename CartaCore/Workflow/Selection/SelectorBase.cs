@@ -14,6 +14,8 @@ namespace CartaCore.Workflow.Selection
         /// </summary>
         /// <param name="vertex">The vertex.</param>
         /// <returns><c>true</c> if the selector contains the vertex; otherwise <c>false</c>.</returns>
-        public abstract bool Contains(IVertex vertex);
+        public virtual bool ContainsVertex(IVertex vertex) => true;
+        public virtual bool ContainsProperty(Property property) => true;
+        public virtual bool ContainsValue(object value) => true;
     }
 }

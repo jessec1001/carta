@@ -1,18 +1,12 @@
 import React, { Component, createRef, RefObject } from "react";
-
-import { DataSet } from "vis-data/standalone";
+import { DataView } from "vis-data/standalone";
 import { Network, Options } from "vis-network/standalone";
+import { GraphData } from "../lib/graph";
 import { Edge, Node } from "../lib/types/graph";
-
 import "./VisWrapper.css";
 
-export interface VisGraphData {
-  nodes: DataSet<Node>;
-  edges: DataSet<Edge>;
-}
-
 export interface VisWrapperProps {
-  graph: VisGraphData;
+  graph: GraphData;
   options: Options;
   selection?: string[];
 
@@ -28,6 +22,7 @@ export interface VisWrapperProps {
   onSelectEdge?: (params?: any) => void;
   onDeselectNode?: (params?: any) => void;
   onDeselectEdge?: (params?: any) => void;
+  onExecuteNode?: (params?: any) => void;
   onDragStart?: (params?: any) => void;
   onDragging?: (params?: any) => void;
   onDragEnd?: (params?: any) => void;
@@ -57,7 +52,7 @@ export default class VisWrapper extends Component<VisWrapperProps> {
   static displayName = VisWrapper.name;
 
   ref: RefObject<HTMLDivElement>;
-  data: VisGraphData;
+  data: { nodes: DataView<Node>; edges: DataView<Edge> };
   network: Network | null;
   focus: { x: number; y: number };
 
@@ -66,8 +61,8 @@ export default class VisWrapper extends Component<VisWrapperProps> {
 
     this.ref = createRef<HTMLDivElement>();
     this.data = {
-      nodes: this.props.graph.nodes,
-      edges: this.props.graph.edges,
+      nodes: this.props.graph.visibleNodes,
+      edges: this.props.graph.visibleEdges,
     };
     this.network = null;
     this.focus = { x: 0, y: 0 };
@@ -166,7 +161,24 @@ export default class VisWrapper extends Component<VisWrapperProps> {
     // Synthetic events.
     this.network.on("click", (event) => {
       if (!this.props.onDeselectNode) return;
-      if (event.nodes.length === 0) this.props.onDeselectNode(event);
+      if (event.nodes.length === 0) {
+        const id = this.network?.getNodeAt(event.pointer.DOM);
+        if (!id) {
+          this.props.onDeselectNode(event);
+        }
+      }
+    });
+    this.network.on("doubleClick", (event) => {
+      if (!this.props.onExecuteNode) return;
+      const id = this.network?.getNodeAt(event.pointer.DOM);
+      if (id) {
+        this.props.onExecuteNode(id);
+      }
+    });
+
+    // Stateless selections.
+    this.network.on("click", () => {
+      if (this.props.selection) this.network?.selectNodes(this.props.selection);
     });
 
     // Custom behavior.

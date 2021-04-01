@@ -7,12 +7,5 @@ namespace CartaCore.Workflow.Selection
     /// Represents a selection of all vertices.
     /// </summary>
     [DiscriminantDerived("all")]
-    public class SelectorAll : SelectorBase
-    {
-        /// <inheritdoc />
-        public override bool Contains(IVertex vertex)
-        {
-            return true;
-        }
-    }
+    public class SelectorAll : SelectorBase { }
 }

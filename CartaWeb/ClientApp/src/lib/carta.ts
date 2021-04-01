@@ -9,6 +9,7 @@ import {
 
 export * from "./api/data";
 export * from "./api/meta";
+export * from "./api/workflow";
 
 interface RequestInfo {
   method: string;

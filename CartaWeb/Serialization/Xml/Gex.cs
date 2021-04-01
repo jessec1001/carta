@@ -467,7 +467,7 @@ namespace CartaWeb.Serialization.Xml
             Id = id;
 
             Name = name;
-            Type = property.Observations.FirstOrDefault().Type;
+            Type = "string";
         }
         /// <summary>
         /// Initializes a new instance of the <see cref="GexFormatPropertyDefinition"/> class.
@@ -502,7 +502,7 @@ namespace CartaWeb.Serialization.Xml
         /// </summary>
         /// <value>The property observations.</value>
         [XmlIgnore]
-        public IEnumerable<Observation> Observations
+        public IEnumerable<object> Observations
         {
             get
             {
@@ -518,7 +518,7 @@ namespace CartaWeb.Serialization.Xml
         public GexFormatProperty(int id, Property property)
         {
             Id = id;
-            Values = property.Observations
+            Values = property.Values
                 .Select(observation => new GexFormatObservation(observation))
                 .ToList();
         }
@@ -541,38 +541,27 @@ namespace CartaWeb.Serialization.Xml
         /// </value>
         [XmlAttribute(AttributeName = "value")]
         public string Value { get; set; }
-        /// <summary>
-        /// Gets or sets the observation type.
-        /// </summary>
-        /// <value>The human-readable observation type.</value>
-        [XmlAttribute(AttributeName = "type")]
-        public string Type { get; set; }
 
         /// <summary>
         /// Gets the observation.
         /// </summary>
         /// <value>The observation.</value>
         [XmlIgnore]
-        public Observation Observation
+        public string Observation
         {
             get
             {
-                return new Observation
-                {
-                    Value = Value,
-                    Type = Type
-                };
+                return Value;
             }
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GexFormatObservation"/> class with the specified observation.
         /// </summary>
-        /// <param name="observation">The observation of a property.</param>
-        public GexFormatObservation(Observation observation)
+        /// <param name="value">The observation of a property.</param>
+        public GexFormatObservation(object value)
         {
-            Value = observation.Value.ToString();
-            Type = observation.Type;
+            Value = value.ToString();
         }
         /// <summary>
         /// Initializes a new instance of the <see cref="GexFormatObservation"/> class.

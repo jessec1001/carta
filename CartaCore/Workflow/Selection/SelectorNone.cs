@@ -10,7 +10,15 @@ namespace CartaCore.Workflow.Selection
     public class SelectorNone : SelectorBase
     {
         /// <inheritdoc />
-        public override bool Contains(IVertex vertex)
+        public override bool ContainsVertex(IVertex vertex)
+        {
+            return false;
+        }
+        public override bool ContainsProperty(Property property)
+        {
+            return false;
+        }
+        public override bool ContainsValue(object value)
         {
             return false;
         }

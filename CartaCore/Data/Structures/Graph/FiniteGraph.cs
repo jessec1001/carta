@@ -31,6 +31,8 @@ namespace CartaCore.Data
         /// <value>The set of edges.</value>
         private HashSet<Edge> EdgeSet { get; init; }
 
+        public IGraph UnderlyingGraph { get; set; }
+
         /// <inheritdoc />
         public override bool IsDirected => Directed;
         /// <inheritdoc />
@@ -202,6 +204,7 @@ namespace CartaCore.Data
                     Description = graphBase.Description
                 };
             else subgraph = new FiniteGraph(null, graph.IsDirected);
+            subgraph.UnderlyingGraph = graph;
 
             // Get the vertices from the graph.
             await foreach (Vertex vertex in graph.GetVertices(ids))
@@ -226,6 +229,7 @@ namespace CartaCore.Data
                     Description = graphBase.Description
                 };
             else subgraph = new FiniteGraph(null, graph.IsDirected);
+            subgraph.UnderlyingGraph = graph;
 
             // Get the vertices from the graph.
             await foreach (IOutVertex vertex in graph.GetVertices(ids))
@@ -254,6 +258,7 @@ namespace CartaCore.Data
                     Description = graphBase.Description
                 };
             else subgraph = new FiniteGraph(null, graph.IsDirected);
+            subgraph.UnderlyingGraph = graph;
 
             // Get the child vertices from the graph.
             foreach (Identity id in ids)

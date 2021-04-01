@@ -31,3 +31,8 @@
 .property-expand:hover {
   color: rgb(60, 112, 114);
 }
+
+.indented {
+  padding-left: 1rem;
+  border-left: 1px solid #ccc;
+}

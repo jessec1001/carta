@@ -78,20 +78,13 @@ namespace CartaCore.Integration.Hyperthought
                 // We create a new property if necessary.
                 if (property is null)
                 {
-                    property = new Property(Identity.Create(metadata.Key), new List<Observation>());
+                    property = new Property(Identity.Create(metadata.Key), new List<object>());
                     properties.Add(property);
                 }
 
                 // We add the observation afterwards.
-                List<Observation> observations = property.Observations as List<Observation>;
-                observations.Add
-                (
-                    new Observation
-                    {
-                        Type = value.Type.ToString(),
-                        Value = value.Link
-                    }
-                );
+                List<object> values = property.Values as List<object>;
+                values.Add(value.Link);
             }
             properties.TrimExcess();
 

@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 
 using CartaCore.Data;
@@ -15,7 +16,7 @@ namespace CartaCore.Workflow.Selection
         /// Gets or sets the property name.
         /// </summary>
         /// <value>The name of the property to select by a range.</value>
-        public string Property { get; set; }
+        public string Property { get; set; } = string.Empty;
         /// <summary>
         /// Gets or sets the minimum value in the range.
         /// </summary>
@@ -27,27 +28,22 @@ namespace CartaCore.Workflow.Selection
         /// <value>The maximum value in the range. If not specified, equivalent to positive infinity.</value>
         public double? Maximum { get; set; }
 
-        /// <inheritdoc />
-        public override bool Contains(IVertex vertex)
+        public override bool ContainsProperty(Property property)
         {
-            foreach (Property property in vertex.Properties)
+            return property.Identifier.Equals(Identity.Create(Property));
+        }
+        public override bool ContainsValue(object value)
+        {
+            double number;
+            try
             {
-                if (property.Identifier.Equals(Identity.Create(Property)))
-                    return property.Observations.All
-                    (
-                        observation =>
-                        {
-                            if (observation.Value is double value)
-                            {
-                                if (Minimum.HasValue && value < Minimum.Value) return false;
-                                if (Maximum.HasValue && value > Maximum.Value) return false;
-                                return true;
-                            }
-                            else return false;
-                        }
-                    );
+                number = Convert.ToDouble(value);
             }
-            return false;
+            catch (Exception) { return false; }
+
+            if (Minimum.HasValue && number < Minimum.Value) return false;
+            if (Maximum.HasValue && number > Maximum.Value) return false;
+            return true;
         }
     }
 }

@@ -110,19 +110,12 @@ namespace CartaTest
                             new Property
                             (
                                 Identity.Create("myNum"),
-                                new List<Observation>()
-                                {
-                                    new Observation { Type = "int", Value = 2 },
-                                    new Observation { Type = "int", Value = 5 },
-                                }
+                                new List<object> { 2, 5 }
                             ),
                             new Property
                             (
                                 Identity.Create("myFruit"),
-                                new List<Observation>()
-                                {
-                                    new Observation { Type = "string", Value = "orange" }
-                                }
+                                new List<object> { "orange" }
                             )
                         }
                     ),
@@ -135,10 +128,7 @@ namespace CartaTest
                             new Property
                             (
                                 Identity.Create("myShoeSize"),
-                                new List<Observation>()
-                                {
-                                    new Observation { Type = "double", Value = 11.50 }
-                                }
+                                new List<object> { 11.50 }
                             )
                         }
                     )

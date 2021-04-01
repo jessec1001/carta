@@ -67,15 +67,12 @@ namespace CartaTest.Data.Synthetic
             Assert.AreEqual(properties1.Count, properties2.Count);
             for (int k = 0; k < properties1.Count; k++)
             {
-                IList<Observation> observations1 = properties1[k].Observations.ToList();
-                IList<Observation> observations2 = properties2[k].Observations.ToList();
+                IList<object> values1 = properties1[k].Values.ToList();
+                IList<object> values2 = properties2[k].Values.ToList();
                 Assert.AreEqual(properties1[k].Identifier, properties2[k].Identifier);
-                Assert.AreEqual(observations1.Count, observations2.Count);
-                for (int l = 0; l < observations1.Count; l++)
-                {
-                    Assert.AreEqual(observations1[l].Type, observations2[l].Type);
-                    Assert.AreEqual(observations1[l].Value, observations2[l].Value);
-                }
+                Assert.AreEqual(values1.Count, values2.Count);
+                for (int l = 0; l < values1.Count; l++)
+                    Assert.AreEqual(values1[l], values2[l]);
             }
 
             // Check that the vertex edges are the same.

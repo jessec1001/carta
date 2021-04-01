@@ -6,16 +6,23 @@ import { TabProps } from "./Tab";
 
 import "./TabPane.css";
 
+type TabType =
+  | ReactElement<TabProps>
+  | ReactElement<TabProps>[]
+  | boolean
+  | null;
+
 export interface TabPaneProps {
-  children?: ReactElement<TabProps> | ReactElement<TabProps>[];
+  children?: TabType | TabType[];
   className?: string;
   style?: CSSProperties;
 
+  onSelect?: (index: number) => void;
   onClose?: (index: number) => void;
 }
 
 export interface TabPaneState {
-  selected: string | null;
+  selected?: string | number | null;
 }
 
 export default class TabPane extends Component<TabPaneProps, TabPaneState> {
@@ -43,11 +50,9 @@ export default class TabPane extends Component<TabPaneProps, TabPaneState> {
   /** Gets an array of the tabs passed to this component. */
   getTabs(): ReactElement<TabProps>[] {
     if (this.props.children) {
-      if (Array.isArray(this.props.children)) {
-        return this.props.children as ReactElement<TabProps>[];
-      } else {
-        return [this.props.children];
-      }
+      return React.Children.toArray(
+        this.props.children
+      ) as ReactElement<TabProps>[];
     }
     return [];
   }
@@ -56,30 +61,31 @@ export default class TabPane extends Component<TabPaneProps, TabPaneState> {
     const tabs = this.getTabs();
     if (tabs.length > 0) {
       for (let k = 0; k < tabs.length; k++) {
-        if (tabs[k].props.selected) return tabs[k].props.label;
-        if (this.state && this.state.selected === tabs[k].props.label)
-          return tabs[k].props.label;
+        if (tabs[k].props.selected) return tabs[k].key;
       }
-      return tabs[0].props.label;
-    } else return null;
+      for (let k = 0; k < tabs.length; k++) {
+        if (this.state && this.state.selected === tabs[k].key)
+          return tabs[k].key;
+      }
+      return tabs[0].key;
+    } else return undefined;
   }
 
   /** Handles when a tab is selected. */
-  handleSelectTab(label: string) {
-    if (this.state.selected !== label) {
+  handleSelectTab(key: string | number | null) {
+    if (this.state.selected !== key) {
       this.setState({
-        selected: label,
+        selected: key,
       });
+      if (this.props.onSelect) {
+        this.props.onSelect(this.getTabs().findIndex((tab) => tab.key === key));
+      }
     }
   }
   /** Handles when a tab is closed. */
-  handleCloseTab(label: string) {
+  handleCloseTab(key: string | number | null) {
     if (this.props.onClose) {
-      this.props.onClose(
-        this.getTabs()
-          .map((tab) => tab.props.label)
-          .indexOf(label)
-      );
+      this.props.onClose(this.getTabs().findIndex((tab) => tab.key === key));
     }
   }
 
@@ -96,13 +102,13 @@ export default class TabPane extends Component<TabPaneProps, TabPaneState> {
           {tabs.map((tab: ReactElement<TabProps>) => {
             return (
               <TabButton
-                key={tab.props.label}
+                key={tab.key}
                 icon={tab.props.icon}
                 label={tab.props.label}
-                closable={!!tab.props.closable}
-                selected={tab.props.label === this.state.selected}
-                onSelect={() => this.handleSelectTab(tab.props.label)}
-                onClose={() => this.handleCloseTab(tab.props.label)}
+                closable={tab.props.closable === true}
+                selected={tab.key === this.state.selected}
+                onSelect={() => this.handleSelectTab(tab.key)}
+                onClose={() => this.handleCloseTab(tab.key)}
                 onContextMenu={tab.props.onContextMenu}
               />
             );
@@ -116,9 +122,9 @@ export default class TabPane extends Component<TabPaneProps, TabPaneState> {
         {tabs.map((tab) => (
           <div
             className={classNames("tab-content", {
-              hidden: tab.props.label !== this.state.selected,
+              hidden: tab.key !== this.state.selected,
             })}
-            key={tab.props.label}
+            key={tab.key}
           >
             {tab}
           </div>

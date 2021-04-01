@@ -1,9 +1,8 @@
 import React, { Component } from "react";
-import { Observation } from "../../../lib/types/graph";
 import "./ObservationList.css";
 
 interface ObservationListProps {
-  observations: Array<Observation>;
+  observations: Array<any>;
 }
 
 export class ObservationList extends Component<ObservationListProps> {
@@ -12,8 +11,8 @@ export class ObservationList extends Component<ObservationListProps> {
       <ul className="list-unstyled">
         {this.props.observations.map((obs, index) => (
           <li key={index} className="observation">
-            <p className="observation-value">{obs.value as any}</p>
-            <p className="observation-type text-muted">{obs.type}</p>
+            <p className="observation-value">{obs}</p>
+            <p className="observation-type text-muted">{typeof obs}</p>
           </li>
         ))}
       </ul>
