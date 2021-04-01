@@ -11,11 +11,10 @@ namespace CartaCore.Workflow.Selection
     [DiscriminantDerived("property name")]
     public class SelectorPropertyName : SelectorRegexBase
     {
-        /// <inheritdoc />
-        public override bool Contains(IVertex vertex)
+        public override bool ContainsProperty(Property property)
         {
             if (Regex is null) return true;
-            return vertex.Properties.Any(property => Regex.IsMatch(property.Identifier.ToString()));
+            return Regex.IsMatch(property.Identifier.ToString());
         }
     }
 }

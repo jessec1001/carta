@@ -120,17 +120,10 @@ namespace CartaCore.Data.Synthetic
                 if (random.NextDouble() < Parameters.PropertyInclusionProbability)
                 {
                     // Add a single observation to the property.
-                    List<Observation> observations = new List<Observation>(capacity: 1);
-                    observations.Add
-                    (
-                        new Observation
-                        {
-                            Type = namedPropertyType.Value.TypeSerialize(),
-                            Value = GenerateRandomValue(random, namedPropertyType.Value)
-                        }
-                    );
+                    List<object> values = new List<object>(capacity: 1);
+                    values.Add(GenerateRandomValue(random, namedPropertyType.Value));
 
-                    Property property = new Property(Identity.Create(namedPropertyType.Key), observations);
+                    Property property = new Property(Identity.Create(namedPropertyType.Key), values);
                     properties.Add(property);
                 }
             }

@@ -1,3 +1,6 @@
+using System;
+using System.Threading.Tasks;
+
 using CartaCore.Data;
 using CartaCore.Serialization.Json;
 
@@ -13,21 +16,14 @@ namespace CartaCore.Workflow.Action
         /// Gets or sets the increment amount.
         /// </summary>
         /// <value>The amount to increment integer values by.</value>
-        public int Amount { get; set; } = 1;
+        public double Amount { get; set; } = 1.0;
 
-        /// <inheritdoc />
-        public override IVertex ApplyToVertex(IVertex vertex)
+        public override Task<object> ApplyToValue(object value)
         {
-            if (vertex is null) return vertex;
-            foreach (Property property in vertex.Properties)
-            {
-                foreach (Observation observation in property.Observations)
-                {
-                    if (observation.Value is int value)
-                        observation.Value = (value + Amount);
-                }
-            }
-            return vertex;
+            if (value is double number)
+                return Task.FromResult((object)(number + Amount));
+            else
+                return Task.FromResult(value);
         }
     }
 }

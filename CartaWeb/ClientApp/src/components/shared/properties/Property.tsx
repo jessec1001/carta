@@ -3,6 +3,7 @@ import { CaretDownFill, CaretUpFill } from "react-bootstrap-icons";
 import { Property as GraphProperty } from "../../../lib/types/graph";
 import { ObservationList } from "./ObservationList";
 import "./Property.css";
+import { PropertyList } from "./PropertyList";
 
 interface PropertyProps {
   property: GraphProperty;
@@ -44,7 +45,7 @@ export class PropertyItem extends Component<PropertyProps, PropertyState> {
         <div className={className} onClick={this.props.onClick}>
           <p className="property-item-name">{this.props.property.id}:</p>
           <div className="property-item-occurrences">
-            ×{this.props.property.observations.length} &nbsp;
+            ×{this.props.property.values.length} &nbsp;
             <div
               className="d-inline property-expand"
               onClick={this.handleExpand}
@@ -55,7 +56,12 @@ export class PropertyItem extends Component<PropertyProps, PropertyState> {
           </div>
         </div>
         {this.state.expanded && (
-          <ObservationList observations={this.props.property.observations} />
+          <div className="indented">
+            {this.props.property.properties && (
+              <PropertyList properties={this.props.property.properties} />
+            )}
+            <ObservationList observations={this.props.property.values} />
+          </div>
         )}
       </div>
     );

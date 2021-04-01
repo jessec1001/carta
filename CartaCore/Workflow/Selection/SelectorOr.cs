@@ -19,10 +19,20 @@ namespace CartaCore.Workflow.Selection
         public List<SelectorBase> Selectors { get; set; } = new List<SelectorBase>();
 
         /// <inheritdoc />
-        public override bool Contains(IVertex vertex)
+        public override bool ContainsVertex(IVertex vertex)
         {
             if (Selectors.Count == 0) return true;
-            return Selectors.Any(selector => selector.Contains(vertex));
+            return Selectors.Any(selector => selector.ContainsVertex(vertex));
+        }
+        public override bool ContainsProperty(Property property)
+        {
+            if (Selectors.Count == 0) return true;
+            return Selectors.Any(selector => selector.ContainsProperty(property));
+        }
+        public override bool ContainsValue(object value)
+        {
+            if (Selectors.Count == 0) return true;
+            return Selectors.Any(selector => selector.ContainsValue(value));
         }
     }
 }

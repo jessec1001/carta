@@ -12,7 +12,7 @@ namespace CartaCore.Workflow.Selection
         /// The regular expression pattern that can be used to test for matches in naming.
         /// </summary>
         protected Regex Regex;
-        private string RegexPattern;
+        private string RegexPattern = string.Empty;
 
         /// <summary>
         /// The maximum amount of time that an instance of the <see cref="SelectorVertexName"/> class will be able to filter

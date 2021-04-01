@@ -1,5 +1,7 @@
 using System.Text.Json.Serialization;
 
+using CartaCore.Serialization.Json;
+
 namespace CartaCore.Integration.Hyperthought.Data
 {
     /// <summary>
@@ -16,6 +18,7 @@ namespace CartaCore.Integration.Hyperthought.Data
         /// A reference to another object.
         /// </summary>
         [JsonPropertyName("link")]
+        [JsonConverter(typeof(JsonObjectConverter))]
         public object Link { get; set; }
     }
 }

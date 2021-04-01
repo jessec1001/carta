@@ -12,7 +12,7 @@ namespace CartaCore.Workflow.Selection
     public class SelectorVertexName : SelectorRegexBase
     {
         /// <inheritdoc />
-        public override bool Contains(IVertex vertex)
+        public override bool ContainsVertex(IVertex vertex)
         {
             if (Regex is null) return true;
             return !(vertex.Label is null) && Regex.IsMatch(vertex.Label);

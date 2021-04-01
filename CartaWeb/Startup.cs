@@ -59,6 +59,7 @@ namespace CartaWeb
                     options.OutputFormatters.Insert(0, new GraphOutputFormatter());
                 }).AddJsonOptions(options =>
                 {
+                    options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
                     options.JsonSerializerOptions.IgnoreNullValues = true;
                     options.JsonSerializerOptions.Converters.Insert(0, new DiscriminantConverter());
                 });

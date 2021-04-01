@@ -217,7 +217,7 @@ namespace CartaWeb.Serialization.Json
         /// The vertex metadata.
         /// </value>
         [JsonPropertyName("metadata")]
-        public Dictionary<string, List<JgFormatObservation>> Metadata { get; set; }
+        public Dictionary<string, List<object>> Metadata { get; set; }
 
         /// <summary>
         /// Gets the properties.
@@ -239,7 +239,7 @@ namespace CartaWeb.Serialization.Json
                     .Select(pair => new Property
                     (
                         Identity.Create(pair.Key),
-                        pair.Value.Select(observation => observation.Observation).ToList()
+                        pair.Value.ToList()
                     )).ToList();
             }
         }
@@ -258,9 +258,7 @@ namespace CartaWeb.Serialization.Json
                 Metadata = vertex.Properties
                     .ToDictionary(
                         property => property.Identifier.ToString(),
-                        property => property.Observations
-                            .Select(observation => new JgFormatObservation(observation))
-                            .ToList()
+                        property => property.Values.ToList()
                     );
             }
         }
@@ -332,55 +330,5 @@ namespace CartaWeb.Serialization.Json
         /// Initializes a new instance of the <see cref="JgFormatEdge"/> class.
         /// </summary>
         public JgFormatEdge() { }
-    }
-
-    /// <summary>
-    /// Represents an observation for a property in JSON Graph format.
-    /// </summary>
-    public class JgFormatObservation
-    {
-        /// <summary>
-        /// Gets or sets the observation type.
-        /// </summary>
-        /// <value>The human-readable observation type.</value>
-        [JsonPropertyName("type")]
-        public string Type { get; set; }
-        /// <summary>
-        /// Gets or sets the observation value.
-        /// </summary>
-        /// <value>The observation value.</value>
-        [JsonPropertyName("value")]
-        public object Value { get; set; }
-
-        /// <summary>
-        /// Gets the observation.
-        /// </summary>
-        /// <value>The observation.</value>
-        [JsonIgnore]
-        public Observation Observation
-        {
-            get
-            {
-                return new Observation
-                {
-                    Type = Type,
-                    Value = Value
-                };
-            }
-        }
-
-        /// <summary>
-        /// Initializes an instance of the <see cref="JgFormatObservation"/> class with the specified observation.
-        /// </summary>
-        /// <param name="observation">The observation.</param>
-        public JgFormatObservation(Observation observation)
-        {
-            Type = observation.Type;
-            Value = observation.Value;
-        }
-        /// <summary>
-        /// Initializes an instance of the <see cref="JgFormatObservation"/> class.
-        /// </summary>
-        public JgFormatObservation() { }
     }
 }

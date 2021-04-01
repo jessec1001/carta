@@ -14,25 +14,26 @@ namespace CartaCore.Data
         /// Gets or sets the property observations.
         /// </summary>
         /// <value>The observations recorded for this property.</value>
-        public IEnumerable<Observation> Observations { get; protected init; }
+        public IEnumerable<object> Values { get; set; }
+        public IEnumerable<Property> Subproperties { get; set; }
 
         /// <summary>
         /// Initializes an instance of the <see cref="Property"/> class with its specified identifier and a set of
         /// observations recorded for it.
         /// </summary>
         /// <param name="id">The identifier of this property.</param>
-        /// <param name="observations">The observations recorded for this property.</param>
-        public Property(Identity id, IEnumerable<Observation> observations)
+        /// <param name="values">The observations recorded for this property.</param>
+        public Property(Identity id, IEnumerable<object> values)
             : base(id)
         {
-            if (observations is null) throw new ArgumentNullException(nameof(observations));
-            Observations = observations;
+            if (values is null) throw new ArgumentNullException(nameof(values));
+            Values = values;
         }
         /// <summary>
         /// Initializes an instance of the <see cref="Property"/> class with its specified identifier.
         /// </summary>
         /// <param name="id">The identifier of this property.</param>
         public Property(Identity id)
-            : this(id, Enumerable.Empty<Observation>()) { }
+            : this(id, Enumerable.Empty<object>()) { }
     }
 }

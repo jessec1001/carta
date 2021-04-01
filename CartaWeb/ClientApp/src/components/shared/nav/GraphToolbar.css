@@ -10,3 +10,12 @@ hr.divider {
   margin-top: 0.25rem;
   margin-bottom: 0.25rem;
 }
+.dropdown-item {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.dropdown-item .shortcut {
+  margin-left: 1rem;
+  color: #888;
+}

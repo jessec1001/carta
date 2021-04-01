@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 using CartaCore.Data;
@@ -38,23 +39,60 @@ namespace CartaCore.Workflow
         /// <returns>The graph after being acted on by the workflow operations.</returns>
         public async Task<FiniteGraph> ApplyAsync(FiniteGraph graph)
         {
+            IGraph underlying = graph.UnderlyingGraph;
             if (Operations is null) return graph;
 
             // Apply each workflow operation in sequence.
             foreach (WorkflowOperation operation in Operations)
             {
                 ActionBase action = operation.Action;
-                SelectorBase selector = operation.Selector;
+                SelectorBase selector = operation.Selector ?? new SelectorAll();
 
-                FiniteGraph transformedGraph = new FiniteGraph(graph.Identifier, graph.Properties, graph.IsDirected);
+                FiniteGraph transformedGraph = new FiniteGraph
+                (
+                    graph.Identifier,
+                    graph.Properties,
+                    graph.IsDirected,
+                    graph.IsDynamic
+                );
+
                 await foreach (Edge edge in graph.Edges)
                     transformedGraph.AddEdge(edge);
                 await foreach (IVertex vertex in graph.Vertices)
                 {
-                    if (action is not null && (selector is null || selector.Contains(vertex)))
-                        transformedGraph.AddVertex(action.ApplyToVertex(vertex));
-                    else
+                    if (action is null)
                         transformedGraph.AddVertex(vertex);
+                    else
+                    {
+                        transformedGraph.AddVertex
+                        (
+                            (selector is not null && !selector.ContainsVertex(vertex)) ?
+                            vertex : await action.ApplyToVertex(underlying, new Vertex
+                            (
+                                vertex.Identifier,
+                                await vertex.Properties
+                                .ToAsyncEnumerable()
+                                .SelectAwait(async property =>
+                                    (selector is not null && !selector.ContainsProperty(property)) ?
+                                    property : await action.ApplyToProperty(new Property
+                                    (
+                                        property.Identifier,
+                                        await property.Values
+                                        .ToAsyncEnumerable()
+                                        .SelectAwait(async value =>
+                                            (selector is not null && !selector.ContainsValue(value)) ?
+                                            value : await action.ApplyToValue(value)
+                                        ).ToListAsync()
+                                    )
+                                    { Subproperties = property.Subproperties })
+                                ).ToListAsync()
+                            )
+                            {
+                                Label = vertex.Label,
+                                Description = vertex.Description
+                            })
+                        );
+                    }
                 }
                 graph = transformedGraph;
             }

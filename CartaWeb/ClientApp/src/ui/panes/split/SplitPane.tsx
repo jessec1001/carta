@@ -14,8 +14,8 @@ import "./SplitPane.css";
 
 export interface SplitPaneProps {
   children?: ReactElement | ReactElement[];
-
   direction: "vertical" | "horizontal";
+  initialSizes?: number[];
 }
 
 export interface SplitPaneState {
@@ -49,7 +49,9 @@ export default class SplitPane extends Component<
 
     this.state = {
       dragging: null,
-      childSizes: this.childrenRefs.map((_) => 1),
+      childSizes: this.childrenRefs.map(
+        (_, index) => (props.initialSizes && props.initialSizes[index]) ?? 1
+      ),
     };
 
     this.handleMouseDown = this.handleMouseDown.bind(this);
