@@ -30,7 +30,7 @@ namespace CartaWeb.Serialization.Xml
         /// The graph.
         /// </value>
         [XmlIgnore]
-        public FiniteGraph Graph
+        public SubGraph Graph
         {
             get => Data.Graph;
         }
@@ -132,12 +132,12 @@ namespace CartaWeb.Serialization.Xml
         /// <value>
         /// The graph.
         /// </value>
-        public FiniteGraph Graph
+        public SubGraph Graph
         {
             get
             {
                 // Create a graph.
-                FiniteGraph graph = new FiniteGraph(null, EdgeType == GexFormatEdgeType.Directed);
+                SubGraph graph = new SubGraph(null, EdgeType == GexFormatEdgeType.Directed);
 
                 // Get the property mapping.
                 Dictionary<int, (string Name, Property Property)> properties = PropertyDefinitions.Definitions
@@ -189,7 +189,7 @@ namespace CartaWeb.Serialization.Xml
             // We need the property mapping before creating the nodes.
             Dictionary<string, (int index, Property prop)> properties =
                 new Dictionary<string, (int index, Property prop)>();
-            await foreach (Vertex vertex in graph.Vertices)
+            await foreach (Vertex vertex in graph.GetVertices())
             {
                 foreach (Property property in vertex.Properties)
                 {
@@ -213,10 +213,10 @@ namespace CartaWeb.Serialization.Xml
             );
 
             // Set the nodes and edges.
-            gexFormatGraph.Nodes = await graph.Vertices
+            gexFormatGraph.Nodes = await graph.GetVertices()
                 .Select(vertex => new GexFormatNode(vertex, propertyIds))
                 .ToListAsync();
-            gexFormatGraph.Edges = await graph.Edges
+            gexFormatGraph.Edges = await graph.GetEdges()
                 .Select(edge => new GexFormatEdge(edge))
                 .ToListAsync();
 

@@ -40,7 +40,7 @@ namespace CartaWeb.Controllers
         static WorkflowController()
         {
             JsonOptions.PropertyNameCaseInsensitive = false;
-            JsonOptions.Converters.Insert(0, new DiscriminantConverter());
+            JsonOptions.Converters.Insert(0, new JsonDiscriminantConverter());
         }
 
         /// <summary>

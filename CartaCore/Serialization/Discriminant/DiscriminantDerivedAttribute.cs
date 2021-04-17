@@ -1,6 +1,6 @@
 using System;
 
-namespace CartaCore.Serialization.Json
+namespace CartaCore.Serialization
 {
     /// <summary>
     /// An attribute that can be placed on derived types of an absstract class or interface that specifies a string

@@ -14,6 +14,7 @@ namespace CartaCore.Integration.Hyperthought
     /// Represents a sampled graph generated from data contained in a HyperThought workflow.
     /// </summary>
     public class HyperthoughtWorkflowGraph : Graph,
+        IRootedGraph,
         IDynamicInGraph<InOutVertex>,
         IDynamicOutGraph<InOutVertex>
     {
@@ -129,7 +130,10 @@ namespace CartaCore.Integration.Hyperthought
         public override bool IsDynamic => true;
 
         /// <inheritdoc />
-        public Identity BaseIdentifier => Identity.Create(Id);
+        public IEnumerable<Identity> GetRoots()
+        {
+            yield return Identity.Create(Id);
+        }
 
         /// <inheritdoc />
         public async ITask<InOutVertex> GetVertex(Identity id)

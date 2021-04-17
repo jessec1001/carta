@@ -4,16 +4,17 @@ using System.Threading.Tasks;
 
 using MorseCode.ITask;
 
+using CartaCore.Data;
 using CartaCore.Statistics;
-using CartaCore.Utility;
 
-namespace CartaCore.Data.Synthetic
+namespace CartaCore.Integration.Synthetic
 {
     /// <summary>
     /// Represents graph data of a random, (practically) infinite, directed graph. Both the vertices and edges are
     /// randomly generated and connected.
     /// </summary>
     public class InfiniteDirectedGraph : Graph,
+        IRootedGraph,
         IDynamicGraph<OutVertex>,
         IDynamicOutGraph<OutVertex>,
         IParameterizedGraph<InfiniteDirectedGraphParameters>
@@ -98,7 +99,10 @@ namespace CartaCore.Data.Synthetic
         public override bool IsFinite => false;
 
         /// <inheritdoc />
-        public Identity BaseIdentifier => Identity.Create(new CompoundRandom(Parameters.Seed).NextGuid());
+        public IEnumerable<Identity> GetRoots()
+        {
+            yield return Identity.Create(new CompoundRandom(Parameters.Seed).NextGuid());
+        }
 
         /// <summary>
         /// Generates a requested vertex based on its identifier and the graph parameters.

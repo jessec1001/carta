@@ -1,9 +1,11 @@
+using CartaCore.Common;
+
 namespace CartaCore.Data
 {
     /// <summary>
     /// Represents the base functionality and characteristics of a graph object.
     /// </summary>
-    public interface IGraph
+    public interface IGraph : IProvider<IGraph>
     {
         /// <summary>
         /// Gets whether the graph contains directed or undirected edges.

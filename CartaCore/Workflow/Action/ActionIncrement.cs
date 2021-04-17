@@ -2,7 +2,7 @@ using System;
 using System.Threading.Tasks;
 
 using CartaCore.Data;
-using CartaCore.Serialization.Json;
+using CartaCore.Serialization;
 
 namespace CartaCore.Workflow.Action
 {

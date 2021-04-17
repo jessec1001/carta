@@ -40,6 +40,7 @@ export class GraphToolbar extends Component<GraphToolbarProps> {
     this.handleSelectPropertyRange = this.handleSelectPropertyRange.bind(this);
     this.handleSelectDescendants = this.handleSelectDescendants.bind(this);
     this.handleSelectAncestors = this.handleSelectAncestors.bind(this);
+    this.handleSelectDegree = this.handleSelectDegree.bind(this);
 
     this.handleActionToNumber = this.handleActionToNumber.bind(this);
     this.handleActionIncrement = this.handleActionIncrement.bind(this);
@@ -104,8 +105,17 @@ export class GraphToolbar extends Component<GraphToolbarProps> {
   handleSelectVertexName() {
     let pattern = prompt("Enter a regular expression that matches node names.");
     if (pattern) {
+      if (
+        pattern.length >= 2 &&
+        pattern[0] === "/" &&
+        pattern[pattern.length - 1] === "/"
+      ) {
+        pattern = pattern.substring(1, pattern.length - 1);
+      } else {
+        pattern = pattern.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      }
       this.handleSelector({
-        type: "vertex name",
+        type: "vertexName",
         pattern: pattern,
       });
     }
@@ -116,7 +126,7 @@ export class GraphToolbar extends Component<GraphToolbarProps> {
     );
     if (pattern) {
       this.handleSelector({
-        type: "property name",
+        type: "propertyName",
         pattern: pattern,
       });
     }
@@ -131,7 +141,7 @@ export class GraphToolbar extends Component<GraphToolbarProps> {
     );
     if (property) {
       this.handleSelector({
-        type: "property range",
+        type: "propertyRange",
         property: property,
         minimum: rangeMin,
         maximum: rangeMax,
@@ -139,13 +149,34 @@ export class GraphToolbar extends Component<GraphToolbarProps> {
     }
   }
   handleSelectDescendants() {
-    this.handleSelector({
-      type: "vertex descendants",
-    });
+    const graph = this.props.graph;
+    if (graph) {
+      this.handleSelector({
+        type: "descendants",
+        ids: graph.selection,
+      });
+    }
   }
   handleSelectAncestors() {
+    const graph = this.props.graph;
+    if (graph) {
+      this.handleSelector({
+        type: "ancestors",
+        ids: graph.selection,
+      });
+    }
+  }
+  handleSelectDegree() {
+    let inDegree = prompt(
+      "Enter the in-degree of vertices (or cancel for any)."
+    );
+    let outDegree = prompt(
+      "Enter the out-degree of the vertices (or cancel for any)."
+    );
     this.handleSelector({
-      type: "vertex ancestors",
+      type: "degree",
+      inDegree: inDegree ? parseFloat(inDegree) : undefined,
+      outDegree: outDegree ? parseFloat(outDegree) : undefined,
     });
   }
 
@@ -401,13 +432,16 @@ export class GraphToolbar extends Component<GraphToolbarProps> {
               <DropdownItem onClick={this.handleSelectPropertyRange}>
                 Select Range
               </DropdownItem>
-              {/* <hr className="divider" />
+              <hr className="divider" />
               <DropdownItem onClick={this.handleSelectDescendants}>
                 Select Descendants
               </DropdownItem>
               <DropdownItem onClick={this.handleSelectAncestors}>
                 Select Ancestors
-              </DropdownItem> */}
+              </DropdownItem>
+              <DropdownItem onClick={this.handleSelectDegree}>
+                Select Degree
+              </DropdownItem>
             </DropdownMenu>
           </UncontrolledDropdown>
           <UncontrolledDropdown nav inNavbar>

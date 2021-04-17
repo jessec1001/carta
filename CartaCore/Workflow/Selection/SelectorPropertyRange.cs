@@ -1,16 +1,16 @@
 using System;
-using System.Linq;
+using System.Threading.Tasks;
 
 using CartaCore.Data;
-using CartaCore.Serialization.Json;
+using CartaCore.Serialization;
 
 namespace CartaCore.Workflow.Selection
 {
     /// <summary>
     /// Represents a selection of vertices based on a specific property being within a specified range.
     /// </summary>
-    [DiscriminantDerived("property range")]
-    public class SelectorPropertyRange : SelectorBase
+    [DiscriminantDerived("propertyRange")]
+    public class SelectorPropertyRange : Selector
     {
         /// <summary>
         /// Gets or sets the property name.
@@ -28,22 +28,22 @@ namespace CartaCore.Workflow.Selection
         /// <value>The maximum value in the range. If not specified, equivalent to positive infinity.</value>
         public double? Maximum { get; set; }
 
-        public override bool ContainsProperty(Property property)
+        public override Task<bool> ContainsProperty(Property property)
         {
-            return property.Identifier.Equals(Identity.Create(Property));
+            return Task.FromResult(property.Identifier.Equals(Identity.Create(Property)));
         }
-        public override bool ContainsValue(object value)
+        public override Task<bool> ContainsValue(object value)
         {
             double number;
             try
             {
                 number = Convert.ToDouble(value);
             }
-            catch (Exception) { return false; }
+            catch (Exception) { return Task.FromResult(false); }
 
-            if (Minimum.HasValue && number < Minimum.Value) return false;
-            if (Maximum.HasValue && number > Maximum.Value) return false;
-            return true;
+            if (Minimum.HasValue && number < Minimum.Value) return Task.FromResult(false);
+            if (Maximum.HasValue && number > Maximum.Value) return Task.FromResult(false);
+            return Task.FromResult(true);
         }
     }
 }

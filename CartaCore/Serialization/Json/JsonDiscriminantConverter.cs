@@ -11,7 +11,7 @@ namespace CartaCore.Serialization.Json
     /// <see cref="DiscriminantDerivedAttribute"/> attribute using a discriminant string value specified on the base
     /// class.
     /// </summary>
-    public class DiscriminantConverter : JsonConverterFactory
+    public class JsonDiscriminantConverter : JsonConverterFactory
     {
         /// <inheritdoc />
         public override bool CanConvert(Type typeToConvert)
@@ -29,7 +29,7 @@ namespace CartaCore.Serialization.Json
             // We need to create the appropriate converter with the specified type.
             JsonConverter converter = (JsonConverter)Activator.CreateInstance
             (
-                typeof(DiscriminantConverterInner<>).MakeGenericType(new Type[] { typeToConvert }),
+                typeof(JsonDiscriminantConverterInner<>).MakeGenericType(new Type[] { typeToConvert }),
                 BindingFlags.Instance | BindingFlags.Public,
                 binder: null,
                 args: new object[] { },
@@ -38,38 +38,8 @@ namespace CartaCore.Serialization.Json
             return converter;
         }
 
-        private class DiscriminantConverterInner<T> : JsonConverter<T>
+        private class JsonDiscriminantConverterInner<T> : JsonConverter<T>
         {
-            private static Dictionary<Type, Dictionary<string, Type>> DiscriminantDerivatives;
-
-            static DiscriminantConverterInner()
-            {
-                // We perform some start-up initialization to find all the base and derived types with discriminants.
-                DiscriminantDerivatives = new Dictionary<Type, Dictionary<string, Type>>();
-
-                Type[] assemblyTypes = Assembly.GetCallingAssembly().GetTypes();
-                foreach (Type baseType in assemblyTypes)
-                {
-                    // Base types should have the base attribute.
-                    DiscriminantBaseAttribute baseAttr = baseType.GetCustomAttribute<DiscriminantBaseAttribute>();
-                    DiscriminantDerivedAttribute baseDerivedAttr = baseType.GetCustomAttribute<DiscriminantDerivedAttribute>();
-                    if (baseAttr is null) continue;
-                    if (baseDerivedAttr is not null) continue;
-
-                    DiscriminantDerivatives.Add(baseType, new Dictionary<string, Type>());
-
-                    foreach (Type derivedType in assemblyTypes)
-                    {
-                        // Derived types should have the derived attribute and be an actual derived type.
-                        DiscriminantDerivedAttribute derivedAttr = derivedType.GetCustomAttribute<DiscriminantDerivedAttribute>();
-                        if (derivedAttr is null) continue;
-                        if (!baseType.IsAssignableFrom(derivedType)) continue;
-
-                        DiscriminantDerivatives[baseType].Add(derivedAttr.Discriminant, derivedType);
-                    }
-                }
-            }
-
             /// <inheritdoc />
             public override T Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
@@ -86,7 +56,7 @@ namespace CartaCore.Serialization.Json
 
                     // Find the derived type from the discriminant.
                     string discriminant = discriminantProperty.GetString();
-                    DiscriminantDerivatives[typeToConvert].TryGetValue(discriminant, out Type derivedType);
+                    Discriminant.TryGetType(typeToConvert, discriminant, out Type derivedType);
 
                     // Deserialize the derived type if possible.
                     if (derivedType is null)

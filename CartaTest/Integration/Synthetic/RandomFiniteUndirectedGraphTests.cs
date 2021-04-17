@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using NUnit.Framework;
 
 using CartaCore.Data;
-using CartaCore.Data.Synthetic;
+using CartaCore.Integration.Synthetic;
 
 namespace CartaTest
 {
@@ -17,7 +17,7 @@ namespace CartaTest
         /// <summary>
         /// The graph generated to test on.
         /// </summary>
-        protected FiniteGraph Graph;
+        protected IEntireGraph Graph;
 
         /// <summary>
         /// Sets up the test fixture.
@@ -40,7 +40,7 @@ namespace CartaTest
         [Test]
         public async Task TestNumberVertices()
         {
-            Assert.IsTrue(0 <= await Graph.Vertices.CountAsync());
+            Assert.IsTrue(0 <= await Graph.GetVertices().CountAsync());
         }
 
         /// <summary>
@@ -49,11 +49,11 @@ namespace CartaTest
         [Test]
         public async Task TestNumberEdges()
         {
-            int vertexCount = await Graph.Vertices.CountAsync();
+            int vertexCount = await Graph.GetVertices().CountAsync();
             int edgeCountMax = vertexCount * (vertexCount - 1) / 2;
 
-            Assert.IsTrue(edgeCountMax >= await Graph.Edges.CountAsync());
-            Assert.IsTrue(0 <= await Graph.Edges.CountAsync());
+            Assert.IsTrue(edgeCountMax >= await Graph.GetEdges().CountAsync());
+            Assert.IsTrue(0 <= await Graph.GetEdges().CountAsync());
         }
 
         /// <summary>
@@ -62,7 +62,7 @@ namespace CartaTest
         [Test]
         public async Task TestNoSelfEdges()
         {
-            await foreach (Edge edge in Graph.Edges)
+            await foreach (Edge edge in Graph.GetEdges())
                 Assert.IsFalse(edge.Source == edge.Target);
         }
     }

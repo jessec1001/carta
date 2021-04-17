@@ -6,7 +6,7 @@ namespace CartaCore.Workflow.Selection
     /// <summary>
     /// Represents a base selection based on a regular expression match.
     /// </summary>
-    public abstract class SelectorRegexBase : SelectorBase
+    public abstract class SelectorRegexBase : Selector
     {
         /// <summary>
         /// The regular expression pattern that can be used to test for matches in naming.
