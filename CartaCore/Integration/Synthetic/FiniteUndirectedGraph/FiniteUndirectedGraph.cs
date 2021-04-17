@@ -2,15 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using CartaCore.Data;
 using CartaCore.Statistics;
 
-namespace CartaCore.Data.Synthetic
+namespace CartaCore.Integration.Synthetic
 {
     /// <summary>
     /// Represents graph data of a random, finite, undirected graph. Both the vertices and edges are randomly generated
     /// and connected.
     /// </summary>
-    public class FiniteUndirectedGraph : FiniteGraph,
+    public class FiniteUndirectedGraph : SubGraph,
         IParameterizedGraph<FiniteUndirectedGraphParameters>
     {
         /// <inheritdoc />

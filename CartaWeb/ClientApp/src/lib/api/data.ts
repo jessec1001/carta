@@ -41,7 +41,7 @@ export async function dataGetGraph(
   resource: string,
   parameters?: Record<string, any>
 ) {
-  return (await generalRequest(`api/data/${source}/${resource}`, {
+  return (await generalRequest(`api/data/${source}/${resource}/roots`, {
     ...getStoredParameters(source, resource),
     ...parameters,
   })) as Graph;
@@ -59,10 +59,10 @@ export async function dataGetVertex(
   id: string,
   parameters?: Record<string, any>
 ) {
-  return (await generalRequest(`api/data/${source}/${resource}/props`, {
+  return (await generalRequest(`api/data/${source}/${resource}/include`, {
     ...getStoredParameters(source, resource),
     ...parameters,
-    id,
+    ids: id,
   })) as Graph;
 }
 /**
@@ -81,6 +81,6 @@ export async function dataGetChildren(
   return (await generalRequest(`api/data/${source}/${resource}/children`, {
     ...getStoredParameters(source, resource),
     ...parameters,
-    id,
+    ids: id,
   })) as Graph;
 }

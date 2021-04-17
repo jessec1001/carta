@@ -1,5 +1,4 @@
-using CartaCore.Data;
-using CartaCore.Serialization.Json;
+using CartaCore.Serialization;
 
 namespace CartaCore.Workflow.Selection
 {
@@ -7,5 +6,5 @@ namespace CartaCore.Workflow.Selection
     /// Represents a selection of all vertices.
     /// </summary>
     [DiscriminantDerived("all")]
-    public class SelectorAll : SelectorBase { }
+    public class SelectorAll : Selector { }
 }

@@ -1,6 +1,6 @@
 using CartaCore.Statistics;
 
-namespace CartaCore.Data.Synthetic
+namespace CartaCore.Integration.Synthetic
 {
     /// <summary>
     /// Represents the generation parameters of the <see cref="InfiniteDirectedGraph"/> object.

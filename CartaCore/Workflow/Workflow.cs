@@ -37,50 +37,60 @@ namespace CartaCore.Workflow
         /// </summary>
         /// <param name="graph">The graph to apply the workflow to.</param>
         /// <returns>The graph after being acted on by the workflow operations.</returns>
-        public async Task<FiniteGraph> ApplyAsync(FiniteGraph graph)
+        public async Task<IEntireGraph> ApplyAsync(IEntireGraph graph)
         {
-            IGraph underlying = graph.UnderlyingGraph;
             if (Operations is null) return graph;
+
+            // Copy over the entire graph.
+            Graph baseGraph = graph.Provide<Graph>();
+            FiniteGraph prevGraph = new FiniteGraph
+            (
+                baseGraph.Identifier,
+                baseGraph.Properties,
+                baseGraph.IsDirected
+            );
+            await foreach (IVertex vertex in graph.GetVertices())
+                prevGraph.AddVertex(vertex);
 
             // Apply each workflow operation in sequence.
             foreach (WorkflowOperation operation in Operations)
             {
                 ActionBase action = operation.Action;
-                SelectorBase selector = operation.Selector ?? new SelectorAll();
+                Selector selector = operation.Selector ?? new SelectorAll();
+                selector.Graph = graph;
 
-                FiniteGraph transformedGraph = new FiniteGraph
+                FiniteGraph nextGraph = new FiniteGraph
                 (
-                    graph.Identifier,
-                    graph.Properties,
-                    graph.IsDirected,
-                    graph.IsDynamic
+                    prevGraph.Identifier,
+                    prevGraph.Properties,
+                    prevGraph.IsDirected
                 );
 
-                await foreach (Edge edge in graph.Edges)
-                    transformedGraph.AddEdge(edge);
-                await foreach (IVertex vertex in graph.Vertices)
+                await foreach (Edge edge in ((IEntireGraph)prevGraph).GetEdges())
+                    nextGraph.AddEdge(edge);
+                await foreach (IVertex vertex in prevGraph.GetVertices())
                 {
                     if (action is null)
-                        transformedGraph.AddVertex(vertex);
+                        nextGraph.AddVertex(vertex);
                     else
                     {
-                        transformedGraph.AddVertex
+                        nextGraph.AddVertex
                         (
-                            (selector is not null && !selector.ContainsVertex(vertex)) ?
-                            vertex : await action.ApplyToVertex(underlying, new Vertex
+                            (selector is not null && !await selector.ContainsVertex(vertex)) ?
+                            vertex : await action.ApplyToVertex(graph, new Vertex
                             (
                                 vertex.Identifier,
                                 await vertex.Properties
                                 .ToAsyncEnumerable()
                                 .SelectAwait(async property =>
-                                    (selector is not null && !selector.ContainsProperty(property)) ?
+                                    (selector is not null && !await selector.ContainsProperty(property)) ?
                                     property : await action.ApplyToProperty(new Property
                                     (
                                         property.Identifier,
                                         await property.Values
                                         .ToAsyncEnumerable()
                                         .SelectAwait(async value =>
-                                            (selector is not null && !selector.ContainsValue(value)) ?
+                                            (selector is not null && !await selector.ContainsValue(value)) ?
                                             value : await action.ApplyToValue(value)
                                         ).ToListAsync()
                                     )
@@ -94,10 +104,10 @@ namespace CartaCore.Workflow
                         );
                     }
                 }
-                graph = transformedGraph;
+                prevGraph = nextGraph;
             }
 
-            return graph;
+            return prevGraph;
         }
     }
 }

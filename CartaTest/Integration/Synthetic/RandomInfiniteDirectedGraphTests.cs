@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using NUnit.Framework;
 
 using CartaCore.Data;
-using CartaCore.Data.Synthetic;
+using CartaCore.Integration.Synthetic;
 
 namespace CartaTest.Data.Synthetic
 {

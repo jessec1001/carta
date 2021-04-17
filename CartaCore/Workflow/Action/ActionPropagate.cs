@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using CartaCore.Data;
-using CartaCore.Serialization.Json;
+using CartaCore.Serialization;
 
 namespace CartaCore.Workflow.Action
 {
@@ -27,7 +27,7 @@ namespace CartaCore.Workflow.Action
 
         public async override Task<IVertex> ApplyToVertex(IGraph graph, IVertex vertex)
         {
-            if (graph is IDynamicInGraph<IInVertex> dynamicInGraph)
+            if (graph.TryProvide(out IDynamicInGraph<IInVertex> dynamicInGraph))
             {
                 // Set up data structures to store intermediate information.
                 HashSet<Identity> fetchedVertices = new HashSet<Identity>();

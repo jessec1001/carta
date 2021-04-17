@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 using CartaCore.Data;
+using CartaCore.Serialization.Json;
 
 namespace CartaWeb.Serialization.Json
 {
@@ -93,11 +94,11 @@ namespace CartaWeb.Serialization.Json
 
             visFormat.Directed = graph.IsDirected;
             visFormat.Dynamic = graph.IsDynamic;
-            visFormat.Nodes = await graph.Vertices.SelectAwait
+            visFormat.Nodes = await graph.GetVertices().SelectAwait
             (
                 node => new ValueTask<VisFormatNode>(Task.FromResult(new VisFormatNode(node)))
             ).ToListAsync();
-            visFormat.Edges = await graph.Edges.SelectAwait
+            visFormat.Edges = await graph.GetEdges().SelectAwait
             (
                 edge => new ValueTask<VisFormatEdge>(Task.FromResult(new VisFormatEdge(edge)))
             ).ToListAsync();
@@ -175,7 +176,7 @@ namespace CartaWeb.Serialization.Json
         /// <param name="vertex">The vertex to convert to a new format.</param>
         public VisFormatNode(IVertex vertex)
         {
-            Id = vertex.Identifier.ToString();
+            Id = vertex.Identifier?.ToString();
             Label = vertex.Label;
             Description = string.IsNullOrEmpty(vertex.Description) ? null : vertex.Description;
             Properties = vertex.Properties?.Select(property => new VisFormatProperty(property)).ToList();
@@ -270,6 +271,7 @@ namespace CartaWeb.Serialization.Json
         /// </summary>
         /// <value>The property observations.</value>
         [JsonPropertyName("values")]
+        [JsonConverter(typeof(JsonObjectEnumerableConverter))]
         public List<object> Values { get; set; }
         [JsonPropertyName("properties")]
         public List<VisFormatProperty> Subproperties { get; set; }

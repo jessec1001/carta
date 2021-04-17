@@ -64,6 +64,7 @@ export default class GraphPage extends Component<
 
     const parameters = parsedRequest.query;
     this.parameters = parsedRequest.query;
+    this.index = 0;
 
     const graphs = requests.map((request) => {
       const source = request.split("/")[0];
@@ -81,7 +82,6 @@ export default class GraphPage extends Component<
       };
     });
 
-    this.index = 0;
     this.state = {
       graphs: graphs,
       workflowCreator: null,

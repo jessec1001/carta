@@ -8,8 +8,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
 using CartaCore.Data;
-using CartaCore.Data.Synthetic;
+using CartaCore.Integration.Synthetic;
+using CartaCore.Serialization;
+using CartaCore.Serialization.Json;
 using CartaCore.Workflow;
+using CartaCore.Workflow.Selection;
 using CartaWeb.Models.Data;
 using CartaWeb.Serialization.Json;
 
@@ -55,6 +58,9 @@ namespace CartaWeb.Controllers
             ));
             DataResolvers.Add(DataSource.HyperThought, new HyperthoughtDataResolver());
             DataResolvers.Add(DataSource.User, new UserDataResolver());
+
+            // JSON options.
+            JsonOptions.Converters.Insert(0, new JsonObjectConverter());
         }
 
         /// <summary>
@@ -243,232 +249,104 @@ namespace CartaWeb.Controllers
             return BadRequest();
         }
 
+        // [HttpGet("{source}/{resource}")]
+        // public async Task<ActionResult<GraphOptions>> GetGraphOptions(
+        //     [FromRoute] DataSource source,
+        //     [FromRoute] string resource,
+        //     [FromQuery(Name = "workflow")] int? workflowId = null
+        // )
+        // {
+
+        // }
+
         /// <summary>
-        /// Gets the base graph for the specified data resource. If the resource contains infinite or directed data, the
-        /// base graph only contains a singular root vertex. Use the other Data API functionality to extract more
-        /// information from these types of graphs. If the resource contains finite or undirected data, the base graph
-        /// contains all of the vertices and edges. The graph may have an optional workflow, specified by the Workflow
-        /// API, applied to it.
+        /// Gets a particular selector of data from the graph at the specified data resource.
+        /// The graph may have an optional workflow, specified by the Workflow API, applied to it.
         /// </summary>
-        /// <param name="source">The data source identifier.</param>
-        /// <param name="resource">The data resource identifier located on the data source.</param>
-        /// <param name="workflowId">The identifier of the workflow to be applied to the graph.</param>
-        /// <request name="Synthetic Graph">
+        /// <request name="Synthetic Graph - Root">
         ///     <arg name="source">synthetic</arg>
         ///     <arg name="resource">infiniteDirectedGraph</arg>
+        ///     <arg name="selector">roots</arg>
         /// </request>
-        /// <request name="Synthetic Graph with Workflow">
+        /// <request name="Synthetic Graph with Workflow - Root">
         ///     <arg name="source">synthetic</arg>
         ///     <arg name="resource">infiniteDirectedGraph</arg>
+        ///     <arg name="selector">roots</arg>
         ///     <arg name="workflow">0</arg>
         /// </request>
-        /// <request name="HyperThought Workflow Graph">
+        /// <request name="HyperThought Workflow Graph - Root">
         ///     <arg name="source">hyperthought</arg>
         ///     <arg name="resource">Sandbox.Test01</arg>
+        ///     <arg name="selector">roots</arg>
         /// </request>
-        /// <returns status="200">
-        /// The base graph containing vertices and edges constructed from the data resource.
-        /// </returns>
-        /// <returns status="400">
-        /// Occurs when the data resource cannot be represented as a finite nor dynamic graph.
-        /// </returns>
-        /// <returns status="404">
-        /// Occurs if the data resource or source could not be found or cannot be accessed with the provided
-        /// authentication.
-        /// </returns>
-        [HttpGet("{source}/{resource}")]
-        public async Task<ActionResult<FiniteGraph>> GetGraph(
-            [FromRoute] DataSource source,
-            [FromRoute] string resource,
-            [FromQuery(Name = "workflow")] int? workflowId = null
-        )
-        {
-            Graph graph = await LookupData(source, resource);
-
-            // If we could not find the resource, we should return a not found response.
-            if (graph is null) return NotFound();
-
-            // We return a response based on the type of graph.
-            FiniteGraph subgraph;
-            switch (graph)
-            {
-                case IDynamicOutGraph<IOutVertex> outGraph:
-                    // Return the subgraph of the graph containing the base vertex.
-                    subgraph = await FiniteGraph.CreateSubgraph(outGraph, new[] { outGraph.BaseIdentifier });
-                    break;
-                case IDynamicGraph<Vertex> dynGraph:
-                    // Return the subgraph of the graph containing the base vertex.
-                    subgraph = await FiniteGraph.CreateSubgraph(dynGraph, new[] { dynGraph.BaseIdentifier });
-                    break;
-                case FiniteGraph finiteGraph:
-                    // Return entire graph.
-                    subgraph = finiteGraph;
-                    break;
-                default:
-                    // If a graph does not match a previous type, we cannot retrieve it.
-                    return BadRequest();
-            }
-
-            // We apply a workflow if requested.
-            if (workflowId.HasValue)
-            {
-                Workflow workflow = await WorkflowController.LoadWorkflowAsync(workflowId.Value);
-                subgraph = await workflow.ApplyAsync(subgraph);
-            }
-
-            return Ok(subgraph);
-        }
-
-        /// <summary>
-        /// Gets a graph containing only a particular vertex for the specified data resource. The data source must
-        /// support queryable vertices by unique identifiers for this functionality to apply. The vertex will contain
-        /// all of its properties and observations. Additionally, all of the in-edges or out-edges, depending on the
-        /// capabilities of the data source, will be included in the produced graph. The graph may have an optional
-        /// workflow, specified by the Workflow API, applied to it.
-        /// </summary>
-        /// <param name="source">The data source identifier.</param>
-        /// <param name="resource">The data resource identifier located on the data source.</param>
-        /// <param name="id">The unique identifier of the vertex.</param>
-        /// <param name="workflowId">The identifier of the workflow to be applied to the graph.</param>
-        /// <request name="Synthetic Graph 1">
+        /// <request name="Synthetic Graph 1 - Specific Vertex">
         ///     <arg name="source">synthetic</arg>
         ///     <arg name="resource">infiniteDirectedGraph</arg>
-        ///     <arg name="id">123e4567-e89b-12d3-a456-426614174000</arg>
+        ///     <arg name="selector">include</arg>
+        ///     <arg name="ids">123e4567-e89b-12d3-a456-426614174000</arg>
         /// </request>
-        /// <request name="Synthetic Graph 2">
+        /// <request name="Synthetic Graph 2 - Specific Vertex">
         ///     <arg name="source">synthetic</arg>
         ///     <arg name="resource">infiniteDirectedGraph</arg>
-        ///     <arg name="id">fd712a01-ac32-47d1-05fd-a619c088dbe1</arg>
+        ///     <arg name="selector">include</arg>
+        ///     <arg name="ids">fd712a01-ac32-47d1-05fd-a619c088dbe1</arg>
         ///     <arg name="seed">1234</arg>
         /// </request>
-        /// <request name="Synthetic Graph 2 with Workflow">
-        ///     <arg name="source">synthetic</arg>
-        ///     <arg name="resource">infiniteDirectedGraph</arg>
-        ///     <arg name="id">fd712a01-ac32-47d1-05fd-a619c088dbe1</arg>
-        ///     <arg name="seed">1234</arg>
-        ///     <arg name="workflow">0</arg>
-        /// </request>
-        /// <returns status="200">
-        /// A graph with the requested vertex loaded with its properties and observations and its corresponding edges.
-        /// </returns>
-        /// <returns status="400">
-        /// Occurs when the data resource cannot be queried for a specific vertex.
-        /// </returns>
-        /// <returns status="404">
-        /// Occurs if the data resource or source could not be found or cannot be accessed with the provided
-        /// authentication.
-        /// </returns>
-        [HttpGet("{source}/{resource}/props")]
-        public async Task<ActionResult<FiniteGraph>> GetProperties(
-            [FromRoute] DataSource source,
-            [FromRoute] string resource,
-            [FromQuery] string id,
-            [FromQuery(Name = "workflow")] int? workflowId = null
-        )
-        {
-            Graph graph = await LookupData(source, resource);
-
-            // If we could not find the resource, we should return a not found response.
-            if (graph is null) return NotFound();
-
-            // We return a response based on the type of graph.
-            FiniteGraph subgraph;
-            switch (graph)
-            {
-                case IDynamicOutGraph<IOutVertex> outGraph:
-                    // Return the subgraph of the graph containing the requested vertex.
-                    subgraph = await FiniteGraph.CreateSubgraph(outGraph, new[] { Identity.Create(id) });
-                    break;
-                case IDynamicGraph<Vertex> dynGraph:
-                    // Return the subgraph of the graph containing the base vertex.
-                    subgraph = await FiniteGraph.CreateSubgraph(dynGraph, new[] { Identity.Create(id) });
-                    break;
-                default:
-                    // If a graph does not match a previous type, we cannot retrieve it.
-                    return BadRequest();
-            }
-
-            // We apply a workflow if requested.
-            if (workflowId.HasValue)
-            {
-                Workflow workflow = await WorkflowController.LoadWorkflowAsync(workflowId.Value);
-                subgraph = await workflow.ApplyAsync(subgraph);
-            }
-
-            return Ok(subgraph);
-        }
-
-        /// <summary>
-        /// Gets a graph containing the children of a particular vertex for the specified data resource. The data source
-        /// must support queryable vertices by unique identifiers and must support obtaining out-edges/children
-        /// connections for a vertex for this functionality to apply. The loaded children vertices and all of their
-        /// in-edges or out-edges, depending on the capabilities of the data source, will be included in the produced
-        /// graph. The graph may have an optional workflow, specified by the Workflow API, applied to it.
-        /// </summary>
-        /// <param name="source">The data source identifier.</param>
-        /// <param name="resource">The data resource identifier located on the data source.</param>
-        /// <param name="id">The unique identifier of the vertex.</param>
-        /// <param name="workflowId">The identifier of the workflow to be applied to the graph.</param>
         /// <request name="Synthetic Graph - No Children">
         ///     <arg name="source">synthetic</arg>
         ///     <arg name="resource">infiniteDirectedGraph</arg>
-        ///     <arg name="id">123e4567-e89b-12d3-a456-426614174000</arg>
+        ///     <arg name="selector">children</arg>
+        ///     <arg name="ids">123e4567-e89b-12d3-a456-426614174000</arg>
         /// </request>
         /// <request name="Synthetic Graph - Children">
         ///     <arg name="source">synthetic</arg>
         ///     <arg name="resource">infiniteDirectedGraph</arg>
-        ///     <arg name="id">fd712a01-ac32-47d1-05fd-a619c088dbe1</arg>
+        ///     <arg name="selector">children</arg>
+        ///     <arg name="ids">fd712a01-ac32-47d1-05fd-a619c088dbe1</arg>
         ///     <arg name="seed">0</arg>
         /// </request>
         /// <returns status="200">
-        /// A graph with the children of the requested vertex and their corresponding edges. This is equivalent to
-        /// aggregating individual calls to retrieve each of the child vertices of the requested vertex.
+        /// The graph containing the selected vertices and edges constructed from the data resource.
         /// </returns>
         /// <returns status="400">
-        /// Occurs when the data resource cannot be queries for a specific vertex or the out-edges cannot be obtained.
+        /// Occurs when the data resource cannot be queried using the specified selector.
         /// </returns>
         /// <returns status="404">
         /// Occurs if the data resource or source could not be found or cannot be accessed with the provided
         /// authentication.
         /// </returns>
-        [HttpGet("{source}/{resource}/children")]
-        public async Task<ActionResult<Graph>> GetChildren(
+        [HttpGet("{source}/{resource}/{selector}")]
+        public async Task<ActionResult<Graph>> GetGraphSelection(
             [FromRoute] DataSource source,
             [FromRoute] string resource,
-            [FromQuery] string id,
+            [FromRoute] string selector,
             [FromQuery(Name = "workflow")] int? workflowId = null
         )
         {
-            Graph graph = await LookupData(source, resource);
-
-            // If we could not find the resource, we should return a not found response.
+            // Get the base graph and check if it was actually retrieved.
+            IGraph graph = await LookupData(source, resource);
             if (graph is null) return NotFound();
 
-            // We return a response based on the type of graph.
-            FiniteGraph subgraph;
-            switch (graph)
-            {
-                case IDynamicOutGraph<InOutVertex> inoutGraph:
-                    // Return the subgraph of the graph containing the requested vertex.
-                    subgraph = await FiniteGraph.CreateChildSubgraph(inoutGraph, new[] { Identity.Create(id) });
-                    break;
-                case IDynamicOutGraph<OutVertex> outGraph:
-                    // Return the subgraph of the graph containing the requested vertex.
-                    subgraph = await FiniteGraph.CreateChildSubgraph(outGraph, new[] { Identity.Create(id) });
-                    break;
-                default:
-                    // If a graph does not match a previous type, we cannot retrieve it.
-                    return BadRequest();
-            }
+            // We find the appropriate selector class corresponding to the specified discriminant.
+            // We wrap our original graph in this selector graph to provide selection-specific data retrieval.
+            Discriminant.TryGetValue<Selector>(selector, out Selector selectorGraph);
+            if (selectorGraph is null)
+                return BadRequest();
+            await TryUpdateModelAsync(selectorGraph, selectorGraph.GetType(), "");
+            selectorGraph.Graph = graph;
+            graph = selectorGraph;
 
-            // We apply a workflow if requested.
+            // Apply workflow.
             if (workflowId.HasValue)
             {
                 Workflow workflow = await WorkflowController.LoadWorkflowAsync(workflowId.Value);
-                subgraph = await workflow.ApplyAsync(subgraph);
+                if (workflow is null) return NotFound();
+                else
+                    graph = await workflow.ApplyAsync(graph as IEntireGraph);
             }
 
-            return Ok(subgraph);
+            // Return the graph with an okay status.
+            return Ok(graph);
         }
     }
 }

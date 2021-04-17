@@ -10,12 +10,6 @@ namespace CartaCore.Data
     public interface IDynamicGraph<out TVertex> : IGraph where TVertex : IVertex
     {
         /// <summary>
-        /// Gets the identifier for the base vertex of the graph.
-        /// </summary>
-        /// <value>The identifier for the base vertex.</value>
-        Identity BaseIdentifier { get; }
-
-        /// <summary>
         /// Gets a vertex specified by an identifier.
         /// </summary>
         /// <param name="id">The identifier.</param>

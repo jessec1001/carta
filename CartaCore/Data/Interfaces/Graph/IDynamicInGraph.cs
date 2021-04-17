@@ -17,7 +17,7 @@ namespace CartaCore.Data
             // This default implementation is extremely simple so in most cases it should not be overridden.
             TVertex vertex = await GetVertex(id);
             foreach (Edge inEdge in vertex.InEdges)
-                yield return await GetVertex(inEdge.Target);
+                yield return await GetVertex(inEdge.Source);
         }
     }
 }

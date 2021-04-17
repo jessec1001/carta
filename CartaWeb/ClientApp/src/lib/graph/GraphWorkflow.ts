@@ -165,7 +165,7 @@ export default class GraphWorkflow {
     let selector = this._selector;
     if (this._selectorAugment.include.length > 0) {
       const includeSelector: SelectorInclude = {
-        type: "include vertex",
+        type: "include",
         ids: this._selectorAugment.include,
       };
       selector = {
@@ -175,7 +175,7 @@ export default class GraphWorkflow {
     }
     if (this._selectorAugment.exclude.length > 0) {
       const excludeSelector: SelectorExclude = {
-        type: "exclude vertex",
+        type: "exclude",
         ids: this._selectorAugment.exclude,
       };
       selector = {

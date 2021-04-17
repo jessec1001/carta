@@ -5,46 +5,59 @@ export interface SelectorNone {
   type: "none";
 }
 export interface SelectorOr {
-  type: "or",
-  selectors: Selector[]
+  type: "or";
+  selectors: Selector[];
 }
 export interface SelectorAnd {
-  type: "and",
-  selectors: Selector[]
+  type: "and";
+  selectors: Selector[];
 }
 export interface SelectorInclude {
-  type: "include vertex",
-  ids: string[]
+  type: "include";
+  ids: string[];
 }
 export interface SelectorExclude {
-  type: "exclude vertex",
-  ids: string[]
+  type: "exclude";
+  ids: string[];
 }
 export interface SelectorExpanded {
-  type: "expanded"
+  type: "expanded";
 }
 export interface SelectorCollapsed {
-  type: "collapsed"
+  type: "collapsed";
 }
 export interface SelectorVertexName {
-  type: "vertex name";
+  type: "vertexName";
   pattern: string;
 }
 export interface SelectorPropertyName {
-  type: "property name";
+  type: "propertyName";
   pattern: string;
 }
 export interface SelectorPropertyRange {
-  type: "property range";
+  type: "propertyRange";
   property: string;
   minimum?: number;
   maximum?: number;
 }
 export interface SelectorDescendants {
-  type: "vertex descendants";
+  type: "descendants";
+  ids: string[];
+  includeRoots?: boolean;
+  depth?: number;
+  traversal?: "preorder" | "postorder";
 }
 export interface SelectorAncestors {
-  type: "vertex ancestors";
+  type: "ancestors";
+  ids: string[];
+  includeRoots?: boolean;
+  depth?: number;
+  traversal?: "preorder" | "postorder";
+}
+export interface SelectorDegree {
+  type: "degree";
+  inDegree?: number;
+  outDegree?: number;
 }
 
 type Selector =
@@ -60,5 +73,6 @@ type Selector =
   | SelectorPropertyName
   | SelectorPropertyRange
   | SelectorDescendants
-  | SelectorAncestors;
+  | SelectorAncestors
+  | SelectorDegree;
 export default Selector;

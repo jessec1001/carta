@@ -40,7 +40,7 @@ namespace CartaWeb.Serialization.Json
         /// The graph.
         /// </value>
         [JsonIgnore]
-        public FiniteGraph Graph
+        public SubGraph Graph
         {
             get
             {
@@ -57,7 +57,7 @@ namespace CartaWeb.Serialization.Json
         /// The graphs.
         /// </value>
         [JsonIgnore]
-        public IEnumerable<FiniteGraph> Graphs
+        public IEnumerable<SubGraph> Graphs
         {
             get
             {
@@ -138,12 +138,12 @@ namespace CartaWeb.Serialization.Json
         /// The graph.
         /// </value>
         [JsonIgnore]
-        public FiniteGraph Graph
+        public SubGraph Graph
         {
             get
             {
                 // Create a graph and add the vertices and edges.
-                FiniteGraph graph = new FiniteGraph(null, Directed);
+                SubGraph graph = new SubGraph(null, Directed);
                 graph.AddVertexRange(Nodes.Select(pair => new Vertex
                 (
                     Identity.Create(pair.Key),
@@ -174,12 +174,12 @@ namespace CartaWeb.Serialization.Json
             JgFormatGraph jgFormatGraph = new JgFormatGraph();
 
             jgFormatGraph.Directed = graph.IsDirected;
-            jgFormatGraph.Nodes = await graph.Vertices.ToDictionaryAwaitAsync
+            jgFormatGraph.Nodes = await graph.GetVertices().ToDictionaryAwaitAsync
             (
                 node => new ValueTask<string>(Task.FromResult(node.Identifier.ToString())),
                 node => new ValueTask<JgFormatNode>(Task.FromResult(new JgFormatNode(node)))
             );
-            jgFormatGraph.Edges = await graph.Edges.SelectAwait
+            jgFormatGraph.Edges = await graph.GetEdges().SelectAwait
             (
                 edge => new ValueTask<JgFormatEdge>(Task.FromResult(new JgFormatEdge(edge)))
             ).ToListAsync();

@@ -205,10 +205,10 @@ export default class GraphData {
             this.computeSelection(subSelector)(node)
           );
         break;
-      case "include vertex":
+      case "include":
         filter = (node) => selector.ids.includes(node.id);
         break;
-      case "exclude vertex":
+      case "exclude":
         filter = (node) => !selector.ids.includes(node.id);
         break;
       case "expanded":
@@ -217,54 +217,24 @@ export default class GraphData {
       case "collapsed":
         filter = (node) => (node as any).expanded !== true;
         break;
-      case "vertex name":
+      case "vertexName":
         let vertexPattern = selector.pattern;
-        if (
-          vertexPattern.length >= 2 &&
-          vertexPattern[0] === "/" &&
-          vertexPattern[vertexPattern.length - 1] === "/"
-        ) {
-          vertexPattern = vertexPattern.substring(1, vertexPattern.length - 1);
-          filter = (node) =>
-            !!node.label && !!node.label.match(new RegExp(vertexPattern, "g"));
-        } else {
-          filter = (node) => {
-            return !!node.label && node.label.includes(vertexPattern);
-          };
-        }
+        filter = (node) =>
+          !!node.label && !!node.label.match(new RegExp(vertexPattern, "g"));
         break;
-      case "property name":
+      case "propertyName":
         let propertyPattern = selector.pattern;
-        if (
-          propertyPattern.length > 2 &&
-          propertyPattern[0] === "/" &&
-          propertyPattern[propertyPattern.length - 1] === "/"
-        ) {
-          propertyPattern = propertyPattern.substring(
-            1,
-            propertyPattern.length - 2
-          );
-          filter = (node) => {
-            const regexp = new RegExp(propertyPattern, "g");
-            if (node.properties) {
-              return node.properties.some(
-                (property) => property.id.match(regexp) !== null
-              );
-            }
-            return false;
-          };
-        } else {
-          filter = (node) => {
-            if (node.properties) {
-              return node.properties.some((property) =>
-                property.id.includes(propertyPattern)
-              );
-            }
-            return false;
-          };
-        }
+        filter = (node) => {
+          const regexp = new RegExp(propertyPattern, "g");
+          if (node.properties) {
+            return node.properties.some(
+              (property) => property.id.match(regexp) !== null
+            );
+          }
+          return false;
+        };
         break;
-      case "property range":
+      case "propertyRange":
         filter = (node) => {
           if (!node.properties) return false;
           const property = node.properties.find(
@@ -281,9 +251,9 @@ export default class GraphData {
           });
         };
         break;
-      case "vertex descendants":
+      case "descendants":
         const descendantIds: string[] = [];
-        const openDescendantIds: string[] = [...this.selection];
+        const openDescendantIds: string[] = [...selector.ids];
         while (openDescendantIds.length > 0) {
           const descendantId = openDescendantIds.pop();
           const newDescendantIds = this.edges
@@ -296,9 +266,9 @@ export default class GraphData {
         }
         filter = (node) => descendantIds.includes(node.id);
         break;
-      case "vertex ancestors":
+      case "ancestors":
         const ancestorIds: string[] = [];
-        const openAncestorIds: string[] = [...this.selection];
+        const openAncestorIds: string[] = [...selector.ids];
         while (openAncestorIds.length > 0) {
           const ancestorId = openAncestorIds.pop();
           const newAncestorIds = this.edges
@@ -310,6 +280,22 @@ export default class GraphData {
           openAncestorIds.push(...newAncestorIds);
         }
         filter = (node) => ancestorIds.includes(node.id);
+        break;
+      case "degree":
+        const inDegree = selector.inDegree;
+        const outDegree = selector.outDegree;
+        filter = (node) => {
+          const inEdgeCount = this.edges
+            .get()
+            .filter((edge) => edge.to === node.id).length;
+          const outEdgeCount = this.edges
+            .get()
+            .filter((edge) => edge.from === node.id).length;
+          if (inDegree !== undefined && inDegree !== inEdgeCount) return false;
+          if (outDegree !== undefined && outDegree !== outEdgeCount)
+            return false;
+          return true;
+        };
         break;
     }
     return filter;
@@ -477,8 +463,8 @@ export default class GraphData {
     };
 
     // Add the data to the graph.
-    this._request(initialNodes, force, stopPrefetch);
     this._update(data);
+    this._request(initialNodes, force, stopPrefetch);
     this._show(initialNodes);
     return true;
   }
