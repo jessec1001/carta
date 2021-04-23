@@ -37,8 +37,14 @@ namespace CartaCore.Workflow.Action
 
                 // Kick off the algorithm by grabbing the parents of this vertex.
                 AddVertexProperties(properties, vertex);
+                IOutVertex rootVertex = await dynamicOutGraph.GetVertex(vertex.Identifier);
                 fetchedVertices.Add(vertex.Identifier);
-                childrenVertices.Add(dynamicOutGraph.GetChildVertices(vertex.Identifier));
+                childrenVertices.Add
+                (
+                    rootVertex.OutEdges
+                        .ToAsyncEnumerable()
+                        .SelectAwait(async edge => await dynamicOutGraph.GetVertex(edge.Target))
+                );
 
                 // Keep getting all the parents asynchronously and updating our properties collection.
                 while (childrenVertices.Count > 0)
@@ -48,14 +54,19 @@ namespace CartaCore.Workflow.Action
                     childrenVertices.RemoveAt(0);
 
                     // Iterate over the parent vertex collection propagating properties.
-                    await foreach (IInVertex childVertex in childVertices)
+                    await foreach (IOutVertex childVertex in childVertices)
                     {
                         // We need to make sure that we do not duplicate observations.
                         if (!fetchedVertices.Contains(childVertex.Identifier))
                         {
                             AddVertexProperties(properties, childVertex);
                             fetchedVertices.Add(childVertex.Identifier);
-                            childrenVertices.Add(dynamicOutGraph.GetChildVertices(childVertex.Identifier));
+                            childrenVertices.Add
+                            (
+                                childVertex.OutEdges
+                                    .ToAsyncEnumerable()
+                                    .SelectAwait(async edge => await dynamicOutGraph.GetVertex(edge.Target))
+                            );
                         }
                     }
                 }
