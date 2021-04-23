@@ -10,7 +10,7 @@ namespace CartaCore.Workflow.Action
     /// Represents an action that decrements integer observations by some amount.
     /// </summary>
     [DiscriminantDerived("decrement")]
-    public class ActionDecrement : Actor
+    public class ActorDecrement : Actor
     {
         /// <summary>
         /// Gets or sets the decrement amount.
