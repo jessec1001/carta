@@ -32,9 +32,9 @@ namespace CartaCore.Workflow.Action
                 IEnumerable<Edge> outEdges = Enumerable.Empty<Edge>();
                 IVertex vertex = await dynamic.GetVertex(id);
                 if (vertex is IInVertex inVertex)
-                    outEdges = inVertex.InEdges.Select(edge => new Edge(edge.Target, edge.Source, edge.Properties));
+                    outEdges = inVertex.InEdges.Select(edge => new Edge(edge.Identifier, edge.Target, edge.Source, edge.Properties));
                 if (vertex is IOutVertex outVertex)
-                    inEdges = outVertex.OutEdges.Select(edge => new Edge(edge.Target, edge.Source, edge.Properties));
+                    inEdges = outVertex.OutEdges.Select(edge => new Edge(edge.Identifier, edge.Target, edge.Source, edge.Properties));
                 return new InOutVertex(vertex.Identifier, vertex.Properties, inEdges, outEdges)
                 {
                     Label = vertex.Label,
@@ -52,9 +52,9 @@ namespace CartaCore.Workflow.Action
                     IEnumerable<Edge> inEdges = Enumerable.Empty<Edge>();
                     IEnumerable<Edge> outEdges = Enumerable.Empty<Edge>();
                     if (vertex is IInVertex inVertex)
-                        outEdges = inVertex.InEdges.Select(edge => new Edge(edge.Target, edge.Source, edge.Properties));
+                        outEdges = inVertex.InEdges.Select(edge => new Edge(edge.Identifier, edge.Target, edge.Source, edge.Properties));
                     if (vertex is IOutVertex outVertex)
-                        inEdges = outVertex.OutEdges.Select(edge => new Edge(edge.Target, edge.Source, edge.Properties));
+                        inEdges = outVertex.OutEdges.Select(edge => new Edge(edge.Identifier, edge.Target, edge.Source, edge.Properties));
                     yield return new InOutVertex(vertex.Identifier, vertex.Properties, inEdges, outEdges)
                     {
                         Label = vertex.Label,

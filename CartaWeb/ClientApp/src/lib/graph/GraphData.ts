@@ -312,7 +312,7 @@ export default class GraphData {
   };
   updateData = () => {
     // Force a reload of all the selected nodes.
-    const filter = this.computeSelection(this.workflow.getSelector());
+    const filter = this.computeSelection({ type: "all" });
     if (this.workflow?._id !== null && this.workflow?._id !== undefined)
       this._parameters = { ...this._parameters, workflow: this.workflow._id };
     this.nodes

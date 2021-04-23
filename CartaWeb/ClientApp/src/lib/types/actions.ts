@@ -1,5 +1,5 @@
 interface ActionToNumber {
-  type: "to number";
+  type: "toNumber";
 }
 interface ActionIncrement {
   type: "increment";
@@ -10,7 +10,7 @@ interface ActionDecrement {
   amount?: number;
 }
 interface ActionStringReplace {
-  type: "string replace";
+  type: "stringReplace";
   pattern: string;
   replacement: string;
 }
@@ -32,6 +32,9 @@ interface ActionAggregate {
 interface ActionPropagate {
   type: "propagate";
 }
+interface ActionReverseEdges {
+  type: "reverseEdges";
+}
 
 type Action =
   | ActionToNumber
@@ -43,5 +46,6 @@ type Action =
   | ActionStandardDeviation
   | ActionVariance
   | ActionAggregate
-  | ActionPropagate;
+  | ActionPropagate
+  | ActionReverseEdges;
 export default Action;
