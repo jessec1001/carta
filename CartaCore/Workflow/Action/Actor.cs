@@ -49,7 +49,9 @@ namespace CartaCore.Workflow.Action
             return new Property
             (
                 property.Identifier,
-                property.Values.Select(value => TransformValue(value))
+                property.Values
+                    .Select(async value => await TransformValue(value))
+                    .Select(task => task.Result)
             )
             { Subproperties = property.Subproperties };
         }
