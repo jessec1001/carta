@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 using MorseCode.ITask;
 
@@ -28,11 +29,23 @@ namespace CartaCore.Workflow.Action
         }
 
         public virtual object TransformValue(object value) => value;
+        public virtual Property TransformProperty(Property property) => property;
         public virtual Edge TransformEdge(Edge edge) => edge;
         public virtual IVertex TransformVertex(IVertex vertex) => vertex;
 
-        private Property ReconstructProperty(Property property)
+        private async Task<object> ReconstructValue(object value)
         {
+            if (!await Selector.ContainsValue(value))
+                return value;
+
+            return TransformValue(value);
+        }
+        private async Task<Property> ReconstructProperty(Property property)
+        {
+            if (!await Selector.ContainsProperty(property))
+                return property;
+
+            property = TransformProperty(property);
             return new Property
             (
                 property.Identifier,
@@ -40,8 +53,18 @@ namespace CartaCore.Workflow.Action
             )
             { Subproperties = property.Subproperties };
         }
-        private IVertex ReconstructVertex(IVertex vertex)
+        private async Task<Edge> ReconstructEdge(Edge edge)
         {
+            if (!await Selector.ContainsEdge(edge))
+                return edge;
+
+            return TransformEdge(edge);
+        }
+        private async Task<IVertex> ReconstructVertex(IVertex vertex)
+        {
+            if (!await Selector.ContainsVertex(vertex))
+                return vertex;
+
             vertex = TransformVertex(vertex);
             IEnumerable<Edge> inEdges = null;
             IEnumerable<Edge> outEdges = null;
@@ -60,7 +83,9 @@ namespace CartaCore.Workflow.Action
             vertex = new InOutVertex
             (
                 vertex.Identifier,
-                vertex.Properties.Select(property => ReconstructProperty(property)),
+                vertex.Properties
+                    .Select(async property => await ReconstructProperty(property))
+                    .Select(task => task.Result),
                 inEdges,
                 outEdges
             )
@@ -91,9 +116,7 @@ namespace CartaCore.Workflow.Action
             if (Graph.TryProvide(out IDynamicGraph<IVertex> dynamic))
             {
                 IVertex vertex = await dynamic.GetVertex(id);
-                if (await Selector.ContainsVertex(vertex))
-                    return ReconstructVertex(vertex);
-                else return vertex;
+                return await ReconstructVertex(vertex);
             }
             else throw new NotSupportedException();
         }
@@ -103,11 +126,7 @@ namespace CartaCore.Workflow.Action
             if (Graph.TryProvide(out IEntireGraph entire))
             {
                 await foreach (IVertex vertex in entire.GetVertices())
-                {
-                    if (await Selector.ContainsVertex(vertex))
-                        yield return ReconstructVertex(vertex);
-                    else yield return vertex;
-                }
+                    yield return await ReconstructVertex(vertex);
             }
             else throw new NotSupportedException();
         }
