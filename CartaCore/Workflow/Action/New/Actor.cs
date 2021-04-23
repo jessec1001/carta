@@ -27,9 +27,19 @@ namespace CartaCore.Workflow.Action
             return true;
         }
 
+        public virtual object TransformValue(object value) => value;
         public virtual Edge TransformEdge(Edge edge) => edge;
         public virtual IVertex TransformVertex(IVertex vertex) => vertex;
 
+        private Property ReconstructProperty(Property property)
+        {
+            return new Property
+            (
+                property.Identifier,
+                property.Values.Select(value => TransformValue(value))
+            )
+            { Subproperties = property.Subproperties };
+        }
         private IVertex ReconstructVertex(IVertex vertex)
         {
             vertex = TransformVertex(vertex);
@@ -47,7 +57,13 @@ namespace CartaCore.Workflow.Action
             inEdges = edges.Where(edge => edge.Target.Equals(vertex.Identifier));
             outEdges = edges.Where(edge => edge.Source.Equals(vertex.Identifier));
 
-            vertex = new InOutVertex(vertex.Identifier, vertex.Properties, inEdges, outEdges)
+            vertex = new InOutVertex
+            (
+                vertex.Identifier,
+                vertex.Properties.Select(property => ReconstructProperty(property)),
+                inEdges,
+                outEdges
+            )
             {
                 Label = vertex.Label,
                 Description = vertex.Description
