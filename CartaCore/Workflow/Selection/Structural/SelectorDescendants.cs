@@ -98,9 +98,12 @@ namespace CartaCore.Workflow.Selection
             {
                 // Fetch the child vertices of the base vertex and enumerate their descendants.
                 RetrievedIds.Add(id);
-                await foreach (IOutVertex childVertex in DynamicOutGraph.GetChildVertices(id))
+                if (vertex is null)
+                    vertex = await DynamicOutGraph.GetVertex(id);
+                foreach (Identity childId in vertex.OutEdges.Select(edge => edge.Target))
                 {
                     // Check if the parent vertex has already been retrieved before traversing it.
+                    IOutVertex childVertex = await DynamicOutGraph.GetVertex(childId);
                     if (RetrievedIds.Contains(childVertex.Identifier)) continue;
 
                     await foreach (

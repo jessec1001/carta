@@ -327,6 +327,15 @@ namespace CartaWeb.Controllers
             IGraph graph = await LookupData(source, resource);
             if (graph is null) return NotFound();
 
+            // Apply workflow.
+            if (workflowId.HasValue)
+            {
+                Workflow workflow = await WorkflowController.LoadWorkflowAsync(workflowId.Value);
+                if (workflow is null) return NotFound();
+                else
+                    graph = workflow.Apply(graph);
+            }
+
             // We find the appropriate selector class corresponding to the specified discriminant.
             // We wrap our original graph in this selector graph to provide selection-specific data retrieval.
             Discriminant.TryGetValue<Selector>(selector, out Selector selectorGraph);
@@ -335,15 +344,6 @@ namespace CartaWeb.Controllers
             await TryUpdateModelAsync(selectorGraph, selectorGraph.GetType(), "");
             selectorGraph.Graph = graph;
             graph = selectorGraph;
-
-            // Apply workflow.
-            if (workflowId.HasValue)
-            {
-                Workflow workflow = await WorkflowController.LoadWorkflowAsync(workflowId.Value);
-                if (workflow is null) return NotFound();
-                else
-                    graph = await workflow.ApplyAsync(graph as IEntireGraph);
-            }
 
             // Return the graph with an okay status.
             return Ok(graph);
