@@ -28,24 +28,24 @@ namespace CartaCore.Workflow.Action
             return true;
         }
 
-        public virtual object TransformValue(object value) => value;
-        public virtual Property TransformProperty(Property property) => property;
-        public virtual Edge TransformEdge(Edge edge) => edge;
-        public virtual IVertex TransformVertex(IVertex vertex) => vertex;
+        public virtual Task<object> TransformValue(object value) => Task.FromResult(value);
+        public virtual Task<Property> TransformProperty(Property property) => Task.FromResult(property);
+        public virtual Task<Edge> TransformEdge(Edge edge) => Task.FromResult(edge);
+        public virtual Task<IVertex> TransformVertex(IVertex vertex) => Task.FromResult(vertex);
 
         private async Task<object> ReconstructValue(object value)
         {
             if (!await Selector.ContainsValue(value))
                 return value;
 
-            return TransformValue(value);
+            return await TransformValue(value);
         }
         private async Task<Property> ReconstructProperty(Property property)
         {
             if (!await Selector.ContainsProperty(property))
                 return property;
 
-            property = TransformProperty(property);
+            property = await TransformProperty(property);
             return new Property
             (
                 property.Identifier,
@@ -58,20 +58,24 @@ namespace CartaCore.Workflow.Action
             if (!await Selector.ContainsEdge(edge))
                 return edge;
 
-            return TransformEdge(edge);
+            return await TransformEdge(edge);
         }
         private async Task<IVertex> ReconstructVertex(IVertex vertex)
         {
             if (!await Selector.ContainsVertex(vertex))
                 return vertex;
 
-            vertex = TransformVertex(vertex);
+            vertex = await TransformVertex(vertex);
             IEnumerable<Edge> inEdges = null;
             IEnumerable<Edge> outEdges = null;
             if (vertex is IInVertex inVertex)
-                inEdges = inVertex.InEdges.Select(edge => TransformEdge(edge));
+                inEdges = inVertex.InEdges
+                    .Select(async edge => await ReconstructEdge(edge))
+                    .Select(task => task.Result);
             if (vertex is IOutVertex outVertex)
-                outEdges = outVertex.OutEdges.Select(edge => TransformEdge(edge));
+                outEdges = outVertex.OutEdges
+                    .Select(async edge => await ReconstructEdge(edge))
+                    .Select(task => task.Result);
 
             inEdges ??= Enumerable.Empty<Edge>();
             outEdges ??= Enumerable.Empty<Edge>();

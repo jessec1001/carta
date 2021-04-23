@@ -13,7 +13,7 @@ namespace CartaCore.Workflow.Action
         public string Pattern { get; set; }
         public string Replacement { get; set; }
 
-        public override object TransformValue(object value)
+        public override Task<object> TransformValue(object value)
         {
             if (value is string str)
             {
@@ -23,9 +23,9 @@ namespace CartaCore.Workflow.Action
                     RegexOptions.None,
                     TimeSpan.FromSeconds(1.0)
                 );
-                return str;
+                return Task.FromResult<object>(str);
             }
-            else return value;
+            else return Task.FromResult<object>(value);
         }
     }
 }

@@ -11,7 +11,7 @@ namespace CartaCore.Workflow.Action
     [DiscriminantDerived("mean")]
     public class ActorMean : Actor
     {
-        public override Property TransformProperty(Property property)
+        public override Task<Property> TransformProperty(Property property)
         {
             try
             {
@@ -37,7 +37,7 @@ namespace CartaCore.Workflow.Action
                 }
             }
             catch (InvalidCastException) { }
-            return property;
+            return Task.FromResult(property);
         }
     }
 }

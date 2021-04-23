@@ -10,7 +10,7 @@ namespace CartaCore.Workflow.Action
     [DiscriminantDerived("toNumber")]
     public class ActorToNumber : Actor
     {
-        public override object TransformValue(object value)
+        public override Task<object> TransformValue(object value)
         {
             if (value is string str && double.TryParse
                 (
@@ -20,12 +20,12 @@ namespace CartaCore.Workflow.Action
                     out double strNumber
                 )
             )
-                return (object)strNumber;
+                return Task.FromResult<object>(strNumber);
             if (value is int intNumber)
-                return Convert.ToDouble(intNumber);
+                return Task.FromResult<object>(Convert.ToDouble(intNumber));
             if (value is double doubleNumber)
-                return doubleNumber;
-            return value;
+                return Task.FromResult<object>(doubleNumber);
+            return Task.FromResult<object>(value);
         }
     }
 }

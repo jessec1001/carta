@@ -18,12 +18,12 @@ namespace CartaCore.Workflow.Action
         /// <value>The amount to decrement integer values by.</value>
         public double Amount { get; set; } = 1.0;
 
-        public override object TransformValue(object value)
+        public override Task<object> TransformValue(object value)
         {
             if (value is double number)
-                return number - Amount;
+                return Task.FromResult<object>(number - Amount);
             else
-                return value;
+                return Task.FromResult<object>(value);
         }
     }
 }
