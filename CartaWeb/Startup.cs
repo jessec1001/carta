@@ -148,12 +148,10 @@ namespace CartaWeb
                 }
             });
 
-            // AuthZ and Auth.
+            // Routing settings and Auth and AuthZ.
+            app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
-
-            // API and SPA routing settings.
-            app.UseRouting();
             app.UseEndpoints(endpoints => endpoints.MapDefaultControllerRoute());
             app.UseSpa(spa =>
             {
