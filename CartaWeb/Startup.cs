@@ -1,4 +1,6 @@
 using System;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -44,7 +46,7 @@ namespace CartaWeb
         /// <param name="services">The service collection used to add new services to.</param>
         public void ConfigureServices(IServiceCollection services)
         {
-
+            // Formatting settings.
             services
                 .AddControllersWithViews(options =>
                 {
@@ -66,7 +68,29 @@ namespace CartaWeb
                     options.JsonSerializerOptions.Converters.Insert(2, new JsonObjectConverter());
                 });
 
-            // In production, the React files will be served from this directory
+            // Authentication settings.
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.DefaultSignOutScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+
+                options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
+            })
+            .AddCookie
+            (
+                options => Configuration
+                    .GetSection("Authentication:Cookie")
+                    .Bind(options.Cookie)
+            )
+            .AddOpenIdConnect
+            (
+                options => Configuration
+                    .GetSection("Authentication:OpenIdConnect")
+                    .Bind(options)
+            );
+
+            // In production, the React files will be served from this directory.
             services.AddSpaStaticFiles(configuration =>
             {
                 configuration.RootPath = "ClientApp/build";
@@ -93,6 +117,7 @@ namespace CartaWeb
                 app.UseHsts();
             }
 
+            // HTTPS and SPA settings.
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseSpaStaticFiles(new StaticFileOptions()
@@ -122,6 +147,12 @@ namespace CartaWeb
                     }
                 }
             });
+
+            // AuthZ and Auth.
+            app.UseAuthentication();
+            app.UseAuthorization();
+
+            // API and SPA routing settings.
             app.UseRouting();
             app.UseEndpoints(endpoints => endpoints.MapDefaultControllerRoute());
             app.UseSpa(spa =>
