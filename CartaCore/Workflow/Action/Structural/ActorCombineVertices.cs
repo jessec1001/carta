@@ -48,7 +48,7 @@ namespace CartaCore.Workflow.Action
                     {
                         IVertex sourceVertex = await dynamic.GetVertex(inEdge.Source);
                         if (!await Selector.ContainsVertex(sourceVertex))
-                            inEdges.Add(inEdge);
+                            inEdges.Add(new Edge(inEdge.Identifier, inEdge.Source, id, inEdge.Properties));
                     }
                 }
                 if (subvertex is IOutVertex outVertex)
@@ -57,11 +57,14 @@ namespace CartaCore.Workflow.Action
                     {
                         IVertex targetVertex = await dynamic.GetVertex(outEdge.Target);
                         if (!await Selector.ContainsVertex(targetVertex))
-                            outEdges.Add(outEdge);
+                            outEdges.Add(new Edge(outEdge.Identifier, id, outEdge.Target, outEdge.Properties));
                     }
                 }
             }
-            IVertex vertex = new InOutVertex(id, properties, inEdges, outEdges);
+            IVertex vertex = new InOutVertex(id, properties, inEdges, outEdges)
+            {
+                Label = Name
+            };
             return vertex;
         }
 
