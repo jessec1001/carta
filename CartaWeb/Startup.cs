@@ -80,8 +80,8 @@ namespace CartaWeb
             .AddCookie
             (
                 options => Configuration
-                    .GetSection("Authentication:Cookie")
-                    .Bind(options.Cookie)
+                    .GetSection("Authentication:Cookies")
+                    .Bind(options)
             )
             .AddOpenIdConnect
             (
