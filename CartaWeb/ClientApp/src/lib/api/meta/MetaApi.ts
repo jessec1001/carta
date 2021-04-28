@@ -1,6 +1,6 @@
 import queryString from "query-string";
 import { ApiException } from "lib/exceptions";
-import { ApiCollection } from "../../types/meta";
+import { MetaCollection } from "./types";
 
 class MetaApi {
   static async getEndpointsAsync() {
@@ -10,7 +10,7 @@ class MetaApi {
 
     const response = await fetch(url);
     if (response.ok) {
-      return (await response.json()) as ApiCollection[];
+      return (await response.json()) as MetaCollection[];
     } else {
       throw new ApiException(response, "Failed to get metadata.");
     }
