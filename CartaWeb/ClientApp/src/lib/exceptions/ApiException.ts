@@ -12,4 +12,4 @@ class ApiException {
   }
 }
 
-export { ApiException };
+export default ApiException;

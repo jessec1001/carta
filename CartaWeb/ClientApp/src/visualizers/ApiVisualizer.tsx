@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 
-import { metaGetEndpoints } from "../lib/carta";
+import MetaApi from "../lib/api/meta/MetaApi";
 import { ApiCollection } from "../lib/types/meta";
 
 import ApiCollectionView from "./api/ApiCollectionView";
@@ -21,7 +21,7 @@ export default class ApiVisualizer extends Component<{}, ApiVisualizerState> {
       api: [],
     };
 
-    metaGetEndpoints().then((value) => this.setState({ api: value }));
+    MetaApi.GetEndpoints().then((value) => this.setState({ api: value }));
   }
 
   render() {
