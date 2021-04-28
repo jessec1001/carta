@@ -4,7 +4,7 @@ class UserApi {
   static get POPUP_EXPIRATION() {
     return 500;
   }
-  static POPOP_FEATURES() {
+  static get POPOP_FEATURES() {
     return Object.entries({
       location: "no",
       toolbar: "no",
@@ -15,6 +15,13 @@ class UserApi {
     })
       .map(([key, value]) => `${key}=${value}`)
       .join(",");
+  }
+
+  static async getUserInfo(): Promise<void> {
+    // This should be an authorized API endpoint.
+    // We need to determine what actions should be taken if the user is not logged in when calling this endpoint.
+    // Perhaps we need an exception that represents an authentication error to indicate that a sign-in method should
+    // eventually be called. Handling seems to be possible using the "instanceof" operator.
   }
 
   static async signInAsync(preventRedirect?: boolean): Promise<void> {
