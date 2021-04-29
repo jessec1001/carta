@@ -6,6 +6,7 @@ import {
   DropdownToggle,
   DropdownMenu,
   DropdownItem,
+  NavbarProps,
 } from "reactstrap";
 import { GraphData, GraphWorkflow } from "../../../lib/graph";
 import Action from "../../../lib/types/actions";
@@ -13,7 +14,7 @@ import Selector from "../../../lib/types/selectors";
 
 import "./GraphToolbar.css";
 
-interface GraphToolbarProps extends HTMLProps<HTMLDivElement> {
+interface GraphToolbarProps extends NavbarProps {
   graph?: GraphData;
 
   onOpenGraph?: () => void;
