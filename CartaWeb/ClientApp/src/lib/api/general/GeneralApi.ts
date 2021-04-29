@@ -38,7 +38,7 @@ class GeneralApi {
       Object.entries(parameters).forEach(([key, value]) => {
         const regex = RegExp(`\\{(${key})\\??(=.*?)?\\}`, "g");
         if (formattedUrl.match(regex)) {
-          formattedUrl.replace(regex, value);
+          formattedUrl = formattedUrl.replace(regex, value);
           delete extraParameters[key];
         }
       });

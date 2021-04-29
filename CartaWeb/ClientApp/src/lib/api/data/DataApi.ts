@@ -7,27 +7,29 @@ class DataApi {
     source?: string,
     resource?: string
   ) {
-    const requiredEntries: string[] = [];
+    const requiredEntries: Record<string, string> = {};
     if (source?.toLowerCase() === "hyperthought")
-      requiredEntries.push("hyperthoughtKey");
+      requiredEntries["api"] = "hyperthoughtKey";
 
     const parameters: Record<string, any> = {};
-    requiredEntries.forEach(
-      (entry) => (parameters[entry] = localStorage.getItem(entry))
-    );
+    Object.entries(requiredEntries).forEach(([paramKey, storageKey]) => {
+      const paramValue = localStorage.getItem(storageKey);
+      if (paramValue !== null) parameters[paramKey] = paramValue;
+    });
+    console.log(parameters);
     return parameters;
   }
 
   @GeneralApi.route("GET", "api/data")
   static async getSourcesAsync() {
     return (await GeneralApi.requestGeneralAsync({
-      ...this.retrieveAuxiliaryParameters(),
+      ...DataApi.retrieveAuxiliaryParameters(),
     })) as string[];
   }
   @GeneralApi.route("GET", "api/data/{source}")
   static async getResourcesAsync({ source }: { source: string }) {
     return (await GeneralApi.requestGeneralAsync({
-      ...this.retrieveAuxiliaryParameters(source),
+      ...DataApi.retrieveAuxiliaryParameters(source),
       source,
     })) as string[];
   }
@@ -56,7 +58,7 @@ class DataApi {
   }) {
     const { type, ...props } = selector;
     return (await GeneralApi.requestGeneralAsync({
-      ...this.retrieveAuxiliaryParameters(source, resource),
+      ...DataApi.retrieveAuxiliaryParameters(source, resource),
       source,
       resource,
       ...parameters,
@@ -68,7 +70,7 @@ class DataApi {
   static async createGraphAsync({ graph }: { graph: Graph }) {
     return (await GeneralApi.requestGeneralAsync(
       {
-        ...this.retrieveAuxiliaryParameters("user"),
+        ...DataApi.retrieveAuxiliaryParameters("user"),
         source: "user",
       },
       { body: JSON.stringify(graph) }
@@ -77,7 +79,7 @@ class DataApi {
   @GeneralApi.route("DELETE", "api/data/user/{resource}")
   static async deleteGraphAsync({ resource }: { resource: string }) {
     return (await GeneralApi.requestGeneralAsync({
-      ...this.retrieveAuxiliaryParameters("user", resource),
+      ...DataApi.retrieveAuxiliaryParameters("user", resource),
       source: "user",
       resource: resource,
     })) as null;
@@ -92,7 +94,7 @@ class DataApi {
     resource: string;
     parameters?: Record<string, any>;
   }) {
-    return this.getGraphSelectionAsync({
+    return DataApi.getGraphSelectionAsync({
       source,
       resource,
       selector: {
@@ -112,7 +114,7 @@ class DataApi {
     id: string;
     parameters?: Record<string, any>;
   }) {
-    return this.getGraphSelectionAsync({
+    return DataApi.getGraphSelectionAsync({
       source,
       resource,
       selector: {
@@ -133,7 +135,7 @@ class DataApi {
     id: string;
     parameters?: Record<string, any>;
   }) {
-    return this.getGraphSelectionAsync({
+    return DataApi.getGraphSelectionAsync({
       source,
       resource,
       selector: {
