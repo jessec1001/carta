@@ -451,11 +451,11 @@ export default class GraphData {
 
     // Get the base graph data.
     const data = await this._buffer.request(async () => {
-      return await DataApi.getGraphRootsAsync(
-        this._source,
-        this._resource,
-        this._parameters
-      );
+      return await DataApi.getGraphRootsAsync({
+        source: this._source,
+        resource: this._resource,
+        parameters: this._parameters,
+      });
     });
 
     // Set the initial identifiers for the graph.
@@ -493,12 +493,12 @@ export default class GraphData {
       }
     }, 250);
     const data = await this._buffer.request(async () => {
-      return await DataApi.getGraphVertexAsync(
-        this._source,
-        this._resource,
+      return await DataApi.getGraphVertexAsync({
+        source: this._source,
+        resource: this._resource,
         id,
-        this._parameters
-      );
+        parameters: this._parameters,
+      });
     });
 
     // Add the data to the graph.
@@ -538,12 +538,12 @@ export default class GraphData {
       // Get the node children data.
       this._buffer
         .request(async () => {
-          return await DataApi.getGraphChildrenAsync(
-            this._source,
-            this._resource,
+          return await DataApi.getGraphChildrenAsync({
+            source: this._source,
+            resource: this._resource,
             id,
-            this._parameters
-          );
+            parameters: this._parameters,
+          });
         })
         .then((data: Graph) => {
           // Add the data to the graph.

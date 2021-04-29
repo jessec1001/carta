@@ -33,22 +33,33 @@ class DataApi {
   }
 
   @GeneralApi.route("GET", "api/data/{source}/{resource}")
-  static async getGraphPropertiesAsync() {}
+  static async getGraphPropertiesAsync({
+    source,
+    resource,
+    parameters,
+  }: {
+    source: string;
+    resource: string;
+    parameters?: Record<string, any>;
+  }) {}
   @GeneralApi.route("GET", "api/data/{source}/{resource}/{selector}")
   static async getGraphSelectionAsync({
     source,
     resource,
     selector,
+    parameters,
   }: {
     source: string;
     resource: string;
     selector: Selector;
+    parameters?: Record<string, any>;
   }) {
     const { type, ...props } = selector;
     return (await GeneralApi.requestGeneralAsync({
       ...this.retrieveAuxiliaryParameters(source, resource),
       source,
       resource,
+      ...parameters,
       selector: type,
       ...props,
     })) as Graph;
@@ -75,9 +86,11 @@ class DataApi {
   static getGraphRootsAsync({
     source,
     resource,
+    parameters,
   }: {
     source: string;
     resource: string;
+    parameters?: Record<string, any>;
   }) {
     return this.getGraphSelectionAsync({
       source,
@@ -85,16 +98,19 @@ class DataApi {
       selector: {
         type: "roots",
       },
+      parameters,
     });
   }
   static async getGraphVertexAsync({
     source,
     resource,
     id,
+    parameters,
   }: {
     source: string;
     resource: string;
     id: string;
+    parameters?: Record<string, any>;
   }) {
     return this.getGraphSelectionAsync({
       source,
@@ -103,16 +119,19 @@ class DataApi {
         type: "include",
         ids: [id],
       },
+      parameters,
     });
   }
   static async getGraphChildrenAsync({
     source,
     resource,
     id,
+    parameters,
   }: {
     source: string;
     resource: string;
     id: string;
+    parameters?: Record<string, any>;
   }) {
     return this.getGraphSelectionAsync({
       source,
@@ -121,6 +140,7 @@ class DataApi {
         type: "children",
         ids: [id],
       },
+      parameters,
     });
   }
 }
