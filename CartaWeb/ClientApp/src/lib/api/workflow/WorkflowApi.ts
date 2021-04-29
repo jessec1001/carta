@@ -1,110 +1,84 @@
-import { generalRequest } from "lib/carta";
+import { GeneralApi } from "lib/api";
 import { Workflow, WorkflowOperation } from "lib/types/workflow";
 
 class WorkflowApi {
   // #region Workflow CRUD
+  @GeneralApi.route("GET", "api/workflow")
   static async getWorfklowsAsync() {
-    return (await generalRequest(
-      `api/workflow`,
-      {},
-      undefined,
-      "get"
-    )) as Workflow[];
+    return (await GeneralApi.requestGeneralAsync()) as Workflow[];
   }
-  static async getWorkflowAsync(workflowId: string) {
-    return (await generalRequest(
-      `api/workflow/${workflowId}`,
+  @GeneralApi.route("GET", "api/workflow/{workflowId}")
+  static async getWorkflowAsync({ workflowId }: { workflowId: string }) {
+    return (await GeneralApi.requestGeneralAsync({ workflowId })) as Workflow;
+  }
+  @GeneralApi.route("POST", "api/workflow")
+  static async createWorkflowAsync({ workflow }: { workflow: Workflow }) {
+    return (await GeneralApi.requestGeneralAsync(
       {},
-      undefined,
-      "get"
+      { body: JSON.stringify(workflow) }
     )) as Workflow;
   }
-  static async createWorkflowAsync(workflow: Workflow) {
-    return (await generalRequest(
-      `api/workflow`,
-      {},
-      workflow,
-      "post"
-    )) as Workflow;
+  @GeneralApi.route("DELETE", "api/workflow/{workflowId}")
+  static async deleteWorkflowAsync({ workflowId }: { workflowId: string }) {
+    return (await GeneralApi.requestGeneralAsync({ workflowId })) as null;
   }
-  static async deleteWorkflowAsync(workflowId: string) {
-    return (await generalRequest(
-      `api/workflow/${workflowId}`,
-      {},
-      undefined,
-      "delete"
-    )) as null;
-  }
-  static async updateWorkflowAsync(workflow: Workflow) {
-    return (await generalRequest(
-      `api/workflow/${workflow.id}`,
-      {},
-      undefined,
-      "patch"
+  @GeneralApi.route("PATCH", "api/workflow/{workflowId}")
+  static async updateWorkflowAsync({ workflow }: { workflow: Workflow }) {
+    return (await GeneralApi.requestGeneralAsync(
+      { workflowId: workflow.id },
+      { body: JSON.stringify(workflow) }
     )) as Workflow;
   }
   // #endregion
 
   // #region Workflow Operation CRUD
+  @GeneralApi.route("GET", "api/workflow/{workflowId}/operations")
   static async getWorkflowOperationsAsync(workflowId: string) {
-    return (await generalRequest(
-      `api/workflow/${workflowId}/operations`,
-      {},
-      undefined,
-      "get"
-    )) as WorkflowOperation[];
+    return (await GeneralApi.requestGeneralAsync({
+      workflowId,
+    })) as WorkflowOperation[];
   }
+  @GeneralApi.route("GET", "api/workflow/{workflowId}/operations/{index}")
   static async getWorkflowOperationAsync(workflowId: string, index: number) {
-    return (await generalRequest(
-      `api/workflow/${workflowId}/operations/${index}`,
-      {},
-      undefined,
-      "get"
-    )) as WorkflowOperation;
+    return (await GeneralApi.requestGeneralAsync({
+      workflowId,
+      index,
+    })) as WorkflowOperation;
   }
+  @GeneralApi.route("POST", "api/workflow/{workflowId}/operations/{index?}")
   static async insertWorkflowOperationAsync(
     operation: WorkflowOperation,
     workflowId: string,
     index?: number
   ) {
-    return (await generalRequest(
-      `api/workflow/${workflowId}/operations/${index ?? ""}`,
-      {},
-      operation,
-      "post"
+    return (await GeneralApi.requestGeneralAsync(
+      { workflowId, index: index ?? "" },
+      { body: JSON.stringify(operation) }
     )) as WorkflowOperation;
   }
-  static async appendWorkflowOperationAsync(
-    operation: WorkflowOperation,
-    workflowId: string
-  ) {
-    return await this.insertWorkflowOperationAsync(operation, workflowId);
-  }
+  @GeneralApi.route("DELETE", "api/workflow/{workflowId}/operations/{index?}")
   static async removeWorkflowOperationAsync(
     workflowId: string,
     index?: number
   ) {
-    return (await generalRequest(
-      `api/workflow/${workflowId}/operations/${index ?? ""}`,
-      {},
-      undefined,
-      "delete"
-    )) as null;
+    return (await GeneralApi.requestGeneralAsync({
+      workflowId,
+      index: index ?? "",
+    })) as null;
   }
-  static async truncateWorkflowOperationAsync(workflowId: string) {
-    return await this.removeWorkflowOperationAsync(workflowId);
-  }
+  @GeneralApi.route("PATCH", "api/workflow/{workflowId}/operations{index}")
   static async updateWorkflowOperationAsync(
     operation: WorkflowOperation,
     workflowId: string,
     index: number
   ) {
-    return await generalRequest(
-      `api/workflow/${workflowId}/operations/${index}`,
-      {},
-      operation,
-      "patch"
-    );
+    return (await GeneralApi.requestGeneralAsync(
+      {
+        workflowId,
+        index,
+      },
+      { body: JSON.stringify(operation) }
+    )) as WorkflowOperation;
   }
   // #endregion
 }
