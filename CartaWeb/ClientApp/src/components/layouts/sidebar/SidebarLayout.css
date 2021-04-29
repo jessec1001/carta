@@ -1,6 +1,7 @@
 .sidebar-layout {
     display: grid;
     column-gap: 2rem;
+    padding: 2rem;
 }
 .sidebar-layout-left {
     grid-template-areas: "side main";

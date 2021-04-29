@@ -48,7 +48,7 @@ class UserApi {
       const popup = window.open(
         signinResponse.url,
         "_blank",
-        this.POPOP_FEATURES
+        UserApi.POPOP_FEATURES
       );
       if (popup) {
         // Here we need the popup to be directed to a page that automatically closes.
@@ -62,7 +62,7 @@ class UserApi {
                 .then(() => res())
                 .catch((reason) => rej(reason));
             }
-          }, this.POPUP_EXPIRATION);
+          }, UserApi.POPUP_EXPIRATION);
         });
       } else {
         throw new BrowserException(

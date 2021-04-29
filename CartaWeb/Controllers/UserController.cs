@@ -15,10 +15,11 @@ namespace CartaWeb.Controllers
         {
             string email = User.FindFirstValue(ClaimTypes.Email);
             string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            // string userName = User.FindFirst(ClaimTypes.Name)
+            string userName = User.FindFirstValue("cognito:username");
 
             Dictionary<string, string> info = new Dictionary<string, string>();
             info.Add("email", email);
+            info.Add("username", userName);
             info.Add("id", userId);
 
             return Ok(info);

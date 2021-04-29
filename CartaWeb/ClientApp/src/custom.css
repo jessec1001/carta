@@ -1,3 +1,14 @@
+* {
+  font-family: 'Source Sans Pro', sans-serif;
+}
+
+::selection {
+  background-color: #53b853;
+}
+::-moz-selection {
+  background-color: #53b853;
+}
+
 .relative {
   position: relative;
 }

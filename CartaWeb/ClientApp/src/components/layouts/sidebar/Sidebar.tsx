@@ -1,6 +1,6 @@
 import React, { Component, HTMLProps } from "react";
 import classNames from "classnames";
-import "./Sidebar.scss";
+import "./Sidebar.css";
 
 export interface SidebarProps extends HTMLProps<HTMLDivElement> {}
 

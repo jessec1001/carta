@@ -288,7 +288,7 @@ export default class GraphPage extends Component<
         </div>
         <TabPane className="side-tabs">
           <Tab icon={<FontAwesomeIcon icon={faCogs} />} label="Properties">
-            <HeightScroll className="sidebar h-100">
+            <HeightScroll className="sidepane h-100">
               <PropertyList properties={this.state.properties} />
             </HeightScroll>
           </Tab>

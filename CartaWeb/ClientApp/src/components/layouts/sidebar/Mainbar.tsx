@@ -1,6 +1,6 @@
 import React, { Component, HTMLProps } from "react";
 import classNames from "classnames";
-import "./Mainbar.scss";
+import "./Mainbar.css";
 
 export interface MainbarProps extends HTMLProps<HTMLDivElement> {}
 

@@ -1,5 +1,14 @@
 import React, { Component } from "react";
-import { Sidebar, SidebarLayout } from "components/layouts";
+import {
+  IndentList,
+  Link,
+  Mainbar,
+  Section,
+  Sidebar,
+  SidebarLayout,
+  Title,
+  UserInput,
+} from "components/layouts";
 
 export interface UserProfilePageProps {}
 export interface UserProfilePageState {}
@@ -12,38 +21,40 @@ export default class UserProfilePage extends Component<
     return (
       <SidebarLayout side="left">
         <Sidebar>
-          {/* <Navigation>
-            <Link>General</Link>
-            <Link>Notifications</Link>
-            <Link>Integeration</Link>
+          <IndentList>
+            <Link href="/user/profile#profile-general">General</Link>
+            <Link href="/user/profile/#profile-notifications">
+              Notifications
+            </Link>
+            <Link href="/user/profile/#profile-integration">Integeration</Link>
             <IndentList>
               <Link>HyperThought&trade;</Link>
             </IndentList>
-          </Navigation> */}
+          </IndentList>
         </Sidebar>
         <Mainbar>
-          {/* <Title>Profile</Title>
-          <Section title="General">
-            <UserInput disabled key="username">
+          <Title>Profile</Title>
+          <Section title="General" id="profile-general">
+            <UserInput disabled field="username">
               Username
             </UserInput>
-            <UserInput disabled key="email">
+            <UserInput disabled field="email">
               E-mail
             </UserInput>
           </Section>
-          <Section title="Notifications">
-            <StoredOption
+          {/* <Section title="Notifications" id="profile-notifications"> */}
+          {/* <StoredOption
               key="notificationVerbosity"
               options={["Debug", "Info", "Warning", "Error"]}
-            ></StoredOption>
-          </Section>
-          <Section title="Integration">
-            <Subection title="HyperThought&trade;">
+            ></StoredOption> */}
+          {/* </Section> */}
+          <Section title="Integration" id="profile-integration">
+            {/* <Subection title="HyperThought&trade;">
               <StoredInput type="password" key="hyperthoughtKey">
                 API Key
               </StoredInput>
-            </Subection>
-          </Section> */}
+            </Subection> */}
+          </Section>
         </Mainbar>
       </SidebarLayout>
     );
