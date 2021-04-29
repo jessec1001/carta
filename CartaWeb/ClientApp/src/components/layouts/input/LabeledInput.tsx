@@ -6,9 +6,9 @@ export interface LabeledInputProps extends HTMLProps<HTMLInputElement> {}
 
 export default class LabeledInput extends Component<LabeledInputProps> {
   render() {
-    const { id, className, children, ...restProps } = this.props;
+    const { id, className, children, style, ...restProps } = this.props;
     return (
-      <div className={classNames(className, `labeled-input`)}>
+      <div className={classNames(className, `labeled-input`)} style={style}>
         <label className={`labeled-input-label`} htmlFor={id}>
           {children}
         </label>

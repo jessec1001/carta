@@ -58,7 +58,7 @@ class UserApi {
           const interval = setInterval(() => {
             if (popup.closed) {
               clearInterval(interval);
-              this.signInAsync({ preventRedirect: true })
+              UserApi.signInAsync({ preventRedirect: true })
                 .then(() => res())
                 .catch((reason) => rej(reason));
             }

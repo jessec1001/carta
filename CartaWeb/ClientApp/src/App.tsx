@@ -35,8 +35,6 @@ export default class App extends Component<{}, AppState> {
     this.state = {
       user: null,
     };
-
-    this.userManager.SignInAsync();
   }
 
   handleUserSignin(user: User) {

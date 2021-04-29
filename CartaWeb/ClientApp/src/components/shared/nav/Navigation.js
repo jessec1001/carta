@@ -62,7 +62,7 @@ export class Navigation extends Component {
                   </NavLink>
                 </NavItem>
                 <NavItem>
-                  <NavLink tag={Link} className="text-dark" to="/user">
+                  <NavLink tag={Link} className="text-dark" to="/user/profile">
                     User
                   </NavLink>
                 </NavItem>

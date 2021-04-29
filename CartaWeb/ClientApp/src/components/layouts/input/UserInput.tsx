@@ -15,7 +15,7 @@ export default class UserInput extends Component<UserInputProps> {
         {(value) => {
           return (
             value.user !== null && (
-              <LabeledInput {...restProps} value={value.user[field]}>
+              <LabeledInput value={value.user[field]} {...restProps}>
                 {children}
               </LabeledInput>
             )
