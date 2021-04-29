@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import { Nav, NavItem, NavLink } from "reactstrap";
 import { HeightScroll } from "../components/layouts/HeightScroll";
-import { dataGetSources, dataGetResources } from "../lib/carta";
+import { DataApi } from "lib/api";
 
 import "./GraphOpenForm.css";
 
@@ -67,7 +67,7 @@ export default class GraphOpenForm extends Component<
   }
 
   async fetchSources() {
-    const sources = await dataGetSources(this.props.parameters);
+    const sources = await DataApi.getSourcesAsync();
     sources.forEach((source) => this.fetchResources(source));
     this.setState((state) => {
       const resources = { ...state.resources };
@@ -76,7 +76,7 @@ export default class GraphOpenForm extends Component<
     });
   }
   async fetchResources(source: string) {
-    const resources = await dataGetResources(source, this.props.parameters);
+    const resources = await DataApi.getResourcesAsync({ source });
     if (Array.isArray(resources)) {
       this.setState((state) => ({
         resources: { ...state.resources, [source]: resources },

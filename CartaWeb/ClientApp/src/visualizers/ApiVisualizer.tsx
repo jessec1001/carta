@@ -1,14 +1,14 @@
 import React, { Component } from "react";
 
 import MetaApi from "../lib/api/meta/MetaApi";
-import { ApiCollection } from "../lib/types/meta";
+import { MetaCollection } from "lib/api/meta";
 
 import ApiCollectionView from "./api/ApiCollectionView";
 
 import "./ApiVisualizer.css";
 
 export interface ApiVisualizerState {
-  api: ApiCollection[];
+  api: MetaCollection[];
 }
 
 export default class ApiVisualizer extends Component<{}, ApiVisualizerState> {
@@ -21,7 +21,7 @@ export default class ApiVisualizer extends Component<{}, ApiVisualizerState> {
       api: [],
     };
 
-    MetaApi.GetEndpoints().then((value) => this.setState({ api: value }));
+    MetaApi.getEndpointsAsync().then((value) => this.setState({ api: value }));
   }
 
   render() {

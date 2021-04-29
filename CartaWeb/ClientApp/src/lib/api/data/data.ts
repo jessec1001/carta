@@ -2,34 +2,6 @@ import { generalRequest } from "../carta";
 
 import { Graph } from "../types/graph";
 
-function getStoredParameters(
-  source?: string,
-  resource?: string
-): Record<string, any> {
-  const parameters: Record<string, any> = {};
-  if (source && source.toLowerCase() === "hyperthought") {
-    const hyperthoughtApiKey = localStorage.getItem("hyperthoughtKey");
-    parameters["api"] = hyperthoughtApiKey;
-  }
-  return parameters;
-}
-
-export async function dataGetSources(parameters?: Record<string, any>) {
-  return (await generalRequest(`api/data`, {
-    ...getStoredParameters(),
-    ...parameters,
-  })) as string[];
-}
-export async function dataGetResources(
-  source: string,
-  parameters?: Record<string, any>
-) {
-  return (await generalRequest(`api/data/${source}`, {
-    ...getStoredParameters(source),
-    ...parameters,
-  })) as string[];
-}
-
 /**
  * Gets a graph specified by source and resource from the Carta API.
  * @param source The primary source of the the graph to be retrieved. For instance, "synthetic" or "hyperthought".

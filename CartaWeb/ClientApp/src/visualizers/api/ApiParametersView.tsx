@@ -1,9 +1,9 @@
 import React, { Component } from "react";
 
-import { ApiParameter } from "../../lib/types/meta";
+import { MetaParameter } from "lib/api/meta";
 
 export interface ApiParameterViewProps {
-  parameters: ApiParameter[];
+  parameters: MetaParameter[];
 }
 
 export default class ApiParameterView extends Component<ApiParameterViewProps> {

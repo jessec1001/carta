@@ -121,15 +121,15 @@ class GeneralApi {
   ) {
     // Try to find a route that matches the signature of the passed in call.
     const route = this.$routes.find(
-      (route) => route.method === call.fetch.method && route.url === url
+      (route) => route.method === fetchParameters?.method && route.url === url
     );
 
     if (route) {
       // We have found a matching route that we can call.
-      route.func(WHAT_GOES_HERE);
+      return route.func({ ...apiParameters });
     } else {
       // If no known function in this library was found, just treat this API call normally.
-      return this.requestGeneralAsync(call, url);
+      return this.requestGeneralAsync(apiParameters, fetchParameters, url);
     }
   }
 }

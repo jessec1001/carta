@@ -1,13 +1,13 @@
 import React, { Component } from "react";
 
-import { ApiCollection } from "../../lib/types/meta";
+import { MetaCollection } from "lib/api/meta";
 
 import ApiEndpointView from "./ApiEndpointView";
 
 import "./ApiCollectionView.css";
 
 export interface ApiCollectionViewProps {
-  collection: ApiCollection;
+  collection: MetaCollection;
 }
 
 export default class ApiCollectionView extends Component<ApiCollectionViewProps> {
@@ -20,7 +20,10 @@ export default class ApiCollectionView extends Component<ApiCollectionViewProps>
         <p>{this.props.collection.description}</p>
         <ul className="api-endpoint-list">
           {this.props.collection.endpoints.map((endpoint) => (
-            <ApiEndpointView key={`${endpoint.method} ${endpoint.path}`} endpoint={endpoint} />
+            <ApiEndpointView
+              key={`${endpoint.method} ${endpoint.path}`}
+              endpoint={endpoint}
+            />
           ))}
         </ul>
       </li>

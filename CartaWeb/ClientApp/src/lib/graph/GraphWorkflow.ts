@@ -1,8 +1,4 @@
-import {
-  workflowCreate,
-  workflowOperationAppend,
-  workflowOperationRemove,
-} from "../api/workflow";
+import { WorkflowApi } from "lib/api";
 import { WorkflowOperation } from "../types/workflow";
 import Action from "../types/actions";
 import Selector, { SelectorExclude, SelectorInclude } from "../types/selectors";
@@ -60,7 +56,7 @@ export default class GraphWorkflow {
         props = await this._callback();
         if (props === null) throw Error();
       }
-      const workflowResource = await workflowCreate({
+      const workflowResource = await WorkflowApi.createWorkflowAsync({
         name: "Unnamed Workflow",
         operations: [],
         ...props,
@@ -71,11 +67,14 @@ export default class GraphWorkflow {
   }
   async _appendOperation(operation: WorkflowOperation) {
     if (this._id === undefined) return;
-    await workflowOperationAppend(this._id, operation);
+    await WorkflowApi.insertWorkflowOperationAsync({
+      operation,
+      workflowId: this._id.toString(),
+    });
   }
   async _removeOperation() {
     if (this._id === undefined) return;
-    await workflowOperationRemove(this._id);
+    await WorkflowApi.deleteWorkflowAsync({ workflowId: this._id.toString() });
   }
 
   _callEvent(type: GraphWorkflowEvent) {

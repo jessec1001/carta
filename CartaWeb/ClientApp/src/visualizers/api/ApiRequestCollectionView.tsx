@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import queryString from "query-string";
-import { ApiParameter, ApiRequest } from "../../lib/types/meta";
+import { MetaParameter, MetaRequest } from "lib/api/meta";
 import { TabPane, Tab } from "../../ui/panes";
 import { ApiExample } from "../../ui/code";
 import "./ApiRequestCollectionView.css";
@@ -8,14 +8,14 @@ import "./ApiRequestCollectionView.css";
 export interface ApiRequestCollecetionViewProps {
   method: string;
   path: string;
-  requests: ApiRequest[];
-  parameters: ApiParameter[];
+  requests: MetaRequest[];
+  parameters: MetaParameter[];
 }
 
 export default class ApiRequestCollectionView extends Component<ApiRequestCollecetionViewProps> {
   static displayName = ApiRequestCollectionView.name;
 
-  resolvePath(path: string, request: ApiRequest) {
+  resolvePath(path: string, request: MetaRequest) {
     this.props.parameters.forEach((param) => {
       if (param.name in request.arguments) {
         const name = param.name;
@@ -59,7 +59,7 @@ export default class ApiRequestCollectionView extends Component<ApiRequestCollec
   render() {
     return (
       <TabPane className="api-requests">
-        {this.props.requests.map((request: ApiRequest) => (
+        {this.props.requests.map((request: MetaRequest) => (
           <Tab label={request.name} key={request.name}>
             <ApiExample
               method={this.props.method}

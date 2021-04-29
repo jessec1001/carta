@@ -1,3 +1,5 @@
+import { GeneralApi } from "lib/api";
+import { User } from "./types";
 import { ApiException, BrowserException } from "lib/exceptions";
 
 class UserApi {
@@ -17,14 +19,17 @@ class UserApi {
       .join(",");
   }
 
-  static async getUserInfo(): Promise<void> {
-    // This should be an authorized API endpoint.
-    // We need to determine what actions should be taken if the user is not logged in when calling this endpoint.
-    // Perhaps we need an exception that represents an authentication error to indicate that a sign-in method should
-    // eventually be called. Handling seems to be possible using the "instanceof" operator.
+  @GeneralApi.route("GET", "api/user")
+  static async getUserInfoAsync() {
+    return (await GeneralApi.requestGeneralAsync()) as User;
   }
 
-  static async signInAsync(preventRedirect?: boolean): Promise<void> {
+  @GeneralApi.route("GET", "api/user/signin")
+  static async signInAsync({
+    preventRedirect,
+  }: {
+    preventRedirect?: boolean;
+  }): Promise<void> {
     const signinResponse = await fetch("/api/user/signin", {
       method: "GET",
       redirect: "manual",
@@ -53,7 +58,7 @@ class UserApi {
           const interval = setInterval(() => {
             if (popup.closed) {
               clearInterval(interval);
-              this.signInAsync(true)
+              this.signInAsync({ preventRedirect: true })
                 .then(() => res())
                 .catch((reason) => rej(reason));
             }
@@ -77,6 +82,7 @@ class UserApi {
       }
     }
   }
+  @GeneralApi.route("GET", "api/user/signout")
   static async signOutAsync(): Promise<void> {
     const response = await fetch("/api/user/signout", {
       method: "GET",

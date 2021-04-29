@@ -1,6 +1,6 @@
 import React, { Component, HTMLProps } from "react";
 import queryString from "query-string";
-import { unknownRequest } from "../../../lib/carta";
+import { GeneralApi } from "lib/api";
 import { CodeExample } from "../code-example";
 import "../Code.css";
 
@@ -27,7 +27,11 @@ export default class ApiExample extends Component<
     const { method, path, body } = this.props;
     const url = queryString.parseUrl(path);
 
-    unknownRequest(url.url, url.query, body, method).then((data: any) => {
+    GeneralApi.requestUnknownAsync(
+      url.query,
+      { body: body, method: method },
+      url.url
+    ).then((data: any) => {
       this.setState({
         response: data,
       });

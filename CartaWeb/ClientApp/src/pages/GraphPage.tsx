@@ -228,7 +228,7 @@ export default class GraphPage extends Component<
           {this.state.workflowApplying && (
             <WorkflowApplyForm
               open
-              onSelect={(workflowId: number) => {
+              onApply={(workflowId: number) => {
                 if (graph) {
                   const workflow = new GraphWorkflow(
                     workflowId,

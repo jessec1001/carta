@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 
-import { ApiEndpoint } from "../../lib/types/meta";
+import { MetaEndpoint } from "lib/api/meta";
 
 import ApiParameterView from "./ApiParametersView";
 import ApiPathView from "./ApiPathView";
@@ -10,7 +10,7 @@ import ApiRequestCollectionView from "./ApiRequestCollectionView";
 import "./ApiEndpointView.css";
 
 export interface ApiEndpointViewProps {
-  endpoint: ApiEndpoint;
+  endpoint: MetaEndpoint;
 }
 
 export default class ApiEndpointView extends Component<ApiEndpointViewProps> {
@@ -44,17 +44,18 @@ export default class ApiEndpointView extends Component<ApiEndpointViewProps> {
           )}
 
           {/* We don't need to display the requests table if there are no sample requests. */}
-          {this.props.endpoint.requests && this.props.endpoint.requests.length > 0 && (
-            <>
-              <h5 className="api-endpoint-content-label">Example Requests</h5>
-              <ApiRequestCollectionView
-                requests={this.props.endpoint.requests}
-                parameters={this.props.endpoint.parameters}
-                method={this.props.endpoint.method}
-                path={this.props.endpoint.path}
-              />
-            </>
-          )}
+          {this.props.endpoint.requests &&
+            this.props.endpoint.requests.length > 0 && (
+              <>
+                <h5 className="api-endpoint-content-label">Example Requests</h5>
+                <ApiRequestCollectionView
+                  requests={this.props.endpoint.requests}
+                  parameters={this.props.endpoint.parameters}
+                  method={this.props.endpoint.method}
+                  path={this.props.endpoint.path}
+                />
+              </>
+            )}
         </div>
       </li>
     );

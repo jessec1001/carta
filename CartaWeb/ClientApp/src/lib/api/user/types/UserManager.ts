@@ -1,5 +1,5 @@
 import { EventEmitter } from "ee-ts";
-import UserApi from "../api/UserApi";
+import { UserApi } from "lib/api";
 
 interface UserEvents {
   signin: () => void;
@@ -21,7 +21,7 @@ class UserManager extends EventEmitter<UserEvents> {
 
   async IsAuthenticated() {}
   async SignIn() {
-    UserApi.SignInAsync()
+    UserApi.signInAsync({})
       .then(() => {})
       .catch((err) => {});
   }

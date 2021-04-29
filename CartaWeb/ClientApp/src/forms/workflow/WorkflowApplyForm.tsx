@@ -8,13 +8,13 @@ import {
   ModalBody,
   ModalFooter,
 } from "reactstrap";
-import { workflowGet } from "../../lib/carta";
+import { WorkflowApi } from "lib/api";
 import { Workflow } from "../../lib/types/workflow";
 
 export interface WorkflowApplyFormProps extends HTMLProps<HTMLDivElement> {
   open?: boolean;
 
-  onSelect?: (workflowId: number) => void;
+  onApply?: (workflowId: number) => void;
   onCancel?: () => void;
 }
 export interface WorkflowApplyFormState {
@@ -54,7 +54,7 @@ export default class WorkflowApplyForm extends Component<
   }
 
   handleSelect(workflowId: number) {
-    if (this.props.onSelect) this.props.onSelect(workflowId);
+    if (this.props.onApply) this.props.onApply(workflowId);
     this.setState({
       open: false,
     });
@@ -68,7 +68,7 @@ export default class WorkflowApplyForm extends Component<
 
   async populateWorkflows() {
     this.setState({
-      workflows: await workflowGet(),
+      workflows: await WorkflowApi.getWorfklowsAsync(),
     });
   }
 

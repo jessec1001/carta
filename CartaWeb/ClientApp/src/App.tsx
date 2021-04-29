@@ -1,15 +1,15 @@
 import React, { Component } from "react";
 import { Route } from "react-router";
-import { Layout } from "./components/layouts/Layout";
+import { Layout } from "components/layouts/Layout";
 import { HomePage, GraphPage, DocsPage, UserPage } from "./pages";
+import { UserApi } from "lib/api";
 import "./custom.css";
-import UserApi from "./lib/api/UserApi";
 
 export default class App extends Component {
   static displayName = App.name;
 
   render() {
-    UserApi.SignInAsync()
+    UserApi.signInAsync({})
       .then(() => console.log("Logged in successfully."))
       .catch(() => console.log("Failed to login."));
 

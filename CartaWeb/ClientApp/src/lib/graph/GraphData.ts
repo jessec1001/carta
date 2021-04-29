@@ -1,7 +1,7 @@
 import RequestBuffer from "../RequestBuffer";
 import { DataSet, DataView } from "vis-data";
 import { Graph, GraphProperties, Node, Edge } from "../types/graph";
-import { dataGetChildren, dataGetGraph, dataGetVertex } from "../api/data";
+import { DataApi } from "lib/api";
 import { GraphWorkflow } from ".";
 import Selector from "../types/selectors";
 
@@ -451,7 +451,11 @@ export default class GraphData {
 
     // Get the base graph data.
     const data = await this._buffer.request(async () => {
-      return await dataGetGraph(this._source, this._resource, this._parameters);
+      return await DataApi.getGraphRootsAsync(
+        this._source,
+        this._resource,
+        this._parameters
+      );
     });
 
     // Set the initial identifiers for the graph.
@@ -489,7 +493,7 @@ export default class GraphData {
       }
     }, 250);
     const data = await this._buffer.request(async () => {
-      return await dataGetVertex(
+      return await DataApi.getGraphVertexAsync(
         this._source,
         this._resource,
         id,
@@ -534,7 +538,7 @@ export default class GraphData {
       // Get the node children data.
       this._buffer
         .request(async () => {
-          return await dataGetChildren(
+          return await DataApi.getGraphChildrenAsync(
             this._source,
             this._resource,
             id,

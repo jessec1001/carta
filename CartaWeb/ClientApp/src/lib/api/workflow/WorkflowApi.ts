@@ -33,45 +33,66 @@ class WorkflowApi {
 
   // #region Workflow Operation CRUD
   @GeneralApi.route("GET", "api/workflow/{workflowId}/operations")
-  static async getWorkflowOperationsAsync(workflowId: string) {
+  static async getWorkflowOperationsAsync({
+    workflowId,
+  }: {
+    workflowId: string;
+  }) {
     return (await GeneralApi.requestGeneralAsync({
       workflowId,
     })) as WorkflowOperation[];
   }
   @GeneralApi.route("GET", "api/workflow/{workflowId}/operations/{index}")
-  static async getWorkflowOperationAsync(workflowId: string, index: number) {
+  static async getWorkflowOperationAsync({
+    workflowId,
+    index,
+  }: {
+    workflowId: string;
+    index: number;
+  }) {
     return (await GeneralApi.requestGeneralAsync({
       workflowId,
       index,
     })) as WorkflowOperation;
   }
   @GeneralApi.route("POST", "api/workflow/{workflowId}/operations/{index?}")
-  static async insertWorkflowOperationAsync(
-    operation: WorkflowOperation,
-    workflowId: string,
-    index?: number
-  ) {
+  static async insertWorkflowOperationAsync({
+    operation,
+    workflowId,
+    index,
+  }: {
+    operation: WorkflowOperation;
+    workflowId: string;
+    index?: number;
+  }) {
     return (await GeneralApi.requestGeneralAsync(
       { workflowId, index: index ?? "" },
       { body: JSON.stringify(operation) }
     )) as WorkflowOperation;
   }
   @GeneralApi.route("DELETE", "api/workflow/{workflowId}/operations/{index?}")
-  static async removeWorkflowOperationAsync(
-    workflowId: string,
-    index?: number
-  ) {
+  static async removeWorkflowOperationAsync({
+    workflowId,
+    index,
+  }: {
+    workflowId: string;
+    index?: number;
+  }) {
     return (await GeneralApi.requestGeneralAsync({
       workflowId,
       index: index ?? "",
     })) as null;
   }
   @GeneralApi.route("PATCH", "api/workflow/{workflowId}/operations{index}")
-  static async updateWorkflowOperationAsync(
-    operation: WorkflowOperation,
-    workflowId: string,
-    index: number
-  ) {
+  static async updateWorkflowOperationAsync({
+    operation,
+    workflowId,
+    index,
+  }: {
+    operation: WorkflowOperation;
+    workflowId: string;
+    index: number;
+  }) {
     return (await GeneralApi.requestGeneralAsync(
       {
         workflowId,
