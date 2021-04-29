@@ -1,4 +1,5 @@
 import { Graph } from "lib/types/graph";
+import Selector from "lib/types/selectors";
 import GeneralApi from "../general";
 
 class DataApi {
@@ -34,7 +35,24 @@ class DataApi {
   @GeneralApi.route("GET", "api/data/{source}/{resource}")
   static async getGraphPropertiesAsync() {}
   @GeneralApi.route("GET", "api/data/{source}/{resource}/{selector}")
-  static async getGraphSelectionAsync() {}
+  static async getGraphSelectionAsync({
+    source,
+    resource,
+    selector,
+  }: {
+    source: string;
+    resource: string;
+    selector: Selector;
+  }) {
+    const { type, ...props } = selector;
+    return (await GeneralApi.requestGeneralAsync({
+      ...this.retrieveAuxiliaryParameters(source, resource),
+      source,
+      resource,
+      selector: type,
+      ...props,
+    })) as Graph;
+  }
   @GeneralApi.route("POST", "api/data/user")
   static async createGraphAsync({ graph }: { graph: Graph }) {
     return (await GeneralApi.requestGeneralAsync(
@@ -54,9 +72,57 @@ class DataApi {
     })) as null;
   }
 
-  static async getGraphRootsAsync() {}
-  static async getGraphVertexAsync() {}
-  static async getGraphChildrenAsync() {}
+  static getGraphRootsAsync({
+    source,
+    resource,
+  }: {
+    source: string;
+    resource: string;
+  }) {
+    return this.getGraphSelectionAsync({
+      source,
+      resource,
+      selector: {
+        type: "roots",
+      },
+    });
+  }
+  static async getGraphVertexAsync({
+    source,
+    resource,
+    id,
+  }: {
+    source: string;
+    resource: string;
+    id: string;
+  }) {
+    return this.getGraphSelectionAsync({
+      source,
+      resource,
+      selector: {
+        type: "include",
+        ids: [id],
+      },
+    });
+  }
+  static async getGraphChildrenAsync({
+    source,
+    resource,
+    id,
+  }: {
+    source: string;
+    resource: string;
+    id: string;
+  }) {
+    return this.getGraphSelectionAsync({
+      source,
+      resource,
+      selector: {
+        type: "children",
+        ids: [id],
+      },
+    });
+  }
 }
 
 export default DataApi;

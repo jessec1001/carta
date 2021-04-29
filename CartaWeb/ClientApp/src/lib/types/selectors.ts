@@ -54,8 +54,27 @@ export interface SelectorAncestors {
   depth?: number;
   traversal?: "preorder" | "postorder";
 }
+export interface SelectorChildren {
+  type: "children";
+  ids: string[];
+  includeRoots?: boolean;
+  depth?: number;
+  traversal?: "preorder" | "postorder";
+}
+export interface SelectorParents {
+  type: "parents";
+  ids: string[];
+  includeRoots?: boolean;
+  depth?: number;
+  traversal?: "preorder" | "postorder";
+}
 export interface SelectorDegree {
   type: "degree";
+  inDegree?: number;
+  outDegree?: number;
+}
+export interface SelectorRoots {
+  type: "roots";
   inDegree?: number;
   outDegree?: number;
 }
@@ -74,5 +93,8 @@ type Selector =
   | SelectorPropertyRange
   | SelectorDescendants
   | SelectorAncestors
-  | SelectorDegree;
+  | SelectorChildren
+  | SelectorParents
+  | SelectorDegree
+  | SelectorRoots;
 export default Selector;
