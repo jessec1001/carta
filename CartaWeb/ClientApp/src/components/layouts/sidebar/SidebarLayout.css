@@ -1,0 +1,12 @@
+.sidebar-layout {
+    display: grid;
+    column-gap: 2rem;
+}
+.sidebar-layout-left {
+    grid-template-areas: "side main";
+    grid-template-columns: 1fr 4fr;
+}
+.sidebar-layout-right {
+    grid-template-areas: "main side";
+    grid-template-columns: 4fr 1fr;
+}
