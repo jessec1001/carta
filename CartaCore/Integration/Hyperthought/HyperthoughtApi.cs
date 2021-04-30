@@ -88,7 +88,9 @@ namespace CartaCore.Integration.Hyperthought
         /// <returns>The list of projects obtained from the HyperThought API.</returns>
         public async Task<IList<HyperthoughtProject>> GetProjectsAsync()
         {
-            return await Client.GetFromJsonAsync<IList<HyperthoughtProject>>(GetProjectsUri(), JsonOptions);
+            HttpResponseMessage response = await Client.GetAsync(GetProjectsUri());
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<IList<HyperthoughtProject>>(JsonOptions);
         }
 
         /// <summary>
@@ -99,7 +101,9 @@ namespace CartaCore.Integration.Hyperthought
         /// <returns>The list of workflow templates obtained from the HyperThought API.</returns>
         public async Task<IList<HyperthoughtWorkflowTemplate>> GetWorkflowTemplatesAsync(Guid projectId)
         {
-            return await Client.GetFromJsonAsync<IList<HyperthoughtWorkflowTemplate>>(GetWorkflowTemplatesUri(projectId), JsonOptions);
+            HttpResponseMessage response = await Client.GetAsync(GetWorkflowTemplatesUri(projectId));
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<IList<HyperthoughtWorkflowTemplate>>(JsonOptions);
         }
         /// <summary>
         /// Obtains the list of HyperThought workflow templates that exist within a HyperThought project.
@@ -118,7 +122,9 @@ namespace CartaCore.Integration.Hyperthought
         /// <returns>The workflow obtained from the HyperThought API.</returns>
         public async Task<HyperthoughtWorkflow> GetWorkflowAsync(Guid workflowId)
         {
-            return await Client.GetFromJsonAsync<HyperthoughtWorkflow>(GetWorkflowUri(workflowId), JsonOptions);
+            HttpResponseMessage response = await Client.GetAsync(GetWorkflowUri(workflowId));
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<HyperthoughtWorkflow>(JsonOptions);
         }
 
         /// <summary>
@@ -129,7 +135,9 @@ namespace CartaCore.Integration.Hyperthought
         /// <returns>The list of children workflows obtained from the HyperThought API.</returns>
         public async Task<IList<HyperthoughtWorkflow>> GetWorkflowChildrenAsync(Guid workflowId)
         {
-            return await Client.GetFromJsonAsync<IList<HyperthoughtWorkflow>>(GetWorkflowChildrenUri(workflowId), JsonOptions);
+            HttpResponseMessage response = await Client.GetAsync(GetWorkflowChildrenUri(workflowId));
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<IList<HyperthoughtWorkflow>>(JsonOptions);
         }
         /// <summary>
         /// Obtains the list of children HyperThought workflows that exist within a HyperThought template or workflow
