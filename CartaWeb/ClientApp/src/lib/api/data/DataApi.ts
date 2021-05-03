@@ -16,7 +16,6 @@ class DataApi {
       const paramValue = localStorage.getItem(storageKey);
       if (paramValue !== null) parameters[paramKey] = paramValue;
     });
-    console.log(parameters);
     return parameters;
   }
 

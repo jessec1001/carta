@@ -60,8 +60,23 @@ namespace CartaCore.Integration.Hyperthought
         public HyperthoughtApi(string apiKey)
         {
             // Use the API key to perform authorization.
-            byte[] apiJson = Convert.FromBase64String(apiKey);
-            Access = JsonSerializer.Deserialize<HyperthoughtApiAccess>(apiJson);
+            try
+            {
+                byte[] apiJson = Convert.FromBase64String(apiKey);
+                Access = JsonSerializer.Deserialize<HyperthoughtApiAccess>(apiJson);
+            }
+            catch (ArgumentNullException exception)
+            {
+                throw new HttpRequestException("No API key provided.", exception, HttpStatusCode.Unauthorized);
+            }
+            catch (FormatException exception)
+            {
+                throw new HttpRequestException("API key in invalid format.", exception, HttpStatusCode.Unauthorized);
+            }
+            catch (JsonException exception)
+            {
+                throw new HttpRequestException("API key in invalid format.", exception, HttpStatusCode.Unauthorized);
+            }
 
             // Create the HTTP client.
             ClientHandler = new HttpClientHandler();
