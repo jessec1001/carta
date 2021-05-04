@@ -14,7 +14,7 @@ import { Workflow } from "../../lib/types/workflow";
 export interface WorkflowApplyFormProps extends HTMLProps<HTMLDivElement> {
   open?: boolean;
 
-  onSelect?: (workflowId: number) => void;
+  onSelect?: (workflowId: string) => void;
   onCancel?: () => void;
 }
 export interface WorkflowApplyFormState {
@@ -53,7 +53,7 @@ export default class WorkflowApplyForm extends Component<
     }));
   }
 
-  handleSelect(workflowId: number) {
+  handleSelect(workflowId: string) {
     if (this.props.onSelect) this.props.onSelect(workflowId);
     this.setState({
       open: false,
@@ -85,7 +85,7 @@ export default class WorkflowApplyForm extends Component<
                   <NavItem key={workflow.id}>
                     <NavLink
                       href="#"
-                      onClick={() => this.handleSelect(workflow.id as number)}
+                      onClick={() => this.handleSelect(workflow.id as string)}
                     >
                       {workflow.name ?? "(Unnamed)"}
                     </NavLink>
