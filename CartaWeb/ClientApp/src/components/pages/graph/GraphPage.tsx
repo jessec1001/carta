@@ -2,21 +2,22 @@ import React, { Component } from "react";
 import queryString from "query-string";
 
 import { RouteComponentProps } from "react-router-dom";
-import { HeightScroll } from "../components/layouts/HeightScroll";
-import { PropertyList } from "../components/shared/properties/PropertyList";
-import { GraphVisualizer } from "../visualizers";
-import { GraphToolbar } from "../components/shared/nav/GraphToolbar";
-import { Property } from "../../src2/library/api/data/types/graph";
-import { SplitPane, Tab, TabPane } from "../ui/panes";
-import GraphOpenForm from "../forms/GraphOpenForm";
-import { GraphData, GraphWorkflow } from "../lib/graph";
+import { HeightScroll } from "components/ui/layout/scroll/HeightScroll";
+import { PropertyList } from "components/visualizations/graph/PropertyList";
+import { GraphVisualizer } from "components/visualizations";
+import { GraphToolbar } from "./graph/GraphToolbar";
+import { Property } from "library/api/data/types/graph";
+import { SplitPane, Tab, TabPane } from "components/ui/common/panes";
+import GraphOpenForm from "./graph/GraphOpenForm";
+import { GraphData } from "library/api/data/types";
+import { GraphWorkflow } from "library/api/workflow/types";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faProjectDiagram, faCogs } from "@fortawesome/free-solid-svg-icons";
 
 import "./GraphPage.css";
-import WorkflowCreateForm from "../forms/workflow/WorkflowCreateForm";
-import WorkflowApplyForm from "../forms/workflow/WorkflowApplyForm";
+import WorkflowCreateForm from "./workflow/WorkflowCreateForm";
+import WorkflowApplyForm from "./workflow/WorkflowApplyForm";
 
 export interface GraphPageProps extends RouteComponentProps {}
 export interface GraphPageState {

@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import { Nav, NavItem, NavLink } from "reactstrap";
-import { HeightScroll } from "../components/layouts/HeightScroll";
-import { DataApi } from "../src2/library/api";
+import { HeightScroll } from "components/ui/layout/scroll/HeightScroll";
+import { DataApi } from "library/api";
 
 import "./GraphOpenForm.css";
 

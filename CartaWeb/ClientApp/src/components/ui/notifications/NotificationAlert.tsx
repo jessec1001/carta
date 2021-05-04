@@ -1,8 +1,8 @@
 import React, { Component, HTMLProps } from "react";
 import classNames from "classnames";
-import { Notification } from "lib/notifications";
+import { Notification } from "library/notifications";
 import "./NotificationAlert.css";
-import { NotificationContext } from "../src2/components/pages/App";
+import { NotificationContext } from "components/pages/App";
 
 export interface NotificationAlertProps extends HTMLProps<HTMLDivElement> {
   notification: Notification;

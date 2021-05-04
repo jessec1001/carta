@@ -1,4 +1,4 @@
-import { GeneralApi } from "lib/api";
+import { GeneralApi } from "library/api";
 import { MetaCollection } from "./types";
 
 class MetaApi {

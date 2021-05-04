@@ -1,5 +1,5 @@
-import { GeneralApi } from "lib/api";
-import { Workflow, WorkflowOperation } from "lib/types/workflow";
+import { GeneralApi } from "library/api";
+import { Workflow, WorkflowOperation } from ".";
 
 class WorkflowApi {
   // #region Workflow CRUD

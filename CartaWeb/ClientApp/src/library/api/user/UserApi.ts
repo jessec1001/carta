@@ -1,6 +1,6 @@
-import { GeneralApi } from "lib/api";
+import { GeneralApi } from "library/api";
 import { User } from "./types";
-import { ApiException, BrowserException } from "lib/exceptions";
+import { ApiException, BrowserException } from "library/exceptions";
 
 class UserApi {
   static get POPUP_EXPIRATION() {

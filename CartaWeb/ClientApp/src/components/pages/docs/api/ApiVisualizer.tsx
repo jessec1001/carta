@@ -1,9 +1,9 @@
 import React, { Component } from "react";
 
-import MetaApi from "../lib/api/meta/MetaApi";
-import { MetaCollection } from "lib/api/meta";
+import { MetaApi } from "library/api";
+import { MetaCollection } from "library/api/meta";
 
-import ApiCollectionView from "./api/ApiCollectionView";
+import ApiCollectionView from "./ApiCollectionView";
 
 import "./ApiVisualizer.css";
 

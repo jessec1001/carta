@@ -1,7 +1,7 @@
 import React, { Component, HTMLProps } from "react";
 import classNames from "classnames";
 import { NotificationAlert } from ".";
-import { NotificationContext } from "../src2/components/pages/App";
+import { NotificationContext } from "components/pages/App";
 import "./NotificationCenter.css";
 
 export interface NotificationCenterProps extends HTMLProps<HTMLDivElement> {}

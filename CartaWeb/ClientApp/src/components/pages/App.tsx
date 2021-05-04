@@ -1,17 +1,16 @@
 import React, { Component, createContext } from "react";
 import { Route } from "react-router";
-import { Layout } from "../src2/components/ui/layout/Layout";
+import { Layout } from "components/ui/layout/Layout";
 import {
   HomePage,
   GraphPage,
   DocsPage,
   UserProfilePage,
-} from "../../../src/pages";
-import { UserApi } from "lib/api";
+} from "components/pages";
 import "./custom.css";
-import { User, UserManager } from "lib/api/user/types";
-import { Notification, NotificationManager } from "lib/notifications";
-import { NotificationCenter } from "../src2/components/ui/notifications";
+import { User, UserManager } from "library/api/user/types";
+import { Notification, NotificationManager } from "library/notifications";
+import { NotificationCenter } from "components/ui/notifications";
 
 export const UserContext = createContext<{
   manager: UserManager;

@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 
-import { MetaEndpoint } from "lib/api/meta";
+import { MetaEndpoint } from "library/api/meta";
 
 import ApiParameterView from "./ApiParametersView";
 import ApiPathView from "./ApiPathView";

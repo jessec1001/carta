@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { Edge, Property } from "../../../library/api/data/types/graph";
-import { GraphData } from "../lib/graph";
+import { GraphData } from "library/api/data";
 import { DataNode } from "../../../library/api/data/types/GraphData";
 import { Options } from "vis-network/standalone";
 import { VisWrapper } from "../../wrappers";

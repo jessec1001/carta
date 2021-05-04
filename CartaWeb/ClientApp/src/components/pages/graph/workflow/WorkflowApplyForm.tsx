@@ -8,8 +8,8 @@ import {
   ModalBody,
   ModalFooter,
 } from "reactstrap";
-import { WorkflowApi } from "../src2/library/api";
-import { Workflow } from "../../../../library/api/workflow/types/workflow";
+import { WorkflowApi } from "library/api";
+import { Workflow } from "library/api/workflow/types";
 
 export interface WorkflowApplyFormProps extends HTMLProps<HTMLDivElement> {
   open?: boolean;

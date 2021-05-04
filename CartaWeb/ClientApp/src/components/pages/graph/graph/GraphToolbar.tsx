@@ -8,9 +8,10 @@ import {
   DropdownItem,
   NavbarProps,
 } from "reactstrap";
-import { GraphData, GraphWorkflow } from "../../../lib/graph";
-import Action from "../../../../src2/library/api/workflow/types/actors/actions";
-import Selector from "../../../../src2/library/api/workflow/types/selectors/selectors";
+import { GraphData } from "library/api/data/types";
+import { GraphWorkflow } from "library/api/workflow/types";
+import { Action } from "library/api/workflow/types";
+import { Selector } from "library/api/workflow/types";
 
 import "./GraphToolbar.css";
 

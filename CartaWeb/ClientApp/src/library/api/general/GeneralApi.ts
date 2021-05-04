@@ -1,5 +1,5 @@
 import queryString from "query-string";
-import { ApiException } from "lib/exceptions";
+import { ApiException } from "library/exceptions";
 
 class GeneralApi {
   static $routes: {

@@ -1,5 +1,5 @@
 import { EventEmitter } from "ee-ts";
-import { UserApi } from "lib/api";
+import { UserApi } from "library/api";
 import { User } from ".";
 
 interface UserEvents {

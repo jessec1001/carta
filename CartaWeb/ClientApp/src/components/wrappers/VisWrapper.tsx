@@ -1,8 +1,8 @@
 import React, { Component, createRef, RefObject } from "react";
 import { DataView } from "vis-data/standalone";
 import { Network, Options } from "vis-network/standalone";
-import { GraphData } from "../lib/graph";
-import { Edge, Node } from "../lib/types/graph";
+import { GraphData } from "library/api/data";
+import { Edge, Node } from "library/api/data";
 import "./VisWrapper.css";
 
 export interface VisWrapperProps {

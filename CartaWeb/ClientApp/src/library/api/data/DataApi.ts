@@ -1,5 +1,5 @@
-import { Graph } from "lib/types/graph";
-import Selector from "lib/types/selectors";
+import { Graph } from "library/api/data";
+import { Selector } from "library/api/workflow";
 import GeneralApi from "../general";
 
 class DataApi {

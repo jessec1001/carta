@@ -1,6 +1,6 @@
 import React, { Component, HTMLProps } from "react";
 import queryString from "query-string";
-import { GeneralApi } from "../src2/library/api";
+import { GeneralApi } from "library/api";
 import { CodeExample } from "../code-example";
 import "../Code.css";
 

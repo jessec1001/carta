@@ -11,9 +11,9 @@ import {
   Subsection,
   Title,
   UserInput,
-} from "../src2/components/ui/layout";
+} from "components/ui/layout";
 import { Container } from "reactstrap";
-import { UserContext } from "../src2/components/pages/App";
+import { UserContext } from "components/pages/App";
 
 export interface UserProfilePageProps {}
 export interface UserProfilePageState {}

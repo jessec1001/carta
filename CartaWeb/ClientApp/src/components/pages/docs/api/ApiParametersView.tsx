@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 
-import { MetaParameter } from "lib/api/meta";
+import { MetaParameter } from "library/api/meta";
 
 export interface ApiParameterViewProps {
   parameters: MetaParameter[];

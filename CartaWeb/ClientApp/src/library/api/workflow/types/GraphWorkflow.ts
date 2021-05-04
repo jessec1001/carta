@@ -1,5 +1,5 @@
-import { WorkflowApi } from "../src2/library/api";
-import { WorkflowOperation } from "../../../../../src/lib/types/workflow";
+import { WorkflowApi } from "library/api";
+import { WorkflowOperation } from "library/api/workflow";
 import Action from "./actors/actions";
 import Selector, {
   SelectorExclude,

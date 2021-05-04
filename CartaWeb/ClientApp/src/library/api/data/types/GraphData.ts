@@ -1,9 +1,9 @@
-import RequestBuffer from "../../../requests/RequestBuffer";
+import RequestBuffer from "library/requests/RequestBuffer";
 import { DataSet, DataView } from "vis-data";
-import { Graph, GraphProperties, Node, Edge } from "./graph";
-import { DataApi } from "../src2/library/api";
-import { GraphWorkflow } from "../../../../../src/lib/graph";
-import Selector from "../../workflow/types/selectors/selectors";
+import { Graph, GraphProperties, Node, Edge } from ".";
+import { DataApi } from "library/api";
+import { GraphWorkflow } from "library/api/workflow";
+import { Selector } from "library/api/workflow";
 
 export interface DataNode extends Node {
   expanded?: boolean;

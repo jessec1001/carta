@@ -1,8 +1,8 @@
 import React, { Component } from "react";
 import { Container } from "reactstrap";
-import { GraphingDocs } from "./docs/GraphingDocs";
-import { DataFormatsDocs } from "./docs/DataFormatsDocs";
-import { ApiDocs } from "./docs/ApiDocs";
+import { GraphingDocs } from "./GraphingDocs";
+import { DataFormatsDocs } from "./DataFormatsDocs";
+import { ApiDocs } from "./ApiDocs";
 
 export default class DocsPage extends Component {
   static displayName = DocsPage.name;

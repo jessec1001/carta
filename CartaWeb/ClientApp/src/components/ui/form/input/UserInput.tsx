@@ -1,5 +1,5 @@
-import { UserContext } from "../src2/components/pages/App";
-import { User } from "lib/api/user/types";
+import { UserContext } from "components/pages/App";
+import { User } from "library/api/user/types";
 import React, { Component, HTMLProps } from "react";
 import LabeledInput, { LabeledInputProps } from "./LabeledInput";
 

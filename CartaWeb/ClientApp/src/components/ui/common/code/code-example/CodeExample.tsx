@@ -1,6 +1,6 @@
 import React, { Component, HTMLProps } from "react";
 import classNames from "classnames";
-import { PrismWrapper } from "../../../../src2/components/wrappers";
+import { PrismWrapper } from "components/wrappers";
 import { CopyButton } from "../../clipboard";
 import "../Code.css";
 
