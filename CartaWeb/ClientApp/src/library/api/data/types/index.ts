@@ -1,5 +1,5 @@
-import GraphData from "./GraphData";
+import GraphData, { DataEdge, DataNode } from "./GraphData";
 
 export * from "./graph";
-export * from "./GraphData";
+export type { DataNode, DataEdge };
 export { GraphData };

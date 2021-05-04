@@ -1,6 +1,6 @@
 import { Graph } from "library/api/data";
 import { Selector } from "library/api/workflow";
-import { GeneralApi } from "library/api";
+import GeneralApi from "library/api/general";
 
 class DataApi {
   private static retrieveAuxiliaryParameters(
@@ -10,7 +10,6 @@ class DataApi {
     const requiredEntries: Record<string, string> = {};
     if (source?.toLowerCase() === "hyperthought")
       requiredEntries["api"] = "hyperthoughtKey";
-
     const parameters: Record<string, any> = {};
     Object.entries(requiredEntries).forEach(([paramKey, storageKey]) => {
       const paramValue = localStorage.getItem(storageKey);
@@ -18,7 +17,6 @@ class DataApi {
     });
     return parameters;
   }
-
   @GeneralApi.route("GET", "api/data")
   static async getSourcesAsync() {
     return (await GeneralApi.requestGeneralAsync({
@@ -32,17 +30,16 @@ class DataApi {
       source,
     })) as string[];
   }
-
-  @GeneralApi.route("GET", "api/data/{source}/{resource}")
-  static async getGraphPropertiesAsync({
-    source,
-    resource,
-    parameters,
-  }: {
-    source: string;
-    resource: string;
-    parameters?: Record<string, any>;
-  }) {}
+  // @GeneralApi.route("GET", "api/data/{source}/{resource}")
+  // static async getGraphPropertiesAsync({
+  //   source,
+  //   resource,
+  //   parameters,
+  // }: {
+  //   source: string;
+  //   resource: string;
+  //   parameters?: Record<string, any>;
+  // }) {}
   @GeneralApi.route("GET", "api/data/{source}/{resource}/{selector}")
   static async getGraphSelectionAsync({
     source,
@@ -65,25 +62,24 @@ class DataApi {
       ...props,
     })) as Graph;
   }
-  @GeneralApi.route("POST", "api/data/user")
-  static async createGraphAsync({ graph }: { graph: Graph }) {
-    return (await GeneralApi.requestGeneralAsync(
-      {
-        ...DataApi.retrieveAuxiliaryParameters("user"),
-        source: "user",
-      },
-      { body: JSON.stringify(graph) }
-    )) as Graph;
-  }
-  @GeneralApi.route("DELETE", "api/data/user/{resource}")
-  static async deleteGraphAsync({ resource }: { resource: string }) {
-    return (await GeneralApi.requestGeneralAsync({
-      ...DataApi.retrieveAuxiliaryParameters("user", resource),
-      source: "user",
-      resource: resource,
-    })) as null;
-  }
-
+  // @GeneralApi.route("POST", "api/data/user")
+  // static async createGraphAsync({ graph }: { graph: Graph }) {
+  //   return (await GeneralApi.requestGeneralAsync(
+  //     {
+  //       ...DataApi.retrieveAuxiliaryParameters("user"),
+  //       source: "user",
+  //     },
+  //     { body: JSON.stringify(graph) }
+  //   )) as Graph;
+  // }
+  // @GeneralApi.route("DELETE", "api/data/user/{resource}")
+  // static async deleteGraphAsync({ resource }: { resource: string }) {
+  //   return (await GeneralApi.requestGeneralAsync({
+  //     ...DataApi.retrieveAuxiliaryParameters("user", resource),
+  //     source: "user",
+  //     resource: resource,
+  //   })) as null;
+  // }
   static getGraphRootsAsync({
     source,
     resource,
