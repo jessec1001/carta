@@ -1,9 +1,9 @@
 import React, { Component } from "react";
-import { Edge, Property } from "../../../library/api/data/types/graph";
+import { Edge, Property } from "library/api/data/types/graph";
 import { GraphData } from "library/api/data";
-import { DataNode } from "../../../library/api/data/types/GraphData";
+import { DataNode } from "library/api/data/types";
 import { Options } from "vis-network/standalone";
-import { VisWrapper } from "../../wrappers";
+import { VisWrapper } from "components/wrappers";
 
 export interface GraphVisualizerProps {
   graph: GraphData;

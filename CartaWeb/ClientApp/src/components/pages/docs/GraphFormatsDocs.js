@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { ColumnTable } from "../../components/layouts/ColumnTable";
+import { ColumnTable } from "components/ui/layout/ColumnTable.js";
 
 export class GraphFormatDocs extends Component {
   static displayName = GraphFormatDocs.name;

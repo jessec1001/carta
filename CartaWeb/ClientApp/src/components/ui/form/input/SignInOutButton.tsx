@@ -1,6 +1,5 @@
 import { NotificationContext, UserContext } from "components/pages/App";
 import React, { Component, HTMLProps } from "react";
-import classNames from "classnames";
 import { ApiException } from "library/exceptions";
 
 export interface SignInOutButtonProps extends HTMLProps<HTMLButtonElement> {}

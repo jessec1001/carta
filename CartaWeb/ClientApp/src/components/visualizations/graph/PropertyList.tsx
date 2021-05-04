@@ -1,5 +1,5 @@
 import React, { Component, MouseEvent } from "react";
-import { Property } from "../../../library/api/data/types/graph";
+import { Property } from "library/api/data/types";
 import { PropertyItem } from "./Property";
 import "./PropertyList.css";
 

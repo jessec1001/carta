@@ -1,6 +1,6 @@
 import { Graph } from "library/api/data";
 import { Selector } from "library/api/workflow";
-import GeneralApi from "../general";
+import { GeneralApi } from "library/api";
 
 class DataApi {
   private static retrieveAuxiliaryParameters(

@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 
-import ApiVisualizer from "../../visualizers/ApiVisualizer";
+import ApiVisualizer from "./api/ApiVisualizer";
 
 export class ApiDocs extends Component {
   static displayName = ApiDocs.name;

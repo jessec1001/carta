@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { version } from "../../../../package.json";
+import { version } from "../../../../../package.json";
 import {
   Collapse,
   Container,
