@@ -1,5 +1,4 @@
-import React, { Component, FormEvent, HTMLProps } from "react";
-import classNames from "classnames";
+import React, { Component, FormEvent } from "react";
 import LabeledInput, { LabeledInputProps } from "./LabeledInput";
 
 export interface StoredInputProps extends LabeledInputProps {

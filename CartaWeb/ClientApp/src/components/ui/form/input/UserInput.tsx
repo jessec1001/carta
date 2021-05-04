@@ -1,6 +1,6 @@
 import { UserContext } from "components/pages/App";
 import { User } from "library/api/user/types";
-import React, { Component, HTMLProps } from "react";
+import React, { Component } from "react";
 import LabeledInput, { LabeledInputProps } from "./LabeledInput";
 
 export interface UserInputProps extends LabeledInputProps {

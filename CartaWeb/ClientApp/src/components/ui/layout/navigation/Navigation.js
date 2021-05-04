@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { version } from "../../../../../package.json";
+// import { version } from "../../../../../package.json";
 import {
   Collapse,
   Container,
@@ -11,6 +11,8 @@ import {
 } from "reactstrap";
 import { Link } from "react-router-dom";
 import "./Navigation.css";
+
+const version = "0.2.2";
 
 export class Navigation extends Component {
   static displayName = Navigation.name;
