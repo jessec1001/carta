@@ -1,12 +1,12 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 using MorseCode.ITask;
 
-/// <summary>
-/// Represents a database context for accessing a NoSQL database
-/// </summary>
 namespace CartaCore.Persistence
 {
+    /// <summary>
+    /// Represents a database context for accessing a NoSQL database
+    /// </summary>
     public interface INoSqlDbContext
     {
         /// <summary>

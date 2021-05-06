@@ -1,5 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Threading;
+
+using Amazon.DynamoDBv2;
+using Amazon.DynamoDBv2.Model;
+using Amazon.Runtime;
 
 using NUnit.Framework;
 
@@ -19,17 +24,88 @@ namespace CartaTest
         protected INoSqlDbContext NoSqlDbContext;
 
         /// <summary>
+        /// Helper method for Setup to create the table
+        /// </summary>
+        private async Task CreateTable(AmazonDynamoDBClient client, string tableName)
+        {
+            CreateTableRequest  request = new CreateTableRequest
+            {
+                KeySchema = new List<KeySchemaElement>
+                {
+                    new KeySchemaElement
+                    {
+                        AttributeName = "PK",
+                        KeyType = "HASH" //Partition key
+                    },
+                    new KeySchemaElement
+                    {
+                        AttributeName = "SK",
+                        KeyType = "RANGE" //Sort key
+                    }
+                },
+                AttributeDefinitions = new List<AttributeDefinition>()
+                {
+                    new AttributeDefinition
+                    {
+                        AttributeName = "PK",
+                        AttributeType = ScalarAttributeType.S
+                    },
+                    new AttributeDefinition
+                    {
+                        AttributeName = "SK",
+                        AttributeType = ScalarAttributeType.S
+                    }
+                },
+                ProvisionedThroughput = new ProvisionedThroughput
+                {
+                    ReadCapacityUnits = 5,
+                    WriteCapacityUnits = 6
+                },
+                TableName = tableName
+            };
+            await client.CreateTableAsync(request);
+        }
+
+        /// <summary>
         /// Sets up the test fixture.
         /// </summary>
         [SetUp]
-        public void Setup()
+        public async Task Setup()
         {
-            // Initialize the instance
-            NoSqlDbContext = new DynamoDbContext(
-                "AKIAUJ6BOHWZ7KH3XNV7",
-                "dILzXSbmVtT5FkWPBHOQrtWlCZFruw8SfDvx7Zsk",
-                "CartaDev"
-            );
+            string localServiceUrl = "http://localhost:8000";
+            string tableName = "CartaRegressionTests";
+
+            // Create the DynamoDB client
+            AmazonDynamoDBConfig clientConfig = new AmazonDynamoDBConfig { };
+            clientConfig.ServiceURL = localServiceUrl;
+            // Note: the AWS access and secret key must be set to (any) non-empty strings even though they are
+            // not real credentials, else the Amazon SDK will throw exceptions
+            AmazonDynamoDBClient client = new AmazonDynamoDBClient
+                (new BasicAWSCredentials("LocalAccessKey", "LocalSecretKey"), clientConfig);
+
+            // Create test table if it does not exist yet
+            ListTablesResponse tablesResponse = await client.ListTablesAsync();
+            List<string> tableNames = tablesResponse.TableNames;
+            if (!tableNames.Contains(tableName)) await CreateTable(client, tableName); 
+
+            // Check if table is available before continuing
+            int i = 0;
+            bool isTableAvailable = false;
+            while (!isTableAvailable)
+            {
+                if (i >= 5)
+                {
+                    Assert.Fail("ERROR! Table creation has timed out");
+                    return;
+                }       
+                i++;
+                DescribeTableResponse tableStatus = await client.DescribeTableAsync(tableName);
+                isTableAvailable = tableStatus.Table.TableStatus.ToString() == "ACTIVE";
+                Thread.Sleep(5000);
+            }
+
+            // Initialize the DynamoDB instance
+            NoSqlDbContext = new DynamoDbContext(client, tableName);
         }
 
         /// <summary>

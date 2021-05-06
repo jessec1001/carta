@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using Amazon.DynamoDBv2;
@@ -42,7 +42,20 @@ namespace CartaCore.Persistence
         protected Table DbTable { get; set; }
 
         /// <summary>
-        /// Constructor
+        /// Constructor for local instance
+        /// </summary>
+        public DynamoDbContext(AmazonDynamoDBClient client, string tableName)
+        {
+            // Set the DynamoDB client
+            Client = client;
+
+            // Load the DynamoDB table
+            TableName = tableName;
+            DbTable = Table.LoadTable(Client, TableName);
+        }
+
+        /// <summary>
+        /// Constructor 
         /// </summary>
         public DynamoDbContext(string awsAccessKey, string awsSecretKey, string tableName)
         {
@@ -132,7 +145,7 @@ namespace CartaCore.Persistence
                 return docStringList;
             }
             else
-            {       
+            {
                 foreach (Dictionary<string, AttributeValue> item in response.Items)
                 {
                     Document itemRead = Document.FromAttributeMap(item);
