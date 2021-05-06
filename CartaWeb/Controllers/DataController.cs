@@ -320,7 +320,7 @@ namespace CartaWeb.Controllers
             [FromRoute] DataSource source,
             [FromRoute] string resource,
             [FromRoute] string selector,
-            [FromQuery(Name = "workflow")] int? workflowId = null
+            [FromQuery(Name = "workflow")] string workflowId = null
         )
         {
             // Get the base graph and check if it was actually retrieved.
@@ -337,9 +337,9 @@ namespace CartaWeb.Controllers
             graph = selectorGraph;
 
             // Apply workflow.
-            if (workflowId.HasValue)
+            if (workflowId is not null)
             {
-                Workflow workflow = await WorkflowController.LoadWorkflowAsync(workflowId.Value);
+                Workflow workflow = await WorkflowController.LoadWorkflowAsync(workflowId);
                 if (workflow is null) return NotFound();
                 else
                     graph = await workflow.ApplyAsync(graph as IEntireGraph);
