@@ -11,6 +11,7 @@ import "./custom.css";
 import { User, UserManager } from "library/api/user/types";
 import { Notification, NotificationManager } from "library/notifications";
 import { NotificationCenter } from "components/ui/notifications";
+import TestPage from "./TestPage";
 
 export const UserContext = createContext<{
   manager: UserManager;
@@ -99,6 +100,7 @@ export default class App extends Component<{}, AppState> {
             <Route exact path="/" component={HomePage} />
             <Route path="/graph" component={GraphPage} />
             <Route path="/docs" component={DocsPage} />
+            <Route path="/test" component={TestPage} />
             <Route path="/user/profile" component={UserProfilePage} />
           </Layout>
           <NotificationCenter />
