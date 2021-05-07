@@ -38,6 +38,9 @@ publish:
 
 test:
   stage: test
+  services:
+    - name: amazon/dynamodb-local
+      alias: dynamodb-local
   artifacts:
     paths:
       - coverage.lcov
