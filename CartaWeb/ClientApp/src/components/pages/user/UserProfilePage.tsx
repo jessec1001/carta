@@ -13,7 +13,7 @@ import {
   UserInput,
 } from "components/ui/layout";
 import { Container } from "reactstrap";
-import { UserContext } from "components/pages/App";
+import UserContext from "components/ui/user";
 
 export interface UserProfilePageProps {}
 export interface UserProfilePageState {}

@@ -1,4 +1,4 @@
-import { UserContext } from "components/pages/App";
+import UserContext from "components/ui/user";
 import { User } from "library/api/user/types";
 import React, { Component } from "react";
 import LabeledInput, { LabeledInputProps } from "./LabeledInput";

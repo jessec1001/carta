@@ -1,4 +1,5 @@
-import { NotificationContext, UserContext } from "components/pages/App";
+import UserContext from "components/ui/user";
+import { NotificationContext } from "components/pages/App";
 import React, { Component, HTMLProps } from "react";
 import { ApiException } from "library/exceptions";
 

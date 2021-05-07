@@ -8,18 +8,12 @@ import {
   UserProfilePage,
 } from "components/pages";
 import "./custom.css";
-import { User, UserManager } from "library/api/user/types";
 import { Notification, NotificationManager } from "library/notifications";
 import { NotificationCenter } from "components/ui/notifications";
 import TestPage from "./TestPage";
 
-export const UserContext = createContext<{
-  manager: UserManager;
-  user: User | null;
-}>({
-  manager: new UserManager(),
-  user: null,
-});
+import { UserContextWrapper } from "components/ui/user";
+
 export const NotificationContext = createContext<{
   manager: NotificationManager;
   notifications: Notification[];
@@ -29,28 +23,20 @@ export const NotificationContext = createContext<{
 });
 
 export interface AppState {
-  user: User | null;
   notifications: Notification[];
 }
 
 export default class App extends Component<{}, AppState> {
   static displayName = App.name;
 
-  userManager: UserManager;
   notificationManager: NotificationManager;
 
   constructor(props: {}) {
     super(props);
 
-    this.handleUserSignin = this.handleUserSignin.bind(this);
-    this.handleUserSignout = this.handleUserSignout.bind(this);
     this.handleNotificationsChanged = this.handleNotificationsChanged.bind(
       this
     );
-
-    this.userManager = new UserManager();
-    this.userManager.on("signin", this.handleUserSignin);
-    this.userManager.on("signout", this.handleUserSignout);
 
     this.notificationManager = new NotificationManager();
     this.notificationManager.on(
@@ -63,20 +49,8 @@ export default class App extends Component<{}, AppState> {
     );
 
     this.state = {
-      user: null,
       notifications: [],
     };
-  }
-
-  handleUserSignin(user: User) {
-    this.setState({
-      user: user,
-    });
-  }
-  handleUserSignout() {
-    this.setState({
-      user: null,
-    });
   }
 
   handleNotificationsChanged() {
@@ -87,9 +61,7 @@ export default class App extends Component<{}, AppState> {
 
   render() {
     return (
-      <UserContext.Provider
-        value={{ manager: this.userManager, user: this.state.user }}
-      >
+      <UserContextWrapper>
         <NotificationContext.Provider
           value={{
             manager: this.notificationManager,
@@ -105,7 +77,7 @@ export default class App extends Component<{}, AppState> {
           </Layout>
           <NotificationCenter />
         </NotificationContext.Provider>
-      </UserContext.Provider>
+      </UserContextWrapper>
     );
   }
 }
