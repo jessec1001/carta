@@ -6,6 +6,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.Extensions.Logging;
 
+using Json.Schema;
+using Json.Schema.Generation;
+
+using CartaCore.Serialization;
+using CartaCore.Workflow.Action;
+using CartaCore.Workflow.Selection;
 using CartaWeb.Models.Meta;
 
 namespace CartaWeb.Controllers
@@ -241,6 +247,32 @@ namespace CartaWeb.Controllers
             }
 
             return endpoints;
+        }
+
+        [HttpGet("action/{action}.schema")]
+        public ActionResult<JsonSchema> GetActionSchema(string action)
+        {
+            if (Discriminant.TryGetType<ActionBase>(action, out Type actionType))
+            {
+                JsonSchemaBuilder schemaBuilder = new JsonSchemaBuilder();
+                JsonSchema schema = schemaBuilder.FromType(actionType).Build();
+
+                return Ok(schema);
+            }
+            else return BadRequest();
+        }
+
+        [HttpGet("selector/{selector}.schema")]
+        public ActionResult<JsonSchema> GetSelectorSchema(string selector)
+        {
+            if (Discriminant.TryGetType<Selector>(selector, out Type selectorType))
+            {
+                JsonSchemaBuilder schemaBuilder = new JsonSchemaBuilder();
+                JsonSchema schema = schemaBuilder.FromType(selectorType).Build();
+
+                return Ok(schema);
+            }
+            else return BadRequest();
         }
     }
 }

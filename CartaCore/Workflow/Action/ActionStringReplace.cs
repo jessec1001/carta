@@ -7,7 +7,7 @@ using CartaCore.Serialization;
 
 namespace CartaCore.Workflow.Action
 {
-    [DiscriminantDerived("string replace")]
+    [DiscriminantDerived("stringReplace")]
     public class ActionStringReplace : ActionBase
     {
         public string Pattern { get; set; }
