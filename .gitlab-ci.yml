@@ -37,6 +37,8 @@ publish:
     - zip -r ../package.zip *
 
 test:
+  variables:
+    DYNAMODB_LOCAL_HOSTNAME: "dynamodb-local"
   stage: test
   services:
     - name: amazon/dynamodb-local
