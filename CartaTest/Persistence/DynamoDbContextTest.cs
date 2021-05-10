@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Threading;
 
@@ -22,6 +23,16 @@ namespace CartaTest
         /// The graph generated to test on.
         /// </summary>
         protected INoSqlDbContext NoSqlDbContext;
+
+        /// <summary>
+        /// Helper method to get DynamoDB local hostname
+        /// </summary>
+        private static string GetDynamoDbLocalHostName()
+        {
+            return Environment.GetEnvironmentVariable("DYNAMODB_LOCAL_HOSTNAME") is null ?
+                "localhost" :
+                Environment.GetEnvironmentVariable("DYNAMODB_LOCAL_HOSTNAME");
+        }
 
         /// <summary>
         /// Helper method for Setup to create the table
@@ -72,7 +83,7 @@ namespace CartaTest
         [SetUp]
         public async Task Setup()
         {
-            string localServiceUrl = "http://dynamodb-local:8000";
+            string localServiceUrl = "http://" + GetDynamoDbLocalHostName() + ":8000";
             string tableName = "CartaRegressionTests";
 
             // Create the DynamoDB client
