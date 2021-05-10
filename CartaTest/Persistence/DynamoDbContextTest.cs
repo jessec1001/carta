@@ -72,7 +72,7 @@ namespace CartaTest
         [SetUp]
         public async Task Setup()
         {
-            string localServiceUrl = "http://localhost:8000";
+            string localServiceUrl = "http://dynamodb-local:8000";
             string tableName = "CartaRegressionTests";
 
             // Create the DynamoDB client
