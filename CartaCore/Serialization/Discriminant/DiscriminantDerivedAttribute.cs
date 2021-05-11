@@ -3,7 +3,7 @@ using System;
 namespace CartaCore.Serialization
 {
     /// <summary>
-    /// An attribute that can be placed on derived types of an absstract class or interface that specifies a string
+    /// An attribute that can be placed on derived types of an abstract class or interface that specifies a string
     /// value, the discriminant, to differentiate the derived types from each other.
     /// </summary>
     [AttributeUsage(AttributeTargets.Interface | AttributeTargets.Class, Inherited = true, AllowMultiple = false)]
