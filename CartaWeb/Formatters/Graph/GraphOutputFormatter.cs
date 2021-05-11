@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.Net.Http.Headers;
 
 using CartaCore.Data;
+using CartaCore.Workflow.Selection;
 using CartaWeb.Serialization.Json;
 using CartaWeb.Serialization.Xml;
 
@@ -61,6 +62,8 @@ namespace CartaWeb.Formatters
         /// <inheritdoc />
         protected override bool CanWriteType(Type type)
         {
+            if (typeof(Selector).IsAssignableFrom(type))
+                return false;
             if (typeof(IEntireGraph).IsAssignableFrom(type))
                 return base.CanWriteType(type);
             return false;
