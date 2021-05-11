@@ -6,7 +6,14 @@ namespace CartaCore.Serialization
     /// An attribute that can be placed on derived types of an abstract class or interface that specifies a string
     /// value, the discriminant, to differentiate the derived types from each other.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Interface | AttributeTargets.Class, Inherited = true, AllowMultiple = false)]
+    [
+        AttributeUsage
+        (
+            AttributeTargets.Interface |
+            AttributeTargets.Class,
+            Inherited = true, AllowMultiple = false
+        )
+    ]
     public class DiscriminantDerivedAttribute : Attribute
     {
         /// <summary>

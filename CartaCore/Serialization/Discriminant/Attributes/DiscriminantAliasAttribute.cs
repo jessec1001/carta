@@ -7,7 +7,13 @@ namespace CartaCore.Serialization
     /// equal to the enclosing type. The alias name is used in the same way that discriminant names are used to
     /// differentiate types.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
+    [
+        AttributeUsage
+        (
+            AttributeTargets.Method,
+            AllowMultiple = true
+        )
+    ]
     public class DiscriminantAliasAttribute : Attribute
     {
         /// <summary>

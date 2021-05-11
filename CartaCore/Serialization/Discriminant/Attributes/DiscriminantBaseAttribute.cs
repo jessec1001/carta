@@ -7,7 +7,14 @@ namespace CartaCore.Serialization
     /// classes can be differentiated from each other using a string value, the discriminant, that is given a certain
     /// name.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Interface | AttributeTargets.Class, Inherited = true, AllowMultiple = false)]
+    [
+        AttributeUsage
+        (
+            AttributeTargets.Interface |
+            AttributeTargets.Class,
+            Inherited = true, AllowMultiple = false
+        )
+    ]
     public class DiscriminantBaseAttribute : Attribute
     {
         /// <summary>
