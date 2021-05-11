@@ -6,6 +6,9 @@ class UserApi {
   static get POPUP_EXPIRATION() {
     return 500;
   }
+  static get POPUP_REFRESH() {
+    return 2000;
+  }
   static get POPOP_FEATURES() {
     return Object.entries({
       location: "no",
@@ -55,9 +58,15 @@ class UserApi {
         // Perhaps we can use some session storage in order to track authentication state.
         // We could tie in the auth configuration from the server into this storage to also consider when auth expires.
         await new Promise<void>((res, rej) => {
-          const interval = setInterval(() => {
+          const intervalAuth = setInterval(() => {
+            UserApi.signInAsync({ preventRedirect: true }).then(() => {
+              clearInterval(intervalAuth);
+              popup.close();
+            });
+          }, UserApi.POPUP_REFRESH);
+          const intervalClosed = setInterval(() => {
             if (popup.closed) {
-              clearInterval(interval);
+              clearInterval(intervalClosed);
               UserApi.signInAsync({ preventRedirect: true })
                 .then(() => res())
                 .catch((reason) => rej(reason));

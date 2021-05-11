@@ -1,12 +1,7 @@
 import React, { Component, createContext } from "react";
 import { Route } from "react-router";
 import { Layout } from "components/ui/layout/Layout";
-import {
-  HomePage,
-  GraphPage,
-  DocsPage,
-  UserProfilePage,
-} from "components/pages";
+import { HomePage, GraphPage, DocsPage, UserPage } from "components/pages";
 import "./custom.css";
 import { Notification, NotificationManager } from "library/notifications";
 import { NotificationCenter } from "components/ui/notifications";
@@ -34,9 +29,8 @@ export default class App extends Component<{}, AppState> {
   constructor(props: {}) {
     super(props);
 
-    this.handleNotificationsChanged = this.handleNotificationsChanged.bind(
-      this
-    );
+    this.handleNotificationsChanged =
+      this.handleNotificationsChanged.bind(this);
 
     this.notificationManager = new NotificationManager();
     this.notificationManager.on(
@@ -73,7 +67,7 @@ export default class App extends Component<{}, AppState> {
             <Route path="/graph" component={GraphPage} />
             <Route path="/docs" component={DocsPage} />
             <Route path="/test" component={TestPage} />
-            <Route path="/user/profile" component={UserProfilePage} />
+            <Route path="/user" component={UserPage} />
           </Layout>
           <NotificationCenter />
         </NotificationContext.Provider>

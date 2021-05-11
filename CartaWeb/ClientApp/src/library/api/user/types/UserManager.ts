@@ -19,6 +19,10 @@ class UserManager extends EventEmitter<UserEvents> {
     this.#authTimestamp = 0;
     this.#authExpiration = 30 * 60 * 1000; // 30 minutes.
 
+    this.isAuthenticatedAsync = this.isAuthenticatedAsync.bind(this);
+    this.signInAsync = this.signInAsync.bind(this);
+    this.signOutAsync = this.signOutAsync.bind(this);
+
     this.user = null;
     this.loadAuthentication();
   }
@@ -52,26 +56,26 @@ class UserManager extends EventEmitter<UserEvents> {
     sessionStorage.removeItem("auth-user");
   }
 
-  async IsAuthenticatedAsync() {
+  async isAuthenticatedAsync() {
     if (Date.now() - this.#authTimestamp < this.#authExpiration) {
       return true;
     } else {
       try {
-        await UserApi.signInAsync({});
+        await UserApi.signInAsync({ preventRedirect: true });
         return true;
       } catch {
         return false;
       }
     }
   }
-  async SignInAsync() {
+  async signInAsync() {
     await UserApi.signInAsync({});
     const user = await UserApi.getUserInfoAsync();
 
     this.updateAuthentication(user);
     this.emit("signin", user);
   }
-  async SignOutAsync() {
+  async signOutAsync() {
     await UserApi.signOutAsync();
 
     this.clearAuthentication();

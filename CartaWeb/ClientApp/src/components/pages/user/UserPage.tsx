@@ -1,75 +1,86 @@
-import React, { Component, SyntheticEvent } from "react";
-
+import React, { Component } from "react";
 import {
-  Container,
-  FormGroup,
-  FormText,
-  Input,
-  InputGroup,
-  Button,
-} from "reactstrap";
+  IndentList,
+  Link,
+  Mainbar,
+  Section,
+  Sidebar,
+  SidebarLayout,
+  StoredInput,
+  Subsection,
+  Title,
+  UserInput,
+} from "components/ui/layout";
+import { Container } from "reactstrap";
+import UserContext from "components/ui/user";
 
-export interface UserPageState {
-  hyperthoughtApiKey: string;
-}
+export interface UserProfilePageProps {}
+export interface UserProfilePageState {}
 
-export default class UserPage extends Component<{}, UserPageState> {
-  static displayName = UserPage.name;
-
-  constructor(props: {}) {
-    super(props);
-
-    this.state = {
-      hyperthoughtApiKey: localStorage.getItem("hyperthoughtKey") ?? "",
-    };
-
-    this.handleHyperthoughtApiKeyChanged = this.handleHyperthoughtApiKeyChanged.bind(
-      this
-    );
-    this.handleHyperthoughtApiKeySave = this.handleHyperthoughtApiKeySave.bind(
-      this
-    );
-  }
-
-  handleHyperthoughtApiKeyChanged(event: SyntheticEvent) {
-    this.setState({
-      hyperthoughtApiKey: (event.target as HTMLInputElement).value,
-    });
-  }
-  handleHyperthoughtApiKeySave() {
-    localStorage.setItem("hyperthoughtKey", this.state.hyperthoughtApiKey);
-  }
-
+export default class UserProfilePage extends Component<
+  UserProfilePageProps,
+  UserProfilePageState
+> {
   render() {
     return (
-      <Container className="pb-4 mt-4">
-        <h2>User</h2>
-        <p>
-          This page contains information and settings regarding your user
-          account. Note that currently, the user account information is only
-          stored locally on your own computer. This will change in the future.
-        </p>
-
-        <h3>HyperThought&trade; API Authentication</h3>
-        <FormGroup>
-          <InputGroup>
-            <Input
-              type="text"
-              placeholder="API Access Key"
-              value={this.state.hyperthoughtApiKey}
-              onChange={this.handleHyperthoughtApiKeyChanged}
-            />
-            <Button onClick={this.handleHyperthoughtApiKeySave}>Save</Button>
-          </InputGroup>
-          <FormText color="muted">
-            This is the base-64 encoded code which can be retrieved from the
-            HyperThought&trade;{" "}
-            <a href="https://www.hyperthought.io/api/common/my_account/">
-              Account
-            </a>{" "}
-            page.
-          </FormText>
-        </FormGroup>
+      <Container>
+        <UserContext.Consumer>
+          {({ manager, user }) => (
+            <SidebarLayout side="left">
+              <Sidebar>
+                <IndentList>
+                  {user && (
+                    <Link href="/user/profile#profile-general">General</Link>
+                  )}
+                  {/* <Link href="/user/profile/#profile-notifications">
+                    Notifications
+                  </Link> */}
+                  <Link href="/user/profile/#profile-integration">
+                    Integeration
+                  </Link>
+                  <IndentList>
+                    <Link href="/user/profile/#profile-integration-hyperthought">
+                      HyperThought&trade;
+                    </Link>
+                  </IndentList>
+                </IndentList>
+              </Sidebar>
+              <Mainbar>
+                <div
+                  style={{ display: "flex", justifyContent: "space-between" }}
+                >
+                  <Title>Profile</Title>
+                </div>
+                {user && (
+                  <Section title="General" id="profile-general">
+                    <UserInput disabled field="username">
+                      Username
+                    </UserInput>
+                    <UserInput disabled field="email">
+                      E-mail
+                    </UserInput>
+                  </Section>
+                )}
+                {/* <Section title="Notifications" id="profile-notifications"> */}
+                {/* <StoredOption
+                key="notificationVerbosity"
+                options={["Debug", "Info", "Warning", "Error"]}
+              ></StoredOption> */}
+                {/* </Sectio n> */}
+                <Section title="Integration" id="profile-integration">
+                  <Subsection
+                    title="HyperThought&trade;"
+                    id="profile-integration-hyperthought"
+                  >
+                    <StoredInput type="password" field="hyperthoughtKey">
+                      API Key
+                    </StoredInput>
+                  </Subsection>
+                </Section>
+              </Mainbar>
+            </SidebarLayout>
+          )}
+        </UserContext.Consumer>
       </Container>
     );
   }
