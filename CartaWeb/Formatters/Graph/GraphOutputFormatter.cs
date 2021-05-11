@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.Net.Http.Headers;
 
 using CartaCore.Data;
+using CartaCore.Serialization.Json;
 using CartaCore.Workflow.Selection;
 using CartaWeb.Serialization.Json;
 using CartaWeb.Serialization.Xml;
@@ -47,6 +48,11 @@ namespace CartaWeb.Formatters
                 (MediaTypeHeaderValue.Parse("application/xml"), FormatGex), // Default
             };
 
+        static GraphOutputFormatter()
+        {
+            JsonOptions.Converters.Insert(0, new JsonDiscriminantConverter());
+        }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="GraphOutputFormatter"/> class.
         /// </summary>
@@ -62,8 +68,6 @@ namespace CartaWeb.Formatters
         /// <inheritdoc />
         protected override bool CanWriteType(Type type)
         {
-            if (typeof(Selector).IsAssignableFrom(type))
-                return false;
             if (typeof(IEntireGraph).IsAssignableFrom(type))
                 return base.CanWriteType(type);
             return false;
@@ -76,7 +80,9 @@ namespace CartaWeb.Formatters
 
             // Find the correct formatter and use it to write the content.
             string content = string.Empty;
-            if (context.Object is IEntireGraph graph)
+            if (context.Object is Selector selector && selector.Graph is null)
+                content = SerializeJson<Selector>(selector);
+            else if (context.Object is IEntireGraph graph)
             {
                 foreach (var formatter in MediaFormatters)
                 {
