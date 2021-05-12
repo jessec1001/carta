@@ -1,189 +1,86 @@
-import JsonSchema, {
-  JsonSchemaInteger,
-  JsonSchemaObject,
-  JsonSchemaString,
-  JsonSchemaType,
-} from "library/schema/JsonSchema";
-import React, { ChangeEvent, Component, FormEvent, HTMLProps } from "react";
+import { Component, FormEvent, HTMLProps } from "react";
+import JsonSchema, { JsonSchemaType } from "library/schema/JsonSchema";
+import { SchemaBaseFormProps } from "./SchemaBaseForm";
+import SchemaNumberForm from "./SchemaNumberForm";
+import SchemaStringForm from "./SchemaStringForm";
+import SchemaBooleanForm from "./SchemaBooleanForm";
+import SchemaEnumForm from "./SchemaEnumForm";
+import SchemaObjectForm from "./SchemaObjectForm";
+import SchemaArrayForm from "./SchemaArrayForm";
 
-export interface SchemaFormProps extends HTMLProps<HTMLFormElement> {
+/** The props used for the {@link SchemaForm} component. */
+interface SchemaFormProps extends HTMLProps<HTMLFormElement> {
   schema: JsonSchema;
-
-  onChange?: (obj: any) => void;
-  onSubmit?: (obj: any) => void;
-}
-export interface SchemaObjectFormProps {
-  schema: JsonSchemaObject;
+  value?: any;
 
   onChange?: (value: any) => void;
-}
-export interface SchemaIntegerFormProps {
-  schema: JsonSchemaInteger;
-
-  onChange?: (value: number) => void;
-}
-export interface SchemaFormState {
-  value: any;
-}
-export interface SchemaObjectFormState {
-  value: any;
-}
-export interface SchemaIntegerFormState {
-  value: number;
+  onSubmit?: (value: any) => void;
 }
 
-export default class SchemaForm extends Component<
-  SchemaFormProps,
-  SchemaFormState
-> {
+/** A form component that inputs a value according to a JSON schema. */
+class SchemaForm extends Component<SchemaFormProps> {
   constructor(props: SchemaFormProps) {
     super(props);
 
+    // Bind event handlers.
     this.handleSubmit = this.handleSubmit.bind(this);
     this.handleChange = this.handleChange.bind(this);
-
-    this.state = {
-      value: null,
-    };
   }
 
-  handleSubmit(event: FormEvent<HTMLFormElement>) {
-    if (this.props.onSubmit) {
-      this.props.onSubmit(this.state.value);
+  /** Handles submitting the form. */
+  private handleSubmit(event: FormEvent<HTMLFormElement>) {
+    const { value } = this.props;
+    const { onSubmit } = this.props;
+    if (onSubmit) {
+      onSubmit(value);
       event.preventDefault();
     }
   }
-  handleChange(value: any) {
-    this.setState({
-      value: value,
-    });
+  /** Handles changing the form value. */
+  private handleChange(value: any) {
+    const { onChange } = this.props;
+    if (onChange) onChange(value);
   }
 
   render() {
-    const { schema, ...restProps } = this.props;
+    const { schema, value, ...restProps } = this.props;
+    const { onChange, onSubmit, ...formProps } = restProps;
     return (
-      <form {...restProps} onSubmit={this.handleSubmit}>
-        {this.renderProperty(schema)}
+      <form {...formProps} onSubmit={this.handleSubmit}>
+        {SchemaForm.renderProperty({
+          schema: schema,
+          value: value,
+          onChange: this.handleChange,
+        })}
         <input type="submit" />
       </form>
     );
   }
 
-  renderProperty(schema: JsonSchemaType): JSX.Element {
-    switch (schema.type) {
+  /** Renders a specific form based on its schema type. */
+  static renderProperty<T extends JsonSchemaType>(
+    props: SchemaBaseFormProps<T, any>
+  ): JSX.Element {
+    switch (props.schema.type) {
       case "object":
-        return (
-          <SchemaObjectForm schema={schema} onChange={this.handleChange} />
-        );
+        return <SchemaObjectForm {...(props as any)} />;
+      case "array":
+        return <SchemaArrayForm {...(props as any)} />;
       case "integer":
-        return (
-          <SchemaIntegerForm schema={schema} onChange={this.handleChange} />
-        );
-      // case "integer":
-      //   return this.renderInteger(schema);
-      // case "string":
-      //   return this.renderString(schema);
+      case "number":
+        return <SchemaNumberForm {...(props as any)} />;
+      case "boolean":
+        return <SchemaBooleanForm {...(props as any)} />;
+      case "string":
+      case undefined:
+        if ("enum" in props.schema)
+          return <SchemaEnumForm {...(props as any)} />;
+        else return <SchemaStringForm {...(props as any)} />;
     }
     return null as any;
   }
 }
 
-export class SchemaObjectForm extends Component<
-  SchemaObjectFormProps,
-  SchemaObjectFormState
-> {
-  constructor(props: SchemaObjectFormProps) {
-    super(props);
-
-    this.handleChange = this.handleChange.bind(this);
-
-    this.state = {
-      value: {},
-    };
-  }
-
-  handleChange(prop: string, value: any) {
-    this.setState((state) => {
-      const newValue = {
-        ...state.value,
-        [prop]: value,
-      };
-
-      if (this.props.onChange) {
-        this.props.onChange(newValue);
-      }
-
-      return {
-        value: newValue,
-      };
-    });
-  }
-
-  render() {
-    const { schema } = this.props;
-    const properties = schema.properties ?? {};
-    return (
-      <fieldset>
-        <legend>{schema.title}</legend>
-        {Object.entries(properties).map(([key, value]) => {
-          return this.renderProperty(key, value);
-        })}
-        <p>{schema.description}</p>
-      </fieldset>
-    );
-  }
-
-  renderProperty(prop: string, schema: JsonSchemaType): JSX.Element {
-    const handleChange = (value: any) => this.handleChange(prop, value);
-    switch (schema.type) {
-      case "object":
-        return <SchemaObjectForm schema={schema} onChange={handleChange} />;
-      case "integer":
-        return <SchemaIntegerForm schema={schema} onChange={handleChange} />;
-      // case "integer":
-      //   return this.renderInteger(schema);
-      // case "string":
-      //   return this.renderString(schema);
-    }
-    return null as any;
-  }
-}
-
-export class SchemaIntegerForm extends Component<
-  SchemaIntegerFormProps,
-  SchemaIntegerFormState
-> {
-  constructor(props: SchemaIntegerFormProps) {
-    super(props);
-
-    this.handleChange = this.handleChange.bind(this);
-
-    this.state = {
-      value: 0,
-    };
-  }
-
-  handleChange(event: ChangeEvent<HTMLInputElement>) {
-    this.setState({
-      value: event.target.valueAsNumber,
-    });
-    if (this.props.onChange) {
-      this.props.onChange(event.target.valueAsNumber);
-    }
-  }
-
-  render() {
-    const { schema } = this.props;
-    return (
-      <>
-        <label>{schema.title}</label>
-        <input
-          type="number"
-          onChange={this.handleChange}
-          value={this.state.value}
-        />
-        <p>{schema.description}</p>
-      </>
-    );
-  }
-}
+// Export component and underlying types.
+export default SchemaForm;
+export type { SchemaFormProps };

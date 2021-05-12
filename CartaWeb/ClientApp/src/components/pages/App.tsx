@@ -5,7 +5,6 @@ import { HomePage, GraphPage, DocsPage, UserPage } from "components/pages";
 import "./custom.css";
 import { Notification, NotificationManager } from "library/notifications";
 import { NotificationCenter } from "components/ui/notifications";
-import TestPage from "./TestPage";
 
 import { UserContextWrapper } from "components/ui/user";
 
@@ -66,7 +65,6 @@ export default class App extends Component<{}, AppState> {
             <Route exact path="/" component={HomePage} />
             <Route path="/graph" component={GraphPage} />
             <Route path="/docs" component={DocsPage} />
-            <Route path="/test" component={TestPage} />
             <Route path="/user" component={UserPage} />
           </Layout>
           <NotificationCenter />
