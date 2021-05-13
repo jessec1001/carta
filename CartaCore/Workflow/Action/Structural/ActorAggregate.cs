@@ -37,14 +37,8 @@ namespace CartaCore.Workflow.Action
 
                 // Kick off the algorithm by grabbing the parents of this vertex.
                 AddVertexProperties(properties, vertex);
-                IOutVertex rootVertex = await dynamicOutGraph.GetVertex(vertex.Identifier);
                 fetchedVertices.Add(vertex.Identifier);
-                childrenVertices.Add
-                (
-                    rootVertex.OutEdges
-                        .ToAsyncEnumerable()
-                        .SelectAwait(async edge => await dynamicOutGraph.GetVertex(edge.Target))
-                );
+                childrenVertices.Add(dynamicOutGraph.GetChildVertices(vertex.Identifier));
 
                 // Keep getting all the parents asynchronously and updating our properties collection.
                 while (childrenVertices.Count > 0)
@@ -61,12 +55,7 @@ namespace CartaCore.Workflow.Action
                         {
                             AddVertexProperties(properties, childVertex);
                             fetchedVertices.Add(childVertex.Identifier);
-                            childrenVertices.Add
-                            (
-                                childVertex.OutEdges
-                                    .ToAsyncEnumerable()
-                                    .SelectAwait(async edge => await dynamicOutGraph.GetVertex(edge.Target))
-                            );
+                            childrenVertices.Add(dynamicOutGraph.GetChildVertices(childVertex.Identifier));
                         }
                     }
                 }

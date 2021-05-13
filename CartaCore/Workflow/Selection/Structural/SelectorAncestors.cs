@@ -91,10 +91,9 @@ namespace CartaCore.Workflow.Selection
             {
                 // Fetch the parent vertices of the base vertex and enumerate their ancestors.
                 RetrievedIds.Add(id);
-                foreach (Identity parentId in vertex.InEdges.Select(edge => edge.Source))
+                await foreach (IInVertex parentVertex in DynamicInGraph.GetParentVertices(vertex.Identifier))
                 {
                     // Check if the parent vertex has already been retrieved before traversing it.
-                    IInVertex parentVertex = await DynamicInGraph.GetVertex(parentId);
                     if (RetrievedIds.Contains(parentVertex.Identifier)) continue;
 
                     await foreach (

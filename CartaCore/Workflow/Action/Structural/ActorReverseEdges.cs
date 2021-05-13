@@ -63,5 +63,33 @@ namespace CartaCore.Workflow.Action
                 }
             }
         }
+        public async IAsyncEnumerable<InOutVertex> GetParentVertices(Identity id)
+        {
+            if (Graph.TryProvide(out IDynamicOutGraph<InOutVertex> dynamicOutGraph))
+            {
+                await foreach (InOutVertex childVertex in dynamicOutGraph.GetChildVertices(id))
+                    yield return childVertex;
+            }
+            else
+            {
+                InOutVertex vertex = await GetVertex(id);
+                foreach (Edge outEdge in vertex.OutEdges)
+                    yield return await GetVertex(outEdge.Target);
+            }
+        }
+        public async IAsyncEnumerable<InOutVertex> GetChildVertices(Identity id)
+        {
+            if (Graph.TryProvide(out IDynamicInGraph<InOutVertex> dynamicInGraph))
+            {
+                await foreach (InOutVertex parentVertex in dynamicInGraph.GetParentVertices(id))
+                    yield return parentVertex;
+            }
+            else
+            {
+                InOutVertex vertex = await GetVertex(id);
+                foreach (Edge inEdge in vertex.InEdges)
+                    yield return await GetVertex(inEdge.Source);
+            }
+        }
     }
 }
