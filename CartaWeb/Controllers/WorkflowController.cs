@@ -1,13 +1,14 @@
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
 using CartaCore.Serialization.Json;
+using CartaCore.Persistence;
 using CartaCore.Workflow;
+
+using NUlid;
 
 namespace CartaWeb.Controllers
 {
@@ -22,19 +23,8 @@ namespace CartaWeb.Controllers
     public class WorkflowController : ControllerBase
     {
         /// <summary>
-        /// The logger for this controller.
+        /// Options for serialization
         /// </summary>
-        private readonly ILogger<WorkflowController> _logger;
-
-        /// <inheritdoc />
-        public WorkflowController(ILogger<WorkflowController> logger)
-        {
-            _logger = logger;
-        }
-
-        private static string BaseDirectory = @"data";
-        private static string WorkflowDirectory = @"workflows";
-
         private static JsonSerializerOptions JsonOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web);
 
         static WorkflowController()
@@ -44,20 +34,64 @@ namespace CartaWeb.Controllers
         }
 
         /// <summary>
+        /// The logger for this controller.
+        /// </summary>
+        private readonly ILogger<WorkflowController> _logger;
+
+        /// <summary>
+        /// The NoSQL DB context for this controller
+        /// </summary>
+        private static INoSqlDbContext _noSqlDbContext;
+
+        /// <inheritdoc />
+        public WorkflowController(ILogger<WorkflowController> logger, INoSqlDbContext noSqlDbContext)
+        {
+            _logger = logger;
+            _noSqlDbContext = noSqlDbContext;
+
+        }
+
+        /// <summary>
+        /// Returns a properly formatted partition key.
+        /// </summary>
+        /// <param name="userId">A unique user ID.</param>
+        /// <returns>
+        /// The partition key for the persisted item for the given user.
+        /// </returns>
+        public static string GetPartitionKey(string userId)
+        {
+            return "USER#" + userId;
+        }
+
+        /// <summary>
+        /// Returns a properly formatted sort key.
+        /// </summary>
+        /// <param name="docId">The document ID.</param>
+        /// <returns>
+        /// The sort key for the persisted item for the given document ID.
+        /// </returns>
+        public static string GetSortKey(string docId)
+        {
+            return "WORKFLOW#" + docId;
+        }
+
+        /// <summary>
         /// Loads all of the stored workflows asynchronously.
         /// </summary>
         /// <returns>A list of all stored workflows.</returns>
         public static async Task<List<Workflow>> LoadWorkflowsAsync()
         {
-            // Read all of the files.
-            string workflowDir = Path.Combine(BaseDirectory, WorkflowDirectory);
-            if (!Directory.Exists(workflowDir)) return new List<Workflow>();
-            return await Directory.GetFiles(workflowDir)
-                .Select(filePath => int.Parse(Path.GetFileNameWithoutExtension(filePath)))
-                .ToAsyncEnumerable()
-                .SelectAwait(async id => await LoadWorkflowAsync(id))
-                .ToListAsync();
+            string partitionKey = GetPartitionKey("global_user"); //TODO Matt: replace "global_user" with cognito ID
+            string sortKey = GetSortKey("");
+            List<string> jsonStrings = await _noSqlDbContext.LoadDocumentStringsAsync(partitionKey, sortKey);
+            List<Workflow> workflows = new() { };
+            foreach (string jsonString in jsonStrings)
+            {
+                workflows.Add(JsonSerializer.Deserialize<Workflow>(jsonString, JsonOptions));
+            }
+            return workflows;
         }
+
         /// <summary>
         /// Loads a single workflow asynchronously specified by an identifier.
         /// </summary>
@@ -65,17 +99,13 @@ namespace CartaWeb.Controllers
         /// <returns>
         /// The loaded workflow or <c>null</c> if there is no workflow corresponding to the specified identifier.
         /// </returns>
-        public static async Task<Workflow> LoadWorkflowAsync(int id)
+        public static async Task<Workflow> LoadWorkflowAsync(string id)
         {
-            // Try to read the JSON file.
-            string workflowPath = Path.Combine(BaseDirectory, WorkflowDirectory, $"{id}.json");
-            if (!System.IO.File.Exists(workflowPath)) return null;
-            using (StreamReader file = new StreamReader(workflowPath))
-            {
-                Workflow workflow = JsonSerializer.Deserialize<Workflow>(await file.ReadToEndAsync(), JsonOptions);
-                workflow.Id = id;
-                return workflow;
-            }
+            string partitionKey = GetPartitionKey("global_user"); //TODO Matt: replace "global_user" with cognito ID
+            string sortKey = GetSortKey(id);
+            string jsonString = await _noSqlDbContext.LoadDocumentStringAsync(partitionKey, sortKey);
+            if (jsonString is null) return null;
+            else return JsonSerializer.Deserialize<Workflow>(jsonString, JsonOptions);
         }
         /// <summary>
         /// Saves a single workflow asynchronously. If an existing identifier is specified, the workflow is overwritten.
@@ -84,25 +114,26 @@ namespace CartaWeb.Controllers
         /// <param name="workflow">The workflow object.</param>
         /// <param name="existingId">An existing workflow identifier, if applicable.</param>
         /// <returns>The identifier of the saved workflow.</returns>
-        public static async Task<int> SaveWorkflowAsync(Workflow workflow, int? existingId = null)
+        public static async Task<string> SaveWorkflowAsync(Workflow workflow, string existingId = null)
         {
             // Make sure that the operations list exists.
             workflow.Operations = workflow.Operations ?? new List<WorkflowOperation>();
 
-            // Find out what identifier we should assign to this workflow.
-            string workflowDir = Path.Combine(BaseDirectory, WorkflowDirectory);
-            Directory.CreateDirectory(workflowDir);
-            int id = 0;
-            if (existingId.HasValue) id = existingId.Value;
-            else while (System.IO.File.Exists(Path.Combine(workflowDir, $"{id}.json"))) id++;
+            // Get the document ID and JSON string to persist and add it to the workflow
+            string id;
+            if (existingId is null) id = Ulid.NewUlid().ToString();
+            else id = existingId;
+            workflow.Id = id;
+            string json = JsonSerializer.Serialize<Workflow>(workflow, JsonOptions);
 
-            // Create the JSON file.
-            string workflowPath = Path.Combine(workflowDir, $"{id}.json");
-            using (StreamWriter file = new StreamWriter(workflowPath))
-            {
-                string json = JsonSerializer.Serialize<Workflow>(workflow, JsonOptions);
-                await file.WriteAsync(json);
-            }
+            // Write the item.
+            await _noSqlDbContext.SaveDocumentStringAsync
+            (
+                GetPartitionKey("global_user"), //TODO Matt: replace "global_user" with cognito ID
+                GetSortKey(id),
+                id,
+                json
+            );
 
             // Return the identifier of the created workflow.
             return id;
@@ -114,7 +145,7 @@ namespace CartaWeb.Controllers
         /// <param name="id">The identifier of the workflow to update.</param>
         /// <param name="workflow">The workflow whose properties should be merged in.</param>
         /// <returns>The updated workflow.</returns>
-        public static async Task<Workflow> UpdateWorkflowAsync(int id, Workflow workflow)
+        public static async Task<Workflow> UpdateWorkflowAsync(string id, Workflow workflow)
         {
             // We get the stored workflow first so we can perform updates on it.
             Workflow storedWorkflow = await LoadWorkflowAsync(id);
@@ -135,16 +166,10 @@ namespace CartaWeb.Controllers
         /// Deletes a single workflow specified by an identifier.
         /// </summary>
         /// <param name="id">The identifier of the workflow to delete.</param>
-        public static async Task<bool> DeleteWorkflowAsync(int id)
+        public static async Task DeleteWorkflowAsync(string id)
         {
-            // Try to delete the JSON file.
-            string workflowPath = Path.Combine(BaseDirectory, WorkflowDirectory, $"{id}.json");
-            if (System.IO.File.Exists(workflowPath))
-            {
-                System.IO.File.Delete(workflowPath);
-                return await Task.FromResult(true);
-            }
-            else return await Task.FromResult(false);
+            //TODO Matt: replace "global_user" with cognito ID
+            await _noSqlDbContext.DeleteDocumentStringAsync(GetPartitionKey("global_user"), GetSortKey(id));
         }
 
         /// <summary>
@@ -172,7 +197,7 @@ namespace CartaWeb.Controllers
         /// </returns>
         [HttpGet("{id}")]
         public async Task<ActionResult<Workflow>> GetWorkflow(
-            [FromRoute] int id
+            [FromRoute] string id
         )
         {
             Workflow workflow = await LoadWorkflowAsync(id);
@@ -226,7 +251,7 @@ namespace CartaWeb.Controllers
             [FromBody] Workflow workflow
         )
         {
-            int id = await SaveWorkflowAsync(workflow);
+            string id = await SaveWorkflowAsync(workflow);
             workflow.Id = id;
             return Ok(workflow);
         }
@@ -259,7 +284,7 @@ namespace CartaWeb.Controllers
         /// </returns>
         [HttpPatch("{id}")]
         public async Task<ActionResult<Workflow>> PatchWorkflow(
-            [FromRoute] int id,
+            [FromRoute] string id,
             [FromBody] Workflow workflow
         )
         {
@@ -280,13 +305,11 @@ namespace CartaWeb.Controllers
         /// </returns>
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteWorkflow(
-            [FromRoute] int id
+            [FromRoute] string id
         )
         {
-            if (await DeleteWorkflowAsync(id))
-                return Ok();
-            else
-                return NotFound();
+            await DeleteWorkflowAsync(id);
+            return Ok();
         }
 
         /// <summary>
@@ -303,7 +326,7 @@ namespace CartaWeb.Controllers
         /// </returns>
         [HttpGet("{id}/operations")]
         public async Task<ActionResult<List<WorkflowOperation>>> GetWorkflowOperations(
-            [FromRoute] int id
+            [FromRoute] string id
         )
         {
             Workflow workflow = await LoadWorkflowAsync(id);
@@ -331,7 +354,7 @@ namespace CartaWeb.Controllers
         /// </returns>
         [HttpGet("{id}/operations/{index}")]
         public async Task<ActionResult<WorkflowOperation>> GetWorkflowOperation(
-            [FromRoute] int id,
+            [FromRoute] string id,
             [FromRoute] int index
         )
         {
@@ -398,7 +421,7 @@ namespace CartaWeb.Controllers
         /// </returns>
         [HttpPost("{id}/operations/{index?}")]
         public async Task<ActionResult<WorkflowOperation>> InsertWorkflowOperation(
-            [FromRoute] int id,
+            [FromRoute] string id,
             [FromRoute] int? index,
             [FromBody] WorkflowOperation operation
         )
@@ -459,7 +482,7 @@ namespace CartaWeb.Controllers
         /// </returns>
         [HttpPatch("{id}/operations/{index}")]
         public async Task<ActionResult<WorkflowOperation>> PatchWorkflowOperation(
-            [FromRoute] int id,
+            [FromRoute] string id,
             [FromRoute] int index,
             [FromBody] WorkflowOperation operation
         )
@@ -502,7 +525,7 @@ namespace CartaWeb.Controllers
         /// </returns>
         [HttpDelete("{id}/operations/{index?}")]
         public async Task<ActionResult> RemoveWorkflowOperation(
-            [FromRoute] int id,
+            [FromRoute] string id,
             [FromRoute] int? index
         )
         {

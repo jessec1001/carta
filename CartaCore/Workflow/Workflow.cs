@@ -18,7 +18,7 @@ namespace CartaCore.Workflow
         /// Gets or sets the stored identifier for the workflow.
         /// </summary>
         /// <value>The workflow identifier.</value>
-        public int Id { get; set; }
+        public string Id { get; set; }
 
         /// <summary>
         /// Gets or sets the workflow name.

@@ -9,9 +9,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Net.Http.Headers;
 
+using CartaCore.Persistence;
 using CartaCore.Serialization.Json;
 using CartaWeb.Formatters;
 using CartaWeb.Models.Binders;
+using CartaWeb.Models.Options;
 
 namespace CartaWeb
 {
@@ -44,6 +46,20 @@ namespace CartaWeb
         /// <param name="services">The service collection used to add new services to.</param>
         public void ConfigureServices(IServiceCollection services)
         {
+            AwsAccessOptions awsOptions = Configuration
+                .GetSection("Deployment:AWS")
+                .Get<AwsAccessOptions>();
+            AwsDynamoDbOptions awsDynamoDbOptions = Configuration
+                .GetSection("Database:DynamoDb")
+                .Get<AwsDynamoDbOptions>();
+            services.
+                AddSingleton<INoSqlDbContext>(
+                    new DynamoDbContext
+                    (
+                        awsOptions.AccessKey,
+                        awsOptions.SecretKey,
+                        awsDynamoDbOptions.Table
+                    ));
 
             services
                 .AddControllersWithViews(options =>
