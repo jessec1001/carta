@@ -31,7 +31,7 @@ class UserContextWrapper extends Component<
   /** Used for debugging display name readability. */
   static displayName = UserContextWrapper.name;
 
-  #manager: UserManager;
+  private manager: UserManager;
 
   /**
    * Creates an instance of the {@link UserContextWrapper} component.
@@ -51,9 +51,9 @@ class UserContextWrapper extends Component<
     };
 
     // Set up the user manager and attach the relevant event handlers.
-    this.#manager = new UserManager();
-    this.#manager.on("signin", this.handleUserSignin);
-    this.#manager.on("signout", this.handleUserSignout);
+    this.manager = new UserManager();
+    this.manager.on("signin", this.handleUserSignin);
+    this.manager.on("signout", this.handleUserSignout);
   }
 
   /**
@@ -86,7 +86,7 @@ class UserContextWrapper extends Component<
     return (
       <UserContext.Provider
         value={{
-          manager: this.#manager,
+          manager: this.manager,
           user,
           authenticated,
         }}

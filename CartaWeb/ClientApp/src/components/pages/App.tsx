@@ -1,66 +1,19 @@
-import React, { Component, createContext } from "react";
+import { Component } from "react";
 import { Route } from "react-router";
 import { Layout } from "components/ui/layout/Layout";
 import { HomePage, GraphPage, DocsPage, UserPage } from "components/pages";
-import "./custom.css";
-import { Notification, NotificationManager } from "library/notifications";
-import { NotificationCenter } from "components/ui/notifications";
-
 import { UserContextWrapper } from "components/ui/user";
+import { NotificationContextWrapper } from "components/ui/notifications";
+import { NotificationCenter } from "components/ui/notifications";
+import "./custom.css";
 
-export const NotificationContext = createContext<{
-  manager: NotificationManager;
-  notifications: Notification[];
-}>({
-  manager: new NotificationManager(),
-  notifications: [],
-});
-
-export interface AppState {
-  notifications: Notification[];
-}
-
-export default class App extends Component<{}, AppState> {
+export default class App extends Component {
   static displayName = App.name;
-
-  notificationManager: NotificationManager;
-
-  constructor(props: {}) {
-    super(props);
-
-    this.handleNotificationsChanged =
-      this.handleNotificationsChanged.bind(this);
-
-    this.notificationManager = new NotificationManager();
-    this.notificationManager.on(
-      "notificationAdded",
-      this.handleNotificationsChanged
-    );
-    this.notificationManager.on(
-      "notificationRemoved",
-      this.handleNotificationsChanged
-    );
-
-    this.state = {
-      notifications: [],
-    };
-  }
-
-  handleNotificationsChanged() {
-    this.setState({
-      notifications: this.notificationManager.notifications,
-    });
-  }
 
   render() {
     return (
       <UserContextWrapper>
-        <NotificationContext.Provider
-          value={{
-            manager: this.notificationManager,
-            notifications: this.state.notifications,
-          }}
-        >
+        <NotificationContextWrapper>
           <Layout>
             <Route exact path="/" component={HomePage} />
             <Route path="/graph" component={GraphPage} />
@@ -68,7 +21,7 @@ export default class App extends Component<{}, AppState> {
             <Route path="/user" component={UserPage} />
           </Layout>
           <NotificationCenter />
-        </NotificationContext.Provider>
+        </NotificationContextWrapper>
       </UserContextWrapper>
     );
   }

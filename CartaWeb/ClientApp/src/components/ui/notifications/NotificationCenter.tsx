@@ -1,7 +1,7 @@
 import React, { Component, HTMLProps } from "react";
 import classNames from "classnames";
-import { NotificationAlert } from ".";
-import { NotificationContext } from "components/pages/App";
+import NotificationContext from "./NotificationContext";
+import NotificationAlert from "./NotificationAlert";
 import "./NotificationCenter.css";
 
 export interface NotificationCenterProps extends HTMLProps<HTMLDivElement> {}
@@ -11,15 +11,16 @@ export default class NotificationCenter extends Component<NotificationCenterProp
     const { className, ...restProps } = this.props;
     return (
       <NotificationContext.Consumer>
-        {({ manager, notifications }) => {
+        {({ notifications }) => {
           return (
             <div
               className={classNames(className, `notification-center`)}
               {...restProps}
             >
-              {notifications.map((notification) => (
+              {Object.entries(notifications).map(([index, notification]) => (
                 <NotificationAlert
                   key={notification.title}
+                  index={Number(index)}
                   notification={notification}
                 />
               ))}

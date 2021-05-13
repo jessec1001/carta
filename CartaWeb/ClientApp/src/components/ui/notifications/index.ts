@@ -1,4 +1,8 @@
+import NotificationContext, {
+  NotificationContextWrapper,
+} from "./NotificationContext";
 import NotificationAlert from "./NotificationAlert";
 import NotificationCenter from "./NotificationCenter";
 
-export { NotificationCenter, NotificationAlert };
+export default NotificationContext;
+export { NotificationContextWrapper, NotificationCenter, NotificationAlert };

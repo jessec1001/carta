@@ -105,6 +105,7 @@ export class Navigation extends Component {
                               <Link
                                 className="text-dark"
                                 onClick={manager.signOutAsync}
+                                to="#"
                               >
                                 <FontAwesomeIcon
                                   className="mr-2"
@@ -123,6 +124,7 @@ export class Navigation extends Component {
                             tag={Link}
                             className="text-dark"
                             onClick={manager.signInAsync}
+                            to="#"
                           >
                             Sign In
                           </NavLink>

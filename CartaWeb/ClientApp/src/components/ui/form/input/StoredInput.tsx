@@ -1,3 +1,4 @@
+import Logging, { LogSeverity } from "library/logging";
 import React, { Component, FormEvent } from "react";
 import LabeledInput, { LabeledInputProps } from "./LabeledInput";
 
@@ -31,6 +32,12 @@ export default class StoredInput extends Component<
   }
   handleUpdate() {
     localStorage.setItem(this.props.field, this.state.value);
+    Logging.log({
+      severity: LogSeverity.Info,
+      source: "Profile Input",
+      title: `${this.props.field} Updated`,
+      data: this.state.value,
+    });
   }
 
   render() {

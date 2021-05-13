@@ -1,25 +1,27 @@
 import React, { Component, HTMLProps } from "react";
 import classNames from "classnames";
-import { Notification } from "library/notifications";
+import { LogWidget, LogSeverity } from "library/logging";
+import NotificationContext from "./NotificationContext";
 import "./NotificationAlert.css";
-import { NotificationContext } from "components/pages/App";
 
 export interface NotificationAlertProps extends HTMLProps<HTMLDivElement> {
-  notification: Notification;
+  index: number;
+  notification: LogWidget;
 }
 
 export default class NotificationAlert extends Component<NotificationAlertProps> {
   render() {
-    const { notification, className, ...restProps } = this.props;
+    const { index, notification, className, ...restProps } = this.props;
     const severityColor = {
-      debug: "#dddddd",
-      info: "#00ac46",
-      warning: "#fdc500",
-      error: "#dc0000",
+      [LogSeverity.Debug]: "#dddddd",
+      [LogSeverity.Info]: "#00ac46",
+      [LogSeverity.Warning]: "#fdc500",
+      [LogSeverity.Error]: "#dc0000",
+      [LogSeverity.None]: "000000",
     }[notification.severity];
     return (
       <NotificationContext.Consumer>
-        {({ manager, notifications }) => {
+        {({ logger }) => {
           return (
             <div
               className={classNames(className, `notification-alert`)}
@@ -35,13 +37,13 @@ export default class NotificationAlert extends Component<NotificationAlertProps>
                 </span>
                 <div
                   className={`notification-alert-close`}
-                  onClick={() => manager.removeNotification(notification)}
+                  onClick={() => logger.closeNotification(index)}
                 >
                   &times;
                 </div>
               </div>
               <div className={`notification-alert-message`}>
-                {notification.message}
+                {notification.widget}
               </div>
             </div>
           );
