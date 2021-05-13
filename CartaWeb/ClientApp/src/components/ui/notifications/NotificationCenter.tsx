@@ -19,7 +19,7 @@ export default class NotificationCenter extends Component<NotificationCenterProp
             >
               {Object.entries(notifications).map(([index, notification]) => (
                 <NotificationAlert
-                  key={notification.title}
+                  key={index}
                   index={Number(index)}
                   notification={notification}
                 />

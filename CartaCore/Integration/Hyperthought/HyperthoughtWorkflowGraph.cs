@@ -176,6 +176,14 @@ namespace CartaCore.Integration.Hyperthought
                 yield return VertexFromWorkflow(workflow);
         }
 
+        /// <summary>
+        /// Ensures that the graph is valid and authorized. Throws an exception if not.
+        /// </summary>
+        public async Task EnsureValidity()
+        {
+            await Api.GetWorkflowAsync(Id);
+        }
+
         // /// <summary>
         // /// Traverses the child vertices of the workflow graph in preorder fashion asynchronously.
         // /// </summary>

@@ -54,7 +54,9 @@ namespace CartaWeb.Models.Data
                     uuid = alias.uuid;
                 }
             }
-            return new HyperthoughtWorkflowGraph(api, uuid);
+            HyperthoughtWorkflowGraph graph = new HyperthoughtWorkflowGraph(api, uuid);
+            await graph.EnsureValidity();
+            return graph;
         }
 
         /// <inheritdoc />

@@ -1,7 +1,6 @@
 import { GeneralApi } from "library/api";
 import { User } from "./types";
 import { ApiException, BrowserException } from "library/exceptions";
-import Logging, { LogSeverity } from "library/logging";
 
 class UserApi {
   static get POPUP_EXPIRATION() {
@@ -82,11 +81,6 @@ class UserApi {
     } else {
       if (signinResponse.ok) {
         // Everything succeeded silently, we can just return.
-        Logging.log({
-          severity: LogSeverity.Info,
-          source: "User API",
-          title: "Successfully Signed In",
-        });
         return;
       } else {
         // Some error occurred when accessing the server.
@@ -104,11 +98,6 @@ class UserApi {
     });
     if (response.ok) {
       // Everything succeeded silently, we can just return.
-      Logging.log({
-        severity: LogSeverity.Info,
-        source: "User API",
-        title: "Successfully Signed Out",
-      });
       return;
     } else {
       // Some error occurred when accessing the server.

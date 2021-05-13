@@ -61,7 +61,7 @@ class NotificationLogger extends Logger<NotificationLoggerEvents> {
     let index = this.notificationIndex++;
     this.notifications[index] = entry;
 
-    if (this.visible.length < this.maxEntries) this.nextNotification();
+    if (this.visible.length < this.maxEntries) this.openNotification(index);
   }
   private nextNotification() {
     const indices = Object.keys(this.notifications).map(Number);

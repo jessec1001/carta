@@ -1,5 +1,6 @@
 import { EventEmitter } from "ee-ts";
 import { UserApi } from "library/api";
+import Logging, { LogSeverity } from "library/logging";
 import { User } from ".";
 
 interface UserEvents {
@@ -69,14 +70,26 @@ class UserManager extends EventEmitter<UserEvents> {
     }
   }
   async signInAsync() {
-    await UserApi.signInAsync({});
+    if (!(await this.isAuthenticatedAsync())) await UserApi.signInAsync({});
     const user = await UserApi.getUserInfoAsync();
+
+    Logging.log({
+      severity: LogSeverity.Info,
+      source: "User Manager",
+      title: "Successfully Signed In",
+    });
 
     this.updateAuthentication(user);
     this.emit("signin", user);
   }
   async signOutAsync() {
     await UserApi.signOutAsync();
+
+    Logging.log({
+      severity: LogSeverity.Info,
+      source: "User Manager",
+      title: "Successfully Signed Out",
+    });
 
     this.clearAuthentication();
     this.emit("signout");

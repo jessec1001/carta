@@ -29,13 +29,14 @@ class GeneralApi {
     url?: string
   ): string {
     // Get the currently set URL if one exists and a URL was not specified.
+    let params = { ...parameters };
     let formattedUrl =
       url ?? this.$url.length > 0 ? this.$url[this.$url.length - 1] : "/api";
 
-    if (parameters) {
+    if (params) {
       // Replace placeholders in the URL with the prescribed values.
-      let extraParameters = parameters;
-      Object.entries(parameters).forEach(([key, value]) => {
+      let extraParameters = params;
+      Object.entries(params).forEach(([key, value]) => {
         const regex = RegExp(`\\{(${key})\\??(=.*?)?\\}`, "g");
         if (formattedUrl.match(regex)) {
           formattedUrl = formattedUrl.replace(regex, value);

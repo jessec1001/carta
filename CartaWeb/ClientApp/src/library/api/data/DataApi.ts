@@ -36,29 +36,31 @@ class DataApi {
     fetchParameters?: RequestInit,
     url?: string
   ) {
+    console.log(apiParameters, fetchParameters, url);
     try {
       // Try to make the standard request.
-      const data = await GeneralApi.requestGeneralAsync({
+      const data = await GeneralApi.requestGeneralAsync(
         apiParameters,
         fetchParameters,
-        url,
-      });
+        url
+      );
       return data;
     } catch (err) {
       // If there was an API error, check to see if it can be acted on.
       if (err instanceof ApiException) {
-        console.log(err);
+        console.log(apiParameters, err);
         const { source } = apiParameters as {
           source?: string;
           resource?: string;
         };
+        console.log(apiParameters, err);
         if (source?.toLowerCase() === "hyperthought") {
           if (err.status === 401 || err.status === 403) {
             // We log the error using the HyperThought authentication error widget.
             Logging.log({
               severity: LogSeverity.Warning,
               source: "Data API",
-              title: "HyperThought&trade; Authentication Required",
+              title: "HyperThought Authentication Required",
               widget: HyperthoughtAuthenticationWidget(),
               sticky: true,
             } as LogWidget);
@@ -70,7 +72,7 @@ class DataApi {
         Logging.log({
           severity: LogSeverity.Error,
           source: "Data API",
-          title: "API Error",
+          title: `API Error - ${err.status}`,
           message: err.message ?? "Failed to retrieve data.",
           data: err,
         });

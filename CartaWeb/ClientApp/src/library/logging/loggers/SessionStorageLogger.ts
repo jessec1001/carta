@@ -1,5 +1,5 @@
 import Logger, { LoggerOptions } from "../Logger";
-import { LogEntry, LogWidget } from "../LogTypes";
+import { LogEntry } from "../LogTypes";
 
 interface SessionStorageLoggerOptions extends LoggerOptions {
   maxEntries?: number;
