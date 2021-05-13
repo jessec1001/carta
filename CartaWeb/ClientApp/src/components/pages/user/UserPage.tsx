@@ -72,7 +72,11 @@ export default class UserProfilePage extends Component<
                     title="HyperThought&trade;"
                     id="profile-integration-hyperthought"
                   >
-                    <StoredInput type="password" field="hyperthoughtKey">
+                    <StoredInput
+                      type="password"
+                      name="HyperThought API Key"
+                      field="hyperthoughtKey"
+                    >
                       API Key
                     </StoredInput>
                   </Subsection>

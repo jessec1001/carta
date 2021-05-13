@@ -3,6 +3,7 @@ import React, { Component, FormEvent } from "react";
 import LabeledInput, { LabeledInputProps } from "./LabeledInput";
 
 export interface StoredInputProps extends LabeledInputProps {
+  name: string;
   field: string;
 }
 export interface StoredInputState {
@@ -35,7 +36,7 @@ export default class StoredInput extends Component<
     Logging.log({
       severity: LogSeverity.Info,
       source: "Profile Input",
-      title: `${this.props.field} Updated`,
+      title: `${this.props.name} Updated`,
       data: this.state.value,
     });
   }

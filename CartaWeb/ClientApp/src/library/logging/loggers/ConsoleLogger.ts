@@ -6,7 +6,10 @@ class ConsoleLogger extends Logger {
     // Check that the log level is at least as severe as the log entry.
     if (this.logLevel <= entry.severity) {
       // Construct the log message and use the appropriate console function to display it.
-      const logMessage = `[${entry.source}] ${entry.title}: ${entry.message}`;
+      let logMessage;
+      if (entry.message)
+        logMessage = `[${entry.source}] ${entry.title}: ${entry.message}`;
+      else logMessage = `[${entry.source}] ${entry.title}`;
       switch (entry.severity) {
         case LogSeverity.Debug:
           console.log(logMessage);

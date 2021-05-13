@@ -36,7 +36,6 @@ class DataApi {
     fetchParameters?: RequestInit,
     url?: string
   ) {
-    console.log(apiParameters, fetchParameters, url);
     try {
       // Try to make the standard request.
       const data = await GeneralApi.requestGeneralAsync(
@@ -48,12 +47,10 @@ class DataApi {
     } catch (err) {
       // If there was an API error, check to see if it can be acted on.
       if (err instanceof ApiException) {
-        console.log(apiParameters, err);
         const { source } = apiParameters as {
           source?: string;
           resource?: string;
         };
-        console.log(apiParameters, err);
         if (source?.toLowerCase() === "hyperthought") {
           if (err.status === 401 || err.status === 403) {
             // We log the error using the HyperThought authentication error widget.

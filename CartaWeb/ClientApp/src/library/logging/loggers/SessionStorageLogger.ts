@@ -7,8 +7,8 @@ interface SessionStorageLoggerOptions extends LoggerOptions {
 }
 
 class SessionStorageLogger extends Logger {
-  maxEntries: number;
-  storageKey: string;
+  public maxEntries: number;
+  public storageKey: string;
 
   public constructor(options: SessionStorageLoggerOptions) {
     super(options);
@@ -19,14 +19,19 @@ class SessionStorageLogger extends Logger {
 
   public log(entry: LogEntry) {
     if (this.logLevel <= entry.severity) {
-      this.append(entry);
+      this.appendEntry(entry);
     }
   }
 
-  private append(entry: LogEntry) {
+  private appendEntry(entry: LogEntry) {
     const storageEntries = sessionStorage.getItem(this.storageKey);
     const parsedEntries =
       storageEntries === null ? [] : (JSON.parse(storageEntries) as LogEntry[]);
+
+    parsedEntries.splice(this.maxEntries - 1);
+    parsedEntries.unshift(entry);
+
+    sessionStorage.setItem(this.storageKey, JSON.stringify(parsedEntries));
   }
 }
 
