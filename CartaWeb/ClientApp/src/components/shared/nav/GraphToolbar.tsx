@@ -52,6 +52,7 @@ export class GraphToolbar extends Component<GraphToolbarProps> {
     this.handleActionVariance = this.handleActionVariance.bind(this);
     this.handleActionAggregate = this.handleActionAggregate.bind(this);
     this.handleActionPropagate = this.handleActionPropagate.bind(this);
+    this.handleActionReverseEdges = this.handleActionReverseEdges.bind(this);
 
     this.handleExpand = this.handleExpand.bind(this);
     this.handleCollapse = this.handleCollapse.bind(this);
@@ -182,7 +183,7 @@ export class GraphToolbar extends Component<GraphToolbarProps> {
 
   handleActionToNumber() {
     this.handleAction({
-      type: "to number",
+      type: "toNumber",
     });
   }
   handleActionIncrement() {
@@ -205,7 +206,7 @@ export class GraphToolbar extends Component<GraphToolbarProps> {
       "";
     let replacement = prompt("Enter the replacement string.") ?? "";
     this.handleAction({
-      type: "string replace",
+      type: "stringReplace",
       pattern,
       replacement,
     });
@@ -238,6 +239,11 @@ export class GraphToolbar extends Component<GraphToolbarProps> {
   handleActionPropagate() {
     this.handleAction({
       type: "propagate",
+    });
+  }
+  handleActionReverseEdges() {
+    this.handleAction({
+      type: "reverseEdges",
     });
   }
 
@@ -479,6 +485,9 @@ export class GraphToolbar extends Component<GraphToolbarProps> {
               </DropdownItem>
               <DropdownItem onClick={this.handleActionPropagate}>
                 Propagate Observations
+              </DropdownItem>
+              <DropdownItem onClick={this.handleActionReverseEdges}>
+                Reverse Edges
               </DropdownItem>
             </DropdownMenu>
           </UncontrolledDropdown>

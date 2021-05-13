@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -9,7 +8,7 @@ using CartaCore.Serialization;
 namespace CartaCore.Workflow.Action
 {
     [DiscriminantDerived("propagate")]
-    public class ActionPropagate : ActionBase
+    public class ActorPropagate : Actor
     {
         private void AddVertexProperties(Dictionary<Identity, List<object>> properties, IVertex vertex)
         {
@@ -25,9 +24,9 @@ namespace CartaCore.Workflow.Action
             }
         }
 
-        public async override Task<IVertex> ApplyToVertex(IGraph graph, IVertex vertex)
+        public async override Task<IVertex> TransformVertex(IVertex vertex)
         {
-            if (graph.TryProvide(out IDynamicInGraph<IInVertex> dynamicInGraph))
+            if (Graph.TryProvide(out IDynamicInGraph<IInVertex> dynamicInGraph))
             {
                 // Set up data structures to store intermediate information.
                 HashSet<Identity> fetchedVertices = new HashSet<Identity>();

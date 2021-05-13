@@ -8,10 +8,10 @@ using CartaCore.Serialization;
 
 namespace CartaCore.Workflow.Action
 {
-    [DiscriminantDerived("mean")]
-    public class ActionMean : ActionBase
+    [DiscriminantDerived("deviation")]
+    public class ActorStandardDeviation : Actor
     {
-        public override Task<Property> ApplyToProperty(Property property)
+        public override Task<Property> TransformProperty(Property property)
         {
             try
             {
@@ -23,15 +23,19 @@ namespace CartaCore.Workflow.Action
                     // Compute the mean.
                     double mean = numbers.Average();
 
-                    // Assign the mean.
+                    // Compute the variance.
+                    double variance = numbers.Select(number => Math.Pow(number - mean, 2.0)).Sum() / numbers.Count;
+                    double deviation = Math.Sqrt(variance);
+
+                    // Assign the variance.
                     if (property.Subproperties is null)
                         property.Subproperties = Enumerable.Empty<Property>();
                     property.Subproperties = property.Subproperties.Append
                     (
                         new Property
                         (
-                            Identity.Create("Mean"),
-                            new object[] { mean }
+                            Identity.Create("Standard Deviation"),
+                            new object[] { deviation }
                         )
                     );
                 }

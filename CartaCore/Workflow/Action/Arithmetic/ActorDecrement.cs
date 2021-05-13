@@ -10,7 +10,7 @@ namespace CartaCore.Workflow.Action
     /// Represents an action that decrements integer observations by some amount.
     /// </summary>
     [DiscriminantDerived("decrement")]
-    public class ActionDecrement : ActionBase
+    public class ActorDecrement : Actor
     {
         /// <summary>
         /// Gets or sets the decrement amount.
@@ -18,12 +18,12 @@ namespace CartaCore.Workflow.Action
         /// <value>The amount to decrement integer values by.</value>
         public double Amount { get; set; } = 1.0;
 
-        public override Task<object> ApplyToValue(object value)
+        public override Task<object> TransformValue(object value)
         {
             if (value is double number)
-                return Task.FromResult((object)(number - Amount));
+                return Task.FromResult<object>(number - Amount);
             else
-                return Task.FromResult(value);
+                return Task.FromResult<object>(value);
         }
     }
 }

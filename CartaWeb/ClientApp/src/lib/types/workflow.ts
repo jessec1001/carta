@@ -3,7 +3,7 @@ import Selector from "./selectors";
 
 export interface WorkflowOperation {
   name?: string;
-  action: Action;
+  actor: Action;
   selector: Selector;
 }
 export interface Workflow {

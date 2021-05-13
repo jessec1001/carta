@@ -8,38 +8,48 @@ using CartaCore.Serialization;
 
 namespace CartaCore.Workflow.Action
 {
-    [DiscriminantDerived("variance")]
-    public class ActionVariance : ActionBase
+    [DiscriminantDerived("median")]
+    public class ActorMedian : Actor
     {
-        public override Task<Property> ApplyToProperty(Property property)
+        public override Task<Property> TransformProperty(Property property)
         {
             try
             {
                 // Get the numeric data.
                 List<double> numbers = property.Values.Cast<double>().ToList();
+                numbers.Sort();
 
                 if (numbers.Count > 0)
                 {
-                    // Compute the mean.
-                    double mean = numbers.Average();
+                    // Compute the median.
+                    double median = 0.0;
+                    if (numbers.Count % 2 == 0)
+                    {
+                        int index1 = (numbers.Count - 1) / 2;
+                        int index2 = index1 + 1;
+                        median = (numbers[index1] + numbers[index2]) / 2.0;
+                    }
+                    else
+                    {
+                        int index = (numbers.Count - 1) / 2;
+                        median = numbers[index];
+                    }
 
-                    // Compute the variance.
-                    double variance = numbers.Select(number => Math.Pow(number - mean, 2.0)).Sum() / numbers.Count;
-
-                    // Assign the variance.
+                    // Assign the median.
                     if (property.Subproperties is null)
                         property.Subproperties = Enumerable.Empty<Property>();
                     property.Subproperties = property.Subproperties.Append
                     (
                         new Property
                         (
-                            Identity.Create("Variance"),
-                            new object[] { variance }
+                            Identity.Create("Median"),
+                            new object[] { median }
                         )
                     );
                 }
             }
             catch (InvalidCastException) { }
+
             return Task.FromResult(property);
         }
     }

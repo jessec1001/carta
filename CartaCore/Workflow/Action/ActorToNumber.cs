@@ -7,10 +7,10 @@ using CartaCore.Serialization;
 
 namespace CartaCore.Workflow.Action
 {
-    [DiscriminantDerived("to number")]
-    public class ActionToNumber : ActionBase
+    [DiscriminantDerived("toNumber")]
+    public class ActorToNumber : Actor
     {
-        public override Task<object> ApplyToValue(object value)
+        public override Task<object> TransformValue(object value)
         {
             if (value is string str && double.TryParse
                 (
@@ -20,12 +20,12 @@ namespace CartaCore.Workflow.Action
                     out double strNumber
                 )
             )
-                return Task.FromResult((object)strNumber);
+                return Task.FromResult<object>(strNumber);
             if (value is int intNumber)
-                return Task.FromResult((object)Convert.ToDouble(intNumber));
+                return Task.FromResult<object>(Convert.ToDouble(intNumber));
             if (value is double doubleNumber)
-                return Task.FromResult((object)doubleNumber);
-            return Task.FromResult(value);
+                return Task.FromResult<object>(doubleNumber);
+            return Task.FromResult<object>(value);
         }
     }
 }

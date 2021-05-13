@@ -7,13 +7,13 @@ using CartaCore.Serialization;
 
 namespace CartaCore.Workflow.Action
 {
-    [DiscriminantDerived("string replace")]
-    public class ActionStringReplace : ActionBase
+    [DiscriminantDerived("stringReplace")]
+    public class ActorStringReplace : Actor
     {
         public string Pattern { get; set; }
         public string Replacement { get; set; }
 
-        public override Task<object> ApplyToValue(object value)
+        public override Task<object> TransformValue(object value)
         {
             if (value is string str)
             {
@@ -23,9 +23,9 @@ namespace CartaCore.Workflow.Action
                     RegexOptions.None,
                     TimeSpan.FromSeconds(1.0)
                 );
-                return Task.FromResult((object)str);
+                return Task.FromResult<object>(str);
             }
-            else return Task.FromResult(value);
+            else return Task.FromResult<object>(value);
         }
     }
 }

@@ -9,7 +9,7 @@ using CartaCore.Serialization;
 namespace CartaCore.Workflow.Action
 {
     [DiscriminantDerived("aggregate")]
-    public class ActionAggregate : ActionBase
+    public class ActorAggregate : Actor
     {
         private void AddVertexProperties(Dictionary<Identity, List<object>> properties, IVertex vertex)
         {
@@ -25,9 +25,9 @@ namespace CartaCore.Workflow.Action
             }
         }
 
-        public async override Task<IVertex> ApplyToVertex(IGraph graph, IVertex vertex)
+        public async override Task<IVertex> TransformVertex(IVertex vertex)
         {
-            if (graph.TryProvide(out IDynamicOutGraph<IOutVertex> dynamicOutGraph))
+            if (Graph.TryProvide(out IDynamicOutGraph<IOutVertex> dynamicOutGraph))
             {
                 // Set up data structures to store intermediate information.
                 HashSet<Identity> fetchedVertices = new HashSet<Identity>();
@@ -48,7 +48,7 @@ namespace CartaCore.Workflow.Action
                     childrenVertices.RemoveAt(0);
 
                     // Iterate over the parent vertex collection propagating properties.
-                    await foreach (IInVertex childVertex in childVertices)
+                    await foreach (IOutVertex childVertex in childVertices)
                     {
                         // We need to make sure that we do not duplicate observations.
                         if (!fetchedVertices.Contains(childVertex.Identifier))

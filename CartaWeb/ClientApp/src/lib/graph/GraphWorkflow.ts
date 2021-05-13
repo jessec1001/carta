@@ -119,7 +119,7 @@ export default class GraphWorkflow {
         this._selector = userOperation.selector;
         this._selectorAugment = userOperation.selectorAugment;
         this._appendOperation({
-          action: userOperation.action,
+          actor: userOperation.action,
           selector: this.getSelector(),
         }).finally(() => this._callEvent("workflowChanged"));
       }
@@ -223,7 +223,7 @@ export default class GraphWorkflow {
     this._create()
       .then(() =>
         this._appendOperation({
-          action: action,
+          actor: action,
           selector: this.getSelector(),
         })
       )

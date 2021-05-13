@@ -498,7 +498,7 @@ namespace CartaWeb.Controllers
 
             workflow.Operations[index].Name = operation.Name ?? workflow.Operations[index].Name;
             workflow.Operations[index].Selector = operation.Selector ?? workflow.Operations[index].Selector;
-            workflow.Operations[index].Action = operation.Action ?? workflow.Operations[index].Action;
+            workflow.Operations[index].Actor = operation.Actor ?? workflow.Operations[index].Actor;
 
             // Save the changes to the workflow.
             await UpdateWorkflowAsync(id, workflow);

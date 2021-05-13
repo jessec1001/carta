@@ -12,12 +12,6 @@ namespace CartaCore.Data
         /// </summary>
         /// <param name="id">The parent vertex identifier.</param>
         /// <returns>An enumerable of child vertices.</returns>
-        async IAsyncEnumerable<TVertex> GetChildVertices(Identity id)
-        {
-            // This default implementation is extremely simple so in most cases it should not be overridden.
-            TVertex vertex = await GetVertex(id);
-            foreach (Edge outEdge in vertex.OutEdges)
-                yield return await GetVertex(outEdge.Target);
-        }
+        IAsyncEnumerable<TVertex> GetChildVertices(Identity id);
     }
 }

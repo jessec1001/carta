@@ -229,5 +229,17 @@ namespace CartaCore.Data
             );
             return Task.FromResult(inoutVertex).AsITask();
         }
+        public async IAsyncEnumerable<InOutVertex> GetParentVertices(Identity id)
+        {
+            InOutVertex vertex = await GetVertex(id);
+            foreach (Edge inEdge in vertex.InEdges)
+                yield return await GetVertex(inEdge.Source);
+        }
+        public async IAsyncEnumerable<InOutVertex> GetChildVertices(Identity id)
+        {
+            InOutVertex vertex = await GetVertex(id);
+            foreach (Edge outEdge in vertex.OutEdges)
+                yield return await GetVertex(outEdge.Target);
+        }
     }
 }
