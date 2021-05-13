@@ -6,6 +6,7 @@ using MorseCode.ITask;
 
 using CartaCore.Data;
 using CartaCore.Serialization;
+using System.Threading.Tasks;
 
 namespace CartaCore.Workflow.Action
 {
@@ -14,6 +15,7 @@ namespace CartaCore.Workflow.Action
         IDynamicGraph<IVertex>,
         IEntireGraph
     {
+        public string Id { get; set; }
         public string Name { get; set; }
 
         protected override bool ShouldProvide(Type type)
@@ -24,7 +26,7 @@ namespace CartaCore.Workflow.Action
             return base.ShouldProvide(type);
         }
 
-        private async ITask<IVertex> GetCombinedVertex(Identity id)
+        private async ITask<IVertex> GetCombinedVertex()
         {
             IDynamicGraph<IVertex> dynamic = Graph.Provide<IDynamicGraph<IVertex>>();
 
@@ -33,7 +35,6 @@ namespace CartaCore.Workflow.Action
             List<Edge> outEdges = new List<Edge>();
             await foreach (IVertex subvertex in Selector.GetVertices())
             {
-                if (id is null) id = subvertex.Identifier;
                 foreach (Property property in subvertex.Properties)
                 {
                     Property combinedProperty = properties.FirstOrDefault(prop => prop.Identifier.Equals(property.Identifier));
@@ -48,7 +49,7 @@ namespace CartaCore.Workflow.Action
                     {
                         IVertex sourceVertex = await dynamic.GetVertex(inEdge.Source);
                         if (!await Selector.ContainsVertex(sourceVertex))
-                            inEdges.Add(new Edge(inEdge.Identifier, inEdge.Source, id, inEdge.Properties));
+                            inEdges.Add(new Edge(inEdge.Identifier, inEdge.Source, Identity.Create(Id), inEdge.Properties));
                     }
                 }
                 if (subvertex is IOutVertex outVertex)
@@ -57,15 +58,34 @@ namespace CartaCore.Workflow.Action
                     {
                         IVertex targetVertex = await dynamic.GetVertex(outEdge.Target);
                         if (!await Selector.ContainsVertex(targetVertex))
-                            outEdges.Add(new Edge(outEdge.Identifier, id, outEdge.Target, outEdge.Properties));
+                            outEdges.Add(new Edge(outEdge.Identifier, Identity.Create(Id), outEdge.Target, outEdge.Properties));
                     }
                 }
             }
-            IVertex vertex = new InOutVertex(id, properties, inEdges, outEdges)
+            IVertex vertex = new InOutVertex(Identity.Create(Id), properties, inEdges, outEdges)
             {
                 Label = Name
             };
             return vertex;
+        }
+
+        public override async Task<Edge> TransformEdge(Edge edge)
+        {
+            if (Graph.TryProvide(out IDynamicGraph<IVertex> dynamic))
+            {
+                IVertex source = await dynamic.GetVertex(edge.Source);
+                IVertex target = await dynamic.GetVertex(edge.Target);
+
+                Identity sourceId = edge.Source;
+                Identity targetId = edge.Target;
+
+                if (await Selector.ContainsVertex(source))
+                    sourceId = Identity.Create(Id);
+                if (await Selector.ContainsVertex(target))
+                    targetId = Identity.Create(Id);
+                return new Edge(edge.Identifier, sourceId, targetId, edge.Properties);
+            }
+            else throw new NotSupportedException();
         }
 
         public async ITask<IVertex> GetVertex(Identity id)
@@ -74,7 +94,7 @@ namespace CartaCore.Workflow.Action
             {
                 IVertex vertex = await dynamic.GetVertex(id);
                 if (await Selector.ContainsVertex(vertex))
-                    return await GetCombinedVertex(null);
+                    return await GetCombinedVertex();
                 else return vertex;
             }
             else throw new NotSupportedException();
@@ -86,7 +106,7 @@ namespace CartaCore.Workflow.Action
                 await foreach (IVertex vertex in entire.GetVertices())
                 {
                     if (await Selector.ContainsVertex(vertex))
-                        yield return await GetCombinedVertex(null);
+                        yield return await GetCombinedVertex();
                     else yield return vertex;
                 }
             }
