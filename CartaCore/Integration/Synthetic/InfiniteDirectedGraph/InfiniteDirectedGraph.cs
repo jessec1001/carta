@@ -92,11 +92,11 @@ namespace CartaCore.Integration.Synthetic
         }
 
         /// <inheritdoc />
-        public override bool IsDirected => true;
+        public override bool IsDirected() => true;
         /// <inheritdoc />
-        public override bool IsDynamic => true;
+        public override bool IsDynamic() => true;
         /// <inheritdoc />
-        public override bool IsFinite => false;
+        public override bool IsFinite() => false;
 
         /// <inheritdoc />
         public IEnumerable<Identity> GetRoots()

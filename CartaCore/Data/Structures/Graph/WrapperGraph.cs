@@ -6,9 +6,9 @@ namespace CartaCore.Data
     {
         protected abstract IGraph WrappedGraph { get; }
 
-        public bool IsDirected => WrappedGraph is null ? false : WrappedGraph.IsDirected;
-        public bool IsDynamic => WrappedGraph is null ? false : WrappedGraph.IsDynamic;
-        public bool IsFinite => WrappedGraph is null ? false : WrappedGraph.IsFinite;
+        public bool IsDirected() => WrappedGraph is null ? false : WrappedGraph.IsDirected();
+        public bool IsDynamic() => WrappedGraph is null ? false : WrappedGraph.IsDynamic();
+        public bool IsFinite() => WrappedGraph is null ? false : WrappedGraph.IsFinite();
 
         public virtual bool TryProvide<U>(out U func) where U : IGraph
         {

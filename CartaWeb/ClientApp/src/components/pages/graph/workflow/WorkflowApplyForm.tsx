@@ -73,7 +73,7 @@ export default class WorkflowApplyForm extends Component<
   }
 
   render() {
-    const { open, onSelect, onCancel, ...rest } = this.props;
+    const { open, onApply, onCancel, ...rest } = this.props;
     return (
       <div {...rest}>
         <Modal isOpen={this.state.open} toggle={this.handleToggle}>
