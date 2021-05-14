@@ -13,6 +13,9 @@
 
   <PropertyGroup Condition=" '$(RunConfiguration)' == 'AppWeb' " />
   <ItemGroup>
+    <PackageReference Include="JsonSchema.Net" Version="1.10.2" />
+    <PackageReference Include="JsonSchema.Net.Generation" Version="1.3.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="5.0.5" />
     <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="5.0.3" />
     <PackageReference Include="NUlid" Version="1.5.0" />
   </ItemGroup>

@@ -273,6 +273,10 @@ namespace CartaWeb.Serialization.Json
         [JsonPropertyName("values")]
         [JsonConverter(typeof(JsonObjectEnumerableConverter))]
         public List<object> Values { get; set; }
+        /// <summary>
+        /// Gets or sets the subproperties of the property.
+        /// </summary>
+        /// <value>The property metadata.</value>
         [JsonPropertyName("properties")]
         public List<VisFormatProperty> Subproperties { get; set; }
 

@@ -56,13 +56,13 @@ namespace CartaCore.Serialization.Json
 
                     // Find the derived type from the discriminant.
                     string discriminant = discriminantProperty.GetString();
-                    Discriminant.TryGetType(typeToConvert, discriminant, out Type derivedType);
+                    Discriminant.TryGetType(typeToConvert, discriminant, out DiscriminantType derivedType);
 
                     // Deserialize the derived type if possible.
                     if (derivedType is null)
                         throw new JsonException();
                     else
-                        return (T)JsonSerializer.Deserialize(document.RootElement.GetRawText(), derivedType, options);
+                        return (T)JsonSerializer.Deserialize(document.RootElement.GetRawText(), derivedType.Type, options);
                 }
             }
             /// <inheritdoc />

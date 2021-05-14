@@ -1,0 +1,31 @@
+.notification-alert {
+  margin: 0.2rem;
+  padding: 0.5rem;
+  color: #ffffff;
+  background-color: #1f2022;
+  border-radius: 0.2rem;
+  width: 100%;
+}
+.notification-alert-header {
+  display: flex;
+  align-items: center;
+}
+.notification-alert-severity {
+  display: block;
+  margin: 0.5rem;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 100%;
+}
+.notification-alert-title {
+  font-size: 0.9rem;
+  flex-grow: 1;
+}
+.notification-alert-message {
+  font-size: 0.8rem;
+}
+.notification-alert-close {
+  cursor: pointer;
+  padding: 0rem;
+  margin: -0.5rem 0rem 0.5rem 0.5rem;
+}

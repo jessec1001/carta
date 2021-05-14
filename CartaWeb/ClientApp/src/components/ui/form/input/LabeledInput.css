@@ -1,0 +1,18 @@
+.labeled-input {
+    padding: 0.5rem;
+    display: flex;
+    align-items: center;
+}
+.labeled-input-input {
+    flex-grow: 1;
+    border-radius: 0.2rem;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+}
+.labeled-input-input:disabled {
+    background-color: rgba(83, 184, 83, 0.1);
+}
+.labeled-input-label {
+    margin: 0rem;
+    padding: 0rem;
+    width: 8rem;
+}

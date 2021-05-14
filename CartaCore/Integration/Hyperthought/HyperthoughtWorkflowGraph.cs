@@ -181,5 +181,13 @@ namespace CartaCore.Integration.Hyperthought
             foreach (HyperthoughtWorkflow workflow in workflows)
                 yield return VertexFromWorkflow(workflow);
         }
+
+        /// <summary>
+        /// Ensures that the graph is valid and authorized. Throws an exception if not.
+        /// </summary>
+        public async Task EnsureValidity()
+        {
+            await Api.GetWorkflowAsync(Id);
+        }
     }
 }

@@ -15,6 +15,7 @@ using CartaCore.Workflow;
 using CartaCore.Workflow.Selection;
 using CartaWeb.Models.Data;
 using CartaWeb.Serialization.Json;
+using System.Net.Http;
 
 namespace CartaWeb.Controllers
 {
@@ -192,11 +193,23 @@ namespace CartaWeb.Controllers
             [FromRoute] DataSource source
         )
         {
-            if (!DataResolvers.ContainsKey(source)) return NotFound();
+            try
+            {
+                if (!DataResolvers.ContainsKey(source)) return NotFound();
 
-            IList<string> resources = await DataResolvers[source].FindResourcesAsync(this);
-            if (resources is null) return NotFound();
-            else return Ok(resources);
+                IList<string> resources = await DataResolvers[source].FindResourcesAsync(this);
+                if (resources is null) return NotFound();
+                else return Ok(resources);
+            }
+            catch (HttpRequestException requestException)
+            {
+                // Forward the HTTP exception to the caller.
+                return StatusCode
+                (
+                    (int)requestException.StatusCode,
+                    new { Source = source }
+                );
+            }
         }
         /// <summary>
         /// Creates a graph resource inside the specified data source. The graph data must be specified in the one of
@@ -216,13 +229,25 @@ namespace CartaWeb.Controllers
             [FromBody] FiniteGraph graph
         )
         {
-            if (source == DataSource.User)
+            try
             {
-                int id = await SaveGraphAsync(graph);
-                graph.Identifier = Identity.Create(id);
-                return Ok(graph);
+                if (source == DataSource.User)
+                {
+                    int id = await SaveGraphAsync(graph);
+                    graph.Identifier = Identity.Create(id);
+                    return Ok(graph);
+                }
+                return BadRequest();
             }
-            return BadRequest();
+            catch (HttpRequestException requestException)
+            {
+                // Forward the HTTP exception to the caller.
+                return StatusCode
+                (
+                    (int)requestException.StatusCode,
+                    new { Source = source }
+                );
+            }
         }
         /// <summary>
         /// Deletes a graph resource specified by a data source and resource.
@@ -238,15 +263,27 @@ namespace CartaWeb.Controllers
             [FromRoute] string resource
         )
         {
-            if (source == DataSource.User)
+            try
             {
-                if (!int.TryParse(resource, out int id)) return BadRequest();
-                if (await DeleteGraphAsync(id))
-                    return Ok();
-                else
-                    return NotFound();
+                if (source == DataSource.User)
+                {
+                    if (!int.TryParse(resource, out int id)) return BadRequest();
+                    if (await DeleteGraphAsync(id))
+                        return Ok();
+                    else
+                        return NotFound();
+                }
+                return BadRequest();
             }
-            return BadRequest();
+            catch (HttpRequestException requestException)
+            {
+                // Forward the HTTP exception to the caller.
+                return StatusCode
+                (
+                    (int)requestException.StatusCode,
+                    new { Source = source, Resource = resource }
+                );
+            }
         }
 
         // [HttpGet("{source}/{resource}")]
@@ -323,39 +360,42 @@ namespace CartaWeb.Controllers
             [FromQuery(Name = "workflow")] string workflowId = null
         )
         {
-            // Get the base graph and check if it was actually retrieved.
-            IGraph graph = await LookupData(source, resource);
-            if (graph is null) return NotFound();
-
-            // Apply workflow.
-            if (workflowId.HasValue)
+            try
             {
-                Workflow workflow = await WorkflowController.LoadWorkflowAsync(workflowId.Value);
-                if (workflow is null) return NotFound();
-                else
-                    graph = workflow.Apply(graph);
+                // Get the base graph and check if it was actually retrieved.
+                IGraph graph = await LookupData(source, resource);
+                if (graph is null) return NotFound();
+
+                // Apply workflow.
+                if (workflowId is not null)
+                {
+                    Workflow workflow = await WorkflowController.LoadWorkflowAsync(workflowId);
+                    if (workflow is null) return NotFound();
+                    else
+                        graph = workflow.Apply(graph);
+                }
+
+                // We find the appropriate selector class corresponding to the specified discriminant.
+                // We wrap our original graph in this selector graph to provide selection-specific data retrieval.
+                Discriminant.TryGetValue<Selector>(selector, out Selector selectorGraph);
+                if (selectorGraph is null)
+                    return BadRequest();
+                await TryUpdateModelAsync(selectorGraph, selectorGraph.GetType(), "");
+                selectorGraph.Graph = graph;
+                graph = selectorGraph;
+
+                // Return the graph with an okay status.
+                return Ok(graph);
             }
-
-            // We find the appropriate selector class corresponding to the specified discriminant.
-            // We wrap our original graph in this selector graph to provide selection-specific data retrieval.
-            Discriminant.TryGetValue<Selector>(selector, out Selector selectorGraph);
-            if (selectorGraph is null)
-                return BadRequest();
-            await TryUpdateModelAsync(selectorGraph, selectorGraph.GetType(), "");
-            selectorGraph.Graph = graph;
-            graph = selectorGraph;
-
-            // Apply workflow.
-            if (workflowId is not null)
+            catch (HttpRequestException requestException)
             {
-                Workflow workflow = await WorkflowController.LoadWorkflowAsync(workflowId);
-                if (workflow is null) return NotFound();
-                else
-                    graph = await workflow.ApplyAsync(graph as IEntireGraph);
+                // Forward the HTTP exception to the caller.
+                return StatusCode
+                (
+                    (int)requestException.StatusCode,
+                    new { Source = source, Resource = resource }
+                );
             }
-
-            // Return the graph with an okay status.
-            return Ok(graph);
         }
     }
 }
