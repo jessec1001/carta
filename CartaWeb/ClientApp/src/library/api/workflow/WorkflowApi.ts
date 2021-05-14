@@ -3,14 +3,17 @@ import { Workflow, WorkflowOperation } from ".";
 
 class WorkflowApi {
   // #region Workflow CRUD
+  @GeneralApi.authorize()
   @GeneralApi.route("GET", "api/workflow")
   static async getWorfklowsAsync() {
     return (await GeneralApi.requestGeneralAsync()) as Workflow[];
   }
+  @GeneralApi.authorize()
   @GeneralApi.route("GET", "api/workflow/{workflowId}")
   static async getWorkflowAsync({ workflowId }: { workflowId: string }) {
     return (await GeneralApi.requestGeneralAsync({ workflowId })) as Workflow;
   }
+  @GeneralApi.authorize()
   @GeneralApi.route("POST", "api/workflow")
   static async createWorkflowAsync({ workflow }: { workflow: Workflow }) {
     return (await GeneralApi.requestGeneralAsync(
@@ -18,10 +21,12 @@ class WorkflowApi {
       { body: JSON.stringify(workflow) }
     )) as Workflow;
   }
+  @GeneralApi.authorize()
   @GeneralApi.route("DELETE", "api/workflow/{workflowId}")
   static async deleteWorkflowAsync({ workflowId }: { workflowId: string }) {
     return (await GeneralApi.requestGeneralAsync({ workflowId })) as null;
   }
+  @GeneralApi.authorize()
   @GeneralApi.route("PATCH", "api/workflow/{workflowId}")
   static async updateWorkflowAsync({ workflow }: { workflow: Workflow }) {
     return (await GeneralApi.requestGeneralAsync(
@@ -32,6 +37,7 @@ class WorkflowApi {
   // #endregion
 
   // #region Workflow Operation CRUD
+  @GeneralApi.authorize()
   @GeneralApi.route("GET", "api/workflow/{workflowId}/operations")
   static async getWorkflowOperationsAsync({
     workflowId,
@@ -42,6 +48,7 @@ class WorkflowApi {
       workflowId,
     })) as WorkflowOperation[];
   }
+  @GeneralApi.authorize()
   @GeneralApi.route("GET", "api/workflow/{workflowId}/operations/{index}")
   static async getWorkflowOperationAsync({
     workflowId,
@@ -55,6 +62,7 @@ class WorkflowApi {
       index,
     })) as WorkflowOperation;
   }
+  @GeneralApi.authorize()
   @GeneralApi.route("POST", "api/workflow/{workflowId}/operations/{index?}")
   static async insertWorkflowOperationAsync({
     operation,
@@ -70,6 +78,7 @@ class WorkflowApi {
       { body: JSON.stringify(operation) }
     )) as WorkflowOperation;
   }
+  @GeneralApi.authorize()
   @GeneralApi.route("DELETE", "api/workflow/{workflowId}/operations/{index?}")
   static async removeWorkflowOperationAsync({
     workflowId,
@@ -83,6 +92,7 @@ class WorkflowApi {
       index: index ?? "",
     })) as null;
   }
+  @GeneralApi.authorize()
   @GeneralApi.route("PATCH", "api/workflow/{workflowId}/operations{index}")
   static async updateWorkflowOperationAsync({
     operation,

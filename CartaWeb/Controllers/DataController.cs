@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Security.Claims;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -15,7 +17,6 @@ using CartaCore.Workflow;
 using CartaCore.Workflow.Selection;
 using CartaWeb.Models.Data;
 using CartaWeb.Serialization.Json;
-using System.Net.Http;
 
 namespace CartaWeb.Controllers
 {
@@ -369,7 +370,12 @@ namespace CartaWeb.Controllers
                 // Apply workflow.
                 if (workflowId is not null)
                 {
-                    Workflow workflow = await WorkflowController.LoadWorkflowAsync(workflowId);
+                    // We need to check if the user is authenticated in order to access workflows.
+                    if (!User.Identity.IsAuthenticated)
+                        return Forbid();
+
+                    string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                    Workflow workflow = await WorkflowController.LoadWorkflowAsync(userId, workflowId);
                     if (workflow is null) return NotFound();
                     else
                         graph = workflow.Apply(graph);

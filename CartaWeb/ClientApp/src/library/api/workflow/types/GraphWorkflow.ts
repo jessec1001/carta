@@ -60,9 +60,11 @@ export default class GraphWorkflow {
         if (props === null) throw Error();
       }
       const workflowResource = await WorkflowApi.createWorkflowAsync({
-        name: "Unnamed Workflow",
-        operations: [],
-        ...props,
+        workflow: {
+          name: "Unnamed Workflow",
+          operations: [],
+          ...props,
+        },
       });
       this._id = workflowResource.id;
       this._callEvent("workflowCreated");

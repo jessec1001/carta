@@ -1,8 +1,7 @@
 a.link {
-    display: block;
-    color: rgb(83, 184, 83);
-    text-decoration: none;
+  display: block;
+  text-decoration: none;
 }
 a.link:hover {
-    color: #535353;
+  color: #535353;
 }

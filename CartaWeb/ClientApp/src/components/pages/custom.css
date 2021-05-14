@@ -1,5 +1,12 @@
 * {
-  font-family: 'Source Sans Pro', sans-serif;
+  font-family: "Source Sans Pro", sans-serif;
+}
+
+a {
+  color: #409c40;
+}
+a:hover {
+  color: #1d751d;
 }
 
 ::selection {

@@ -1,5 +1,7 @@
 import queryString from "query-string";
 import { ApiException } from "library/exceptions";
+import Logging, { LogSeverity, LogWidget } from "library/logging";
+import AuthenticationWidget from "library/logging/widgets/AuthenticationWidget";
 
 class GeneralApi {
   static $routes: {
@@ -96,6 +98,44 @@ class GeneralApi {
     };
     return wrapper;
   }
+  static authorize() {
+    const wrapper = (
+      target: any,
+      key: string | Symbol,
+      descriptor: TypedPropertyDescriptor<(...args: any[]) => Promise<any>>
+    ) => {
+      const original = descriptor.value;
+      if (original) {
+        const func = async (...args: any[]) => {
+          try {
+            const ret = await original(...args);
+            return ret;
+          } catch (err) {
+            if (err instanceof ApiException) {
+              if (err.status === 0) {
+                Logging.log({
+                  severity: LogSeverity.Error,
+                  source: "General API",
+                  title: "Authentication Required",
+                  widget: AuthenticationWidget(),
+                  sticky: true,
+                } as LogWidget);
+              }
+            }
+            throw err;
+          }
+        };
+
+        return {
+          ...descriptor,
+          value: func,
+        } as TypedPropertyDescriptor<(...args: any[]) => any>;
+      } else {
+        return descriptor;
+      }
+    };
+    return wrapper;
+  }
 
   static async requestGeneralAsync(
     apiParameters?: Record<string, any>,
@@ -108,7 +148,13 @@ class GeneralApi {
 
     // Make the general request.
     // Return the JSON data upon success and the an exception upon failure.
-    const response = await fetch(formattedUrl, formattedRequest);
+    const response = await fetch(formattedUrl, {
+      ...formattedRequest,
+      redirect: "manual",
+    });
+    if (response.type === "opaqueredirect") {
+      throw new ApiException(response);
+    }
     if (response.ok) {
       return response.json();
     } else {
