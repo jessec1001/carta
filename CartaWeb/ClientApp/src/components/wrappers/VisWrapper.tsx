@@ -14,6 +14,9 @@ export interface VisWrapperProps {
 
   onClick?: (params?: any) => void;
   onDoubleClick?: (params?: any) => void;
+  onClickNode?: (params?: any) => void;
+  onClickEdge?: (params?: any) => void;
+  onClickSpace?: (params?: any) => void;
   onContext?: (params?: any) => void;
   onHold?: (params?: any) => void;
   onRelease?: (params?: any) => void;
@@ -23,6 +26,7 @@ export interface VisWrapperProps {
   onDeselectNode?: (params?: any) => void;
   onDeselectEdge?: (params?: any) => void;
   onExecuteNode?: (params?: any) => void;
+  onExecuteEdge?: (params?: any) => void;
   onDragStart?: (params?: any) => void;
   onDragging?: (params?: any) => void;
   onDragEnd?: (params?: any) => void;
@@ -94,6 +98,62 @@ export default class VisWrapper extends Component<VisWrapperProps> {
   registerEvents() {
     if (!this.network) return;
 
+    // Synthetic events.
+    this.network.on("click", (event) => {
+      const nodeId = this.network?.getNodeAt(event.pointer.DOM);
+      const edgeId = this.network?.getEdgeAt(event.pointer.DOM);
+      if (nodeId) {
+        if (this.props.onClickNode)
+          this.props.onClickNode({
+            event: event.event,
+            pointer: event.pointer,
+            node: nodeId,
+          });
+      } else if (edgeId) {
+        if (this.props.onClickEdge)
+          this.props.onClickEdge({
+            event: event.event,
+            pointer: event.pointer,
+            edge: edgeId,
+          });
+      } else {
+        if (this.props.onClickSpace)
+          this.props.onClickSpace({
+            event: event.event,
+            pointer: event.pointer,
+          });
+      }
+    });
+    this.network.on("doubleClick", (event) => {
+      const nodeId = this.network?.getNodeAt(event.pointer.DOM);
+      const edgeId = this.network?.getEdgeAt(event.pointer.DOM);
+      if (nodeId) {
+        if (this.props.onExecuteNode)
+          this.props.onExecuteNode({
+            event: event.event,
+            pointer: event.pointer,
+            node: nodeId,
+          });
+      } else if (edgeId) {
+        if (this.props.onExecuteEdge)
+          this.props.onExecuteEdge({
+            event: event.event,
+            pointer: event.pointer,
+            edge: edgeId,
+          });
+      }
+    });
+
+    // Stateless selections.
+    this.network.on("click", () => {
+      if (this.props.selection) this.network?.selectNodes(this.props.selection);
+    });
+
+    // Custom behavior.
+    this.network.on("beforeDrawing", this.handleRedraw);
+    this.network.on("resize", this.handleResize);
+
+    // Standard events.
     if (this.props.onClick) this.network.on("click", this.props.onClick);
     if (this.props.onDoubleClick)
       this.network.on("doubleClick", this.props.onDoubleClick);
@@ -157,33 +217,6 @@ export default class VisWrapper extends Component<VisWrapperProps> {
       this.network.on("animationFinished", this.props.onAnimationFinished);
     if (this.props.onConfigChange)
       this.network.on("configChange", this.props.onConfigChange);
-
-    // Synthetic events.
-    this.network.on("click", (event) => {
-      if (!this.props.onDeselectNode) return;
-      if (event.nodes.length === 0) {
-        const id = this.network?.getNodeAt(event.pointer.DOM);
-        if (!id) {
-          this.props.onDeselectNode(event);
-        }
-      }
-    });
-    this.network.on("doubleClick", (event) => {
-      if (!this.props.onExecuteNode) return;
-      const id = this.network?.getNodeAt(event.pointer.DOM);
-      if (id) {
-        this.props.onExecuteNode(id);
-      }
-    });
-
-    // Stateless selections.
-    this.network.on("click", () => {
-      if (this.props.selection) this.network?.selectNodes(this.props.selection);
-    });
-
-    // Custom behavior.
-    this.network.on("beforeDrawing", this.handleRedraw);
-    this.network.on("resize", this.handleResize);
   }
 
   componentDidMount() {

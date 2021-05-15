@@ -93,22 +93,29 @@ export default class GraphWorkflow {
     this._eventHandlers[type].delete(handler);
   }
 
-  undo() {
+  undo(remove?: boolean) {
     if (this._userOperationIndex > 0) {
       const userOperation = this._userOperations[this._userOperationIndex - 1];
       if (userOperation.operation === "selector") {
         this._selector = userOperation.selector;
-        this._selectorAugment = userOperation.selectorAugment;
+        this._selectorAugment = {
+          include: [...userOperation.selectorAugment.include],
+          exclude: [...userOperation.selectorAugment.exclude],
+        };
         this._callEvent("selectorChanged");
       }
       if (userOperation.operation === "action" && userOperation.action) {
         this._selector = userOperation.selector;
-        this._selectorAugment = userOperation.selectorAugment;
+        this._selectorAugment = {
+          include: [...userOperation.selectorAugment.include],
+          exclude: [...userOperation.selectorAugment.exclude],
+        };
         this._removeOperation().finally(() => {
           this._callEvent("workflowChanged");
         });
       }
       this._userOperationIndex--;
+      if (remove) this._userOperations.splice(this._userOperationIndex + 1);
     }
   }
   redo() {
@@ -116,12 +123,18 @@ export default class GraphWorkflow {
       const userOperation = this._userOperations[this._userOperationIndex + 1];
       if (userOperation.operation === "selector") {
         this._selector = userOperation.selector;
-        this._selectorAugment = userOperation.selectorAugment;
+        this._selectorAugment = {
+          include: [...userOperation.selectorAugment.include],
+          exclude: [...userOperation.selectorAugment.exclude],
+        };
         this._callEvent("selectorChanged");
       }
       if (userOperation.operation === "action" && userOperation.action) {
         this._selector = userOperation.selector;
-        this._selectorAugment = userOperation.selectorAugment;
+        this._selectorAugment = {
+          include: [...userOperation.selectorAugment.include],
+          exclude: [...userOperation.selectorAugment.exclude],
+        };
         this._appendOperation({
           actor: userOperation.action,
           selector: this.getSelector(),
@@ -170,7 +183,7 @@ export default class GraphWorkflow {
     if (this._selectorAugment.include.length > 0) {
       const includeSelector: SelectorInclude = {
         type: "include",
-        ids: this._selectorAugment.include,
+        ids: [...this._selectorAugment.include],
       };
       selector = {
         type: "or",
@@ -180,7 +193,7 @@ export default class GraphWorkflow {
     if (this._selectorAugment.exclude.length > 0) {
       const excludeSelector: SelectorExclude = {
         type: "exclude",
-        ids: this._selectorAugment.exclude,
+        ids: [...this._selectorAugment.exclude],
       };
       selector = {
         type: "and",
@@ -202,8 +215,10 @@ export default class GraphWorkflow {
     ids.forEach((id) => {
       const excludeIndex = this._selectorAugment.exclude.indexOf(id);
       if (excludeIndex > -1) {
+        this._selectorAugment.exclude = [...this._selectorAugment.exclude];
         this._selectorAugment.exclude.splice(excludeIndex, 1);
       } else {
+        this._selectorAugment.include = [...this._selectorAugment.include];
         this._selectorAugment.include.push(id);
       }
     });
@@ -214,8 +229,10 @@ export default class GraphWorkflow {
     ids.forEach((id) => {
       const includeIndex = this._selectorAugment.include.indexOf(id);
       if (includeIndex > -1) {
+        this._selectorAugment.include = [...this._selectorAugment.include];
         this._selectorAugment.include.splice(includeIndex, 1);
       } else {
+        this._selectorAugment.exclude = [...this._selectorAugment.exclude];
         this._selectorAugment.exclude.push(id);
       }
     });
