@@ -124,7 +124,7 @@ namespace CartaWeb
                 options.ForwardedHeaders =
                     ForwardedHeaders.XForwardedFor |
                     ForwardedHeaders.XForwardedProto;
-                options.ForwardLimit = null;
+                // options.ForwardLimit = null;
 
                 // Only loopback proxies are allowed by default.
                 // Clear that restriction because forwarders are enabled by explicit 
@@ -144,13 +144,7 @@ namespace CartaWeb
         /// <param name="env">The web host environment.</param>
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            app.UseForwardedHeaders(new ForwardedHeadersOptions
-            {
-                ForwardedHeaders =
-                    ForwardedHeaders.XForwardedFor |
-                    ForwardedHeaders.XForwardedProto,
-                ForwardLimit = null
-            });
+            app.UseForwardedHeaders();
             app.Use(async (context, next) =>
             {
                 // Request method, scheme, and path
