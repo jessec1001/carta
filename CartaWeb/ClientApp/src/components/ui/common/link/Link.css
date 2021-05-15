@@ -1,0 +1,7 @@
+a.link {
+  display: block;
+  text-decoration: none;
+}
+a.link:hover {
+  color: #535353;
+}

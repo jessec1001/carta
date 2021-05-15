@@ -31,34 +31,32 @@ namespace CartaWeb.Models.Data
         /// <inheritdoc />
         public async Task<Graph> GenerateAsync(ControllerBase controller, string resource)
         {
-            if (controller.Request.Query.ContainsKey("api"))
+            // We need to find the UUID associated with a HyperThought resource if we are passed an alias.
+            HyperthoughtApi api = new HyperthoughtApi(controller.Request.Query["api"].ToString());
+            Guid uuid = Guid.Empty;
+            if (!Guid.TryParse(resource, out uuid))
             {
-                // We need to find the UUID associated with a HyperThought resource if we are passed an alias.
-                HyperthoughtApi api = new HyperthoughtApi(controller.Request.Query["api"].ToString());
-                Guid uuid = Guid.Empty;
-                if (!Guid.TryParse(resource, out uuid))
+                // Find the alias if we don't currently have it or it is outdated.
+                if (!Aliases.TryGetValue(resource, out (DateTime timestamp, Guid uuid) alias) ||
+                    (DateTime.Now - alias.timestamp) > AliasExpiration)
                 {
-                    // Find the alias if we don't currently have it or it is outdated.
-                    if (!Aliases.TryGetValue(resource, out (DateTime timestamp, Guid uuid) alias) ||
-                        (DateTime.Now - alias.timestamp) > AliasExpiration)
-                    {
-                        // Get the alias.
-                        uuid = await api.GetWorkflowIdFromPathAsync(resource);
-                        if (uuid == Guid.Empty) return null;
+                    // Get the alias.
+                    uuid = await api.GetWorkflowIdFromPathAsync(resource);
+                    if (uuid == Guid.Empty) return null;
 
-                        // Make sure we don't use too many aliases and add the new alias.
-                        if (Aliases.Count >= AliasCount) Aliases.Clear();
-                        Aliases.Remove(resource);
-                        Aliases.Add(resource, (DateTime.Now, uuid));
-                    }
-                    else
-                    {
-                        uuid = alias.uuid;
-                    }
+                    // Make sure we don't use too many aliases and add the new alias.
+                    if (Aliases.Count >= AliasCount) Aliases.Clear();
+                    Aliases.Remove(resource);
+                    Aliases.Add(resource, (DateTime.Now, uuid));
                 }
-                return new HyperthoughtWorkflowGraph(api, uuid);
+                else
+                {
+                    uuid = alias.uuid;
+                }
             }
-            return null;
+            HyperthoughtWorkflowGraph graph = new HyperthoughtWorkflowGraph(api, uuid);
+            await graph.EnsureValidity();
+            return graph;
         }
 
         /// <inheritdoc />

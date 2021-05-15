@@ -30,6 +30,6 @@ namespace CartaCore.Workflow
         /// The action that acts on vertices, edges, and properties specified by the selector. If not specified, there
         /// is no action applied.
         /// </value>
-        public ActionBase Action { get; set; }
+        public Actor Actor { get; set; }
     }
 }

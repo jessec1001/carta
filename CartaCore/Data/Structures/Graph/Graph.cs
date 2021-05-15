@@ -9,11 +9,11 @@ namespace CartaCore.Data
     public abstract class Graph : Element<Graph>, IGraph
     {
         /// <inheritdoc />
-        public abstract bool IsDirected { get; }
+        public abstract bool IsDirected();
         /// <inheritdoc />
-        public abstract bool IsDynamic { get; }
+        public abstract bool IsDynamic();
         /// <inheritdoc />
-        public abstract bool IsFinite { get; }
+        public abstract bool IsFinite();
 
         /// <summary>
         /// Initializes an instance of the <see cref="Graph"/> class with its specified identifier and a set of

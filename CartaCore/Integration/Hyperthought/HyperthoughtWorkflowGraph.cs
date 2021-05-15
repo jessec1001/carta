@@ -123,11 +123,11 @@ namespace CartaCore.Integration.Hyperthought
         }
 
         /// <inheritdoc />
-        public override bool IsFinite => true;
+        public override bool IsFinite() => true;
         /// <inheritdoc />
-        public override bool IsDirected => true;
+        public override bool IsDirected() => true;
         /// <inheritdoc />
-        public override bool IsDynamic => true;
+        public override bool IsDynamic() => true;
 
         /// <inheritdoc />
         public IEnumerable<Identity> GetRoots()
@@ -163,7 +163,13 @@ namespace CartaCore.Integration.Hyperthought
             for (int k = 0; k < idList.Count; k++)
                 yield return VertexFromWorkflow(await workflowTasks[k]);
         }
-
+        /// <inheritdoc />
+        public async IAsyncEnumerable<InOutVertex> GetParentVertices(Identity id)
+        {
+            InOutVertex vertex = await GetVertex(id);
+            foreach (Edge inEdge in vertex.InEdges)
+                yield return await GetVertex(inEdge.Target);
+        }
         /// <inheritdoc />
         public async IAsyncEnumerable<InOutVertex> GetChildVertices(Identity id)
         {
@@ -176,35 +182,12 @@ namespace CartaCore.Integration.Hyperthought
                 yield return VertexFromWorkflow(workflow);
         }
 
-        // /// <summary>
-        // /// Traverses the child vertices of the workflow graph in preorder fashion asynchronously.
-        // /// </summary>
-        // /// <param name="id">The identifier of the common ancestor vertex.</param>
-        // /// <returns>A preorder enumerable of child vertices.</returns>
-        // public async IAsyncEnumerable<Vertex> TraversePreorderVerticesAsync(Guid id)
-        // {
-        //     List<Task<IList<HyperthoughtWorkflow>>> workflowTasks = new List<Task<IList<HyperthoughtWorkflow>>>();
-
-        //     // Initialize the workflow tasks with the base vertex.
-        //     HyperthoughtWorkflow workflow = await Api.GetWorkflowAsync(id);
-        //     yield return VertexFromWorkflow(workflow);
-
-        //     // Get children until the vertices are traversed.
-        //     workflowTasks.Add(Api.GetWorkflowChildrenAsync(id));
-        //     while (workflowTasks.Count > 0)
-        //     {
-        //         int taskIndex = Task.WaitAny(workflowTasks.ToArray());
-
-        //         IList<HyperthoughtWorkflow> workflows = workflowTasks[taskIndex].Result;
-        //         foreach (HyperthoughtWorkflow childWorkflow in workflows)
-        //             yield return VertexFromWorkflow(childWorkflow);
-
-        //         workflowTasks.RemoveAt(taskIndex);
-        //         workflowTasks.AddRange(workflows
-        //             .Where(workflow => workflow.Content.ChildrenIds.Any())
-        //             .Select(workflow => Api.GetWorkflowChildrenAsync(workflow.Content.PrimaryKey))
-        //         );
-        //     }
-        // }
+        /// <summary>
+        /// Ensures that the graph is valid and authorized. Throws an exception if not.
+        /// </summary>
+        public async Task EnsureValidity()
+        {
+            await Api.GetWorkflowAsync(Id);
+        }
     }
 }

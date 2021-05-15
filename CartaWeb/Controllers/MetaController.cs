@@ -6,6 +6,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.Extensions.Logging;
 
+using Json.Schema;
+using Json.Schema.Generation;
+
+using CartaCore.Serialization;
+using CartaCore.Workflow.Action;
+using CartaCore.Workflow.Selection;
 using CartaWeb.Models.Meta;
 
 namespace CartaWeb.Controllers
@@ -241,6 +247,152 @@ namespace CartaWeb.Controllers
             }
 
             return endpoints;
+        }
+
+        /// <summary>
+        /// Gets a key-value listing of all available actions. The keys are the discriminant values used when querying
+        /// other endpoints. The values contain information about how to display this information to a user.
+        /// </summary>
+        /// <request name="Example"></request>
+        /// <returns status="200">A key-value listing of actions and their corresponding display properties.</returns>
+        /// <returns status="400">Occurs when the actions cannot be enumerated over.</returns>
+        [HttpGet("actors")]
+        public ActionResult<Dictionary<string, DiscriminantEntry>> GetActions()
+        {
+            // Try to convert all the discriminant types to an entries dictionary.
+            // The keys are the discriminants of the actions.
+            // The values are the display properties of the actions.
+            if (Discriminant.TryGetTypes<Actor>(out IEnumerable<DiscriminantType> actionTypes))
+            {
+                Dictionary<string, DiscriminantEntry> entries = actionTypes
+                    .ToDictionary
+                    (
+                        type => type.Discriminant,
+                        type => new DiscriminantEntry
+                        {
+                            Hidden = type.Hidden,
+                            Name = type.Name,
+                            Group = type.Group
+                        }
+                    );
+                return Ok(entries);
+            }
+            else return BadRequest();
+        }
+        /// <summary>
+        /// Gets the default values for a specified action. This value could be immediately posted back to the server
+        /// for use in other API calls.
+        /// </summary>
+        /// <param name="actor">The name of the action.</param>
+        /// <request name="Example - Increment">
+        ///     <arg name="action">increment</arg>
+        /// </request>
+        /// <returns status="200">An object representing the default properties of an action.</returns>
+        /// <returns status="400">Occurs when the action by the specified name could not be found.</returns>
+        [HttpGet("actors/{actor}")]
+        public ActionResult<Actor> GetActionDefault([FromRoute] string actor)
+        {
+            // Generate the default value for an action if the action is valid.
+            if (Discriminant.TryGetValue<Actor>(actor, out Actor actorValue))
+                return Ok(actorValue);
+            else
+                return BadRequest();
+        }
+        /// <summary>
+        /// Gets the schema for a specified action. This schema can be used to construct a value that can be posted
+        /// back to the server for use in other API calls.
+        /// </summary>
+        /// <param name="actor">The name of the action.</param>
+        /// <request name="Example - Increment">
+        ///     <arg name="action">increment</arg>
+        /// </request>
+        /// <returns status="200">An object representing the schema of an action.</returns>
+        /// <returns status="400">Occurs when the action by the specified name could not be found.</returns>
+        [HttpGet("actors/{actor}/schema")]
+        public ActionResult<JsonSchema> GetActionSchema([FromRoute] string actor)
+        {
+            // Generate the schema for an action if the action is valid.
+            if (Discriminant.TryGetType<Actor>(actor, out DiscriminantType actorType))
+            {
+                JsonSchemaBuilder schemaBuilder = new JsonSchemaBuilder();
+                JsonSchema schema = schemaBuilder.FromType(actorType.Type).Build();
+
+                return Ok(schema);
+            }
+            else return BadRequest();
+        }
+
+        /// <summary>
+        /// Gets a key-value listing of all available selectors. The keys are the discriminant values used when querying
+        /// other endpoints. The values contain information about how to display this information to a user.
+        /// </summary>
+        /// <request name="Example"></request>
+        /// <returns status="200">A key-value listing of selectors and their corresponding display properties.</returns>
+        /// <returns status="400">Occurs when the selectors cannot be enumerated over.</returns>
+        [HttpGet("selectors")]
+        public ActionResult<Dictionary<string, DiscriminantEntry>> GetSelectors()
+        {
+            // Try to convert all the discriminant types to an entries dictionary.
+            // The keys are the discriminants of the selectors.
+            // The values are the display properties of the selectors.
+            if (Discriminant.TryGetTypes<Selector>(out IEnumerable<DiscriminantType> selectorTypes))
+            {
+                Dictionary<string, DiscriminantEntry> entries = selectorTypes
+                    .ToDictionary
+                    (
+                        type => type.Discriminant,
+                        type => new DiscriminantEntry
+                        {
+                            Hidden = type.Hidden,
+                            Name = type.Name,
+                            Group = type.Group
+                        }
+                    );
+                return Ok(entries);
+            }
+            else return BadRequest();
+        }
+        /// <summary>
+        /// Gets the default values for a specified selector. This value could be immediately posted back to the server
+        /// for use in other API calls.
+        /// </summary>
+        /// <param name="selector">The name of the selector.</param>
+        /// <request name="Example - Descendants">
+        ///     <arg name="selector">descendants</arg>
+        /// </request>
+        /// <returns status="200">An object representing the default properties of an selector.</returns>
+        /// <returns status="400">Occurs when the selector by the specified name could not be found.</returns>
+        [HttpGet("selectors/{selector}")]
+        public ActionResult<Selector> GetSelectorDefault(string selector)
+        {
+            // Generate the default value for an selector if the selector is valid.
+            if (Discriminant.TryGetValue<Selector>(selector, out Selector selectorValue))
+                return Ok(selectorValue);
+            else
+                return BadRequest();
+        }
+        /// <summary>
+        /// Gets the schema for a specified selector. This schema can be used to construct a value that can be posted
+        /// back to the server for use in other API calls.
+        /// </summary>
+        /// <param name="selector">The name of the selector.</param>
+        /// <request name="Example - Descendants">
+        ///     <arg name="selector">descendants</arg>
+        /// </request>
+        /// <returns status="200">An object representing the schema of an selector.</returns>
+        /// <returns status="400">Occurs when the selector by the specified name could not be found.</returns>
+        [HttpGet("selectors/{selector}/schema")]
+        public ActionResult<JsonSchema> GetSelectorSchema(string selector)
+        {
+            // Generate the schema for an selector if the selector is valid.
+            if (Discriminant.TryGetType<Selector>(selector, out DiscriminantType selectorType))
+            {
+                JsonSchemaBuilder schemaBuilder = new JsonSchemaBuilder();
+                JsonSchema schema = schemaBuilder.FromType(selectorType.Type).Build();
+
+                return Ok(schema);
+            }
+            else return BadRequest();
         }
     }
 }

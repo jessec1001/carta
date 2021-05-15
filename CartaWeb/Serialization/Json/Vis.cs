@@ -92,8 +92,8 @@ namespace CartaWeb.Serialization.Json
 
             if (graph is Graph baseGraph) visFormat.Id = baseGraph.Identifier.ToString();
 
-            visFormat.Directed = graph.IsDirected;
-            visFormat.Dynamic = graph.IsDynamic;
+            visFormat.Directed = graph.IsDirected();
+            visFormat.Dynamic = graph.IsDynamic();
             visFormat.Nodes = await graph.GetVertices().SelectAwait
             (
                 node => new ValueTask<VisFormatNode>(Task.FromResult(new VisFormatNode(node)))
@@ -273,6 +273,10 @@ namespace CartaWeb.Serialization.Json
         [JsonPropertyName("values")]
         [JsonConverter(typeof(JsonObjectEnumerableConverter))]
         public List<object> Values { get; set; }
+        /// <summary>
+        /// Gets or sets the subproperties of the property.
+        /// </summary>
+        /// <value>The property metadata.</value>
         [JsonPropertyName("properties")]
         public List<VisFormatProperty> Subproperties { get; set; }
 
