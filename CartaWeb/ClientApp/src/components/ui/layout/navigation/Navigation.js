@@ -50,7 +50,7 @@ export class Navigation extends Component {
         >
           <Container>
             <NavbarBrand tag={Link} to="/">
-              <img src="carta.svg" alt="Carta" style={{ height: "1rem" }} />{" "}
+              <img src="carta.svg" alt="Carta" style={{ height: "2rem" }} />
               &nbsp; <span className="text-muted version">v{version}</span>
             </NavbarBrand>
             <NavbarToggler onClick={this.toggleNavbar} className="mr-2" />
