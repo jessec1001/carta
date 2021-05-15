@@ -34,8 +34,8 @@ export default class GraphVisualizer extends Component<
     this.handleAddNode = this.handleAddNode.bind(this);
     this.handleAddEdge = this.handleAddEdge.bind(this);
     this.handleExecuteNode = this.handleExecuteNode.bind(this);
-    this.handleSelectNode = this.handleSelectNode.bind(this);
-    this.handleDeselectNode = this.handleDeselectNode.bind(this);
+    this.handleClickNode = this.handleClickNode.bind(this);
+    this.handleClickSpace = this.handleClickSpace.bind(this);
     this.handleHoverNode = this.handleHoverNode.bind(this);
     this.handleBlurNode = this.handleBlurNode.bind(this);
     this.handleDragStart = this.handleDragStart.bind(this);
@@ -275,23 +275,25 @@ export default class GraphVisualizer extends Component<
 
   handleExecuteNode(event: any) {
     // Swap the expanded or collapsed state of the double clicked node.
-    const id = event as string;
+    const id = event.node as string;
     const graph = this.props.graph;
     const node: DataNode | null = graph.visibleNodes.get(id);
     if (node) {
       if (node.expanded) graph.collapseNode(id);
       else graph.expandNode(id);
     }
+
+    // Remove the previous pair of selection states corresponding to the clicks.
+    graph.workflow.undo(true);
+    graph.workflow.undo(true);
   }
-  handleSelectNode(event: any) {
+  handleClickNode(event: any) {
+    const id = event.node as string;
     const graph = this.props.graph;
-    const nodeIds: string[] = event.nodes;
-    const include = nodeIds.filter((id) => !graph.selection.includes(id));
-    const exclude = nodeIds.filter((id) => graph.selection.includes(id));
-    if (include.length > 0) graph.workflow.addSelectorNodes(include);
-    if (exclude.length > 0) graph.workflow.removeSelectorNodes(exclude);
+    if (graph.selection.includes(id)) graph.workflow.removeSelectorNodes([id]);
+    else graph.workflow.addSelectorNodes([id]);
   }
-  handleDeselectNode(event: any) {
+  handleClickSpace(event: any) {
     const graph = this.props.graph;
     if (graph.workflow.getSelector().type !== "none")
       graph.workflow.applySelector({ type: "none" });
@@ -336,8 +338,8 @@ export default class GraphVisualizer extends Component<
         onDragging={this.handleDragging}
         onDragEnd={this.handleDragEnd}
         onExecuteNode={this.handleExecuteNode}
-        onSelectNode={this.handleSelectNode}
-        onDeselectNode={this.handleDeselectNode}
+        onClickNode={this.handleClickNode}
+        onClickSpace={this.handleClickSpace}
       />
     );
   }
