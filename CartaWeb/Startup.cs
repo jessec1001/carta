@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
 
 using CartaCore.Persistence;
@@ -25,13 +26,16 @@ namespace CartaWeb
     /// </summary>
     public class Startup
     {
+        private readonly ILogger _logger;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="Startup"/> class.
         /// </summary>
         /// <param name="configuration">The configuration that is injected into this startup.</param>
-        public Startup(IConfiguration configuration)
+        public Startup(IConfiguration configuration, ILogger<Startup> logger)
         {
             Configuration = configuration;
+            _logger = logger;
         }
 
         /// <summary>
@@ -120,6 +124,7 @@ namespace CartaWeb
                 options.ForwardedHeaders =
                     ForwardedHeaders.XForwardedFor |
                     ForwardedHeaders.XForwardedProto;
+                options.ForwardLimit = null;
 
                 // Only loopback proxies are allowed by default.
                 // Clear that restriction because forwarders are enabled by explicit 
@@ -139,7 +144,33 @@ namespace CartaWeb
         /// <param name="env">The web host environment.</param>
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            app.UseForwardedHeaders();
+            app.UseForwardedHeaders(new ForwardedHeadersOptions
+            {
+                ForwardedHeaders =
+                    ForwardedHeaders.XForwardedFor |
+                    ForwardedHeaders.XForwardedProto,
+                ForwardLimit = null
+            });
+            app.Use(async (context, next) =>
+            {
+                // Request method, scheme, and path
+                _logger.LogCritical("Request Method: {Method}", context.Request.Method);
+                _logger.LogCritical("Request Scheme: {Scheme}", context.Request.Scheme);
+                _logger.LogCritical("Request Path: {Path}", context.Request.Path);
+
+                // Headers
+                foreach (var header in context.Request.Headers)
+                {
+                    _logger.LogCritical("Header: {Key}: {Value}", header.Key, header.Value);
+                }
+
+                // Connection: RemoteIp
+                _logger.LogCritical("Request RemoteIp: {RemoteIpAddress}",
+                    context.Connection.RemoteIpAddress);
+
+                await next();
+            });
+
             if (env.IsDevelopment())
                 app.UseDeveloperExceptionPage();
             else
