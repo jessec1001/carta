@@ -1,4 +1,6 @@
 using System;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -9,9 +11,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Net.Http.Headers;
 
+using CartaCore.Persistence;
 using CartaCore.Serialization.Json;
 using CartaWeb.Formatters;
 using CartaWeb.Models.Binders;
+using CartaWeb.Models.Options;
 
 namespace CartaWeb
 {
@@ -44,7 +48,22 @@ namespace CartaWeb
         /// <param name="services">The service collection used to add new services to.</param>
         public void ConfigureServices(IServiceCollection services)
         {
+            AwsAccessOptions awsOptions = Configuration
+                .GetSection("Deployment:AWS")
+                .Get<AwsAccessOptions>();
+            AwsDynamoDbOptions awsDynamoDbOptions = Configuration
+                .GetSection("Database:DynamoDb")
+                .Get<AwsDynamoDbOptions>();
+            services.
+                AddSingleton<INoSqlDbContext>(
+                    new DynamoDbContext
+                    (
+                        awsOptions.AccessKey,
+                        awsOptions.SecretKey,
+                        awsDynamoDbOptions.Table
+                    ));
 
+            // Formatting settings.
             services
                 .AddControllersWithViews(options =>
                 {
@@ -66,7 +85,29 @@ namespace CartaWeb
                     options.JsonSerializerOptions.Converters.Insert(2, new JsonObjectConverter());
                 });
 
-            // In production, the React files will be served from this directory
+            // Authentication settings.
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.DefaultSignOutScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+
+                options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
+            })
+            .AddCookie
+            (
+                options => Configuration
+                    .GetSection("Authentication:Cookies")
+                    .Bind(options)
+            )
+            .AddOpenIdConnect
+            (
+                options => Configuration
+                    .GetSection("Authentication:OpenIdConnect")
+                    .Bind(options)
+            );
+
+            // In production, the React files will be served from this directory.
             services.AddSpaStaticFiles(configuration =>
             {
                 configuration.RootPath = "ClientApp/build";
@@ -93,6 +134,7 @@ namespace CartaWeb
                 app.UseHsts();
             }
 
+            // HTTPS and SPA settings.
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseSpaStaticFiles(new StaticFileOptions()
@@ -122,7 +164,11 @@ namespace CartaWeb
                     }
                 }
             });
+
+            // Routing settings and Auth and AuthZ.
             app.UseRouting();
+            app.UseAuthentication();
+            app.UseAuthorization();
             app.UseEndpoints(endpoints => endpoints.MapDefaultControllerRoute());
             app.UseSpa(spa =>
             {

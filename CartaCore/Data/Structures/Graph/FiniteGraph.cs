@@ -14,9 +14,9 @@ namespace CartaCore.Data
     {
         protected bool Directed { get; init; }
 
-        public override bool IsDirected => Directed;
-        public override bool IsDynamic => true;
-        public override bool IsFinite => true;
+        public override bool IsDirected() => Directed;
+        public override bool IsDynamic() => true;
+        public override bool IsFinite() => true;
 
         private Dictionary<Identity, Vertex> VertexSet { get; init; }
         private Dictionary<Identity, HashSet<Edge>> InEdgeSet { get; init; }
@@ -124,7 +124,7 @@ namespace CartaCore.Data
 
         public bool AddEdge(Edge edge)
         {
-            if (IsDirected)
+            if (IsDirected())
             {
                 bool added = false;
                 added = AddInEdge(edge.Target, edge) || added;
@@ -152,7 +152,7 @@ namespace CartaCore.Data
         }
         public bool RemoveEdge(Edge edge)
         {
-            if (IsDirected)
+            if (IsDirected())
             {
                 bool removed = false;
                 removed = RemoveInEdge(edge.Target, edge) || removed;
@@ -228,6 +228,18 @@ namespace CartaCore.Data
                 outEdges ?? new HashSet<Edge>()
             );
             return Task.FromResult(inoutVertex).AsITask();
+        }
+        public async IAsyncEnumerable<InOutVertex> GetParentVertices(Identity id)
+        {
+            InOutVertex vertex = await GetVertex(id);
+            foreach (Edge inEdge in vertex.InEdges)
+                yield return await GetVertex(inEdge.Source);
+        }
+        public async IAsyncEnumerable<InOutVertex> GetChildVertices(Identity id)
+        {
+            InOutVertex vertex = await GetVertex(id);
+            foreach (Edge outEdge in vertex.OutEdges)
+                yield return await GetVertex(outEdge.Target);
         }
     }
 }

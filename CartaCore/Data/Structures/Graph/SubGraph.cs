@@ -34,11 +34,11 @@ namespace CartaCore.Data
         public IGraph UnderlyingGraph { get; set; }
 
         /// <inheritdoc />
-        public override bool IsDirected => Directed;
+        public override bool IsDirected() => Directed;
         /// <inheritdoc />
-        public override bool IsDynamic => Dynamic;
+        public override bool IsDynamic() => Dynamic;
         /// <inheritdoc />
-        public override bool IsFinite => true;
+        public override bool IsFinite() => true;
 
         /// <inheritdoc />
         public IAsyncEnumerable<IVertex> GetVertices() => VertexSet.ToAsyncEnumerable();
@@ -196,12 +196,12 @@ namespace CartaCore.Data
             // Copy over the settings from the base graph into a new finite graph.
             SubGraph subgraph;
             if (graph is Graph graphBase)
-                subgraph = new SubGraph(graphBase.Identifier, graphBase.Properties, graph.IsDirected)
+                subgraph = new SubGraph(graphBase.Identifier, graphBase.Properties, graph.IsDirected())
                 {
                     Label = graphBase.Label,
                     Description = graphBase.Description
                 };
-            else subgraph = new SubGraph(null, graph.IsDirected);
+            else subgraph = new SubGraph(null, graph.IsDirected());
             subgraph.UnderlyingGraph = graph;
 
             // Get the vertices from the graph.
@@ -221,12 +221,12 @@ namespace CartaCore.Data
             // Copy over the settings from the base graph into a new finite graph.
             SubGraph subgraph;
             if (graph is Graph graphBase)
-                subgraph = new SubGraph(graphBase.Identifier, graphBase.Properties, graph.IsDirected)
+                subgraph = new SubGraph(graphBase.Identifier, graphBase.Properties, graph.IsDirected())
                 {
                     Label = graphBase.Label,
                     Description = graphBase.Description
                 };
-            else subgraph = new SubGraph(null, graph.IsDirected);
+            else subgraph = new SubGraph(null, graph.IsDirected());
             subgraph.UnderlyingGraph = graph;
 
             // Get the vertices from the graph.
@@ -250,12 +250,12 @@ namespace CartaCore.Data
             // Copy over the settings from the base graph into a new finite graph.
             SubGraph subgraph;
             if (graph is Graph graphBase)
-                subgraph = new SubGraph(graphBase.Identifier, graphBase.Properties, graph.IsDirected)
+                subgraph = new SubGraph(graphBase.Identifier, graphBase.Properties, graph.IsDirected())
                 {
                     Label = graphBase.Label,
                     Description = graphBase.Description
                 };
-            else subgraph = new SubGraph(null, graph.IsDirected);
+            else subgraph = new SubGraph(null, graph.IsDirected());
             subgraph.UnderlyingGraph = graph;
 
             // Get the child vertices from the graph.

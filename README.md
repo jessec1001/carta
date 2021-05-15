@@ -22,9 +22,22 @@ This should produce a version matching `5.0.x`.
 The `CartaCore` project is only built and referenced by `CartaTest` and `CartaWeb`. It is not executable by itself. You can run tests and the web application by following the instructions in the proceding sections.
 
 ### Test
+The unit tests require a local DynamoDB docker instance to be running:
+```bash
+docker pull amazon/dynamodb-local
+docker run -p 8000:8000 -d amazon/dynamodb-local
+```
 To run the unit tests from the root directory or the `CartaTest` directory, you can run:
 ```bash
 dotnet test
+```
+To stop the docker instance after the tests have run, first identify the container ID:
+```bash
+docker ps
+```
+Stop the docker instance:
+```bash
+docker stop containerID
 ```
 
 ### Web

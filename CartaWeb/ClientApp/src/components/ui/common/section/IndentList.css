@@ -1,0 +1,8 @@
+.indent-list {
+    margin: 0rem;
+    padding: 0rem;
+    list-style-type: none;
+}
+.indent-list-item {
+    padding-left: 1.5rem;
+}

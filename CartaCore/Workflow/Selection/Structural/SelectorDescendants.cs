@@ -73,7 +73,7 @@ namespace CartaCore.Workflow.Selection
         public override async Task<bool> ContainsVertex(IVertex vertex)
         {
             if (Ids.Any(id => Identity.Create(id).Equals(vertex.Identifier)))
-                return true;
+                return IncludeRoots;
 
             if (Graph.TryProvide(out IDynamicInGraph<IInVertex> dynamic))
             {
