@@ -7,6 +7,8 @@ using Amazon.DynamoDBv2.Model;
 
 using MorseCode.ITask;
 
+using NUlid;
+
 namespace CartaCore.Persistence
 {
     /// <summary>
@@ -19,9 +21,13 @@ namespace CartaCore.Persistence
         /// </summary>
         const string PRIMARY_KEY = "PK";
         /// <summary>
-        /// Sorty key name
+        /// Sort key name
         /// </summary>
         const string SORT_KEY = "SK";
+        /// <summary>
+        /// Sort key name
+        /// </summary>
+        const string ID_FIELD = "Id";
 
         /// <summary>
         /// Gets or sets the DynamoDb client through which calls are made
@@ -70,35 +76,38 @@ namespace CartaCore.Persistence
             DbTable = Table.LoadTable(Client, TableName);
         }
 
-        /// <summary>
-        /// Save the given document string under the given key asynchronously.
-        /// </summary>
-        /// <param name="partitionKey">The partition key of the of document</param>
-        /// <param name="sortKey">The sort key of the of document</param>
-        /// <param name="docId">The document ID</param>
-        /// <param name="docString">The document string</param>
-        /// <returns>A unique document identifier</returns>
-        public async ITask<string> SaveDocumentStringAsync
+        /// <inheritdoc />
+        public async ITask<string> CreateDocumentStringAsync
         (
             string partitionKey,
-            string sortKey,
-            string docId,
+            string sortKeyPrefix,
             string docString
         )
         {
+            // Create the item and add keys
+            string docId = Ulid.NewUlid().ToString();
             Document item = Document.FromJson(docString);
             item.Add(PRIMARY_KEY, partitionKey);
-            item.Add(SORT_KEY, sortKey);
-            await DbTable.PutItemAsync(item);
-            return docId;
+            item.Add(SORT_KEY, sortKeyPrefix + docId);
+            item.Add(ID_FIELD, docId);
+
+            // Define an expression to ensure that the item does not get overwritten
+            Expression expression = new Expression();
+            expression.ExpressionStatement = "attribute_not_exists(" + PRIMARY_KEY + ")";
+
+            // Put the item
+            try
+            {
+                await DbTable.PutItemAsync(item, new PutItemOperationConfig { ConditionalExpression = expression });
+                return docId;
+            }
+            catch (ConditionalCheckFailedException e)
+            {
+                return null;
+            }
         }
 
-        /// <summary>
-        /// Load the stored document for the given keys asynchronously.
-        /// </summary>
-        /// <param name="partitionKey">The partition key of the of document</param>
-        /// <param name="sortKey">The sort key of the of document</param>
-        /// <returns>A document string</returns>
+        /// <inheritdoc />
         public async ITask<string> LoadDocumentStringAsync(string partitionKey, string sortKey)
         {
             Task<Document> task = DbTable.GetItemAsync(partitionKey, sortKey);
@@ -115,13 +124,8 @@ namespace CartaCore.Persistence
             }
         }
 
-        /// <summary>
-        /// Load all of the documents for the given keys asynchronously.
-        /// </summary>
-        /// <param name="partitionKey">The partition key of the of document</param>
-        /// <param name="sortKey">The sort key of the of document</param>
-        /// <returns>A list of document string</returns>
-        public async ITask<List<string>> LoadDocumentStringsAsync(string partitionKey, string sortKey)
+        /// <inheritdoc />
+        public async ITask<List<string>> LoadDocumentStringsAsync(string partitionKey, string sortKeyPrefix)
         {
             // Define query request
             QueryRequest request = new QueryRequest
@@ -131,7 +135,7 @@ namespace CartaCore.Persistence
                 ExpressionAttributeValues = new Dictionary<string, AttributeValue>
                 {
                     {":v_partitionKey", new AttributeValue {S=partitionKey}},
-                    {":v_sortKey", new AttributeValue {S=sortKey }}
+                    {":v_sortKey", new AttributeValue {S=sortKeyPrefix }}
                 }
             };
 
@@ -157,11 +161,51 @@ namespace CartaCore.Persistence
             }
         }
 
-        /// <summary>
-        /// Deletes the document stored under the given key asynchronously.
-        /// </summary>
-        /// <param name="partitionKey">The partition key of the of document</param>
-        /// <param name="sortKey">The sort key of the of document</param>
+        /// <inheritdoc />
+        public async ITask<bool> UpdateDocumentStringAsync
+        (
+            string partitionKey,
+            string sortKey,
+            string docString
+        )
+        {
+            // Create the item and add keys
+            Document item = Document.FromJson(docString);
+            item.Add(PRIMARY_KEY, partitionKey);
+            item.Add(SORT_KEY, sortKey);
+
+            // Define an expression to ensure that the item does not get overwritten
+            Expression expression = new Expression();
+            expression.ExpressionStatement = "attribute_exists(" + PRIMARY_KEY + ")";
+
+            // Put the item
+            try
+            {
+                await DbTable.PutItemAsync(item, new PutItemOperationConfig { ConditionalExpression = expression });
+                return true;
+            }
+            catch (ConditionalCheckFailedException e)
+            {
+                return false;
+            }
+        }
+
+        /// <inheritdoc />
+        public async ITask SaveDocumentStringAsync
+        (
+            string partitionKey,
+            string sortKey,
+            string docString
+        )
+        {
+            // Create the item and add keys
+            Document item = Document.FromJson(docString);
+            item.Add(PRIMARY_KEY, partitionKey);
+            item.Add(SORT_KEY, sortKey);
+            await DbTable.PutItemAsync(item);
+        }
+
+        /// <inheritdoc />
         public async ITask DeleteDocumentStringAsync(string partitionKey, string sortKey)
         {
             Task<Document> taskDeleted = DbTable.DeleteItemAsync(partitionKey, sortKey);

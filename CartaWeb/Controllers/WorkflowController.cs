@@ -137,7 +137,6 @@ namespace CartaWeb.Controllers
             (
                 GetPartitionKey(userId),
                 GetSortKey(id),
-                id,
                 json
             );
 
