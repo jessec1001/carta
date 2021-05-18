@@ -13,10 +13,7 @@ namespace CartaWeb
         /// Starts the web application.
         /// </summary>
         /// <param name="args">The command line arguments.</param>
-        public static void Main(string[] args)
-        {
-            CreateHostBuilder(args).Build().Run();
-        }
+        public static void Main(string[] args) => CreateHostBuilder(args).Build().Run();
 
         /// <summary>
         /// Creates a web host builder using the command line arguments. 

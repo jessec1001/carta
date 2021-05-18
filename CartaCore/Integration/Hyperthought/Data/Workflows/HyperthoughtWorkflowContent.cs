@@ -121,5 +121,18 @@ namespace CartaCore.Integration.Hyperthought.Data
         [JsonPropertyName("notes")]
         public string Notes { get; set; }
         #endregion
+
+        /// <summary>
+        /// Collection of any other key/value pairs not explicitly
+        /// included in the formal schema.
+        /// </summary>
+        // This same Property is present in HyperthoughtMetadata.
+        // An abstraction would be an appropriate way to ensure the
+        // interface remains consistent, but at the moment this appears
+        // in only these two locations. If this extends to other
+        // containers in the future, this should be abstracted into
+        // an interface.
+        [JsonExtensionData]
+        public Dictionary<string, object> Extensions { get; set; }
     }
 }
