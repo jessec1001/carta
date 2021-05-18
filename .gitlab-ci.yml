@@ -33,8 +33,9 @@ publish:
     - apt-get install -y zip unzip
     - apt-get install -y nodejs
     - dotnet publish --configuration Release CartaWeb/ -o package
+    - cp -r .platform/ package/
     - cd package
-    - zip -r ../package.zip *
+    - zip -r ../package.zip .
 
 test:
   variables:

@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
 
 using CartaCore.Persistence;
@@ -26,16 +25,13 @@ namespace CartaWeb
     /// </summary>
     public class Startup
     {
-        private readonly ILogger _logger;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="Startup"/> class.
         /// </summary>
         /// <param name="configuration">The configuration that is injected into this startup.</param>
-        public Startup(IConfiguration configuration, ILogger<Startup> logger)
+        public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
-            _logger = logger;
         }
 
         /// <summary>
@@ -90,6 +86,22 @@ namespace CartaWeb
                     options.JsonSerializerOptions.Converters.Insert(2, new JsonObjectConverter());
                 });
 
+            // Important: this solves a deployment only issue.
+            // Configures X-Forwarded-* headers to be used when determining scheme and remote IP.
+            services.Configure<ForwardedHeadersOptions>(options =>
+            {
+                // These are the headers we need.
+                options.ForwardedHeaders =
+                    ForwardedHeaders.XForwardedFor |
+                    ForwardedHeaders.XForwardedProto;
+
+                // Only loopback proxies are allowed by default.
+                // Clear that restriction because forwarders are enabled by explicit 
+                // configuration.
+                options.KnownNetworks.Clear();
+                options.KnownProxies.Clear();
+            });
+
             // Authentication settings.
             services.AddAuthentication(options =>
             {
@@ -118,17 +130,17 @@ namespace CartaWeb
                 configuration.RootPath = "ClientApp/build";
             });
 
+            // Important: this solves a deployment-only issue.
             // Kestrel HTTPS redirection workaround.
             services.Configure<ForwardedHeadersOptions>(options =>
             {
+                // These are the headers we need to forward.
                 options.ForwardedHeaders =
                     ForwardedHeaders.XForwardedFor |
                     ForwardedHeaders.XForwardedProto;
-                // options.ForwardLimit = null;
 
                 // Only loopback proxies are allowed by default.
-                // Clear that restriction because forwarders are enabled by explicit 
-                // configuration.
+                // Clear that restriction because forwarders are enabled by explicit configuration.
                 options.KnownNetworks.Clear();
                 options.KnownProxies.Clear();
             });
@@ -144,27 +156,11 @@ namespace CartaWeb
         /// <param name="env">The web host environment.</param>
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            // Important: this solves a deployment-only issue.
+            // Forwards headers from load balancers and proxy servers that terminate SSL.
             app.UseForwardedHeaders();
-            app.Use(async (context, next) =>
-            {
-                // Request method, scheme, and path
-                _logger.LogCritical("Request Method: {Method}", context.Request.Method);
-                _logger.LogCritical("Request Scheme: {Scheme}", context.Request.Scheme);
-                _logger.LogCritical("Request Path: {Path}", context.Request.Path);
 
-                // Headers
-                foreach (var header in context.Request.Headers)
-                {
-                    _logger.LogCritical("Header: {Key}: {Value}", header.Key, header.Value);
-                }
-
-                // Connection: RemoteIp
-                _logger.LogCritical("Request RemoteIp: {RemoteIpAddress}",
-                    context.Connection.RemoteIpAddress);
-
-                await next();
-            });
-
+            // Development settings.
             if (env.IsDevelopment())
                 app.UseDeveloperExceptionPage();
             else
