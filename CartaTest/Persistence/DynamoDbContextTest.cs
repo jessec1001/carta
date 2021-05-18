@@ -120,25 +120,20 @@ namespace CartaTest
         }
 
         /// <summary>
-        /// Tests that a JSON string has been persisted and can be read, updated and deleted
+        /// Tests that a JSON string can be saved, loaded and deleted
         /// </summary>
         [Test]
         public async Task TestSaveLoadUpdateDeleteDocumentStringAsync()
         {
-            // Test save
+            // Test save new and load
             string inJsonString = "{\"field1\":\"value1\"}";
-            string inDocId = "id1";
-            string docId = await NoSqlDbContext.SaveDocumentStringAsync("pk1", "sk1", inDocId, inJsonString);
-            Assert.AreEqual(inDocId, docId);
-
-            // Test load
+            await NoSqlDbContext.SaveDocumentStringAsync("pk1", "sk1", inJsonString);
             string readJsonString = await NoSqlDbContext.LoadDocumentStringAsync("pk1", "sk1");
             Assert.AreEqual(inJsonString, readJsonString);
 
-            // Test update
+            // Test save update
             inJsonString = "{\"field1\":\"value1b\"}";
-            docId = await NoSqlDbContext.SaveDocumentStringAsync("pk1", "sk1", inDocId, inJsonString);
-            Assert.AreEqual(inDocId, docId);
+            await NoSqlDbContext.SaveDocumentStringAsync("pk1", "sk1", inJsonString);
             readJsonString = await NoSqlDbContext.LoadDocumentStringAsync("pk1", "sk1");
             Assert.AreEqual(inJsonString, readJsonString);
 
@@ -155,14 +150,13 @@ namespace CartaTest
         public async Task TestLoadDocumentStringsAsync()
         {
             // Test that no records are returned if records do not exist
-            List<string> readJsonStrings = await NoSqlDbContext.LoadDocumentStringsAsync("pk1", "sk");
+            List<string> readJsonStrings = await NoSqlDbContext.LoadDocumentStringsAsync("pk1", "sk1");
             Assert.AreEqual(0, readJsonStrings.Count);
 
             // Save 2 document strings under the same primary key but different sort keys
             string inJsonString = "{\"field1\":\"value1\"}";
-            string inDocId = "id1";
-            await NoSqlDbContext.SaveDocumentStringAsync("pk1", "sk1", inDocId, inJsonString);
-            await NoSqlDbContext.SaveDocumentStringAsync("pk1", "sk2", inDocId, inJsonString);
+            await NoSqlDbContext.SaveDocumentStringAsync("pk1", "sk1", inJsonString);
+            await NoSqlDbContext.SaveDocumentStringAsync("pk1", "sk2", inJsonString);
 
             // Test that 2 document strings are returned
             readJsonStrings = await NoSqlDbContext.LoadDocumentStringsAsync("pk1", "sk");
@@ -171,6 +165,46 @@ namespace CartaTest
             // Cleanup
             await NoSqlDbContext.DeleteDocumentStringAsync("pk1", "sk1");
             await NoSqlDbContext.DeleteDocumentStringAsync("pk1", "sk2");
+        }
+
+        /// <summary>
+        /// Tests that a JSON string is created successfully with an unique Id
+        /// </summary>
+        [Test]
+        public async Task TestCreateDocumentStringAsync()
+        {
+            // Test create for record that does not exist
+            string inJsonString = "{\"field1\":\"value1\"}";
+            string docId = await NoSqlDbContext.CreateDocumentStringAsync("pk1", "sk", inJsonString);
+            string readJsonString = await NoSqlDbContext.LoadDocumentStringAsync("pk1", "sk" + docId);
+            Assert.IsNotNull(docId);
+            Assert.AreEqual("{\"field1\":\"value1\",\"Id\":\"" + docId + "\"}", readJsonString);
+
+            // Cleanup
+            await NoSqlDbContext.DeleteDocumentStringAsync("pk1", "sk" + docId);
+        }
+
+        /// <summary>
+        /// Tests that a JSON string is updated successfully, but only if it exists
+        /// </summary>
+        [Test]
+        public async Task TestUpdateDocumentStringAsync()
+        {
+            // Test update for record that does not exist
+            string inJsonString = "{\"field1\":\"value1\"}";
+            bool updated = await NoSqlDbContext.UpdateDocumentStringAsync("pk1", "sk-not-exist", inJsonString);
+            Assert.IsFalse(updated);
+
+            // Test update for record that does exist
+            string docId = await NoSqlDbContext.CreateDocumentStringAsync("pk1", "sk", inJsonString);
+            inJsonString = "{\"field1b\":\"value1b\"}";
+            updated = await NoSqlDbContext.UpdateDocumentStringAsync("pk1", "sk" + docId, inJsonString);
+            Assert.IsTrue(updated);
+            string readJsonString = await NoSqlDbContext.LoadDocumentStringAsync("pk1", "sk" + docId);
+            Assert.AreEqual(inJsonString, readJsonString);
+
+            // Cleanup
+            await NoSqlDbContext.DeleteDocumentStringAsync("pk1", "sk" + docId);
         }
 
     }
