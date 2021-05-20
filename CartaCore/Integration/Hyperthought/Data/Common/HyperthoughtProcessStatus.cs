@@ -8,7 +8,7 @@ namespace CartaCore.Integration.Hyperthought.Data
     /// <summary>
     /// Represents that status of a particular HyperThought workflow.
     /// </summary>
-    [JsonConverter(typeof(FullStringEnumConverter))]
+    [JsonConverter(typeof(JsonFullStringEnumConverter))]
     public enum HyperthoughtProcessStatus
     {
         /// <summary>

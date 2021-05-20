@@ -5,29 +5,39 @@ using System.Text.Json.Serialization;
 
 namespace CartaCore.Serialization.Json
 {
-    public class JsonObjectEnumerableConverter : JsonConverter<List<object>>
+    /// <summary>
+    /// Converts between a JSON array of tokens and a list of <see cref="object"/> types.
+    /// </summary>
+    public class JsonObjectListConverter : JsonConverter<List<object>>
     {
+        // This converter is used to convert each value of the list,
         private JsonObjectConverter Converter = new JsonObjectConverter();
 
+        /// <inheritdoc />
         public override List<object> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
+            // Make sure that our JSON has an array structure.
             if (reader.TokenType != JsonTokenType.StartArray)
                 throw new JsonException();
 
+            // Read in each value using a value-based converter.
             List<object> values = new List<object>();
             while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
                 values.Add(Converter.Read(ref reader, typeof(object), options));
 
+            // Make sure that our JSON has an array structure.
             if (reader.TokenType != JsonTokenType.EndArray)
                 throw new JsonException();
 
             return values;
         }
+        /// <inheritdoc />
         public override void Write(Utf8JsonWriter writer, List<object> value, JsonSerializerOptions options)
         {
+            // Use default serialization to write out the objects.
             writer.WriteStartArray();
             foreach (object obj in value)
-                Converter.Write(writer, obj, options);
+                JsonSerializer.Serialize(writer, obj, options);
             writer.WriteEndArray();
         }
     }

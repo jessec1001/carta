@@ -8,7 +8,7 @@ namespace CartaWeb.Models.Meta
     /// <summary>
     /// Represents the format that a parameter can be retrieved from.
     /// </summary>
-    [JsonConverter(typeof(FullStringEnumConverter))]
+    [JsonConverter(typeof(JsonFullStringEnumConverter))]
     public enum ApiParameterFormat
     {
         /// <summary>The parameter was retrieved from route.</summary>

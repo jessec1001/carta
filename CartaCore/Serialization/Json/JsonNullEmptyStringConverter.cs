@@ -8,7 +8,7 @@ namespace CartaCore.Serialization.Json
     /// <summary>
     /// Converts between JSON strings and <see cref="Nullable"/> struct types.
     /// </summary>
-    public class NullableEmptyStringConverter : JsonConverterFactory
+    public class JsonNullEmptyStringConverter : JsonConverterFactory
     {
         /// <inheritdoc />
         public override bool CanConvert(Type typeToConvert)

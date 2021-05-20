@@ -82,8 +82,6 @@ namespace CartaWeb
                     options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
                     options.JsonSerializerOptions.IgnoreNullValues = true;
                     options.JsonSerializerOptions.Converters.Insert(0, new JsonDiscriminantConverter());
-                    options.JsonSerializerOptions.Converters.Insert(1, new JsonObjectEnumerableConverter());
-                    options.JsonSerializerOptions.Converters.Insert(2, new JsonObjectConverter());
                 });
 
             // Important: this solves a deployment only issue.
