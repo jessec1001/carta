@@ -173,9 +173,9 @@ namespace CartaWeb.Controllers
         /// </summary>
         /// <param name="userId">The unique identifier for the user.</param>
         /// <param name="id">The identifier of the workflow to delete.</param>
-        public static async Task DeleteWorkflowAsync(string userId, string id)
+        public static async Task<bool> DeleteWorkflowAsync(string userId, string id)
         {
-            await _noSqlDbContext.DeleteDocumentStringAsync(GetPartitionKey(userId), GetSortKey(id));
+            return await _noSqlDbContext.DeleteDocumentStringAsync(GetPartitionKey(userId), GetSortKey(id));
         }
 
         /// <summary>
@@ -324,8 +324,8 @@ namespace CartaWeb.Controllers
         )
         {
             string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            await DeleteWorkflowAsync(userId, id);
-            return Ok();
+            bool deleted = await DeleteWorkflowAsync(userId, id);
+            if (deleted) return Ok(); else return NotFound();
         }
 
         /// <summary>

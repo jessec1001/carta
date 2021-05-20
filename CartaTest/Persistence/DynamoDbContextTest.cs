@@ -138,7 +138,8 @@ namespace CartaTest
             Assert.AreEqual(inJsonString, readJsonString);
 
             // Test delete
-            await NoSqlDbContext.DeleteDocumentStringAsync("pk1", "sk1");
+            bool deleted = await NoSqlDbContext.DeleteDocumentStringAsync("pk1", "sk1");
+            Assert.IsTrue(deleted);
             readJsonString = await NoSqlDbContext.LoadDocumentStringAsync("pk1", "sk1");
             Assert.IsNull(readJsonString);
         }
@@ -178,7 +179,7 @@ namespace CartaTest
             string docId = await NoSqlDbContext.CreateDocumentStringAsync("pk1", "sk", inJsonString);
             string readJsonString = await NoSqlDbContext.LoadDocumentStringAsync("pk1", "sk" + docId);
             Assert.IsNotNull(docId);
-            Assert.AreEqual("{\"field1\":\"value1\",\"Id\":\"" + docId + "\"}", readJsonString);
+            Assert.AreEqual("{\"field1\":\"value1\",\"id\":\"" + docId + "\"}", readJsonString);
 
             // Cleanup
             await NoSqlDbContext.DeleteDocumentStringAsync("pk1", "sk" + docId);
@@ -205,6 +206,17 @@ namespace CartaTest
 
             // Cleanup
             await NoSqlDbContext.DeleteDocumentStringAsync("pk1", "sk" + docId);
+        }
+
+        /// <summary>
+        /// Tests that delete of a non existing record returns false
+        /// </summary>
+        [Test]
+        public async Task TestNotExistDeleteDocumentStringAsync()
+        {
+            // Test delete
+            bool deleted = await NoSqlDbContext.DeleteDocumentStringAsync("pkx", "sky");
+            Assert.IsFalse(deleted);
         }
 
     }

@@ -27,7 +27,7 @@ namespace CartaCore.Persistence
         /// <summary>
         /// Sort key name
         /// </summary>
-        const string ID_FIELD = "Id";
+        const string ID_FIELD = "id";
 
         /// <summary>
         /// Gets or sets the DynamoDb client through which calls are made
@@ -206,12 +206,28 @@ namespace CartaCore.Persistence
         }
 
         /// <inheritdoc />
-        public async ITask DeleteDocumentStringAsync(string partitionKey, string sortKey)
+        public async ITask<bool> DeleteDocumentStringAsync(string partitionKey, string sortKey)
         {
-            Task<Document> taskDeleted = DbTable.DeleteItemAsync(partitionKey, sortKey);
-            await taskDeleted;
-        }
+            // Define an expression to check that the item exists before it gets deleted
+            Expression expression = new Expression();
+            expression.ExpressionStatement = "attribute_exists(" + PRIMARY_KEY + ")";
 
+            // Delete the item
+            try
+            {
+                await DbTable.DeleteItemAsync
+                (
+                    partitionKey,
+                    sortKey,
+                    new DeleteItemOperationConfig { ConditionalExpression = expression }
+                );
+                return true;
+            }
+            catch (ConditionalCheckFailedException e)
+            {
+                return false;
+            }
+        }
     }
 }
 
