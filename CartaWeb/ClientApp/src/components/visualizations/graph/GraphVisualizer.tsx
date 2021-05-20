@@ -244,29 +244,45 @@ export default class GraphVisualizer extends Component<
     edges.forEach((edge) => {});
   }
 
-  collectProperties(ids: string[]) {
-    const graph = this.props.graph;
-    const properties: Property[] = [];
-    graph.visibleNodes.get(ids).forEach((node) => {
-      if (node.properties) {
-        node.properties.forEach((nodeProperty) => {
-          let property = properties.find(
-            (property) => nodeProperty.id === property.id
-          );
-          if (!property) {
-            property = {
-              id: nodeProperty.id,
-              values: [],
-              properties: [],
-            };
-            properties.push(property);
-          }
-          property.values.push(...nodeProperty.values);
-          if (nodeProperty.properties)
-            property.properties?.push(...nodeProperty.properties);
-        });
+  mergeProperties(properties: Property[]) {
+    // Initialize our property mapping.
+    const propertyMap: Record<string, Property> = {};
+
+    // Compress the top-level properties for each of the node property arrays.
+    properties.forEach((property) => {
+      // Add property entry if not already added.
+      if (!(property.id in propertyMap)) {
+        propertyMap[property.id] = {
+          id: property.id,
+          values: [],
+          properties: [],
+        };
       }
+
+      // Get stored property.
+      const existingProperty = propertyMap[property.id];
+
+      // Add values and subproperties to the property entry.
+      existingProperty.values.push(...property.values);
+      if (property.properties)
+        existingProperty.properties!.push(...property.properties);
     });
+
+    // For each property, compress its subproperties.
+    Object.values(propertyMap).forEach((property) => {
+      property.properties = this.mergeProperties(property.properties!);
+    });
+    return Object.values(propertyMap);
+  }
+
+  collectProperties(ids: string[]) {
+    // Collect the properties for each node and flatten together.
+    const graph = this.props.graph;
+    const nodeProperties = graph.visibleNodes
+      .get(ids)
+      .map((node) => node.properties || [])
+      .reduce((prev, next) => [...prev, ...next], []);
+    const properties = this.mergeProperties(nodeProperties);
 
     if (this.props.onPropertiesChanged) {
       this.props.onPropertiesChanged(properties);
