@@ -186,8 +186,22 @@ export default class GraphPage extends Component<
     }
   }
   handleSelectGraph(index: number) {
-    this.setState({
-      selectedGraph: index === this.state.graphs.length ? -1 : index,
+    this.setState((state) => {
+      if (index >= state.graphs.length) {
+        if (state.graphs.length === 0) {
+          return {
+            selectedGraph: state.openingGraph ? -1 : undefined,
+          };
+        } else {
+          return {
+            selectedGraph: state.graphs.length - 1,
+          };
+        }
+      } else {
+        return {
+          selectedGraph: index,
+        };
+      }
     });
   }
 

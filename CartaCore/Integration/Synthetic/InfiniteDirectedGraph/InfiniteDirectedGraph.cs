@@ -156,6 +156,7 @@ namespace CartaCore.Integration.Synthetic
         {
             return Task.FromResult<OutVertex>(GenerateVertex(id)).AsITask();
         }
+        /// <inheritdoc />
         public async IAsyncEnumerable<OutVertex> GetChildVertices(Identity id)
         {
             OutVertex vertex = await GetVertex(id);
