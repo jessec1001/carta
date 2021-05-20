@@ -94,7 +94,7 @@ namespace CartaCore.Integration.Hyperthought
 
             // Set the JSON options.
             JsonOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web);
-            JsonOptions.Converters.Insert(0, new NullableEmptyStringConverter());
+            JsonOptions.Converters.Insert(0, new JsonNullEmptyStringConverter());
         }
 
         /// <summary>

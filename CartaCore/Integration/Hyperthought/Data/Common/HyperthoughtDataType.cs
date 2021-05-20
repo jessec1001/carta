@@ -8,7 +8,7 @@ namespace CartaCore.Integration.Hyperthought.Data
     /// <summary>
     /// Represents information about the type of data in a HyperThought property.
     /// </summary>
-    [JsonConverter(typeof(FullStringEnumConverter))]
+    [JsonConverter(typeof(JsonFullStringEnumConverter))]
     public enum HyperthoughtDataType
     {
         /// <summary>

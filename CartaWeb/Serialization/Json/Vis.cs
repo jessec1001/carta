@@ -271,7 +271,7 @@ namespace CartaWeb.Serialization.Json
         /// </summary>
         /// <value>The property observations.</value>
         [JsonPropertyName("values")]
-        [JsonConverter(typeof(JsonObjectEnumerableConverter))]
+        [JsonConverter(typeof(JsonObjectListConverter))]
         public List<object> Values { get; set; }
         /// <summary>
         /// Gets or sets the subproperties of the property.

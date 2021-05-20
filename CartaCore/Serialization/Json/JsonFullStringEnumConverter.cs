@@ -12,7 +12,7 @@ namespace CartaCore.Serialization.Json
     /// Converts between JSON strings and <see cref="Enum"/> types using a case invariant match of any
     /// <see cref="EnumMemberAttribute"/> names applied to the <see cref="Enum"/> values.
     /// </summary>
-    public class FullStringEnumConverter : JsonConverterFactory
+    public class JsonFullStringEnumConverter : JsonConverterFactory
     {
         /// <inheritdoc />
         public override bool CanConvert(Type typeToConvert)
