@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging;
 
 using CartaCore.Serialization.Json;
 using CartaCore.Persistence;
-using CartaWeb.Models.Data;
+using CartaWeb.Models.DocumentItem;
 
 namespace CartaWeb.Controllers
 {
@@ -245,15 +245,9 @@ namespace CartaWeb.Controllers
         /// <summary>
         /// Create a new workspace for the given user.
         /// </summary>
-        /// <param name="workspaceItem">The workspace item.</param>
+        /// <param name="name">The workspace name.</param>
         /// <request name="Example">
-        ///     <body>
-        ///     {
-        ///         "name":"MyWorkspaceName",
-        ///         "dateCreated":"2021-05-17T18:25:38.548854-06:00",
-        ///         "createdBy":"userX"
-        ///     }
-        ///     </body>
+        ///     <arg name="name">01F68ES7FSMMY1PYCG72B31759</arg>
         /// </request>
         /// <returns status="200">A unique identifier generated for the workspace will be attached to the
         /// response.</returns>
@@ -263,13 +257,14 @@ namespace CartaWeb.Controllers
         [Authorize]
         [HttpPost]
         public async Task<ActionResult<string>> PostWorkspace(
-            [FromBody] WorkspaceItem workspaceItem
+            [FromBody] string name
         )
         {
             UserItem userItem = new UserItem(
                 User.FindFirstValue(ClaimTypes.NameIdentifier),
                 User.FindFirstValue(CognitoUsername),
                 User.FindFirstValue(ClaimTypes.Email));
+            WorkspaceItem workspaceItem = new WorkspaceItem(name, User.FindFirstValue(CognitoUsername));
             string id = await CreateWorkspaceAsync(userItem, workspaceItem);
             if (workspaceItem is null) return Conflict();
             else
@@ -284,15 +279,9 @@ namespace CartaWeb.Controllers
         /// Get the workspace information for the given workspace identifier.
         /// </summary>
         /// <param name="id">A unique workspace identifier.</param>
-        /// <response name="Example">
-        ///     <body>
-        ///     {
-        ///         "name":"MyWorkspaceName",
-        ///         "dateCreated":"2021-05-17T18:25:38.548854-06:00",
-        ///         "createdBy":"userX"
-        ///     }
-        ///     </body>
-        /// </response>
+        /// <request name="Example">
+        ///     <arg name="id">01F68ES7FSMMY1PYCG72B31759</arg>
+        /// </request>
         /// <returns status="200"> The workspace information will be attached to the returned object.
         /// </returns>
         /// <returns status="404">
@@ -316,26 +305,12 @@ namespace CartaWeb.Controllers
         /// <param name="archived">A flag indicating whether archived workspaces should be returned.
         /// Set to true if archived workspaces should be returned, otherwise set to false.
         /// Defaults to false.</param>
-        /// <response name="Example">
-        ///     <body>
-        ///     [
-        ///           {
-        ///                "id": "01F65EBPPYH3RJFS38028XTZY0",
-        ///                "name": "workspaceA",
-        ///                "dateCreated": "2021-05-17T18:25:38.548854-06:00",
-        ///                "createdBy": "me",
-        ///                "archived": false
-        ///            },
-        ///            {
-        ///                "id": "01F65EC3C449NXK0VX2BKZVB0F",
-        ///                "name": "workspaceB",
-        ///                "dateCreated": "2021-05-17T18:25:38.548854-06:00",
-        ///                "createdBy": "me",
-        ///                "archived": false
-        ///            }
-        ///        ]
-        ///     </body>
-        /// </response>
+        /// <request name="Retrieve Archived Workspaces">
+        ///     <arg name="archived">true</arg>
+        /// </request>
+        /// <request name="Retrieve Active Workspaces">
+        ///     <arg name="archived">false</arg>
+        /// </request>
         /// <returns status="200">
         /// A list of workspace items will be attached to the returned object.
         /// </returns>
@@ -368,14 +343,21 @@ namespace CartaWeb.Controllers
         /// <param name="id">The workspace identifier.</param>
         /// <param name="archived">Flag indicating whether the workspace should be archived (true)
         /// or not (false).</param>
-        /// <request name="Example"></request>
+        /// <request name="Archive a Workspace">
+        ///     <arg name="id">01F68ES7FSMMY1PYCG72B31759</arg>
+        ///     <arg name="archived">true</arg>
+        /// </request>
+        /// <request name="Unarchive a Workspace">
+        ///     <arg name="id">01F68ES7FSMMY1PYCG72B31759</arg>
+        ///     <arg name="archived">false</arg>
+        /// </request>
         /// <returns status="200">Occurs when the operation is successful.</returns>
         /// <returns status="404">
         /// Occurs when a workspace for the given identifier cannot be found. 
         /// </returns>
         [Authorize]
         [HttpPatch("{id}")]
-        public async Task<ActionResult> PatchWorkspace(
+        public async Task<ActionResult<WorkspaceItem>> PatchWorkspace(
             [FromRoute] string id,
             [FromQuery(Name = "archived")] bool archived
         )
@@ -385,9 +367,12 @@ namespace CartaWeb.Controllers
                 User.FindFirstValue(CognitoUsername),
                 User.FindFirstValue(ClaimTypes.Email));
             WorkspaceItem workspaceItem = await LoadWorkspaceItemAsync(userItem.Id, id);
+            if (workspaceItem is null) return NotFound();
             workspaceItem.Archived = archived;
+            workspaceItem.ModifiedBy = User.FindFirstValue(CognitoUsername);
+            workspaceItem.DateModified = DateTime.Now;
             bool updated = await UpdateWorkspaceArchiveAsync(userItem, workspaceItem);
-            if (updated) return Ok();
+            if (updated) return Ok(workspaceItem);
             else return NotFound();
         }
 
@@ -397,6 +382,7 @@ namespace CartaWeb.Controllers
         /// <param name="id">The workspace identifier.</param>
         /// <param name="userItems">A list of users that should be added to the workspace.</param>
         /// <request name="Example">
+        ///     <arg name="id">01F68ES7FSMMY1PYCG72B31759</arg>
         ///     <body>
         ///         [
         ///            {   
@@ -420,7 +406,7 @@ namespace CartaWeb.Controllers
         /// </returns>
         [Authorize]
         [HttpPatch("{id}/users")]
-        public async Task<ActionResult> PatchWorkspaceUsers(
+        public async Task<ActionResult<List<UserItem>>> PatchWorkspaceUsers(
             [FromRoute] string id,
             [FromBody] List<UserItem> userItems
         )
@@ -428,37 +414,24 @@ namespace CartaWeb.Controllers
             string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             WorkspaceItem workspaceItem = await LoadWorkspaceItemAsync(userId, id);
             if (workspaceItem is null) return NotFound();
-
+            workspaceItem.ModifiedBy = User.FindFirstValue(CognitoUsername);
+            workspaceItem.DateModified = DateTime.Now;
+            
             foreach (UserItem userItem in userItems)
             {
                await SaveWorkspaceAsync(userItem, workspaceItem);
             }
 
-            return Ok();
+            return Ok(userItems);
         }
 
         /// <summary>
         /// Get a list of all the users that have access to a workspace
         /// </summary>
         /// <param name="id">The workspace identifier</param>
-        /// <response name="Example">
-        ///     <body>
-        ///         [
-        ///            {   
-        ///                "id":"userId1",
-        ///                "name":"user1",
-        ///                "email":"email1@domain.com",
-        ///                "group":"UsersGroup"
-        ///            },
-        ///            {   
-        ///                "id":"userId2",
-        ///                "name":"user2",
-        ///                "email":"email2@domain.com",
-        ///                "group":"UsersGroup"
-        ///            }
-        ///         ]
-        ///     </body>
-        /// </response>
+        /// <request name="Example">
+        ///     <arg name="id">01F68ES7FSMMY1PYCG72B31759</arg>
+        /// </request>
         /// <returns status="200">
         /// A list of users will be attached to the returned object. 
         /// </returns>
@@ -472,7 +445,7 @@ namespace CartaWeb.Controllers
         )
         {
             List<UserItem> userItems = await LoadUserItemsAsync(id);
-            if ((userItems is null) | (userItems.Count == 0) ) return NotFound();
+            if (userItems is null) return NotFound();
             else return Ok(userItems);
         }
 
