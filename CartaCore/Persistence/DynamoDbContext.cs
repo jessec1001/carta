@@ -63,13 +63,19 @@ namespace CartaCore.Persistence
         /// <summary>
         /// Constructor 
         /// </summary>
-        public DynamoDbContext(string awsAccessKey, string awsSecretKey, string tableName)
+        public DynamoDbContext
+        (
+            string awsAccessKey,
+            string awsSecretKey,
+            Amazon.RegionEndpoint regionEndpoint,
+            string tableName
+        )
         {
             // Initialize DynamoDb client
             Client = new AmazonDynamoDBClient(
                 awsAccessKey,
                 awsSecretKey,
-                Amazon.RegionEndpoint.USEast2);
+                regionEndpoint);
 
             // Load the DynamoDB table
             TableName = tableName;
