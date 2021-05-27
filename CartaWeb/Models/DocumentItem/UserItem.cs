@@ -16,26 +16,30 @@ namespace CartaWeb.Models.DocumentItem
         /// </summary>
         public string Name { get; set; }
         /// <summary>
-        /// The user's email
-        /// </summary>
-        public string Email { get; set; }
-        /// <summary>
-        /// The group selected for sharing the user
-        /// </summary>
-        public string Group { get; set; }
-        /// <summary>
         /// Timestamp of the date the user was added
         /// </summary>
-        public DateTime? DateAdded { get; set; }
+        public DateTime DateAdded { get; set; }
+        /// <summary>
+        /// Timestamp of the date the user was deleted
+        /// </summary>
+        public DateTime? DateDeleted { get; set; }
+        /// <summary>
+        /// ID of user that added a user
+        /// </summary>
+        public string AddedBy { get; set; }
+        /// <summary>
+        /// ID of user that deleted a user
+        /// </summary>
+        public string DeletedBy { get; set; }
 
         /// <summary>
         /// Creates a new instance of the <see cref="UserItem"/> class
         /// </summary>
-        public UserItem (string id, string name, string email)
+        public UserItem (string id, string name)
         {
             Id = id;
             Name = name;
-            Email = email;
+            DateAdded = DateTime.Now;
         }
 
     }
