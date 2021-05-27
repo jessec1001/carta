@@ -135,10 +135,8 @@ namespace CartaWeb.Controllers
                     UserItem userItem = new UserItem
                     (
                         getUserAttribute(user.Attributes, "sub"),
-                        user.Username,
                         getUserAttribute(user.Attributes, "email")
                     );
-                    userItem.Group = groupName;
                     userItems.Add(userItem);
                 }
 
