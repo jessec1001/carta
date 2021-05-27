@@ -20,21 +20,22 @@ namespace CartaWeb.Models.DocumentItem
         /// </summary>
         public DateTime DateCreated { get; set; }
         /// <summary>
-        /// Timestamp of when the workspace was modified
-        /// </summary>
-        public DateTime? DateModified { get; set; }
-        /// <summary>
-        /// Name of user that created the workspace
+        /// Id of the user that created the workspace
         /// </summary>
         public string CreatedBy { get; set; }
-        /// <summary>
-        /// Name of user that modified the workspace
-        /// </summary>
-        public string ModifiedBy { get; set; }
         /// <summary>
         /// Flag to indicate if the workspace has been archived
         /// </summary>
         public bool Archived { get; set; }
+        /// <summary>
+        /// Timestamp of when the workspace was archived
+        /// </summary>
+        public DateTime? DateArchived { get; set; }
+        /// <summary>
+        /// Timestamp of when the workspace was unarchived
+        /// </summary>
+        public DateTime? DateUnarchived { get; set; }
+
 
         /// <summary>
         /// Creates a new instance of the <see cref="WorkspaceItem"/> class with a specified controller.

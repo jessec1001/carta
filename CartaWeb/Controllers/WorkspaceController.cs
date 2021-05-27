@@ -24,11 +24,6 @@ namespace CartaWeb.Controllers
     public class WorkspaceController : ControllerBase
     {
         /// <summary>
-        /// Key for looking up the Cognito user name
-        /// </summary>
-        const string CognitoUsername = "cognito:username";
-
-        /// <summary>
         /// Options for serialization
         /// </summary>
         private static JsonSerializerOptions JsonOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web);
@@ -86,6 +81,28 @@ namespace CartaWeb.Controllers
         }
 
         /// <summary>
+        /// Helper method that returns the user identifier of the currently logged in user.
+        /// </summary>
+        /// <returns>
+        /// The user identifier of the currently logged in user.
+        /// </returns>
+        protected string GetUserId()
+        {
+            return User.FindFirstValue(ClaimTypes.NameIdentifier);
+        }
+
+        /// <summary>
+        /// Helper method that returns the user name of the currently logged in user.
+        /// </summary>
+        /// <returns>
+        /// The user namer of the currently logged in user.
+        /// </returns>
+        protected string GetUserName()
+        {
+            return User.FindFirstValue("cognito:username");
+        }
+
+        /// <summary>
         /// Persists a new workspace, creating table items for the worskpace under the logged in user, and the user
         /// under the workspace.
         /// </summary>
@@ -94,7 +111,7 @@ namespace CartaWeb.Controllers
         /// <returns>
         /// A unique identifier for the workspace.
         /// </returns>
-        protected static async Task<string> CreateWorkspaceAsync(
+        protected async Task<string> CreateWorkspaceAsync(
             UserItem userItem,
             WorkspaceItem workspaceItem)
         {
@@ -146,7 +163,7 @@ namespace CartaWeb.Controllers
         /// <returns>
         /// A workspace item.
         /// </returns>
-        protected static async Task<WorkspaceItem> LoadWorkspaceItemAsync(string userId, string workspaceId)
+        protected async Task<WorkspaceItem> LoadWorkspaceItemAsync(string userId, string workspaceId)
         {
             string partitionKey = GetUserKey(userId);
             string sortKey = GetWorkspaceKey(workspaceId);
@@ -156,13 +173,13 @@ namespace CartaWeb.Controllers
         }
 
         /// <summary>
-        /// Returns the information of all the users that have access to the given workspace,
+        /// Returns the information of all the users under the workspace.
         /// </summary>
         /// <param name="workspaceId">The workspace identifier.</param>
         /// <returns>
         /// A list of user items.
         /// </returns>
-        protected static async Task<List<UserItem>> LoadUserItemsAsync(string workspaceId)
+        protected async Task<List<UserItem>> LoadUserItemsAsync(string workspaceId)
         {
             string partitionKey = GetWorkspaceKey(workspaceId);
             string sortKeyPrefix = GetUserKey("");
@@ -176,15 +193,31 @@ namespace CartaWeb.Controllers
         }
 
         /// <summary>
-        /// Updates the archived flag of a workspace, and deletes the user record for that workspace if the workspace
-        /// is to be archived, or adds the user record if the workspace is to be unarchived.
+        /// Returns user information for the given workspace and user.
+        /// </summary>
+        /// <param name="workspaceId">The workspace identifier.</param>
+        /// <param name="userId">The user identifier.</param>
+        /// <returns>
+        /// The user item.
+        /// </returns>
+        protected async Task<UserItem> LoadUserItemAsync(string workspaceId, string userId)
+        {
+            string partitionKey = GetWorkspaceKey(workspaceId);
+            string sortKey = GetUserKey(userId);
+            string jsonString = await _noSqlDbContext.LoadDocumentStringAsync(partitionKey, sortKey);
+            if (jsonString is null) return null;
+            else return JsonSerializer.Deserialize<UserItem>(jsonString, JsonOptions);
+        }
+
+        /// <summary>
+        /// Updates workspace and user information.
         /// </summary>
         /// <param name="userItem">The user information.</param>
         /// <param name="workspaceItem">The workspace information.</param>
         /// <returns>
         /// True if the update operations completed with no errors.
         /// </returns>
-        protected static async Task<bool> UpdateWorkspaceArchiveAsync(UserItem userItem, WorkspaceItem workspaceItem)
+        protected async Task<bool> UpdateWorkspaceAsync(UserItem userItem, WorkspaceItem workspaceItem)
         {
             string json = JsonSerializer.Serialize<WorkspaceItem>(workspaceItem, JsonOptions);
             bool updated = await _noSqlDbContext.UpdateDocumentStringAsync
@@ -193,28 +226,23 @@ namespace CartaWeb.Controllers
                 GetWorkspaceKey(workspaceItem.Id),
                 json
             );
-            if (!updated) return false;
-
-            if (workspaceItem.Archived)
+            if (!updated)
             {
-                bool deleted = await _noSqlDbContext.DeleteDocumentStringAsync
-                (
-                    GetWorkspaceKey(workspaceItem.Id),
-                    GetUserKey(userItem.Id)
-                );
-                if (!deleted) return false;
-            } else
-            {
-                userItem.DateAdded = DateTime.Now;
-                json = JsonSerializer.Serialize<UserItem>(userItem, JsonOptions);
-                await _noSqlDbContext.SaveDocumentStringAsync
-                (
-                    GetWorkspaceKey(workspaceItem.Id),
-                    GetUserKey(userItem.Id),
-                    json
-                );
+                _logger.LogWarning("Workspace item for user " + userItem.Id +
+                    " and workspace " + workspaceItem.Id + " could not be found for update");
+                return false;
             }
-            return true;
+
+            json = JsonSerializer.Serialize<UserItem>(userItem, JsonOptions);
+            updated = await _noSqlDbContext.UpdateDocumentStringAsync
+            (
+                GetWorkspaceKey(workspaceItem.Id),
+                GetUserKey(userItem.Id),
+                json
+            );
+            if (!updated) _logger.LogWarning("User item for user " + userItem.Id +
+                   " and workspace " + workspaceItem.Id + " could not be found for update");
+            return updated;
         }
 
         /// <summary>
@@ -223,7 +251,7 @@ namespace CartaWeb.Controllers
         /// </summary>
         /// <param name="userItem">The user information.</param>
         /// <param name="workspaceItem">The workspace information.</param>
-        protected static async Task SaveWorkspaceAsync(UserItem userItem, WorkspaceItem workspaceItem)
+        protected async Task SaveWorkspaceAsync(UserItem userItem, WorkspaceItem workspaceItem)
         {
             string json = JsonSerializer.Serialize<WorkspaceItem>(workspaceItem, JsonOptions);
             await _noSqlDbContext.SaveDocumentStringAsync
@@ -247,32 +275,30 @@ namespace CartaWeb.Controllers
         /// </summary>
         /// <param name="name">The workspace name.</param>
         /// <request name="Example">
-        ///     <arg name="name">01F68ES7FSMMY1PYCG72B31759</arg>
+        ///     <arg name="name">MyWorkspace</arg>
         /// </request>
-        /// <returns status="200">A unique identifier generated for the workspace will be attached to the
-        /// response.</returns>
+        /// <returns status="200">The workspace information will be attached to the returned object.</returns>
         /// <returns status="409">
         /// Occurs when the create operation fails unexpectedly due to a key conflict.
         /// </returns>
         [Authorize]
-        [HttpPost]
-        public async Task<ActionResult<string>> PostWorkspace(
-            [FromBody] string name
+        [HttpPost("{name}")]
+        public async Task<ActionResult<WorkspaceItem>> PostWorkspace(
+            [FromRoute] string name
         )
         {
-            UserItem userItem = new UserItem(
-                User.FindFirstValue(ClaimTypes.NameIdentifier),
-                User.FindFirstValue(CognitoUsername),
-                User.FindFirstValue(ClaimTypes.Email));
-            WorkspaceItem workspaceItem = new WorkspaceItem(name, User.FindFirstValue(CognitoUsername));
+            string userId = GetUserId();
+            string userName = GetUserName();
+            UserItem userItem = new UserItem(userId, userName);
+            userItem.AddedBy = userId;
+            WorkspaceItem workspaceItem = new WorkspaceItem(name, userId);
             string id = await CreateWorkspaceAsync(userItem, workspaceItem);
-            if (workspaceItem is null) return Conflict();
+            if (id is null) return Conflict();
             else
             {
                 workspaceItem.Id = id;
                 return Ok(workspaceItem);
-            }
-                
+            }            
         }
 
         /// <summary>
@@ -293,7 +319,7 @@ namespace CartaWeb.Controllers
             [FromRoute] string id
         )
         {
-            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            string userId = GetUserId();
             WorkspaceItem workspaceItem = await LoadWorkspaceItemAsync(userId, id);
             if (workspaceItem is null) return NotFound();
             else return Ok(workspaceItem);
@@ -314,6 +340,9 @@ namespace CartaWeb.Controllers
         /// <returns status="200">
         /// A list of workspace items will be attached to the returned object.
         /// </returns>
+        /// <returns status="404">
+        /// Occurs when no workspaces exist for the user.
+        /// </returns>
         [Authorize]
         [HttpGet]
         public async Task<ActionResult<List<WorkspaceItem>>> GetWorkspaces(
@@ -323,18 +352,43 @@ namespace CartaWeb.Controllers
             // If no archived query parameter has been passed, set it to false
             if (!archived.HasValue) archived = false;
 
-            // Load the items
-            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            // Filter items according to archived flag
-            List<WorkspaceItem> allWorkspaceItems = await LoadWorkspaceItemsAsync(userId);
-            List<WorkspaceItem> workspaceItems = new List<WorkspaceItem>();
-            foreach (WorkspaceItem item in allWorkspaceItems)
+            // Load the items and filter items according to archived flag
+            List<WorkspaceItem> allWorkspaceItems = await LoadWorkspaceItemsAsync(GetUserId());
+            if (allWorkspaceItems is null) return NotFound();
+            else
             {
-               if (item.Archived == archived.Value) workspaceItems.Add(item);
-            }
+                List<WorkspaceItem> workspaceItems = new List<WorkspaceItem>();
+                foreach (WorkspaceItem item in allWorkspaceItems)
+                {
+                    if (item.Archived == archived.Value) workspaceItems.Add(item);
+                }
 
-            return Ok(workspaceItems);
+                return Ok(workspaceItems);
+            }
+        }
+
+        /// <summary>
+        /// Get a list of all the users that have access to a workspace
+        /// </summary>
+        /// <param name="id">The workspace identifier</param>
+        /// <request name="Example">
+        ///     <arg name="id">01F68ES7FSMMY1PYCG72B31759</arg>
+        /// </request>
+        /// <returns status="200">
+        /// A list of users will be attached to the returned object. 
+        /// </returns>
+        /// <returns status="404">
+        /// Occurs when no users can be found. 
+        /// </returns>
+        [Authorize]
+        [HttpGet("{id}/users")]
+        public async Task<ActionResult<List<UserItem>>> GetWorkspaceUsers(
+            [FromRoute] string id
+        )
+        {
+            List<UserItem> userItems = await LoadUserItemsAsync(id);
+            if (userItems is null) return NotFound();
+            else return Ok(userItems);
         }
 
         /// <summary>
@@ -362,16 +416,25 @@ namespace CartaWeb.Controllers
             [FromQuery(Name = "archived")] bool archived
         )
         {
-            UserItem userItem = new UserItem(
-                User.FindFirstValue(ClaimTypes.NameIdentifier),
-                User.FindFirstValue(CognitoUsername),
-                User.FindFirstValue(ClaimTypes.Email));
-            WorkspaceItem workspaceItem = await LoadWorkspaceItemAsync(userItem.Id, id);
+            string userId = GetUserId();
+            string userName = GetUserName();
+            WorkspaceItem workspaceItem = await LoadWorkspaceItemAsync(userId, id);
             if (workspaceItem is null) return NotFound();
+            UserItem userItem = await LoadUserItemAsync(id, userId);
+            if (userItem is null) return NotFound();
             workspaceItem.Archived = archived;
-            workspaceItem.ModifiedBy = User.FindFirstValue(CognitoUsername);
-            workspaceItem.DateModified = DateTime.Now;
-            bool updated = await UpdateWorkspaceArchiveAsync(userItem, workspaceItem);
+            if (archived)
+            {
+                userItem.DateDeleted = DateTime.Now;
+                userItem.DeletedBy = userId;
+                workspaceItem.DateArchived = DateTime.Now;
+            } else
+            {
+                userItem.DateAdded = DateTime.Now;
+                userItem.AddedBy = userId;
+                workspaceItem.DateUnarchived = DateTime.Now;
+            }
+            bool updated = await UpdateWorkspaceAsync(userItem, workspaceItem);
             if (updated) return Ok(workspaceItem);
             else return NotFound();
         }
@@ -380,30 +443,24 @@ namespace CartaWeb.Controllers
         /// Add users to the workspace. 
         /// </summary>
         /// <param name="id">The workspace identifier.</param>
-        /// <param name="userItems">A list of users that should be added to the workspace.</param>
+        /// <param name="userItems">A list of users (identifier and user name) that should be added to the
+        /// workspace.</param>
         /// <request name="Example">
         ///     <arg name="id">01F68ES7FSMMY1PYCG72B31759</arg>
         ///     <body>
         ///         [
         ///            {   
         ///                "id":"userId1",
-        ///                "name":"user1",
-        ///                "email":"email1@domain.com",
-        ///                "group":"UsersGroup"
+        ///                "name":"user1"
         ///            },
         ///            {   
         ///                "id":"userId2",
-        ///                "name":"user2",
-        ///                "email":"email2@domain.com",
-        ///                "group":"UsersGroup"
+        ///                "name":"user2"
         ///            }
         ///         ]
         ///     </body>
         /// </request>
         /// <returns status="200">Occurs when the operation is successful.</returns>
-        /// <returns status="404">
-        /// Occurs when a workspace for the given identifier cannot be found. 
-        /// </returns>
         [Authorize]
         [HttpPatch("{id}/users")]
         public async Task<ActionResult<List<UserItem>>> PatchWorkspaceUsers(
@@ -411,42 +468,81 @@ namespace CartaWeb.Controllers
             [FromBody] List<UserItem> userItems
         )
         {
-            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            string userId = GetUserId();
             WorkspaceItem workspaceItem = await LoadWorkspaceItemAsync(userId, id);
             if (workspaceItem is null) return NotFound();
-            workspaceItem.ModifiedBy = User.FindFirstValue(CognitoUsername);
-            workspaceItem.DateModified = DateTime.Now;
-            
             foreach (UserItem userItem in userItems)
             {
-               await SaveWorkspaceAsync(userItem, workspaceItem);
+                userItem.DateAdded = DateTime.Now;
+                userItem.AddedBy = userId;
+                await SaveWorkspaceAsync(userItem, workspaceItem);
             }
-
             return Ok(userItems);
         }
 
         /// <summary>
-        /// Get a list of all the users that have access to a workspace
+        /// Deletes a user from a workspace. 
         /// </summary>
-        /// <param name="id">The workspace identifier</param>
+        /// <param name="workspaceId">The workspace identifier.</param>
+        /// <param name="userId">The user identifier.</param>
         /// <request name="Example">
-        ///     <arg name="id">01F68ES7FSMMY1PYCG72B31759</arg>
+        ///     <arg name="workspaceId">01F68ES7FSMMY1PYCG72B31759</arg>
+        ///     <arg name="userId">943815bf-5695-4cca-bd3b-46313beecb31</arg>
         /// </request>
-        /// <returns status="200">
-        /// A list of users will be attached to the returned object. 
-        /// </returns>
-        /// <returns status="404">
-        /// Occurs when no users can be found. 
-        /// </returns>
+        /// <returns status="200">Occurs when the operation is successful.</returns>
+        /// <returns status="403">Occurs when the workspace is not owned by the logged in user.</returns>
+        /// <returns status="404">Occurs when the user or workspace record could not be found.</returns>
         [Authorize]
-        [HttpGet("{id}/users")]
-        public async Task<ActionResult<List<UserItem>>> GetWorkspaceUsers(
-            [FromRoute] string id
+        [HttpDelete("{workspaceId}/users/{userId}")]
+        public async Task<ActionResult> DeleteWorkspaceUser(
+            [FromRoute] string workspaceId,
+            [FromRoute] string userId
         )
         {
-            List<UserItem> userItems = await LoadUserItemsAsync(id);
-            if (userItems is null) return NotFound();
-            else return Ok(userItems);
+            // Load the workspace and user items
+            WorkspaceItem workspaceItem = await LoadWorkspaceItemAsync(userId, workspaceId);
+            if (workspaceItem is null) return NotFound();
+            UserItem userItem = await LoadUserItemAsync(workspaceId, userId);
+            if (userItem is null) return NotFound();
+                
+            // Delete the workspace for the given user if the workspace is owned by the logged in user
+            if (workspaceItem.CreatedBy != GetUserId())
+            {
+                _logger.LogWarning("Workspace item for user " + userId +
+                    " and workspace " + workspaceItem.Id + " not created by logged in user"); ;
+                return Forbid();
+            }      
+            bool deleted = await _noSqlDbContext.DeleteDocumentStringAsync
+            (
+                GetUserKey(userId),
+                GetWorkspaceKey(workspaceId)
+            );
+            if (!deleted)
+            {
+                _logger.LogWarning("Workspace item for user " + userId +
+                    " and workspace " + workspaceItem.Id + " could not be deleted"); ;
+                return NotFound();
+            }
+
+            // Update user item information to record the deletion
+            userItem.DateDeleted = DateTime.Now;
+            userItem.DeletedBy = GetUserId();
+            string json = JsonSerializer.Serialize<UserItem>(userItem, JsonOptions);
+            bool updated = await _noSqlDbContext.UpdateDocumentStringAsync
+            (
+                GetWorkspaceKey(workspaceId),
+                GetUserKey(userId),
+                json
+            );
+            if (!updated)
+            {
+                _logger.LogWarning("User item for user " + userId +
+                    " and workspace " + workspaceItem.Id + " could not be found to update delete state"); 
+                return NotFound();
+            }
+
+            // Return Ok if no errors occurred up to this point
+            return Ok();
         }
 
     }
