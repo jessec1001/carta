@@ -1,10 +1,14 @@
-﻿using System;
+﻿using CartaWeb.Models.Meta;
+
 namespace CartaWeb.Models.Data
 {
-    public class UserAttributeEnumeration
+    [ApiType(typeof(string))]
+    public enum UserAttributeEnumeration
     {
-        public UserAttributeEnumeration()
-        {
-        }
+        UserId,
+        UserName,
+        Email/*,
+        GivenName,
+        Surname*/
     }
 }
