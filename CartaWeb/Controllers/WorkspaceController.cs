@@ -484,61 +484,64 @@ namespace CartaWeb.Controllers
         /// Deletes a user from a workspace. 
         /// </summary>
         /// <param name="workspaceId">The workspace identifier.</param>
-        /// <param name="userId">The user identifier.</param>
+        /// <param name="users">A list of user identifiers.</param>
         /// <request name="Example">
         ///     <arg name="workspaceId">01F68ES7FSMMY1PYCG72B31759</arg>
-        ///     <arg name="userId">943815bf-5695-4cca-bd3b-46313beecb31</arg>
+        ///     <arg name="users">=846817bf-5695-4cca-bd3b-64313beecb56</arg>
         /// </request>
         /// <returns status="200">Occurs when the operation is successful.</returns>
         /// <returns status="403">Occurs when the workspace is not owned by the logged in user.</returns>
         /// <returns status="404">Occurs when the user or workspace record could not be found.</returns>
         [Authorize]
-        [HttpDelete("{workspaceId}/users/{userId}")]
+        [HttpDelete("{workspaceId}/users")]
         public async Task<ActionResult> DeleteWorkspaceUser(
             [FromRoute] string workspaceId,
-            [FromRoute] string userId
+            [FromQuery(Name = "users")] List<string> users
         )
         {
-            // Load the workspace and user items
-            WorkspaceItem workspaceItem = await LoadWorkspaceItemAsync(userId, workspaceId);
-            if (workspaceItem is null) return NotFound();
-            UserItem userItem = await LoadUserItemAsync(workspaceId, userId);
-            if (userItem is null) return NotFound();
-                
-            // Delete the workspace for the given user if the workspace is owned by the logged in user
-            if (workspaceItem.CreatedBy != GetUserId())
+            foreach (string userId in users)
             {
-                _logger.LogWarning("Workspace item for user " + userId +
-                    " and workspace " + workspaceItem.Id + " not created by logged in user"); ;
-                return Forbid();
-            }      
-            bool deleted = await _noSqlDbContext.DeleteDocumentStringAsync
-            (
-                GetUserKey(userId),
-                GetWorkspaceKey(workspaceId)
-            );
-            if (!deleted)
-            {
-                _logger.LogWarning("Workspace item for user " + userId +
-                    " and workspace " + workspaceItem.Id + " could not be deleted"); ;
-                return NotFound();
-            }
+                // Load the workspace and user items
+                WorkspaceItem workspaceItem = await LoadWorkspaceItemAsync(userId, workspaceId);
+                if (workspaceItem is null) return NotFound();
+                UserItem userItem = await LoadUserItemAsync(workspaceId, userId);
+                if (userItem is null) return NotFound();
 
-            // Update user item information to record the deletion
-            userItem.DateDeleted = DateTime.Now;
-            userItem.DeletedBy = GetUserId();
-            string json = JsonSerializer.Serialize<UserItem>(userItem, JsonOptions);
-            bool updated = await _noSqlDbContext.UpdateDocumentStringAsync
-            (
-                GetWorkspaceKey(workspaceId),
-                GetUserKey(userId),
-                json
-            );
-            if (!updated)
-            {
-                _logger.LogWarning("User item for user " + userId +
-                    " and workspace " + workspaceItem.Id + " could not be found to update delete state"); 
-                return NotFound();
+                // Delete the workspace for the given user if the workspace is owned by the logged in user
+                if (workspaceItem.CreatedBy != GetUserId())
+                {
+                    _logger.LogWarning("Workspace item for user " + userId +
+                        " and workspace " + workspaceItem.Id + " not created by logged in user"); ;
+                    return Forbid();
+                }
+                bool deleted = await _noSqlDbContext.DeleteDocumentStringAsync
+                (
+                    GetUserKey(userId),
+                    GetWorkspaceKey(workspaceId)
+                );
+                if (!deleted)
+                {
+                    _logger.LogWarning("Workspace item for user " + userId +
+                        " and workspace " + workspaceItem.Id + " could not be deleted"); ;
+                    return NotFound();
+                }
+
+                // Update user item information to record the deletion
+                userItem.DateDeleted = DateTime.Now;
+                userItem.DeletedBy = GetUserId();
+                string json = JsonSerializer.Serialize<UserItem>(userItem, JsonOptions);
+                bool updated = await _noSqlDbContext.UpdateDocumentStringAsync
+                (
+                    GetWorkspaceKey(workspaceId),
+                    GetUserKey(userId),
+                    json
+                );
+                if (!updated)
+                {
+                    _logger.LogWarning("User item for user " + userId +
+                        " and workspace " + workspaceItem.Id + " could not be found to update delete state");
+                    return NotFound();
+                }
             }
 
             // Return Ok if no errors occurred up to this point
