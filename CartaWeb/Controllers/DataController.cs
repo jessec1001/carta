@@ -8,7 +8,6 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Microsoft.AspNetCore.Authorization;
 
 using CartaCore.Data;
 using CartaCore.Integration.Synthetic;
@@ -17,9 +16,7 @@ using CartaCore.Serialization.Json;
 using CartaCore.Workflow;
 using CartaCore.Workflow.Selection;
 using CartaWeb.Models.Data;
-using CartaWeb.Models.DocumentItem;
 using CartaWeb.Serialization.Json;
-using CartaCore.Persistence;
 
 namespace CartaWeb.Controllers
 {
@@ -34,11 +31,7 @@ namespace CartaWeb.Controllers
     [Route("api/[controller]")]
     public class DataController : ControllerBase
     {
-        const string CognitoUsername = "cognito:username";
-
         private readonly ILogger<DataController> _logger;
-
-        private static INoSqlDbContext _noSqlDbContext;
 
         private static Dictionary<DataSource, IDataResolver> DataResolvers;
 
@@ -71,41 +64,6 @@ namespace CartaWeb.Controllers
             // JSON options.
             JsonOptions.Converters.Insert(0, new JsonObjectConverter());
         }
-
-        /// <inheritdoc />
-        public DataController(ILogger<DataController> logger, INoSqlDbContext noSqlDbContext)
-        {
-            _logger = logger;
-            _noSqlDbContext = noSqlDbContext;
-        }
-
-        /// <summary>
-        /// Returns a properly formatted workspace key.
-        /// </summary>
-        /// <param name="workspaceId">A workspace identifier.</param>
-        /// <returns>
-        /// The key for the persisted item for the given workspace.
-        /// </returns>
-        public static string GetWorkspaceKey(string workspaceId)
-        {
-            return "WORKSPACE#" + workspaceId;
-        }
-
-        /// <summary>
-        /// Returns a properly formatted data set key.
-        /// </summary>
-        /// <param name="source">The data source.</param>
-        /// <param name="resource">The data resource.</param>
-        /// <param name="alias">Optional alias, can be an empty string or null</param>
-        /// <returns>
-        /// The key for the persisted item for the given data set.
-        /// </returns>
-        public static string GetDatasetKey(string source, string resource, string alias)
-        {
-            if (alias is null) alias = "";
-            return "DATASET#" + source + resource + alias;
-        }
-
 
         /// <summary>
         /// Loads all of the stored graphs asynchronously.
@@ -183,6 +141,13 @@ namespace CartaWeb.Controllers
                 return await Task.FromResult(true);
             }
             else return await Task.FromResult(false);
+        }
+
+
+        /// <inheritdoc />
+        public DataController(ILogger<DataController> logger)
+        {
+            _logger = logger;
         }
 
         /// <summary>
@@ -437,154 +402,6 @@ namespace CartaWeb.Controllers
                     new { Source = source, Resource = resource }
                 );
             }
-        }
-
-        /// <summary>
-        /// Save the data set under the given workspace. 
-        /// </summary>
-        /// <param name="workspaceId">The workspace identifier.</param>
-        /// <param name="source">The data set source.</param>
-        /// <param name="resource">The data set resource.</param>
-        /// <param name="alias">Optional alias for the data set.</param>
-        /// <param name="workflowId">Optional workflow identifier to apply to the data set.</param>
-        /// <request name="Example">
-        ///     <arg name="workspaceId">01F68ES7FSMMY1PYCG72B31759</arg>
-        ///     <arg name="source">Synthetic</arg>
-        ///     <arg name="resource">Finite</arg>
-        /// </request>
-        /// <request name="Example with optional parameters">
-        ///     <arg name="workspaceId">01F68ES7FSMMY1PYCG72B31759</arg>
-        ///     <arg name="source">Synthetic</arg>
-        ///     <arg name="resource">Finite</arg>
-        ///     <arg name="alias">MyDatasetAlias</arg>
-        ///     <arg name="workflowId">01F6Q75NC7TEPXWSNSXJC18BDE</arg>
-        /// </request>
-        /// <returns status="200">Occurs when the operation is successful. The
-        /// data set information will be attached to the response.</returns>
-        [Authorize]
-        [HttpPatch("workspace/{workspaceId}/{source}/{resource}")]
-        public async Task<ActionResult<DatasetItem>> PatchWorkspaceData(
-            [FromRoute] string workspaceId,
-            [FromRoute] DataSource source,
-            [FromRoute] string resource,
-            [FromQuery(Name = "alias")] string alias,
-            [FromQuery(Name = "workflowId")] string workflowId
-        )
-        {
-            DatasetItem datasetItem = new DatasetItem(source, resource, User.FindFirstValue(CognitoUsername));
-            if (alias is not null) datasetItem.Alias = alias;
-            if (workflowId is not null) datasetItem.WorkflowId = workflowId;
-            String json = JsonSerializer.Serialize<DatasetItem>(datasetItem, JsonOptions);
-            await _noSqlDbContext.SaveDocumentStringAsync
-            (
-                GetWorkspaceKey(workspaceId),
-                GetDatasetKey(source.ToString(), resource, alias),
-                json
-            );
-            return Ok(datasetItem);
-        }
-
-        /// <summary>
-        /// Retrieves all the data sets under the given workspace. 
-        /// </summary>
-        /// <param name="workspaceId">The workspace identifier.</param>
-        /// <request name="Example">
-        ///     <arg name="workspaceId">01F68ES7FSMMY1PYCG72B31759</arg>
-        /// </request>
-        /// <returns status="200">Occurs when the operation is successful.
-        /// A list of data sets will be attached to the returned object.</returns>
-        [Authorize]
-        [HttpGet("workspace/{workspaceId}")]
-        public async Task<ActionResult<List<DatasetItem>>> GetWorkspaceDatasets(
-            [FromRoute] string workspaceId
-        )
-        {
-            string partitionKey = GetWorkspaceKey(workspaceId);
-            string sortKeyPrefix = GetDatasetKey("", "", "");
-            List<string> jsonStrings = await _noSqlDbContext.LoadDocumentStringsAsync(partitionKey, sortKeyPrefix);
-            List<DatasetItem> datasetItems = new() { };
-            foreach (string jsonString in jsonStrings)
-            {
-                datasetItems.Add(JsonSerializer.Deserialize<DatasetItem>(jsonString, JsonOptions));
-            }
-            return Ok(datasetItems);
-        }
-
-        /// <summary>
-        /// Retrieves data set information for the specified workspace and data set.
-        /// </summary>
-        /// <param name="workspaceId">The workspace identifier.</param>
-        /// <param name="source">The data set source.</param>
-        /// <param name="resource">The data set resource.</param>
-        /// <param name="alias">Alias for the data set, specify if applicable.</param>
-        /// <request name="Example">
-        ///     <arg name="workspaceId">01F68ES7FSMMY1PYCG72B31759</arg>
-        ///     <arg name="source">Synthetic</arg>
-        ///     <arg name="resource">Finite</arg>
-        /// </request>
-        /// <request name="Example with alias">
-        ///     <arg name="workspaceId">01F68ES7FSMMY1PYCG72B31759</arg>
-        ///     <arg name="source">Synthetic</arg>
-        ///     <arg name="resource">Finite</arg>
-        ///     <arg name="alias">MyDatasetAlias</arg>
-        /// </request>
-        /// <returns status="200">Occurs when the operation is successful.
-        /// The data set information will be attached to the returned object.</returns>
-        /// <returns status="404">Occurs when the data set could not be found.</returns>
-        [Authorize]
-        [HttpGet("workspace/{workspaceId}/{source}/{resource}")]
-        public async Task<ActionResult<DatasetItem>> GetWorkspaceDataset(
-            [FromRoute] string workspaceId,
-            [FromRoute] DataSource source,
-            [FromRoute] string resource,
-            [FromQuery(Name = "alias")] string alias
-        )
-        {
-            string partitionKey = GetWorkspaceKey(workspaceId);
-            string sortKey = GetDatasetKey(source.ToString(), resource, alias);
-            string jsonString = await _noSqlDbContext.LoadDocumentStringAsync(partitionKey, sortKey);
-            if (jsonString is null) return NotFound();
-            else return Ok(JsonSerializer.Deserialize<DatasetItem>(jsonString, JsonOptions));
-        }
-
-        /// <summary>
-        /// Delete the data set from the given workspace. 
-        /// </summary>
-        /// <param name="workspaceId">The workspace identifier.</param>
-        /// <param name="source">The data set source.</param>
-        /// <param name="resource">The data set resource.</param>
-        /// <param name="alias">Alias for the data set, specify if applicable.</param>
-        /// <request name="Example">
-        ///     <arg name="workspaceId">01F68ES7FSMMY1PYCG72B31759</arg>
-        ///     <arg name="source">Synthetic</arg>
-        ///     <arg name="resource">Finite</arg>
-        /// </request>
-        /// <request name="Example with alias">
-        ///     <arg name="workspaceId">01F68ES7FSMMY1PYCG72B31759</arg>
-        ///     <arg name="source">Synthetic</arg>
-        ///     <arg name="resource">Finite</arg>
-        ///     <arg name="alias">MyDatasetAlias</arg>
-        /// </request>
-        /// <returns status="200">Occurs when the operation is successful.</returns>
-        /// <returns status="404">Occurs when the data set could not be found.</returns>
-        [Authorize]
-        [HttpDelete("workspace/{workspaceId}/{source}/{resource}")]
-        public async Task<ActionResult> DeleteWorkspaceData(
-            [FromRoute] string workspaceId,
-            [FromRoute] DataSource source,
-            [FromRoute] string resource,
-            [FromQuery(Name = "alias")] string alias
-        )
-        {
-            DatasetItem datasetItem = new DatasetItem(source, resource, User.FindFirstValue(CognitoUsername));
-            String json = JsonSerializer.Serialize<DatasetItem>(datasetItem, JsonOptions);
-            bool deleted = await _noSqlDbContext.DeleteDocumentStringAsync
-            (
-                GetWorkspaceKey(workspaceId),
-                GetDatasetKey(source.ToString(), resource, alias)
-            );
-            if (deleted) return Ok();
-            else return NotFound();
         }
     }
 }
