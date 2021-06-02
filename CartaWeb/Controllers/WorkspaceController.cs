@@ -241,8 +241,8 @@ namespace CartaWeb.Controllers
             );
             if (!updated)
             {
-                _logger.LogWarning("Workspace item for user " + userItem.Id +
-                    " and workspace " + workspaceItem.Id + " could not be found for update");
+                _logger.LogWarning($"Workspace item for user {userItem.Id} and workspace {workspaceItem.Id} " +
+                    $"could not be found for update");
                 return false;
             }
 
@@ -253,8 +253,8 @@ namespace CartaWeb.Controllers
                 GetUserKey(userItem.Id),
                 json
             );
-            if (!updated) _logger.LogWarning("User item for user " + userItem.Id +
-                   " and workspace " + workspaceItem.Id + " could not be found for update");
+            if (!updated) _logger.LogWarning($"User item for user {userItem.Id} and workspace {workspaceItem.Id} " +
+                $"could not be found for update");
             return updated;
         }
 
@@ -539,8 +539,8 @@ namespace CartaWeb.Controllers
                 // Delete the workspace for the given user if the workspace is owned by the logged in user
                 if (workspaceItem.CreatedBy != GetUserId())
                 {
-                    _logger.LogWarning("Workspace item for user " + userId +
-                        " and workspace " + workspaceItem.Id + " not created by logged in user"); ;
+                    _logger.LogWarning($"Workspace item for user {userId} and workspace {workspaceItem.Id} " +
+                        $"not created by logged in user");
                     return Forbid();
                 }
                 bool deleted = await _noSqlDbContext.DeleteDocumentStringAsync
@@ -550,8 +550,8 @@ namespace CartaWeb.Controllers
                 );
                 if (!deleted)
                 {
-                    _logger.LogWarning("Workspace item for user " + userId +
-                        " and workspace " + workspaceItem.Id + " could not be deleted"); ;
+                    _logger.LogWarning($"Workspace item for user {userId} and workspace {workspaceItem.Id} " +
+                        $"could not be deleted");
                     return NotFound();
                 }
 
@@ -567,8 +567,8 @@ namespace CartaWeb.Controllers
                 );
                 if (!updated)
                 {
-                    _logger.LogWarning("User item for user " + userId +
-                        " and workspace " + workspaceItem.Id + " could not be found to update delete state");
+                    _logger.LogWarning($"User item for user {userId} and workspace {workspaceItem.Id} " +
+                        $"could not be found to update delete state");
                     return NotFound();
                 }
             }
