@@ -54,6 +54,7 @@ namespace CartaWeb.Controllers
         /// Creates a new instance of the <see cref="UserController"/> class with a specified controller.
         /// <param name="options">Cognito options.</param>
         /// <param name="identityProvider">A Cognito identity provider.</param>
+        /// <param name="logger">The logger for the controller.</param>
         /// </summary>
         public UserController(
             IOptions<AwsCognitoOptions> options,
@@ -82,6 +83,7 @@ namespace CartaWeb.Controllers
 
         /// <summary>
         /// Helper method to populuate and return user information for the currently logged in user.
+        /// </summary>
         /// <param name="user">The user claims principal.</param>
         /// <returns>
         /// The user information.
