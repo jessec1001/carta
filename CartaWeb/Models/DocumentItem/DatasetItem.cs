@@ -9,6 +9,10 @@ namespace CartaWeb.Models.DocumentItem
     public class DatasetItem
     {
         /// <summary>
+        /// The unique data set identifier, generated when persisting the data set under a workspace
+        /// </summary>
+        public string Id { get; set; }
+        /// <summary>
         /// The data source
         /// </summary>
         public DataSource Source { get; set; }
@@ -19,7 +23,7 @@ namespace CartaWeb.Models.DocumentItem
         /// <summary>
         /// Optional alias, to support e.g. an original vs. transformed data set under the same workspace
         /// </summary>
-        public string Alias { get; set; }
+        public string Name { get; set; }
         /// <summary>
         /// Timestamp of when the data set was added to a worksapce
         /// </summary>
