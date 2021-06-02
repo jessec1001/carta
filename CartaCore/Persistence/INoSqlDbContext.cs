@@ -58,6 +58,7 @@ namespace CartaCore.Persistence
         /// </summary>
         /// <param name="partitionKey">The partition key of the of document</param>
         /// <param name="sortKey">The sort key of the document</param>
-        ITask DeleteDocumentStringAsync(string partitionKey, string sortKey);
+        /// <returns>Returns true if the update was successful, otherwise false</returns>
+        ITask<bool> DeleteDocumentStringAsync(string partitionKey, string sortKey);
     }
 }
