@@ -15,5 +15,10 @@ namespace CartaWeb.Models.Options
         /// </summary>
         /// <value>The secret AWS access key.</value>
         public string SecretKey { get; set; }
+        /// <summary>
+        /// Gets or sets the region endpoint
+        /// </summary>
+        /// <value>The region endpoint, e.g. us-east-2.</value>
+        public string RegionEndpoint { get; set; }
     }
 }

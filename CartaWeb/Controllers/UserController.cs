@@ -1,7 +1,17 @@
 using System.Collections.Generic;
 using System.Security.Claims;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
+using Amazon.CognitoIdentityProvider;
+using Amazon.CognitoIdentityProvider.Model;
+
+using CartaWeb.Models.Data;
+using CartaWeb.Models.DocumentItem;
+using CartaWeb.Models.Options;
+
+using Microsoft.Extensions.Logging;
 
 namespace CartaWeb.Controllers
 {
@@ -13,26 +23,249 @@ namespace CartaWeb.Controllers
     public class UserController : ControllerBase
     {
         /// <summary>
+        /// The logger for this controller.
+        /// </summary>
+        private readonly ILogger<UserController> _logger;
+
+        /// <summary>
+        /// The Cognito options for this controller
+        /// </summary>
+        private readonly AwsCognitoOptions _options;
+
+        /// <summary>
+        /// The Cognito identity provider for this controller.
+        /// </summary>
+        private readonly IAmazonCognitoIdentityProvider _identityProvider;
+
+        /// <summary>
+        /// Dictionary that maps user attributes to Cognito user attrubute names
+        /// </summary>
+        protected static Dictionary<string, string> _attributeDictionary =
+            new Dictionary<string, string>
+            {
+                        { "UserId", "sub" },
+                        { "UserName", "username" },
+                        { "Email", "email" }/*,
+                        { "GivenName", "given_name" },
+                        { "Surname", "family_name" },*/
+            };
+
+        /// <summary>
+        /// Creates a new instance of the <see cref="UserController"/> class with a specified controller.
+        /// <param name="options">Cognito options.</param>
+        /// <param name="identityProvider">A Cognito identity provider.</param>
+        /// <param name="logger">The logger for the controller.</param>
+        /// </summary>
+        public UserController(
+            IOptions<AwsCognitoOptions> options,
+            IAmazonCognitoIdentityProvider identityProvider,
+            ILogger<UserController> logger)
+        {
+            _options = options.Value;
+            _identityProvider = identityProvider;
+            _logger = logger;
+        }
+
+        /// <summary>
+        /// Helper method to return the value of a Cognito attribute type.
+        /// <param name="attributes">Cognito attribute type.</param>
+        /// <param name="attributeName">The name of the attribute to retrieve.</param>
+        /// <returns>
+        /// The attribute value.
+        /// </returns>
+        /// </summary>
+        private string GetUserAttribute(List<AttributeType> attributes, string attributeName)
+        {
+            AttributeType attribute = attributes.Find(i => i.Name == attributeName);
+            if (attribute is not null) return attribute.Value;
+            else return null;
+        }
+
+        /// <summary>
+        /// Helper method to populuate and return user information for the currently logged in user.
+        /// </summary>
+        /// <param name="user">The user claims principal.</param>
+        /// <returns>
+        /// The user information.
+        /// </returns>
+        public static UserInformation GetUserInformation(ClaimsPrincipal user)
+        {
+            UserInformation userInformation = new UserInformation
+            (
+                user.FindFirstValue(ClaimTypes.NameIdentifier),
+                user.FindFirstValue("cognito:username")
+            );
+            userInformation.Email = user.FindFirstValue(ClaimTypes.Email);
+            userInformation.GivenName = user.FindFirstValue(ClaimTypes.GivenName);
+            userInformation.Surname = user.FindFirstValue(ClaimTypes.Surname);
+            userInformation.Groups = new List<string>();
+            foreach (Claim claim in user.FindAll("cognito:groups"))
+            {
+                if (!userInformation.Groups.Contains(claim.Value)) userInformation.Groups.Add(claim.Value);
+            }
+            return userInformation;
+        }
+
+        /// <summary>
         /// Gets information about the currently authenticated user.
         /// </summary>
         /// <request name="Example"></request>
         /// <returns status="200">
-        /// A dictionary of key-value pairs of user information.
+        /// User information will be attached to the response body.
         /// </returns>
         [Authorize]
         [HttpGet]
-        public ActionResult<Dictionary<string, string>> GetUser()
+        public ActionResult<UserInformation> GetUser()
         {
-            string email = User.FindFirstValue(ClaimTypes.Email);
-            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            string userName = User.FindFirstValue("cognito:username");
+            return Ok(GetUserInformation(User));
+        }
 
-            Dictionary<string, string> info = new Dictionary<string, string>();
-            info.Add("email", email);
-            info.Add("username", userName);
-            info.Add("id", userId);
+        /// <summary>
+        /// Get a list of users according to filter criteria.
+        /// </summary>
+        /// <param name="attributeName">The name of the attribute to filter on.
+        /// Set to null if all users should be returned.</param>
+        /// <param name="attributeValue">The value of the attribute to filter on.</param>
+        /// <param name="attributeFilter">Filter criteria: "=" denotes exact match, "^=" denotes begins with.</param>
+        /// <request name="Example all users">
+        ///     <arg name="attributeName">UserName</arg>
+        ///     <arg name="attributeValue">Ma</arg>
+        ///     <arg name="attributeFilter">^=</arg>
+        /// </request>
+        /// <request name="Example exact match on email">
+        ///     <arg name="attributeName">Email</arg>
+        ///     <arg name="attributeValue">myemail@email.com</arg>
+        ///     <arg name="attributeFilter">=</arg>
+        /// </request>
+        /// <request name="Example username starts with">
+        ///     <arg name="attributeName">UserName</arg>
+        ///     <arg name="attributeValue">Ma</arg>
+        ///     <arg name="attributeFilter">^=</arg>
+        /// </request>
+        /// <returns status="200">A list of users is attached to the response body.</returns>
+        /// <returns status="400">Occurs when the request is invalid.</returns>
+        [Authorize]
+        [HttpGet("users")]
+        public async Task<ActionResult<List<UserInformation>>> GetUsers(
+            UserAttributeEnumeration? attributeName,
+            string attributeValue,
+            string attributeFilter)
+        {
+            List<UserInformation> userInformationList = new() { };
 
-            return Ok(info);
+            ListUsersRequest request = new ListUsersRequest();
+            request.UserPoolId = _options.UserPoolId;
+            if (attributeName.HasValue)
+                request.Filter = _attributeDictionary[attributeName.ToString()] +
+                    attributeFilter + "\"" + attributeValue + "\"";
+
+            do
+            {
+                ListUsersResponse response;
+                try
+                {
+                    response = await _identityProvider.ListUsersAsync(request);
+                }
+                catch (Amazon.CognitoIdentityProvider.AmazonCognitoIdentityProviderException e)
+                {
+                    _logger.LogTrace(e.StackTrace);
+                    return BadRequest();
+                }
+
+                foreach (UserType user in response.Users)
+                {
+                    UserInformation userInformation = new UserInformation
+                    (
+                        GetUserAttribute(user.Attributes, "sub"),
+                        user.Username
+                    );
+                    userInformation.Email = GetUserAttribute(user.Attributes, "email");
+                    userInformation.GivenName = GetUserAttribute(user.Attributes, "given_name");
+                    userInformation.Surname = GetUserAttribute(user.Attributes, "family_name");
+                    userInformationList.Add(userInformation);
+                }
+
+                if ((response.PaginationToken is not null) & (response.PaginationToken != ""))
+                {
+                    request.PaginationToken = response.PaginationToken;
+                }
+                else
+                {
+                    request.PaginationToken = null;
+                }
+            }
+            while ((request.PaginationToken is not null) & (request.PaginationToken != ""));
+
+            return userInformationList;
+        }
+
+        /// <summary>
+        /// Gets a list of users in the specfied user group.
+        /// </summary>
+        /// <param name="groupName">The name of the user group.</param>
+        /// <request name="Example">
+        ///     <arg name="groupName">MyGroup</arg>
+        /// </request>
+        /// <returns status="200">A list of users in the group is attached to the response body.</returns>
+        /// <returns status="400">Occurs when the request is invalid.</returns>
+        [Authorize]
+        [HttpGet("group/{groupName}")]
+        public async Task<ActionResult<List<UserInformation>>> GetUsersInGroup(
+            [FromRoute] string groupName
+        )
+        {
+            List<UserInformation> userInformationList = new() { };
+
+            ListUsersInGroupRequest request = new ListUsersInGroupRequest();
+            request.GroupName = groupName;
+            request.UserPoolId = _options.UserPoolId;
+
+            do
+            {
+                ListUsersInGroupResponse response = null;
+                try
+                {
+                    response = await _identityProvider.ListUsersInGroupAsync(request);
+                }
+                catch (Amazon.CognitoIdentityProvider.Model.ResourceNotFoundException e)
+                {
+                    _logger.LogTrace(e.StackTrace);
+                    return NotFound();
+                }
+                catch (AmazonCognitoIdentityProviderException e)
+                {
+                    _logger.LogTrace(e.StackTrace);
+                    return BadRequest();
+                }
+
+                if ((response is null) | (response.Users is null))
+                    return NotFound();
+
+                foreach (UserType user in response.Users)
+                {
+                    UserInformation userInformation = new UserInformation
+                    (
+                        GetUserAttribute(user.Attributes, "sub"),
+                        user.Username
+                    );
+                    userInformation.Email = GetUserAttribute(user.Attributes, "email");
+                    userInformation.GivenName = GetUserAttribute(user.Attributes, "given_name");
+                    userInformation.Surname = GetUserAttribute(user.Attributes, "family_name");
+                    userInformationList.Add(userInformation);
+                }
+
+                if ((response.NextToken is not null) & (response.NextToken != ""))
+                {
+                    request.NextToken = response.NextToken;
+                }
+                else
+                {
+                    request.NextToken = null;
+                }
+            }
+            while ((request.NextToken is not null) & (request.NextToken != ""));
+
+            return Ok(userInformationList);
         }
 
         /// <summary>

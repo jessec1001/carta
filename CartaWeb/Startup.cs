@@ -1,4 +1,5 @@
 using System;
+using Amazon.CognitoIdentityProvider;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Builder;
@@ -49,6 +50,7 @@ namespace CartaWeb
         /// <param name="services">The service collection used to add new services to.</param>
         public void ConfigureServices(IServiceCollection services)
         {
+            // AWS settings
             AwsAccessOptions awsOptions = Configuration
                 .GetSection("Deployment:AWS")
                 .Get<AwsAccessOptions>();
@@ -61,8 +63,18 @@ namespace CartaWeb
                     (
                         awsOptions.AccessKey,
                         awsOptions.SecretKey,
+                        Amazon.RegionEndpoint.GetBySystemName(awsOptions.RegionEndpoint),
                         awsDynamoDbOptions.Table
                     ));
+            services.
+                AddSingleton<IAmazonCognitoIdentityProvider>(
+                    new AmazonCognitoIdentityProviderClient
+                    (
+                        awsOptions.AccessKey,
+                        awsOptions.SecretKey,
+                        Amazon.RegionEndpoint.GetBySystemName(awsOptions.RegionEndpoint)
+                    ));
+            services.Configure<AwsCognitoOptions>(Configuration.GetSection("Authentication:Cognito"));
 
             // Formatting settings.
             services
