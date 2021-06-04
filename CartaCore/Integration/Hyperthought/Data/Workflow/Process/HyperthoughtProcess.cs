@@ -3,14 +3,14 @@ using System.Text.Json.Serialization;
 namespace CartaCore.Integration.Hyperthought.Data
 {
     /// <summary>
-    /// Represents a HyperThought workflow with its content, metadata, and structure.
+    /// Represents a HyperThought process with its content, metadata, and structure.
     /// </summary>
-    public class HyperthoughtWorkflow : HyperthoughtObjectBase
+    public class HyperthoughtProcess : HyperthoughtObjectBase
     {
         /// <summary>
         /// A value containing the hierarchy of workflow content.
         /// </summary>
         [JsonPropertyName("content")]
-        public HyperthoughtWorkflowContent Content { get; set; }
+        public HyperthoughtProcessContent Content { get; set; }
     }
 }

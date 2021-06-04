@@ -7,6 +7,7 @@ using MorseCode.ITask;
 
 using CartaCore.Data;
 using CartaCore.Integration.Hyperthought.Data;
+using CartaCore.Integration.Hyperthought.Api;
 
 namespace CartaCore.Integration.Hyperthought
 {
@@ -45,7 +46,7 @@ namespace CartaCore.Integration.Hyperthought
         /// </summary>
         /// <param name="api">The HyperThought API.</param>
         /// <param name="workflow">The workflow.</param>
-        public HyperthoughtWorkflowGraph(HyperthoughtApi api, HyperthoughtWorkflow workflow)
+        public HyperthoughtWorkflowGraph(HyperthoughtApi api, HyperthoughtProcess workflow)
             : this(api, workflow.Content.PrimaryKey) { }
         /// <summary>
         /// Initializes a new instance of the <see cref="HyperthoughtWorkflowGraph"/> class using a
@@ -61,7 +62,7 @@ namespace CartaCore.Integration.Hyperthought
         /// </summary>
         /// <param name="workflow">The workflow object.</param>
         /// <returns>The converted vertex.</returns>
-        private InOutVertex VertexFromWorkflow(HyperthoughtWorkflow workflow)
+        private InOutVertex VertexFromWorkflow(HyperthoughtProcess workflow)
         {
             // Properties are compiled from the contents read from the data source.
             // This depends on the schema for this data source.
@@ -435,7 +436,7 @@ namespace CartaCore.Integration.Hyperthought
             if (!id.IsType(out Guid guid)) throw new InvalidCastException();
 
             // Get the workflow asynchronously and return the vertex created from it.
-            HyperthoughtWorkflow workflow = await Api.GetWorkflowAsync(guid);
+            HyperthoughtProcess workflow = await Api.Workflow.GetProcessAsync(guid);
             return VertexFromWorkflow(workflow);
         }
         /// <inheritdoc />
@@ -443,13 +444,13 @@ namespace CartaCore.Integration.Hyperthought
         {
             // Setup our data structures to store our identifiers and async tasks.
             List<Identity> idList = ids.ToList();
-            Task<HyperthoughtWorkflow>[] workflowTasks = new Task<HyperthoughtWorkflow>[idList.Count];
+            Task<HyperthoughtProcess>[] workflowTasks = new Task<HyperthoughtProcess>[idList.Count];
 
             // Launch tasks to get all of the requested workflows.
             for (int k = 0; k < idList.Count; k++)
             {
                 if (!idList[k].IsType(out Guid guid)) throw new InvalidCastException();
-                workflowTasks[k] = Api.GetWorkflowAsync(guid);
+                workflowTasks[k] = Api.Workflow.GetProcessAsync(guid);
             }
 
             // Return vertices for each workflow in the order they were requested.
@@ -470,8 +471,8 @@ namespace CartaCore.Integration.Hyperthought
             if (!id.IsType(out Guid guid)) throw new InvalidCastException();
 
             // Get the workflows asynchronously and return the vertices created from them.
-            IList<HyperthoughtWorkflow> workflows = await Api.GetWorkflowChildrenAsync(guid);
-            foreach (HyperthoughtWorkflow workflow in workflows)
+            IList<HyperthoughtProcess> workflows = await Api.Workflow.GetWorkflowChildrenProcessesAsync(guid);
+            foreach (HyperthoughtProcess workflow in workflows)
                 yield return VertexFromWorkflow(workflow);
         }
 
@@ -480,7 +481,7 @@ namespace CartaCore.Integration.Hyperthought
         /// </summary>
         public async Task EnsureValidity()
         {
-            await Api.GetWorkflowAsync(Id);
+            await Api.Workflow.GetProcessAsync(Id);
         }
     }
 }
