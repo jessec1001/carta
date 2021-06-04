@@ -5,10 +5,47 @@ using System.Text.Json.Serialization;
 namespace CartaCore.Integration.Hyperthought.Data
 {
     /// <summary>
-    /// Represents the content of a HyperThought workflow.
+    /// Represents the content of a HyperThought process.
     /// </summary>
-    public class HyperthoughtWorkflowContent
+    public class HyperthoughtProcessContent
     {
+        /// <summary>
+        /// Initializes an instance of the <see cref="HyperthoughtProcessContent"/> class.
+        /// </summary>
+        /// <remarks>This is the blank constructor.</remarks>
+        public HyperthoughtProcessContent() { }
+        /// <summary>
+        /// Initializes an instance of the <see cref="HyperthoughtProcessContent"/> class from an existing instance.
+        /// </summary>
+        /// <remarks>This is a copy constructor.</remarks>
+        public HyperthoughtProcessContent(HyperthoughtProcessContent content)
+        {
+            Xml = content.Xml;
+            Name = content.Name;
+
+            ProcessId = content.ProcessId;
+            ParentProcessId = content.ParentProcessId;
+            ClientId = content.ClientId;
+            SuccessorIds = content.SuccessorIds;
+            PredecessorIds = content.PredecessorIds;
+            ChildrenIds = content.ChildrenIds;
+            PrimaryKey = content.PrimaryKey;
+
+            Type = content.Type;
+            Template = content.Template;
+            CreatedBy = content.CreatedBy;
+            CreatedTime = content.CreatedTime;
+            LastModifiedBy = content.LastModifiedBy;
+            LastModifiedTime = content.LastModifiedTime;
+            Assignee = content.Assignee;
+            Status = content.Status;
+            StartedTime = content.StartedTime;
+            CompletedTime = content.CompletedTime;
+            Notes = content.Notes;
+
+            Extensions = content.Extensions;
+        }
+
         #region Naming Information
         /// <summary>
         /// The XML that represents the content graph.
@@ -16,7 +53,7 @@ namespace CartaCore.Integration.Hyperthought.Data
         [JsonPropertyName("xml")]
         public string Xml { get; set; }
         /// <summary>
-        /// The name of the workflow.
+        /// The name of the process.
         /// </summary>
         [JsonPropertyName("name")]
         public string Name { get; set; }
@@ -24,10 +61,10 @@ namespace CartaCore.Integration.Hyperthought.Data
 
         #region Identity Information
         /// <summary>
-        /// The ID of this workflow process.
+        /// The ID of this process.
         /// </summary>
         [JsonPropertyName("pid")]
-        public string ProcessId { get; set; }
+        public Guid? ProcessId { get; set; }
         /// <summary>
         /// The ID of the parent process.
         /// </summary>
@@ -54,7 +91,7 @@ namespace CartaCore.Integration.Hyperthought.Data
         [JsonPropertyName("children")]
         public List<Guid> ChildrenIds { get; set; }
         /// <summary>
-        /// The unique primary key that this workflow is stored by.
+        /// The unique primary key that this process is stored by.
         /// </summary>
         [JsonPropertyName("pk")]
         public Guid PrimaryKey { get; set; }
@@ -65,30 +102,29 @@ namespace CartaCore.Integration.Hyperthought.Data
         /// The type of this process.
         /// </summary>
         [JsonPropertyName("process_type")]
-        public HyperthoughtWorkflowType Type { get; set; }
+        public HyperthoughtProcessType Type { get; set; }
         /// <summary>
-        /// The template name of this workflow.
+        /// Whether the process is a template workflow or not.
         /// </summary>
         [JsonPropertyName("template")]
         public bool Template { get; set; }
         /// <summary>
-        /// The creator user of this workflow.
+        /// The creator user of this process.
         /// </summary>
         [JsonPropertyName("creator")]
         public string CreatedBy { get; set; }
         /// <summary>
-        /// The time this workflow was created.
+        /// The time this process was created.
         /// </summary>
         [JsonPropertyName("created")]
         public DateTime CreatedTime { get; set; }
         /// <summary>
-        /// The last modifier user of this workflow.
+        /// The last modifier user of this process.
         /// </summary>
-        /// <value></value>
         [JsonPropertyName("modifier")]
         public string LastModifiedBy { get; set; }
         /// <summary>
-        /// The last time this workflow was modified.
+        /// The last time this process was modified.
         /// </summary>
         [JsonPropertyName("modified")]
         public DateTime LastModifiedTime { get; set; }
@@ -96,42 +132,40 @@ namespace CartaCore.Integration.Hyperthought.Data
 
         #region Status Information
         /// <summary>
-        /// To whom this workflow has been assigned.
+        /// To whom this process has been assigned.
         /// </summary>
         [JsonPropertyName("assignee")]
         public string Assignee { get; set; }
         /// <summary>
-        /// The status of this workflow.
+        /// The status of this process.
         /// </summary>
         [JsonPropertyName("status")]
         public string Status { get; set; }
         /// <summary>
-        /// When this workflow was started.
+        /// When this process was started.
         /// </summary>
         [JsonPropertyName("started")]
         public DateTime? StartedTime { get; set; }
         /// <summary>
-        /// When this workflow was completed.
+        /// When this process was completed.
         /// </summary>
         [JsonPropertyName("completed")]
         public DateTime? CompletedTime { get; set; }
         /// <summary>
-        /// The notes about this workflow.
+        /// The notes about this process.
         /// </summary>
         [JsonPropertyName("notes")]
         public string Notes { get; set; }
         #endregion
 
         /// <summary>
-        /// Collection of any other key/value pairs not explicitly
-        /// included in the formal schema.
+        /// Collection of any other key-value pairs not explicitly included in the formal schema.
         /// </summary>
-        // This same Property is present in HyperthoughtMetadata.
-        // An abstraction would be an appropriate way to ensure the
-        // interface remains consistent, but at the moment this appears
-        // in only these two locations. If this extends to other
-        // containers in the future, this should be abstracted into
-        // an interface.
+        /// <remarks>
+        /// This same property is present in <see cref="HyperthoughtMetadata"/>. An abstraction would be an appropriate
+        /// way to ensure the interface remains consistent, but at the moment this appears in only these two locations.
+        /// If this extends to other containers in the future, this should be abstracted into a base class.
+        /// </remarks>
         [JsonExtensionData]
         public Dictionary<string, object> Extensions { get; set; }
     }

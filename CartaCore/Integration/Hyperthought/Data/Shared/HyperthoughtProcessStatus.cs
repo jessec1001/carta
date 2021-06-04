@@ -6,7 +6,7 @@ using CartaCore.Serialization.Json;
 namespace CartaCore.Integration.Hyperthought.Data
 {
     /// <summary>
-    /// Represents that status of a particular HyperThought workflow.
+    /// Represents the status of a particular HyperThought workflow.
     /// </summary>
     [JsonConverter(typeof(JsonFullStringEnumConverter))]
     public enum HyperthoughtProcessStatus

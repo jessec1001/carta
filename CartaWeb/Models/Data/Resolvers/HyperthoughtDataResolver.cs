@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 
 using CartaCore.Data;
 using CartaCore.Integration.Hyperthought;
+using CartaCore.Integration.Hyperthought.Api;
 using CartaCore.Integration.Hyperthought.Data;
 
 namespace CartaWeb.Models.Data
@@ -31,6 +34,10 @@ namespace CartaWeb.Models.Data
         /// <inheritdoc />
         public async Task<Graph> GenerateAsync(ControllerBase controller, string resource)
         {
+            // We check that an API key was specified.
+            if (!controller.Request.Query.ContainsKey("api"))
+                throw new HttpRequestException("HyperThought API key must be non-null.", null, HttpStatusCode.Unauthorized);
+
             // We need to find the UUID associated with a HyperThought resource if we are passed an alias.
             HyperthoughtApi api = new HyperthoughtApi(controller.Request.Query["api"].ToString());
             Guid uuid = Guid.Empty;
@@ -41,7 +48,7 @@ namespace CartaWeb.Models.Data
                     (DateTime.Now - alias.timestamp) > AliasExpiration)
                 {
                     // Get the alias.
-                    uuid = await api.GetWorkflowIdFromPathAsync(resource);
+                    uuid = await api.Workflow.GetProcessIdFromPathAsync(resource);
                     if (uuid == Guid.Empty) return null;
 
                     // Make sure we don't use too many aliases and add the new alias.
@@ -62,29 +69,29 @@ namespace CartaWeb.Models.Data
         /// <inheritdoc />
         public async Task<IList<string>> FindResourcesAsync(ControllerBase controller)
         {
-            if (controller.Request.Query.ContainsKey("api"))
-            {
-                // Get all of the workflow templates for all of the projects from the API.
-                // Using the user's API key, this should only return resources accessible to the user.
-                HyperthoughtApi api = new HyperthoughtApi(controller.Request.Query["api"].ToString());
-                IList<HyperthoughtProject> projects = await api.GetProjectsAsync();
-                IList<Task<IList<HyperthoughtWorkflowTemplate>>> templateTasks = projects
-                    .Select(project => api.GetWorkflowTemplatesAsync(project))
-                    .ToList();
+            // We check that an API key was specified.
+            if (!controller.Request.Query.ContainsKey("api"))
+                throw new HttpRequestException("HyperThought API key must be non-null.", null, HttpStatusCode.Unauthorized);
 
-                // Construct the resources list.
-                // Each resource should be of the form "Project.Template"
-                List<string> resources = new List<string>();
-                for (int k = 0; k < projects.Count; k++)
+            // Get all of the workflow templates for all of the projects from the API.
+            // Using the user's API key, this should only return resources accessible to the user.
+            HyperthoughtApi api = new HyperthoughtApi(controller.Request.Query["api"].ToString());
+            IList<HyperthoughtProject> projects = await api.Projects.GetProjectsAsync();
+            IList<Task<IList<HyperthoughtWorkflowTemplate>>> templateTasks = projects
+                .Select(project => api.Workflow.GetWorkflowTemplatesAsync(project))
+                .ToList();
+
+            // Construct the resources list.
+            // Each resource should be of the form "Project.Template"
+            List<string> resources = new List<string>();
+            for (int k = 0; k < projects.Count; k++)
+            {
+                foreach (HyperthoughtWorkflowTemplate template in await templateTasks[k])
                 {
-                    foreach (HyperthoughtWorkflowTemplate template in await templateTasks[k])
-                    {
-                        resources.Add($"{projects[k].Content.Title}.{template.Title}");
-                    }
+                    resources.Add($"{projects[k].Content.Title}.{template.Title}");
                 }
-                return resources;
             }
-            return null;
+            return resources;
         }
     }
 }
