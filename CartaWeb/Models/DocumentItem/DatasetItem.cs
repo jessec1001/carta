@@ -25,13 +25,9 @@ namespace CartaWeb.Models.DocumentItem
         /// </summary>
         public string Name { get; set; }
         /// <summary>
-        /// Timestamp of when the data set was added to a worksapce
+        /// History of the data set item
         /// </summary>
-        public DateTime DateAdded { get; set; }
-        /// <summary>
-        /// The user that added the data set to a workspace
-        /// </summary>
-        public string AddedBy { get; set; }
+        public DocumentHistory DocumentHistory { get; set; }
         /// <summary>
         /// Optional workflow identifier to apply by default to the data set
         /// </summary>
@@ -40,12 +36,16 @@ namespace CartaWeb.Models.DocumentItem
         /// <summary>
         /// Creates a new instance of the <see cref="DatasetItem"/> class
         /// </summary>
-        public DatasetItem(DataSource source, string resource, string addedBy)
+        public DatasetItem() {}
+
+        /// <summary>
+        /// Creates a new instance of the <see cref="DatasetItem"/> class
+        /// </summary>
+        public DatasetItem(DataSource source, string resource, UserInformation userInformation)
         {
             Source = source;
             Resource = resource;
-            AddedBy = addedBy;
-            DateAdded = DateTime.Now;
+            DocumentHistory = new DocumentHistory(userInformation);
         }
     }
 }

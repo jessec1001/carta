@@ -1,4 +1,4 @@
-﻿using System;
+﻿using CartaWeb.Models.Data;
 
 namespace CartaWeb.Models.DocumentItem
 {
@@ -16,36 +16,27 @@ namespace CartaWeb.Models.DocumentItem
         /// </summary>
         public string Name { get; set; }
         /// <summary>
-        /// Timestamp of when the workspace was created
-        /// </summary>
-        public DateTime DateCreated { get; set; }
-        /// <summary>
-        /// Id of the user that created the workspace
-        /// </summary>
-        public string CreatedBy { get; set; }
-        /// <summary>
         /// Flag to indicate if the workspace has been archived
         /// </summary>
         public bool Archived { get; set; }
         /// <summary>
-        /// Timestamp of when the workspace was archived
+        /// History of the workspace item
         /// </summary>
-        public DateTime? DateArchived { get; set; }
-        /// <summary>
-        /// Timestamp of when the workspace was unarchived
-        /// </summary>
-        public DateTime? DateUnarchived { get; set; }
-
+        public DocumentHistory DocumentHistory { get; set; }
 
         /// <summary>
-        /// Creates a new instance of the <see cref="WorkspaceItem"/> class with a specified controller.
+        /// Creates a new instance of the <see cref="WorkspaceItem"/> class.
         /// </summary>
-        public WorkspaceItem(string name, string createdBy)
+        public WorkspaceItem() {}
+
+        /// <summary>
+        /// Creates a new instance of the <see cref="WorkspaceItem"/> class.
+        /// </summary>
+        public WorkspaceItem(string name, UserInformation createdBy)
         {
             Name = name;
-            CreatedBy = createdBy;
-            DateCreated = DateTime.Now;
             Archived = false;
+            DocumentHistory = new DocumentHistory(createdBy);
         }
     }
 }
