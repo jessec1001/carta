@@ -16,6 +16,7 @@ using CartaCore.Serialization.Json;
 using CartaCore.Workflow;
 using CartaCore.Workflow.Selection;
 using CartaWeb.Models.Data;
+using CartaWeb.Models.DocumentItem;
 using CartaWeb.Serialization.Json;
 
 namespace CartaWeb.Controllers
@@ -375,10 +376,10 @@ namespace CartaWeb.Controllers
                         return Forbid();
 
                     string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                    Workflow workflow = await WorkflowController.LoadWorkflowAsync(userId, workflowId);
-                    if (workflow is null) return NotFound();
+                    WorkflowItem workflowItem = await WorkflowController.LoadWorkflowAsync(userId, workflowId, null);
+                    if (workflowItem is null) return NotFound();
                     else
-                        graph = workflow.Apply(graph);
+                        graph = workflowItem.Workflow.Apply(graph);
                 }
 
                 // We find the appropriate selector class corresponding to the specified discriminant.

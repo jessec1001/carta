@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Security.Claims;
 
 namespace CartaWeb.Models.Data
 {
@@ -32,6 +33,12 @@ namespace CartaWeb.Models.Data
         /// </summary>
         public List<string> Groups { get; set; }
 
+
+        /// <summary>
+        /// Creates a new instance of the <see cref="UserInformation"/> class
+        /// </summary>
+        public UserInformation() {}
+
         /// <summary>
         /// Creates a new instance of the <see cref="UserInformation"/> class
         /// </summary>
@@ -39,6 +46,15 @@ namespace CartaWeb.Models.Data
         {
             Id = id;
             Name = name;
+        }
+
+        /// <summary>
+        /// Creates a new instance of the <see cref="UserInformation"/> class
+        /// </summary>
+        public UserInformation(ClaimsPrincipal user)
+        {
+            Id = user.FindFirstValue(ClaimTypes.NameIdentifier);
+            Name = user.FindFirstValue("cognito:username");
         }
     }
 }

@@ -39,6 +39,12 @@ namespace CartaWeb.Models.Data
         /// </summary>
         public DateTime? DateUnarchived { get; set; }
 
+
+        /// <summary>
+        /// Creates a new instance of the <see cref="DocumentHistory"/> class.
+        /// </summary>
+        public DocumentHistory() {}
+
         /// <summary>
         /// Creates a new instance of the <see cref="DocumentHistory"/> class.
         /// </summary>
