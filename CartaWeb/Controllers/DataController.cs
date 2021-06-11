@@ -35,7 +35,7 @@ namespace CartaWeb.Controllers
     {
         private readonly ILogger<DataController> _logger;
 
-        private static INoSqlDbContext _noSqlDbContext;
+        private readonly INoSqlDbContext _noSqlDbContext;
 
         private static Dictionary<DataSource, IDataResolver> DataResolvers;
 

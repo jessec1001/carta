@@ -48,7 +48,7 @@ namespace CartaWeb.Controllers
         /// <summary>
         /// The NoSQL DB context for this controller
         /// </summary>
-        private static INoSqlDbContext _noSqlDbContext;
+        private readonly INoSqlDbContext _noSqlDbContext;
 
         /// <inheritdoc />
         public WorkflowController(ILogger<WorkflowController> logger, INoSqlDbContext noSqlDbContext)
@@ -104,7 +104,7 @@ namespace CartaWeb.Controllers
         /// </summary>
         /// <param name="userId">The unique identifier for the user.</param>
         /// <returns>A list of all stored workflows.</returns>
-        protected static async Task<List<Workflow>> LoadWorkflowsAsync(string userId)
+        protected async Task<List<Workflow>> LoadWorkflowsAsync(string userId)
         {
             List<Workflow> workflows = new() { };
 
@@ -230,7 +230,7 @@ namespace CartaWeb.Controllers
         /// <returns>
         /// A list containing version information, ordered by decreasing version number
         /// </returns>
-        protected static async Task<List<VersionInformation>> LoadWorkflowVersionsAsync(string id)
+        protected async Task<List<VersionInformation>> LoadWorkflowVersionsAsync(string id)
         {
             List<VersionInformation> list = new() { };
 
@@ -257,7 +257,7 @@ namespace CartaWeb.Controllers
         /// <param name="id">The unique identifier for the workflow.</param>
         /// <param name="workflow">The workflow object.</param>
         /// <param name="versionInformation">Workflow version information.</param>
-        protected static async Task SaveWorkflowAsync(
+        protected async Task SaveWorkflowAsync(
             string userId,
             string id,
             Workflow workflow,
@@ -278,7 +278,7 @@ namespace CartaWeb.Controllers
         /// <param name="id">The unique identifier for the workflow.</param>
         /// <param name="workflow">The workflow object.</param>
         /// <param name="versionInformation">Workflow version information.</param>
-        protected static async Task SaveTemporaryWorkflowAsync(
+        protected async Task SaveTemporaryWorkflowAsync(
             string userId,
             string id,
             Workflow workflow,
@@ -308,7 +308,7 @@ namespace CartaWeb.Controllers
         /// <param name="workflow">The workflow whose properties should be merged in.</param>
         /// <param name="versionNumber">The version number of the workflow whose properties should be merged in.</param>
         /// <returns>The updated workflow.</returns>
-        protected static async Task<Workflow> UpdateWorkflowAsync(
+        protected async Task<Workflow> UpdateWorkflowAsync(
             string userId,
             string id,
             Workflow workflow,
@@ -337,7 +337,7 @@ namespace CartaWeb.Controllers
         /// <param name="id">The unique identifier for the workflow.</param>
         /// <param name="workflowName">The workflow name.</param>
         /// <param name="versionInformation">Version information for the workflow.</param>
-        protected static async Task UpdateWorkflowAccessAsync(
+        protected async Task UpdateWorkflowAccessAsync(
             string userId,
             string id,
             string workflowName,
@@ -367,7 +367,7 @@ namespace CartaWeb.Controllers
         /// </summary>
         /// <param name="userId">The unique identifier for the user.</param>
         /// <param name="id">The identifier of the workflow to delete.</param>
-        protected static async Task<bool> DeleteTemporaryWorkflowAsync(string userId, string id)
+        protected async Task<bool> DeleteTemporaryWorkflowAsync(string userId, string id)
         {
             return await _noSqlDbContext.DeleteDocumentStringAsync(Keys.GetUserKey(userId), Keys.GetWorkflowKey(id));
         }
@@ -377,7 +377,7 @@ namespace CartaWeb.Controllers
         /// </summary>
         /// <param name="userId">The unique identifier for the user.</param>
         /// <param name="id">The identifier of the workflow to delete.</param>
-        protected static async Task<bool> DeleteWorkflowAsync(string userId, string id)
+        protected async Task<bool> DeleteWorkflowAsync(string userId, string id)
         {
             return await _noSqlDbContext.DeleteDocumentStringAsync
             (
