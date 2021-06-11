@@ -58,21 +58,6 @@ namespace CartaWeb.Controllers
         }
 
         /// <summary>
-        /// Helper method that returns the user information of the currently logged in user.
-        /// </summary>
-        /// <returns>
-        /// The user information of the currently logged in user.
-        /// </returns>
-        protected UserInformation GetUserInformation()
-        {
-            return new UserInformation
-            (
-                User.FindFirstValue(ClaimTypes.NameIdentifier),
-                User.FindFirstValue("cognito:username")
-            );
-        }
-
-        /// <summary>
         /// Persists a new workspace, creating table items for the worskpace under the logged in user, and the user
         /// under the workspace.
         /// </summary>
@@ -274,7 +259,7 @@ namespace CartaWeb.Controllers
             [FromRoute] string name
         )
         {
-            UserInformation userInformation = GetUserInformation();
+            UserInformation userInformation = new UserInformation(User);
             UserItem userItem = new UserItem(userInformation);
             userItem.DocumentHistory.AddedBy = userInformation;
             WorkspaceItem workspaceItem = new WorkspaceItem(name, userInformation);
@@ -305,7 +290,7 @@ namespace CartaWeb.Controllers
             [FromRoute] string id
         )
         {
-            WorkspaceItem workspaceItem = await LoadWorkspaceItemAsync(GetUserInformation().Id, id);
+            WorkspaceItem workspaceItem = await LoadWorkspaceItemAsync(new UserInformation(User).Id, id);
             if (workspaceItem is null) return NotFound();
             else return Ok(workspaceItem);
         }
@@ -338,7 +323,7 @@ namespace CartaWeb.Controllers
             if (!archived.HasValue) archived = false;
 
             // Load the items and filter items according to archived flag
-            List<WorkspaceItem> allWorkspaceItems = await LoadWorkspaceItemsAsync(GetUserInformation().Id);
+            List<WorkspaceItem> allWorkspaceItems = await LoadWorkspaceItemsAsync(new UserInformation(User).Id);
             if (allWorkspaceItems is null) return NotFound();
             else
             {
@@ -401,7 +386,7 @@ namespace CartaWeb.Controllers
             [FromQuery(Name = "archived")] bool archived
         )
         {
-            UserInformation userInformation = GetUserInformation();
+            UserInformation userInformation = new UserInformation(User);
             WorkspaceItem workspaceItem = await LoadWorkspaceItemAsync(userInformation.Id, id);
             if (workspaceItem is null) return NotFound();
             UserItem userItem = await LoadUserItemAsync(id, userInformation.Id);
@@ -456,7 +441,7 @@ namespace CartaWeb.Controllers
             [FromBody] List<UserItem> userItems
         )
         {
-            UserInformation userInformation = GetUserInformation();
+            UserInformation userInformation = new UserInformation(User);
             WorkspaceItem workspaceItem = await LoadWorkspaceItemAsync(userInformation.Id, id);
             if (workspaceItem is null) return NotFound();
             foreach (UserItem userItem in userItems)
@@ -496,7 +481,7 @@ namespace CartaWeb.Controllers
                 if (userItem is null) return NotFound();
 
                 // Delete the workspace for the given user if the workspace is owned by the logged in user
-                if (workspaceItem.DocumentHistory.AddedBy.Id != GetUserInformation().Id)
+                if (workspaceItem.DocumentHistory.AddedBy.Id != new UserInformation(User).Id)
                 {
                     _logger.LogWarning($"Workspace item for user {userId} and workspace {workspaceItem.Id} " +
                         $"not created by logged in user");
@@ -516,7 +501,7 @@ namespace CartaWeb.Controllers
 
                 // Update user item information to record the deletion
                 userItem.DocumentHistory.DateDeleted = DateTime.Now;
-                userItem.DocumentHistory.DeletedBy = GetUserInformation();
+                userItem.DocumentHistory.DeletedBy = new UserInformation(User);
                 string json = JsonSerializer.Serialize<UserItem>(userItem, JsonOptions);
                 bool updated = await _noSqlDbContext.UpdateDocumentStringAsync
                 (
@@ -565,7 +550,7 @@ namespace CartaWeb.Controllers
             [FromQuery(Name = "name")] string name
         )
         {
-            DatasetItem datasetItem = new DatasetItem(source, resource, GetUserInformation());
+            DatasetItem datasetItem = new DatasetItem(source, resource, new UserInformation(User));
             if (name is not null) datasetItem.Name = name;
             string json = JsonSerializer.Serialize<DatasetItem>(datasetItem, JsonOptions);
             string datasetId = await _noSqlDbContext.CreateDocumentStringAsync
@@ -702,8 +687,8 @@ namespace CartaWeb.Controllers
         {
             bool deleted = await _noSqlDbContext.DeleteDocumentStringAsync
             (
-                GetWorkspaceKey(id),
-                GetDatasetKey(datasetId)
+                Keys.GetWorkspaceKey(id),
+                Keys.GetDatasetKey(datasetId)
             );
             if (deleted) return Ok();
             else return NotFound();
