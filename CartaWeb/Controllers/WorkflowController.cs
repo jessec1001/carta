@@ -78,12 +78,17 @@ namespace CartaWeb.Controllers
         /// </summary>
         /// <param name="userId">The unique identifier for the user.</param>
         /// <param name="id">The identifier of the workflow.</param>
+        /// <param name="noSqlDbContext">The database context driver</param>
         /// <returns>
         /// The current version number.
         /// </returns>
-        protected static async Task<int> GetCurrentWorkflowVersionNumber(string userId, string id)
+        public static async Task<int> GetCurrentWorkflowVersionNumber(
+            string userId,
+            string id,
+            INoSqlDbContext noSqlDbContext
+        )
         {
-            string jsonString = await _noSqlDbContext.LoadDocumentStringAsync
+            string jsonString = await noSqlDbContext.LoadDocumentStringAsync
             (
                 Keys.GetUserKey(userId),
                 Keys.GetWorkflowAccessKey(id)
@@ -120,8 +125,12 @@ namespace CartaWeb.Controllers
             {
                 WorkflowAccessItem workflowAccessItem =
                     JsonSerializer.Deserialize<WorkflowAccessItem>(jsonString, JsonOptions);
-                WorkflowItem workflowItem =
-                    await LoadWorkflowAsync(workflowAccessItem.Id, workflowAccessItem.VersionInformation.Number);
+                WorkflowItem workflowItem = await LoadWorkflowAsync
+                (
+                    workflowAccessItem.Id,
+                    workflowAccessItem.VersionInformation.Number,
+                    _noSqlDbContext
+                );
                 if (workflowItem != null) workflows.Add(workflowItem.Workflow);
             }
 
@@ -136,18 +145,24 @@ namespace CartaWeb.Controllers
         /// <param name="versionNumber">The version number of the workflow to get. If not specified, the user's
         /// temporary working version of the workflow is returned if it exists. If no temporary working version exist,
         /// the current version of the workflow is returned.</param>
+        /// <param name="noSqlDbContext">The database context driver.</param>
         /// <returns>
         /// The loaded workflow or <c>null</c> if there is no workflow corresponding to the specified identifier.
         /// </returns>
-        public static async Task<WorkflowItem> LoadWorkflowAsync(string userId, string id, int? versionNumber)
+        public static async Task<WorkflowItem> LoadWorkflowAsync(
+            string userId,
+            string id,
+            int? versionNumber,
+            INoSqlDbContext noSqlDbContext
+        )
         {
             if (versionNumber.HasValue)
             {
-                return await LoadWorkflowAsync(id, versionNumber.Value);
+                return await LoadWorkflowAsync(id, versionNumber.Value, noSqlDbContext);
             }
             else
             {
-                WorkflowItem workflowItem = await LoadTemporaryWorkflowAsync(userId, id);
+                WorkflowItem workflowItem = await LoadTemporaryWorkflowAsync(userId, id, noSqlDbContext);
                 if (workflowItem is not null)
                 {
                     Workflow workflow = workflowItem.Workflow;
@@ -157,8 +172,8 @@ namespace CartaWeb.Controllers
                 }
                 else
                 {
-                    int nr = await GetCurrentWorkflowVersionNumber(userId, id);
-                    return await LoadWorkflowAsync(id, nr);
+                    int nr = await GetCurrentWorkflowVersionNumber(userId, id, noSqlDbContext);
+                    return await LoadWorkflowAsync(id, nr, noSqlDbContext);
                 }
             }
         }
@@ -169,14 +184,19 @@ namespace CartaWeb.Controllers
         /// <param name="id">The identifier of the workflow to get.</param>
         /// <param name="versionNumber">The version number of the workflow to get.
         /// Defaults to the current version (0) if not set.</param>
+        /// <param name="noSqlDbContext">The database context driver.</param>
         /// <returns>
         /// The loaded workflow or <c>null</c> if there is no workflow corresponding to the specified identifier.
         /// </returns>
-        protected static async Task<WorkflowItem> LoadWorkflowAsync(string id, int versionNumber)
+        public static async Task<WorkflowItem> LoadWorkflowAsync(
+            string id,
+            int versionNumber,
+            INoSqlDbContext noSqlDbContext
+        )
         {
             string partitionKey = Keys.GetWorkflowKey(id);
             string sortKey = Keys.GetVersionKey(versionNumber);
-            string jsonString = await _noSqlDbContext.LoadDocumentStringAsync(partitionKey, sortKey);
+            string jsonString = await noSqlDbContext.LoadDocumentStringAsync(partitionKey, sortKey);
             if (jsonString is null) return null;
             else return GetWorkflowItem(jsonString);
         }
@@ -186,14 +206,19 @@ namespace CartaWeb.Controllers
         /// </summary>
         /// <param name="userId">The unique identifier for the user.</param>
         /// <param name="id">The identifier of the workflow to get.</param>
+        /// <param name="noSqlDbContext">The database context driver</param>
         /// <returns>
         /// The loaded workflow or <c>null</c> if there is no workflow corresponding to the specified identifier.
         /// </returns>
-        protected static async Task<WorkflowItem> LoadTemporaryWorkflowAsync(string userId, string id)
+        protected static async Task<WorkflowItem> LoadTemporaryWorkflowAsync(
+            string userId,
+            string id,
+            INoSqlDbContext noSqlDbContext
+        )
         {
             string partitionKey = Keys.GetUserKey(userId);
             string sortKey = Keys.GetWorkflowKey(id);
-            string jsonString = await _noSqlDbContext.LoadDocumentStringAsync(partitionKey, sortKey);
+            string jsonString = await noSqlDbContext.LoadDocumentStringAsync(partitionKey, sortKey);
             if (jsonString is null) return null;
             else return GetWorkflowItem(jsonString);
         }
@@ -290,7 +315,7 @@ namespace CartaWeb.Controllers
             int? versionNumber)
         {
             // We get the stored workflow first so we can perform updates on it.
-            WorkflowItem storedWorkflowItem = await LoadWorkflowAsync(userId, id, versionNumber);
+            WorkflowItem storedWorkflowItem = await LoadWorkflowAsync(userId, id, versionNumber, _noSqlDbContext);
             Workflow storedWorkflow = null;
 
             if (storedWorkflowItem is null)
@@ -399,7 +424,7 @@ namespace CartaWeb.Controllers
             [FromQuery(Name = "nr")] int? nr
         )
         {
-            WorkflowItem workflowItem = await LoadWorkflowAsync(new UserInformation(User).Id, id, nr);
+            WorkflowItem workflowItem = await LoadWorkflowAsync(new UserInformation(User).Id, id, nr, _noSqlDbContext);
             if (workflowItem is null) return NotFound();
             else return Ok(workflowItem.Workflow);
         }
@@ -429,7 +454,7 @@ namespace CartaWeb.Controllers
             List<VersionInformation> list = await LoadWorkflowVersionsAsync(id);
 
             // Get the current version number for the user
-            int nr = await GetCurrentWorkflowVersionNumber(new UserInformation(User).Id, id);
+            int nr = await GetCurrentWorkflowVersionNumber(new UserInformation(User).Id, id, _noSqlDbContext);
             if (nr == 0) return NotFound();
 
             // Put the current version entry at the top of the list
@@ -542,7 +567,8 @@ namespace CartaWeb.Controllers
             WorkflowItem workflowItem = await LoadTemporaryWorkflowAsync
             (
                 userInformation.Id,
-                id
+                id,
+                _noSqlDbContext
             );
             if (workflowItem is null)
             {
@@ -613,7 +639,7 @@ namespace CartaWeb.Controllers
             if (nr <= 0) return BadRequest();
 
             // Get the workflow and version information of the specified version number
-            WorkflowItem workflowItem = await LoadWorkflowAsync(id, nr);
+            WorkflowItem workflowItem = await LoadWorkflowAsync(id, nr, _noSqlDbContext);
             if (workflowItem is null) return NotFound();
 
             // Persist the version that the user has access to
@@ -677,7 +703,7 @@ namespace CartaWeb.Controllers
             [FromQuery(Name = "nr")] int? nr
         )
         {
-            WorkflowItem workflowItem = await LoadWorkflowAsync(new UserInformation(User).Id, id, nr);
+            WorkflowItem workflowItem = await LoadWorkflowAsync(new UserInformation(User).Id, id, nr, _noSqlDbContext);
             if (workflowItem is null) return NotFound();
             else return Ok(workflowItem.Workflow.Operations);
         }
@@ -718,7 +744,7 @@ namespace CartaWeb.Controllers
         )
         {
             // Get the workflow.
-            WorkflowItem workflowItem = await LoadWorkflowAsync(new UserInformation(User).Id, id, nr);
+            WorkflowItem workflowItem = await LoadWorkflowAsync(new UserInformation(User).Id, id, nr, _noSqlDbContext);
             if (workflowItem is null) return NotFound();
 
             // Convert the index and get the operation.
@@ -805,7 +831,7 @@ namespace CartaWeb.Controllers
         {
             // Get the workflow.
             string userId = new UserInformation(User).Id;
-            WorkflowItem workflowItem = await LoadWorkflowAsync(userId, id, nr);
+            WorkflowItem workflowItem = await LoadWorkflowAsync(userId, id, nr, _noSqlDbContext);
             if (workflowItem is null) return NotFound();
 
             // Try to perform the insertion.
@@ -884,7 +910,7 @@ namespace CartaWeb.Controllers
         {
             // Get the workflow.
             string userId = new UserInformation(User).Id;
-            WorkflowItem workflowItem = await LoadWorkflowAsync(userId, id, nr);
+            WorkflowItem workflowItem = await LoadWorkflowAsync(userId, id, nr, _noSqlDbContext);
             if (workflowItem is null) return NotFound();
 
             // Try to perform the update.
@@ -940,7 +966,7 @@ namespace CartaWeb.Controllers
         {
             // Get the workflow.
             string userId = new UserInformation(User).Id;
-            WorkflowItem workflowItem = await LoadWorkflowAsync(userId, id, nr);
+            WorkflowItem workflowItem = await LoadWorkflowAsync(userId, id, nr, _noSqlDbContext);
             if (workflowItem is null) return NotFound();
 
             // Try to perform the deletion.

@@ -242,6 +242,72 @@ namespace CartaWeb.Controllers
             else return JsonSerializer.Deserialize<DatasetItem>(jsonString, JsonOptions);
         }
 
+        /// <summary>Updates the workflow access information.</summary>
+        /// <param name="id">The unique identifier for the workspace.</param>
+        /// <param name="workflowId">The unique identifier for the workflow.</param>
+        /// <param name="workflowName">The workflow name.</param>
+        /// <param name="versionInformation">Version information for the workflow.</param>
+        /// <returns>Workflow access information.</returns>
+        protected async Task<WorkflowAccessItem> UpdateWorkflowAccessAsync(
+            string id,
+            string workflowId,
+            string workflowName,
+            VersionInformation versionInformation)
+        {
+            WorkflowAccessItem workflowAccessItem = new WorkflowAccessItem
+            (
+                workflowId,
+                workflowName,
+                versionInformation
+            );
+            workflowAccessItem.DocumentHistory = new DocumentHistory(new UserInformation(User));
+            string jsonString = JsonSerializer.Serialize<WorkflowAccessItem>(workflowAccessItem, JsonOptions);
+            await _noSqlDbContext.SaveDocumentStringAsync
+            (
+                Keys.GetWorkspaceKey(id),
+                Keys.GetWorkflowAccessKey(workflowId),
+                jsonString
+            );
+            return workflowAccessItem;
+        }
+
+        /// <summary>Updates the workflow access information.</summary>
+        /// <param name="id">The unique identifier for the workspace.</param>
+        /// <param name="workflowId">The unique identifier for the workflow.</param>
+        /// <param name="workflowAccessItem">The workflow access item to persist.</param>
+        protected async Task UpdateWorkflowAccessAsync(
+            string id,
+            string workflowId,
+            WorkflowAccessItem workflowAccessItem)
+        {
+            string jsonString = JsonSerializer.Serialize<WorkflowAccessItem>(workflowAccessItem, JsonOptions);
+            await _noSqlDbContext.SaveDocumentStringAsync
+            (
+                Keys.GetWorkspaceKey(id),
+                Keys.GetWorkflowAccessKey(workflowId),
+                jsonString
+            );
+        }
+
+        /// <summary>
+        /// Retrieves accees information on the specified workflow.
+        /// </summary>
+        /// <param name="id">The workspace identifier.</param>
+        /// <param name="workflowId">The workflow identifier.</param>
+        /// <returns>Workflow access information.</returns>
+        protected async Task<WorkflowAccessItem> LoadWorkflowAccessAsync(
+            string id,
+            string workflowId
+        )
+        {
+            string partitionKey = Keys.GetWorkspaceKey(id);
+            string sortKey = Keys.GetWorkflowAccessKey(workflowId);
+            string jsonString = await _noSqlDbContext.LoadDocumentStringAsync(partitionKey, sortKey);
+            if (jsonString is null) return null;
+            else return (JsonSerializer.Deserialize<WorkflowAccessItem>(jsonString, JsonOptions));
+        }
+
+
         /// <summary>
         /// Create a new workspace for the given user.
         /// </summary>
@@ -696,6 +762,245 @@ namespace CartaWeb.Controllers
             );
             if (deleted) return Ok();
             else return NotFound();
+        }
+
+        /// <summary>
+        /// Persists a workflow under the given workspace
+        /// </summary>
+        /// <param name="id">The workspace identifier.</param>
+        /// <param name="workflowId">The workflow identifier.</param>
+        /// <param name="versionNumber">Optional workflow version number.</param>
+        /// <request name="Example">
+        ///     <arg name="id">01F68ES7FSMMY1PYCG72B31759</arg>
+        ///     <arg name="workflowId">01F7S2CBC9WHE5YMBHX8FB2FAM</arg>
+        /// </request>
+        /// <request name="Example with version number">
+        ///     <arg name="id">01F68ES7FSMMY1PYCG72B31759</arg>
+        ///     <arg name="workflowId">01F7S2CBC9WHE5YMBHX8FB2FAM</arg>
+        ///     <arg name="versionNumber">3</arg>
+        /// </request>
+        /// <returns status="200">Occurs when the operation is successful. The workflow information
+        /// will be attached to the response object.</returns>
+        /// <returns status="404">Occurs when a workflow with the specified identifier and version
+        /// could not be found.</returns>
+        [Authorize]
+        [HttpPost("{id}/workflows/{workflowId}")]
+        public async Task<ActionResult<WorkflowAccessItem>> PostWorkspaceWorkflow(
+            [FromRoute] string id,
+            [FromRoute] string workflowId,
+            [FromQuery(Name = "nr")] int? versionNumber 
+        )
+        {
+            // Set the version number
+            int nr;
+            if (versionNumber.HasValue) nr = versionNumber.Value;
+            else nr = await WorkflowController.GetCurrentWorkflowVersionNumber
+                (
+                    new UserInformation(User).Id,
+                    workflowId,
+                    _noSqlDbContext
+                );
+                
+            // Load workflow information
+            WorkflowItem workflowItem = await WorkflowController.LoadWorkflowAsync(workflowId, nr, _noSqlDbContext);
+            if (workflowItem is null) return NotFound();
+
+            // Persist access information
+            WorkflowAccessItem workflowAccessItem =  await UpdateWorkflowAccessAsync
+            (
+                id,
+                workflowId,
+                workflowItem.Workflow.Name,
+                workflowItem.VersionInformation
+            );
+
+            // Return access information
+            return Ok(workflowAccessItem);
+        }
+
+        /// <summary>
+        /// Retrieves information on workflows that are accessible under a workspace.
+        /// </summary>
+        /// <param name="id">The workspace identifier.</param>
+        /// <param name="archived">A flag indicating whether archived workspaces should be returned.
+        /// Set to true if archived workspaces should be returned, otherwise set to false.
+        /// Defaults to false.</param>
+        /// <request name="Example">
+        ///     <arg name="id">01F68ES7FSMMY1PYCG72B31759</arg>
+        /// </request>
+        /// <request name="Example to retrieve archived workflows">
+        ///     <arg name="id">01F68ES7FSMMY1PYCG72B31759</arg>
+        ///     <arg name="archived">true</arg>
+        /// </request>
+        /// <returns status="200">Occurs when the operation is successful. The workflow information
+        /// will be attached to the response object.</returns>
+        [Authorize]
+        [HttpGet("{id}/workflows")]
+        public async Task<ActionResult<List<WorkflowAccessItem>>> GetWorkspaceWorkflows(
+            [FromRoute] string id,
+            [FromQuery(Name = "archived")] bool? archived
+        )
+        {
+            // If no archived query parameter has been passed, set it to false
+            bool isArchived = false;
+            if (archived.HasValue) isArchived = archived.Value;
+
+            // Retrieve the workflow access items
+            List<WorkflowAccessItem> workflowAccessItems = new() { };
+            string partitionKey = Keys.GetWorkspaceKey(id);
+            string sortKeyPrefix = Keys.GetWorkflowAccessKey("");
+            List<string> jsonStrings = await _noSqlDbContext.LoadDocumentStringsAsync(partitionKey, sortKeyPrefix);
+            foreach (string jsonString in jsonStrings)
+            {
+                WorkflowAccessItem workflowAccessItem =
+                    JsonSerializer.Deserialize<WorkflowAccessItem>(jsonString, JsonOptions);
+                if (workflowAccessItem.Archived == isArchived) workflowAccessItems.Add(workflowAccessItem);
+            }
+
+            // Return the list of items
+            return Ok(workflowAccessItems);
+        }
+
+        /// <summary>
+        /// Retrieves information on the specified workflow.
+        /// </summary>
+        /// <param name="id">The workspace identifier.</param>
+        /// <param name="workflowId">The workflow identifier.</param>
+        /// <request name="Example">
+        ///     <arg name="id">01F68ES7FSMMY1PYCG72B31759</arg>
+        ///     <arg name="workflowId">01F7S2CBC9WHE5YMBHX8FB2FAM</arg>
+        /// </request>
+        /// <returns status="200">Occurs when the operation is successful. The workflow information
+        /// will be attached to the response object.</returns>
+        /// <returns status="404">Occurs when no workflow information could be found.</returns>
+        [Authorize]
+        [HttpGet("{id}/workflows/{workflowId}")]
+        public async Task<ActionResult<WorkflowAccessItem>> GetWorkspaceWorkflow(
+            [FromRoute] string id,
+            [FromRoute] string workflowId
+        )
+        {
+            WorkflowAccessItem workflowAccessItem = await LoadWorkflowAccessAsync(id, workflowId);
+            if (workflowAccessItem is null) return NotFound();
+            else return Ok(workflowAccessItem);
+        }
+
+        /// <summary>
+        /// Archives/unarchives a workflow from the workspace, or updates the version of the workflow available
+        /// under the workspace
+        /// </summary>
+        /// <param name="id">The workspace identifier.</param>
+        /// <param name="workflowId">The workflow identifier.</param>
+        /// <param name="archived">Flag indicating whether the workflow should be archived (true)
+        /// or not (false).</param>
+        /// <param name="versionNumber">Optional workflow version number that should be accessible under the
+        /// workspace.</param>
+        /// <request name="Example to archive a workflow">
+        ///     <arg name="id">01F68ES7FSMMY1PYCG72B31759</arg>
+        ///     <arg name="workflowId">01F7S2CBC9WHE5YMBHX8FB2FAM</arg>
+        ///     <arg name="archived">true</arg>
+        /// </request>
+        /// <request name="Example to update version number">
+        ///     <arg name="id">01F68ES7FSMMY1PYCG72B31759</arg>
+        ///     <arg name="workflowId">01F7S2CBC9WHE5YMBHX8FB2FAM</arg>
+        ///     <arg name="versionNumber">3</arg>
+        /// </request>
+        /// <request name="Example to unarchive a workflow and set it to a specific version">
+        ///     <arg name="id">01F68ES7FSMMY1PYCG72B31759</arg>
+        ///     <arg name="workflowId">01F7S2CBC9WHE5YMBHX8FB2FAM</arg>
+        ///     <arg name="archived">false</arg>
+        ///     <arg name="versionNumber">3</arg>
+        /// </request>
+        /// <returns status="200">Occurs when the operation is successful. The workflow access information
+        /// will be attached to the response object.</returns>
+        /// <returns status="404">Occurs when a workflow with the specified identifier 
+        /// could not be found.</returns>
+        [Authorize]
+        [HttpPatch("{id}/workflows/{workflowId}")]
+        public async Task<ActionResult<WorkflowAccessItem>> PatchWorkspaceWorkflow(
+            [FromRoute] string id,
+            [FromRoute] string workflowId,
+            [FromQuery(Name = "archived")] bool? archived,
+            [FromQuery(Name = "nr")] int? versionNumber
+        )
+        {
+            // Load the workflow
+            WorkflowAccessItem workflowAccessItem = await LoadWorkflowAccessAsync(id, workflowId);
+            if (workflowAccessItem is null)
+            {
+                _logger.LogWarning($"Workflow access item for workspace id {id} and workflow {workflowId} could not be " +
+                    $"found for patching");
+                return NotFound();
+            }
+
+            // Update archive information
+            if (archived.HasValue)
+            {
+                workflowAccessItem.Archived = archived.Value;
+                if (archived.Value)
+                {
+                    workflowAccessItem.DocumentHistory.ArchivedBy = new UserInformation(User);
+                    workflowAccessItem.DocumentHistory.DateArchived = DateTime.Now;
+                }
+                else
+                {
+                    workflowAccessItem.DocumentHistory.UnarchivedBy = new UserInformation(User);
+                    workflowAccessItem.DocumentHistory.DateUnarchived = DateTime.Now;
+                }
+            }
+
+            // Update version information
+            if (versionNumber.HasValue)
+            {
+                WorkflowItem workflowItem = await WorkflowController.LoadWorkflowAsync
+                (
+                    workflowId,
+                    versionNumber.Value,
+                    _noSqlDbContext
+                );
+                if (workflowItem is null)
+                {
+                    _logger.LogWarning($"Workflow item for workspace id {id} and workflow {workflowId} could not be " +
+                        $"found for patching");
+                    return NotFound();
+                }
+                workflowAccessItem.VersionInformation = workflowItem.VersionInformation;
+            }
+
+            // Persist access information
+            await UpdateWorkflowAccessAsync(id, workflowId, workflowAccessItem);
+
+            // Return access information
+            return Ok(workflowAccessItem);
+        }
+
+        /// <summary>
+        /// Deletes the specified workflow
+        /// </summary>
+        /// <param name="id">The workspace identifier.</param>
+        /// <param name="workflowId">The workflow identifier.</param>
+        /// <request name="Example">
+        ///     <arg name="id">01F68ES7FSMMY1PYCG72B31759</arg>
+        ///     <arg name="workflowId">01F7S2CBC9WHE5YMBHX8FB2FAM</arg>
+        /// </request>
+        /// <returns status="200">Occurs when the operation is successful.</returns>
+        /// <returns status="403">Occurs when the workflow was not originally added by the logged in user.</returns>
+        /// <returns status="404">Occurs when no workflow information could be found.</returns>
+        [Authorize]
+        [HttpDelete("{id}/workflows/{workflowId}")]
+        public async Task<ActionResult<WorkflowAccessItem>> DeleteWorkspaceWorkflow(
+            [FromRoute] string id,
+            [FromRoute] string workflowId
+        )
+        {
+            WorkflowAccessItem workflowAccessItem = await LoadWorkflowAccessAsync(id, workflowId);
+            if (workflowAccessItem is null) return NotFound();
+            if (workflowAccessItem.DocumentHistory.AddedBy.Id != new UserInformation(User).Id) return Forbid();
+            string partitionKey = Keys.GetWorkspaceKey(id);
+            string sortKey = Keys.GetWorkflowAccessKey(workflowId);
+            bool deleted = await _noSqlDbContext.DeleteDocumentStringAsync(partitionKey, sortKey);
+            if (!deleted) return NotFound();
+            else return Ok();
         }
 
     }

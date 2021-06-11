@@ -19,6 +19,14 @@ namespace CartaWeb.Models.DocumentItem
         /// The workflow version
         /// </summary>
         public VersionInformation VersionInformation { get; set; }
+        /// <summary>
+        /// Flag indicating whether a workflow has been archived from the view
+        /// </summary>
+        public bool Archived { get; set; }
+        /// <summary>
+        /// The workflow access history
+        /// </summary>
+        public DocumentHistory DocumentHistory { get; set; }
 
 
         /// <summary>
@@ -29,6 +37,7 @@ namespace CartaWeb.Models.DocumentItem
             Id = id;
             Name = name;
             VersionInformation = versionInformation;
+            Archived = false;
         }
     }
 }

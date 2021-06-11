@@ -18,6 +18,7 @@ using CartaCore.Workflow.Selection;
 using CartaWeb.Models.Data;
 using CartaWeb.Models.DocumentItem;
 using CartaWeb.Serialization.Json;
+using CartaCore.Persistence;
 
 namespace CartaWeb.Controllers
 {
@@ -33,6 +34,8 @@ namespace CartaWeb.Controllers
     public class DataController : ControllerBase
     {
         private readonly ILogger<DataController> _logger;
+
+        private static INoSqlDbContext _noSqlDbContext;
 
         private static Dictionary<DataSource, IDataResolver> DataResolvers;
 
@@ -146,9 +149,10 @@ namespace CartaWeb.Controllers
 
 
         /// <inheritdoc />
-        public DataController(ILogger<DataController> logger)
+        public DataController(ILogger<DataController> logger, INoSqlDbContext noSqlDbContext)
         {
             _logger = logger;
+            _noSqlDbContext = noSqlDbContext;
         }
 
         /// <summary>
@@ -388,7 +392,8 @@ namespace CartaWeb.Controllers
                     (
                         userId,
                         workflowId,
-                        versionNumber
+                        versionNumber,
+                        _noSqlDbContext
                     );
                     if (workflowItem is null) return NotFound();
                     else
