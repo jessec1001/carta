@@ -58,6 +58,21 @@ namespace CartaWeb.Controllers
         }
 
         /// <summary>
+        /// Helper method that returns the user information of the currently logged in user.
+        /// </summary>
+        /// <returns>
+        /// The user information of the currently logged in user.
+        /// </returns>
+        protected UserInformation GetUserInformation()
+        {
+            return new UserInformation
+            (
+                User.FindFirstValue(ClaimTypes.NameIdentifier),
+                User.FindFirstValue("cognito:username")
+            );
+        }
+
+        /// <summary>
         /// Persists a new workspace, creating table items for the worskpace under the logged in user, and the user
         /// under the workspace.
         /// </summary>
