@@ -371,8 +371,7 @@ namespace CartaWeb.Controllers
         [HttpGet]
         public async Task<ActionResult<List<Workflow>>> GetWorkflows()
         {
-            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            return Ok(await LoadWorkflowsAsync(userId));
+            return Ok(await LoadWorkflowsAsync(new UserInformation(User).Id));
         }
 
         /// <summary>
@@ -400,7 +399,7 @@ namespace CartaWeb.Controllers
             [FromQuery(Name = "nr")] int? nr
         )
         {
-            WorkflowItem workflowItem = await LoadWorkflowAsync(User.FindFirstValue(ClaimTypes.NameIdentifier), id, nr);
+            WorkflowItem workflowItem = await LoadWorkflowAsync(new UserInformation(User).Id, id, nr);
             if (workflowItem is null) return NotFound();
             else return Ok(workflowItem.Workflow);
         }
@@ -430,7 +429,7 @@ namespace CartaWeb.Controllers
             List<VersionInformation> list = await LoadWorkflowVersionsAsync(id);
 
             // Get the current version number for the user
-            int nr = await GetCurrentWorkflowVersionNumber(User.FindFirstValue(ClaimTypes.NameIdentifier), id);
+            int nr = await GetCurrentWorkflowVersionNumber(new UserInformation(User).Id, id);
             if (nr == 0) return NotFound();
 
             // Put the current version entry at the top of the list
@@ -496,17 +495,18 @@ namespace CartaWeb.Controllers
         )
         {
             // Create the workflow item
+            UserInformation userInformation = new UserInformation(User);
             WorkflowItem workflowItem = new WorkflowItem
             (
                 workflow,
-                new VersionInformation(0, null, new UserInformation(User))
+                new VersionInformation(0, null, userInformation)
             );
 
             // Write the item.
             string json = JsonSerializer.Serialize<WorkflowItem>(workflowItem, JsonOptions);
             string id = await _noSqlDbContext.CreateDocumentStringAsync
             (
-                Keys.GetUserKey(User.FindFirstValue(ClaimTypes.NameIdentifier)),
+                Keys.GetUserKey(userInformation.Id),
                 Keys.GetWorkflowKey(""),
                 json
             );
@@ -538,9 +538,10 @@ namespace CartaWeb.Controllers
         )
         {
             // Retrieve the temporary working version of a workflow
+            UserInformation userInformation = new UserInformation(User);
             WorkflowItem workflowItem = await LoadTemporaryWorkflowAsync
             (
-                User.FindFirstValue(ClaimTypes.NameIdentifier),
+                userInformation.Id,
                 id
             );
             if (workflowItem is null)
@@ -558,13 +559,13 @@ namespace CartaWeb.Controllers
             workflowItem.VersionInformation.BaseNumber = workflowItem.VersionInformation.Number;
             workflowItem.VersionInformation.Number = ++maxVersionNumber;
             workflowItem.VersionInformation.Description = description;
-            workflowItem.VersionInformation.CreatedBy = new UserInformation(User);
+            workflowItem.VersionInformation.CreatedBy = userInformation;
             workflowItem.VersionInformation.DateCreated = DateTime.Now;
 
             // Persist the new version
             await SaveWorkflowAsync
             (
-                User.FindFirstValue(ClaimTypes.NameIdentifier),
+                userInformation.Id,
                 id,
                 workflowItem.Workflow,
                 workflowItem.VersionInformation
@@ -573,7 +574,7 @@ namespace CartaWeb.Controllers
             // Persist that the user has access to that workflow and version
             await UpdateWorkflowAccessAsync
             (
-                User.FindFirstValue(ClaimTypes.NameIdentifier),
+                userInformation.Id,
                 id,
                 workflowItem.Workflow.Name,
                 workflowItem.VersionInformation
@@ -618,7 +619,7 @@ namespace CartaWeb.Controllers
             // Persist the version that the user has access to
             await UpdateWorkflowAccessAsync
             (
-                User.FindFirstValue(ClaimTypes.NameIdentifier),
+                new UserInformation(User).Id,
                 id,
                 workflowItem.Workflow.Name,
                 workflowItem.VersionInformation
@@ -645,7 +646,7 @@ namespace CartaWeb.Controllers
             [FromRoute] string id
         )
         {
-            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            string userId = new UserInformation(User).Id;
             bool deleted = await DeleteTemporaryWorkflowAsync(userId, id);
             if (!deleted) deleted = await DeleteWorkflowAsync(userId, id);
             if (deleted) return Ok(); else return NotFound();
@@ -676,7 +677,7 @@ namespace CartaWeb.Controllers
             [FromQuery(Name = "nr")] int? nr
         )
         {
-            WorkflowItem workflowItem = await LoadWorkflowAsync(User.FindFirstValue(ClaimTypes.NameIdentifier), id, nr);
+            WorkflowItem workflowItem = await LoadWorkflowAsync(new UserInformation(User).Id, id, nr);
             if (workflowItem is null) return NotFound();
             else return Ok(workflowItem.Workflow.Operations);
         }
@@ -717,7 +718,7 @@ namespace CartaWeb.Controllers
         )
         {
             // Get the workflow.
-            WorkflowItem workflowItem = await LoadWorkflowAsync(User.FindFirstValue(ClaimTypes.NameIdentifier), id, nr);
+            WorkflowItem workflowItem = await LoadWorkflowAsync(new UserInformation(User).Id, id, nr);
             if (workflowItem is null) return NotFound();
 
             // Convert the index and get the operation.
@@ -803,7 +804,7 @@ namespace CartaWeb.Controllers
         )
         {
             // Get the workflow.
-            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            string userId = new UserInformation(User).Id;
             WorkflowItem workflowItem = await LoadWorkflowAsync(userId, id, nr);
             if (workflowItem is null) return NotFound();
 
@@ -882,7 +883,7 @@ namespace CartaWeb.Controllers
         )
         {
             // Get the workflow.
-            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            string userId = new UserInformation(User).Id;
             WorkflowItem workflowItem = await LoadWorkflowAsync(userId, id, nr);
             if (workflowItem is null) return NotFound();
 
@@ -938,7 +939,7 @@ namespace CartaWeb.Controllers
         )
         {
             // Get the workflow.
-            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            string userId = new UserInformation(User).Id;
             WorkflowItem workflowItem = await LoadWorkflowAsync(userId, id, nr);
             if (workflowItem is null) return NotFound();
 
