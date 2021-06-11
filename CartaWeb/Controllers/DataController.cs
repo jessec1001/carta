@@ -311,7 +311,14 @@ namespace CartaWeb.Controllers
         ///     <arg name="source">synthetic</arg>
         ///     <arg name="resource">infiniteDirectedGraph</arg>
         ///     <arg name="selector">roots</arg>
-        ///     <arg name="workflow">0</arg>
+        ///     <arg name="workflow">01F7S2CBC9WHE5YMBHX8FB2FAM</arg>
+        /// </request>
+        /// <request name="Synthetic Graph with Workflow and Version Number - Root">
+        ///     <arg name="source">synthetic</arg>
+        ///     <arg name="resource">infiniteDirectedGraph</arg>
+        ///     <arg name="selector">roots</arg>
+        ///     <arg name="nr">3</arg>
+        ///     <arg name="workflow">01F7S2CBC9WHE5YMBHX8FB2FAM</arg>
         /// </request>
         /// <request name="HyperThought Workflow Graph - Root">
         ///     <arg name="source">hyperthought</arg>
@@ -359,6 +366,7 @@ namespace CartaWeb.Controllers
             [FromRoute] DataSource source,
             [FromRoute] string resource,
             [FromRoute] string selector,
+            [FromQuery(Name = "nr")] int? versionNumber,
             [FromQuery(Name = "workflow")] string workflowId = null
         )
         {
@@ -376,7 +384,12 @@ namespace CartaWeb.Controllers
                         return Forbid();
 
                     string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                    WorkflowItem workflowItem = await WorkflowController.LoadWorkflowAsync(userId, workflowId, null);
+                    WorkflowItem workflowItem = await WorkflowController.LoadWorkflowAsync
+                    (
+                        userId,
+                        workflowId,
+                        versionNumber
+                    );
                     if (workflowItem is null) return NotFound();
                     else
                         graph = workflowItem.Workflow.Apply(graph);
