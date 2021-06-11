@@ -58,42 +58,6 @@ namespace CartaWeb.Controllers
         }
 
         /// <summary>
-        /// Returns a properly formatted user key.
-        /// </summary>
-        /// <param name="userId">A user identifier.</param>
-        /// <returns>
-        /// The key for the persisted item for the given user.
-        /// </returns>
-        protected static string GetUserKey(string userId)
-        {
-            return "USER#" + userId;
-        }
-
-        /// <summary>
-        /// Returns a properly formatted workspace key.
-        /// </summary>
-        /// <param name="workspaceId">A workspace identifier.</param>
-        /// <returns>
-        /// The key for the persisted item for the given workspace.
-        /// </returns>
-        protected static string GetWorkspaceKey(string workspaceId)
-        {
-            return "WORKSPACE#" + workspaceId;
-        }
-
-        /// <summary>
-        /// Returns a properly formatted data set key.
-        /// </summary>
-        /// <param name="datasetId">A dataest identifier.</param>
-        /// <returns>
-        /// The key for the persisted item for the given dataset.
-        /// </returns>
-        protected static string GetDatasetKey(string datasetId)
-        {
-            return "DATASET#" + datasetId;
-        }
-
-        /// <summary>
         /// Helper method that returns the user information of the currently logged in user.
         /// </summary>
         /// <returns>
@@ -124,8 +88,8 @@ namespace CartaWeb.Controllers
             string json = JsonSerializer.Serialize<WorkspaceItem>(workspaceItem, JsonOptions);
             string id = await _noSqlDbContext.CreateDocumentStringAsync
             (
-                GetUserKey(userItem.UserInformation.Id),
-                GetWorkspaceKey(""),
+                Keys.GetUserKey(userItem.UserInformation.Id),
+                Keys.GetWorkspaceKey(""),
                 json
             );
 
@@ -133,8 +97,8 @@ namespace CartaWeb.Controllers
             json = JsonSerializer.Serialize<UserItem>(userItem, JsonOptions);
             await _noSqlDbContext.SaveDocumentStringAsync
             (
-                GetWorkspaceKey(id),
-                GetUserKey(userItem.UserInformation.Id),
+                Keys.GetWorkspaceKey(id),
+                Keys.GetUserKey(userItem.UserInformation.Id),
                 json
             );
 
@@ -150,8 +114,8 @@ namespace CartaWeb.Controllers
         /// </returns>
         protected async Task<List<WorkspaceItem>> LoadWorkspaceItemsAsync(string userId)
         {
-            string partitionKey = GetUserKey(userId);
-            string sortKeyPrefix = GetWorkspaceKey("");
+            string partitionKey = Keys.GetUserKey(userId);
+            string sortKeyPrefix = Keys.GetWorkspaceKey("");
             List<string> jsonStrings = await _noSqlDbContext.LoadDocumentStringsAsync(partitionKey, sortKeyPrefix);
             List<WorkspaceItem> workspaceItems = new() { };
             foreach (string jsonString in jsonStrings)
@@ -171,8 +135,8 @@ namespace CartaWeb.Controllers
         /// </returns>
         protected async Task<WorkspaceItem> LoadWorkspaceItemAsync(string userId, string workspaceId)
         {
-            string partitionKey = GetUserKey(userId);
-            string sortKey = GetWorkspaceKey(workspaceId);
+            string partitionKey = Keys.GetUserKey(userId);
+            string sortKey = Keys.GetWorkspaceKey(workspaceId);
             string jsonString = await _noSqlDbContext.LoadDocumentStringAsync(partitionKey, sortKey);
             if (jsonString is null) return null;
             else return JsonSerializer.Deserialize<WorkspaceItem>(jsonString, JsonOptions);
@@ -187,8 +151,8 @@ namespace CartaWeb.Controllers
         /// </returns>
         protected async Task<List<UserItem>> LoadUserItemsAsync(string workspaceId)
         {
-            string partitionKey = GetWorkspaceKey(workspaceId);
-            string sortKeyPrefix = GetUserKey("");
+            string partitionKey = Keys.GetWorkspaceKey(workspaceId);
+            string sortKeyPrefix = Keys.GetUserKey("");
             List<string> jsonStrings = await _noSqlDbContext.LoadDocumentStringsAsync(partitionKey, sortKeyPrefix);
             List<UserItem> userItems = new() { };
             foreach (string jsonString in jsonStrings)
@@ -208,8 +172,8 @@ namespace CartaWeb.Controllers
         /// </returns>
         protected async Task<UserItem> LoadUserItemAsync(string workspaceId, string userId)
         {
-            string partitionKey = GetWorkspaceKey(workspaceId);
-            string sortKey = GetUserKey(userId);
+            string partitionKey = Keys.GetWorkspaceKey(workspaceId);
+            string sortKey = Keys.GetUserKey(userId);
             string jsonString = await _noSqlDbContext.LoadDocumentStringAsync(partitionKey, sortKey);
             if (jsonString is null) return null;
             else return JsonSerializer.Deserialize<UserItem>(jsonString, JsonOptions);
@@ -228,8 +192,8 @@ namespace CartaWeb.Controllers
             string json = JsonSerializer.Serialize<WorkspaceItem>(workspaceItem, JsonOptions);
             bool updated = await _noSqlDbContext.UpdateDocumentStringAsync
             (
-                GetUserKey(userItem.UserInformation.Id),
-                GetWorkspaceKey(workspaceItem.Id),
+                Keys.GetUserKey(userItem.UserInformation.Id),
+                Keys.GetWorkspaceKey(workspaceItem.Id),
                 json
             );
             if (!updated)
@@ -242,8 +206,8 @@ namespace CartaWeb.Controllers
             json = JsonSerializer.Serialize<UserItem>(userItem, JsonOptions);
             updated = await _noSqlDbContext.UpdateDocumentStringAsync
             (
-                GetWorkspaceKey(workspaceItem.Id),
-                GetUserKey(userItem.UserInformation.Id),
+                Keys.GetWorkspaceKey(workspaceItem.Id),
+                Keys.GetUserKey(userItem.UserInformation.Id),
                 json
             );
             if (!updated) _logger.LogWarning($"User item for user {userItem.UserInformation.Id} and workspace " +
@@ -262,16 +226,16 @@ namespace CartaWeb.Controllers
             string json = JsonSerializer.Serialize<WorkspaceItem>(workspaceItem, JsonOptions);
             await _noSqlDbContext.SaveDocumentStringAsync
             (
-                GetUserKey(userItem.UserInformation.Id),
-                GetWorkspaceKey(workspaceItem.Id),
+                Keys.GetUserKey(userItem.UserInformation.Id),
+                Keys.GetWorkspaceKey(workspaceItem.Id),
                 json
             );
 
             json = JsonSerializer.Serialize<UserItem>(userItem, JsonOptions);
             await _noSqlDbContext.SaveDocumentStringAsync
             (
-                GetWorkspaceKey(workspaceItem.Id),
-                GetUserKey(userItem.UserInformation.Id),
+                Keys.GetWorkspaceKey(workspaceItem.Id),
+                Keys.GetUserKey(userItem.UserInformation.Id),
                 json
             );
         }
@@ -286,8 +250,8 @@ namespace CartaWeb.Controllers
             string datasetId
         )
         {
-            string partitionKey = GetWorkspaceKey(workspaceId);
-            string sortKey = GetDatasetKey(datasetId);
+            string partitionKey = Keys.GetWorkspaceKey(workspaceId);
+            string sortKey = Keys.GetDatasetKey(datasetId);
             string jsonString = await _noSqlDbContext.LoadDocumentStringAsync(partitionKey, sortKey);
             if (jsonString is null) return null;
             else return JsonSerializer.Deserialize<DatasetItem>(jsonString, JsonOptions);
@@ -540,8 +504,8 @@ namespace CartaWeb.Controllers
                 }
                 bool deleted = await _noSqlDbContext.DeleteDocumentStringAsync
                 (
-                    GetUserKey(userId),
-                    GetWorkspaceKey(id)
+                    Keys.GetUserKey(userId),
+                    Keys.GetWorkspaceKey(id)
                 );
                 if (!deleted)
                 {
@@ -556,8 +520,8 @@ namespace CartaWeb.Controllers
                 string json = JsonSerializer.Serialize<UserItem>(userItem, JsonOptions);
                 bool updated = await _noSqlDbContext.UpdateDocumentStringAsync
                 (
-                    GetWorkspaceKey(id),
-                    GetUserKey(userId),
+                    Keys.GetWorkspaceKey(id),
+                    Keys.GetUserKey(userId),
                     json
                 );
                 if (!updated)
@@ -606,8 +570,8 @@ namespace CartaWeb.Controllers
             string json = JsonSerializer.Serialize<DatasetItem>(datasetItem, JsonOptions);
             string datasetId = await _noSqlDbContext.CreateDocumentStringAsync
             (
-                GetWorkspaceKey(id),
-                GetDatasetKey(""),
+                Keys.GetWorkspaceKey(id),
+                Keys.GetDatasetKey(""),
                 json
             );
             if (datasetId is null) return Conflict();
@@ -660,8 +624,8 @@ namespace CartaWeb.Controllers
             string json = JsonSerializer.Serialize<DatasetItem>(datasetItem, JsonOptions);
             bool updated = await _noSqlDbContext.UpdateDocumentStringAsync
             (
-                GetWorkspaceKey(id),
-                GetDatasetKey(datasetId),
+                Keys.GetWorkspaceKey(id),
+                Keys.GetDatasetKey(datasetId),
                 json
             );
             if (!updated) return NotFound();
@@ -683,8 +647,8 @@ namespace CartaWeb.Controllers
             [FromRoute] string id
         )
         {
-            string partitionKey = GetWorkspaceKey(id);
-            string sortKeyPrefix = GetDatasetKey("");
+            string partitionKey = Keys.GetWorkspaceKey(id);
+            string sortKeyPrefix = Keys.GetDatasetKey("");
             List<string> jsonStrings = await _noSqlDbContext.LoadDocumentStringsAsync(partitionKey, sortKeyPrefix);
             List<DatasetItem> datasetItems = new() { };
             foreach (string jsonString in jsonStrings)
