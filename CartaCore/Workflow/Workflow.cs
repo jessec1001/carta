@@ -21,10 +21,17 @@ namespace CartaCore.Workflow
         public string Id { get; set; }
 
         /// <summary>
+        /// Gets or sets the version number of the workflow
+        /// </summary>
+        /// <value>The workflow version number.</value>
+        public int VersionNumber { get; set; }
+
+        /// <summary>
         /// Gets or sets the workflow name.
         /// </summary>
         /// <value>A human-readable name for the workflow.</value>
         public string Name { get; set; }
+
         /// <summary>
         /// Gets or sets the workflow operations.
         /// </summary>
