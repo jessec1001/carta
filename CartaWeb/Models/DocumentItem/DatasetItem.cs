@@ -32,6 +32,10 @@ namespace CartaWeb.Models.DocumentItem
         /// Optional workflow identifier to apply by default to the data set
         /// </summary>
         public string WorkflowId { get; set; }
+        /// <summary>
+        /// Optional workflow version number
+        /// </summary>
+        public int? VersionNumber { get; set; }
 
         /// <summary>
         /// Creates a new instance of the <see cref="DatasetItem"/> class

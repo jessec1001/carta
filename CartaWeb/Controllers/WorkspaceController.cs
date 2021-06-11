@@ -574,6 +574,7 @@ namespace CartaWeb.Controllers
         /// <param name="datasetId">The unique data set identifier.</param>
         /// <param name="name">Optional name for the data set.</param>
         /// <param name="workflowId">Optional workflow identifier to apply to the data set.</param>
+        /// <param name="versionNumber">Optional version number to apply to the data set.</param>
         /// <request name="Example to update name">
         ///     <arg name="id">01F68ES7FSMMY1PYCG72B31759</arg>
         ///     <arg name="datasetId">02F69ES5FSMMY1PYCG72B31531</arg>
@@ -584,11 +585,12 @@ namespace CartaWeb.Controllers
         ///     <arg name="datasetId">02F69ES5FSMMY1PYCG72B31531</arg>
         ///     <arg name="workflow">01F6Q75NC7TEPXWSNSXJC18BDE</arg>
         /// </request>
-        /// <request name="Example to update name and workflow">
+        /// <request name="Example to update name, workflow and workflow version">
         ///     <arg name="id">01F68ES7FSMMY1PYCG72B31759</arg>
         ///     <arg name="datasetId">02F69ES5FSMMY1PYCG72B31531</arg>
         ///     <arg name="name">MyDatasetName</arg>
         ///     <arg name="workflowId">01F6Q75NC7TEPXWSNSXJC18BDE</arg>
+        ///     <arg name="versionNumber">3</arg>
         /// </request>
         /// <returns status="200">Occurs when the operation is successful. The
         /// data set information will be attached to the response.</returns>
@@ -599,13 +601,15 @@ namespace CartaWeb.Controllers
             [FromRoute] string id,
             [FromRoute] string datasetId,
             [FromQuery(Name = "name")] string name,
-            [FromQuery(Name = "workflow")] string workflowId
+            [FromQuery(Name = "workflow")] string workflowId,
+            [FromQuery(Name = "nr")] int? versionNumber
         )
         {
             DatasetItem datasetItem = await LoadWorkspaceDatasetAsync(id, datasetId);
             if (datasetItem is null) return NotFound();
             if (name is not null) datasetItem.Name = name;
             if (workflowId is not null) datasetItem.WorkflowId = workflowId;
+            if (versionNumber.HasValue) datasetItem.VersionNumber = versionNumber.Value;
             string json = JsonSerializer.Serialize<DatasetItem>(datasetItem, JsonOptions);
             bool updated = await _noSqlDbContext.UpdateDocumentStringAsync
             (
