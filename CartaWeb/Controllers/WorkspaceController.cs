@@ -47,7 +47,7 @@ namespace CartaWeb.Controllers
         /// <summary>
         /// The NoSQL DB context for this controller
         /// </summary>
-        private static INoSqlDbContext _noSqlDbContext;
+        private readonly INoSqlDbContext _noSqlDbContext;
 
         /// <inheritdoc />
         public WorkspaceController(ILogger<WorkspaceController> logger, INoSqlDbContext noSqlDbContext)
