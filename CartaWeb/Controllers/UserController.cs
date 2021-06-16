@@ -45,9 +45,9 @@ namespace CartaWeb.Controllers
             {
                         { "UserId", "sub" },
                         { "UserName", "username" },
-                        { "Email", "email" }/*,
+                        { "Email", "email" },
                         { "GivenName", "given_name" },
-                        { "Surname", "family_name" },*/
+                        { "Surname", "family_name" }
             };
 
         /// <summary>
