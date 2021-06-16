@@ -53,7 +53,7 @@ export default class UserProfilePage extends Component<
                 </div>
                 {user && (
                   <Section title="General" id="profile-general">
-                    <UserInput disabled field="username">
+                    <UserInput disabled field="name">
                       Username
                     </UserInput>
                     <UserInput disabled field="email">

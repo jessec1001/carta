@@ -89,7 +89,7 @@ export class Navigation extends Component {
                               className="mr-2"
                               icon={faUserCircle}
                             />
-                            {user.username}
+                            {user.name}
                           </DropdownToggle>
                           <DropdownMenu right>
                             <DropdownItem>
