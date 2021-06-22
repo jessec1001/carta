@@ -27,6 +27,11 @@ class UserApi {
     return (await GeneralApi.requestGeneralAsync()) as User;
   }
 
+  @GeneralApi.route("GET", "api/user/authenticated")
+  static async getIsUserAuthenticatedAsync() {
+    return (await GeneralApi.requestGeneralAsync()) as boolean;
+  }
+
   @GeneralApi.route("GET", "api/user/signin")
   static async signInAsync({
     preventRedirect,
@@ -59,17 +64,20 @@ class UserApi {
         // We could tie in the auth configuration from the server into this storage to also consider when auth expires.
         await new Promise<void>((res, rej) => {
           const intervalAuth = setInterval(() => {
-            UserApi.signInAsync({ preventRedirect: true }).then(() => {
-              clearInterval(intervalAuth);
-              popup.close();
+            UserApi.getIsUserAuthenticatedAsync().then((isAuthenticated) => {
+              if (isAuthenticated) {
+                clearInterval(intervalAuth);
+                popup.close();
+              }
             });
           }, UserApi.POPUP_REFRESH);
           const intervalClosed = setInterval(() => {
             if (popup.closed) {
               clearInterval(intervalClosed);
-              UserApi.signInAsync({ preventRedirect: true })
-                .then(() => res())
-                .catch((reason) => rej(reason));
+              UserApi.getIsUserAuthenticatedAsync().then((isAuthenticated) => {
+                if (isAuthenticated) res();
+                else rej();
+              });
             }
           }, UserApi.POPUP_EXPIRATION);
         });

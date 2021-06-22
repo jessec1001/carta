@@ -61,12 +61,7 @@ class UserManager extends EventEmitter<UserEvents> {
     if (Date.now() - this.#authTimestamp < this.#authExpiration) {
       return true;
     } else {
-      try {
-        await UserApi.signInAsync({ preventRedirect: true });
-        return true;
-      } catch {
-        return false;
-      }
+      return await UserApi.getIsUserAuthenticatedAsync();
     }
   }
   async signInAsync() {

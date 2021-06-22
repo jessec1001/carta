@@ -13,6 +13,16 @@ namespace CartaWeb.Controllers
     public class UserController : ControllerBase
     {
         /// <summary>
+        /// Determines whether the user is currently authenticated or not.
+        /// </summary>
+        /// <returns status="200">A boolean indicated whether the user is authenticated.</returns>
+        [HttpGet("authenticated")]
+        public ActionResult<bool> IsUserAuthenticated()
+        {
+            return Ok(User.Identity.IsAuthenticated);
+        }
+
+        /// <summary>
         /// Gets information about the currently authenticated user.
         /// </summary>
         /// <request name="Example"></request>
