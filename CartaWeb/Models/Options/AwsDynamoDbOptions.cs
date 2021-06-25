@@ -10,5 +10,11 @@ namespace CartaWeb.Models.Options
         /// </summary>
         /// <value>The name of the DynamoDB table.</value>
         public string Table { get; set; }
+
+        /// <summary>
+        /// Gets or sets a flag for performing database migration.
+        /// </summary>
+        /// <value>true if dabase migration should be performed, else false.</value>
+        public bool Migrate { get; set; }
     }
 }

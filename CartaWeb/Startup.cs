@@ -17,6 +17,7 @@ using CartaCore.Persistence;
 using CartaCore.Serialization.Json;
 using CartaWeb.Formatters;
 using CartaWeb.Models.Binders;
+using CartaWeb.Models.Migration;
 using CartaWeb.Models.Options;
 
 namespace CartaWeb
@@ -57,6 +58,9 @@ namespace CartaWeb
             AwsDynamoDbOptions awsDynamoDbOptions = Configuration
                 .GetSection("Database:DynamoDb")
                 .Get<AwsDynamoDbOptions>();
+            AwsCognitoOptions awsCognitoOptions = Configuration.
+                GetSection("Authentication:Cognito").
+                Get<AwsCognitoOptions>();
             services.
                 AddSingleton<INoSqlDbContext>(
                     new DynamoDbContext
@@ -74,6 +78,19 @@ namespace CartaWeb
                         awsOptions.SecretKey,
                         Amazon.RegionEndpoint.GetBySystemName(awsOptions.RegionEndpoint)
                     ));
+            if (awsDynamoDbOptions.Migrate)
+            {
+                services.
+                    AddSingleton<INoSqlDbMigrator>(
+                        new DynamoDbMigrator
+                        (
+                            awsOptions.AccessKey,
+                            awsOptions.SecretKey,
+                            Amazon.RegionEndpoint.GetBySystemName(awsOptions.RegionEndpoint),
+                            awsDynamoDbOptions.Table,
+                            awsCognitoOptions.PreviousUserPoolId
+                        ));     
+            }
             services.Configure<AwsCognitoOptions>(Configuration.GetSection("Authentication:Cognito"));
 
             // Formatting settings.
@@ -166,6 +183,10 @@ namespace CartaWeb
         /// <param name="env">The web host environment.</param>
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            // Run migration
+            INoSqlDbMigrator noSqlDbMigrator = app.ApplicationServices.GetRequiredService<INoSqlDbMigrator>();
+            if (noSqlDbMigrator is not null) noSqlDbMigrator.Migrate();
+
             // Important: this solves a deployment-only issue.
             // Forwards headers from load balancers and proxy servers that terminate SSL.
             app.UseForwardedHeaders();

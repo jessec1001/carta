@@ -33,19 +33,19 @@ namespace CartaCore.Persistence
         /// Gets or sets the DynamoDb client through which calls are made
         /// </summary>
         /// <value>The DynamoDb client</value>
-        protected AmazonDynamoDBClient Client { get; set; }
+        public AmazonDynamoDBClient Client { get; set; }
 
         /// <summary>
         /// Gets or sets the DynamoDb table name
         /// </summary>
         /// <value>The DynamoDb table</value>
-        protected string TableName { get; set; }
+        public string TableName { get; set; }
 
         /// <summary>
         /// Gets or sets the DynamoDb table
         /// </summary>
         /// <value>The DynamoDb table</value>
-        protected Table DbTable { get; set; }
+        public Table DbTable { get; set; }
 
         /// <summary>
         /// Constructor for local instance
