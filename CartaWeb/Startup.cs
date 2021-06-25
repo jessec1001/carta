@@ -190,11 +190,18 @@ namespace CartaWeb
         /// <param name="env">The web host environment.</param>
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+<<<<<<< HEAD
             // Perform database migrations
             INoSqlDbMigrationBuilder noSqlDbMigrationBuilder =
                 app.ApplicationServices.GetService<INoSqlDbMigrationBuilder>();
             if (noSqlDbMigrationBuilder is not null) noSqlDbMigrationBuilder.PerformMigrations();
                 
+=======
+            // Run migration
+            INoSqlDbMigrator noSqlDbMigrator = app.ApplicationServices.GetRequiredService<INoSqlDbMigrator>();
+            if (noSqlDbMigrator is not null) noSqlDbMigrator.Migrate();
+
+>>>>>>> 4edcf8c (feat: Added logic for migrating DynamoDB items according to new document item structures for shared workflows and workflow versioning)
             // Important: this solves a deployment-only issue.
             // Forwards headers from load balancers and proxy servers that terminate SSL.
             app.UseForwardedHeaders();
