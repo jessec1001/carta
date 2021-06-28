@@ -22,11 +22,11 @@ namespace CartaWeb.Models.Data
         /// <summary>
         /// The user's given (first) name
         /// </summary>
-        public string GivenName { get; set; }
+        public string FirstName { get; set; }
         /// <summary>
         /// The user's last name
         /// </summary>
-        public string Surname { get; set; }
+        public string LastName { get; set; }
         /// <summary>
         /// List of groups that a user belongs to
         /// </summary>

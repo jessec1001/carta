@@ -21,12 +21,12 @@ namespace CartaWeb.Models.Data
         /// </summary>
         Email,
         /// <summary>
-        /// The user's given (first) name
+        /// The user's first (given) name
         /// </summary>
-        GivenName,
+        FirstName,
         /// <summary>
         /// The user's last name
         /// </summary>
-        Surname
+        LastName
     }
 }

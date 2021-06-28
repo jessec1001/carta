@@ -46,8 +46,8 @@ namespace CartaWeb.Controllers
                         { "UserId", "sub" },
                         { "UserName", "username" },
                         { "Email", "email" },
-                        { "GivenName", "given_name" },
-                        { "Surname", "family_name" }
+                        { "FirstName", "given_name" },
+                        { "LastName", "family_name" }
             };
 
         /// <summary>
@@ -96,8 +96,8 @@ namespace CartaWeb.Controllers
                 user.FindFirstValue("cognito:username")
             );
             userInformation.Email = user.FindFirstValue(ClaimTypes.Email);
-            userInformation.GivenName = user.FindFirstValue(ClaimTypes.GivenName);
-            userInformation.Surname = user.FindFirstValue(ClaimTypes.Surname);
+            userInformation.FirstName = user.FindFirstValue(ClaimTypes.GivenName);
+            userInformation.LastName = user.FindFirstValue(ClaimTypes.Surname);
             userInformation.Groups = new List<string>();
             foreach (Claim claim in user.FindAll("cognito:groups"))
             {
@@ -180,8 +180,8 @@ namespace CartaWeb.Controllers
                         user.Username
                     );
                     userInformation.Email = GetUserAttribute(user.Attributes, "email");
-                    userInformation.GivenName = GetUserAttribute(user.Attributes, "given_name");
-                    userInformation.Surname = GetUserAttribute(user.Attributes, "family_name");
+                    userInformation.FirstName = GetUserAttribute(user.Attributes, "given_name");
+                    userInformation.LastName = GetUserAttribute(user.Attributes, "family_name");
                     userInformationList.Add(userInformation);
                 }
 
@@ -249,8 +249,8 @@ namespace CartaWeb.Controllers
                         user.Username
                     );
                     userInformation.Email = GetUserAttribute(user.Attributes, "email");
-                    userInformation.GivenName = GetUserAttribute(user.Attributes, "given_name");
-                    userInformation.Surname = GetUserAttribute(user.Attributes, "family_name");
+                    userInformation.FirstName = GetUserAttribute(user.Attributes, "given_name");
+                    userInformation.LastName = GetUserAttribute(user.Attributes, "family_name");
                     userInformationList.Add(userInformation);
                 }
 
