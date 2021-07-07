@@ -54,6 +54,18 @@
         }
 
         /// <summary>
+        /// Returns a properly formatted data set key for a dataset that has been deleted from a workspace.
+        /// </summary>
+        /// <param name="datasetId">A dataest identifier.</param>
+        /// <returns>
+        /// The dataset delete key.
+        /// </returns>
+        public static string GetDatasetDeleteKey(string datasetId)
+        {
+            return "DATASETDELETE#" + datasetId;
+        }
+
+        /// <summary>
         /// Returns a properly formatted workflow key.
         /// </summary>
         /// <param name="workflowId">A unique workflow ID.</param>

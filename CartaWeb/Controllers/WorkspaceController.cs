@@ -762,13 +762,30 @@ namespace CartaWeb.Controllers
             [FromRoute] string datasetId
         )
         {
+            DatasetItem datasetItem = await LoadWorkspaceDatasetAsync(id, datasetId);
+            if (datasetItem is null) return NotFound();
             bool deleted = await _noSqlDbContext.DeleteDocumentStringAsync
             (
                 Keys.GetWorkspaceKey(id),
                 Keys.GetDatasetKey(datasetId)
             );
-            if (deleted) return Ok();
-            else return NotFound();
+            if (!deleted) return NotFound();
+            else
+            {
+                // Store workflow access information under a DATASETDELETE sort key rather than
+                // a DATASET key - this will retain workspace change history
+                datasetItem.DocumentHistory.DateDeleted = DateTime.Now;
+                datasetItem.DocumentHistory.DeletedBy = new UserInformation(User);
+                string json = JsonSerializer.Serialize<DatasetItem>(datasetItem, JsonOptions);
+                await _noSqlDbContext.SaveDocumentStringAsync
+                (
+                    Keys.GetWorkspaceKey(id),
+                    Keys.GetDatasetDeleteKey(datasetId),
+                    json
+                );
+                return Ok();
+            }
+                
         }
 
         /// <summary>
