@@ -1001,13 +1001,28 @@ namespace CartaWeb.Controllers
         )
         {
             WorkflowAccessItem workflowAccessItem = await LoadWorkflowAccessAsync(id, workflowId);
+            UserInformation currentUser = new UserInformation(User);
             if (workflowAccessItem is null) return NotFound();
-            if (workflowAccessItem.DocumentHistory.AddedBy.Id != new UserInformation(User).Id) return Forbid();
+            if (workflowAccessItem.DocumentHistory.AddedBy.Id != currentUser.Id) return Forbid();
             string partitionKey = Keys.GetWorkspaceKey(id);
             string sortKey = Keys.GetWorkflowAccessKey(workflowId);
             bool deleted = await _noSqlDbContext.DeleteDocumentStringAsync(partitionKey, sortKey);
             if (!deleted) return NotFound();
-            else return Ok();
+            else
+            {
+                // Store workflow access information under a WORKSPACEACCESSDELETE sort key rather than
+                // a WORKSPACEACCESS key - this will retain workspace change history
+                workflowAccessItem.DocumentHistory.DateDeleted = DateTime.Now;
+                workflowAccessItem.DocumentHistory.DeletedBy = currentUser;
+                string json = JsonSerializer.Serialize<WorkflowAccessItem>(workflowAccessItem, JsonOptions);
+                await _noSqlDbContext.SaveDocumentStringAsync
+                (
+                    partitionKey,
+                    Keys.GetWorkflowAccessDeleteKey(workflowId),
+                    json
+                );
+                return Ok();
+            }
         }
 
     }

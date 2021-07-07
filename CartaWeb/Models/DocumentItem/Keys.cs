@@ -78,6 +78,18 @@
         }
 
         /// <summary>
+        /// Returns a properly formatted workflow access key for a workflow that has been deleted.
+        /// </summary>
+        /// <param name="workflowId">A unique workflow ID.</param>
+        /// <returns>
+        /// The workflow deletion key.
+        /// </returns>
+        public static string GetWorkflowAccessDeleteKey(string workflowId)
+        {
+            return "WORKFLOWACCESSDELETE#" + workflowId;
+        }
+
+        /// <summary>
         /// Returns a properly formatted version key.
         /// </summary>
         /// <param name="versionNumber">Version number.</param>
