@@ -681,7 +681,11 @@ namespace CartaWeb.Controllers
             DatasetItem datasetItem = await LoadWorkspaceDatasetAsync(id, datasetId);
             if (datasetItem is null) return NotFound();
             if (name is not null) datasetItem.Name = name;
-            if (workflowId is not null) datasetItem.WorkflowId = workflowId;
+            if (workflowId is not null)
+            {
+                datasetItem.WorkflowId = workflowId;
+                datasetItem.WorkflowDocumentHistory = new DocumentHistory(new UserInformation(User));
+            }
             if (versionNumber.HasValue) datasetItem.VersionNumber = versionNumber.Value;
             string json = JsonSerializer.Serialize<DatasetItem>(datasetItem, JsonOptions);
             bool updated = await _noSqlDbContext.UpdateDocumentStringAsync
@@ -774,8 +778,8 @@ namespace CartaWeb.Controllers
             {
                 // Store workflow access information under a DATASETDELETE sort key rather than
                 // a DATASET key - this will retain workspace change history
-                datasetItem.DocumentHistory.DateDeleted = DateTime.Now;
-                datasetItem.DocumentHistory.DeletedBy = new UserInformation(User);
+                datasetItem.DatasetDocumentHistory.DateDeleted = DateTime.Now;
+                datasetItem.DatasetDocumentHistory.DeletedBy = new UserInformation(User);
                 string json = JsonSerializer.Serialize<DatasetItem>(datasetItem, JsonOptions);
                 await _noSqlDbContext.SaveDocumentStringAsync
                 (
