@@ -18,6 +18,18 @@
         }
 
         /// <summary>
+        /// Returns a properly formatted user key for an item that has been deleted for that user.
+        /// </summary>
+        /// <param name="userId">A user identifier.</param>
+        /// <returns>
+        /// The user deletion key for the given user.
+        /// </returns>
+        public static string GetUserDeleteKey(string userId)
+        {
+            return "USERDELETE#" + userId;
+        }
+
+        /// <summary>
         /// Returns a properly formatted workspace key.
         /// </summary>
         /// <param name="workspaceId">A workspace identifier.</param>

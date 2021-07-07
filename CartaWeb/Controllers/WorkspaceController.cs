@@ -547,7 +547,8 @@ namespace CartaWeb.Controllers
                 if (userItem is null) return NotFound();
 
                 // Delete the workspace for the given user if the workspace is owned by the logged in user
-                if (workspaceItem.DocumentHistory.AddedBy.Id != new UserInformation(User).Id)
+                UserInformation currentUser = new UserInformation(User);
+                if (workspaceItem.DocumentHistory.AddedBy.Id != currentUser.Id)
                 {
                     _logger.LogWarning($"Workspace item for user {userId} and workspace {workspaceItem.Id} " +
                         $"not created by logged in user");
@@ -565,22 +566,28 @@ namespace CartaWeb.Controllers
                     return NotFound();
                 }
 
-                // Update user item information to record the deletion
-                userItem.DocumentHistory.DateDeleted = DateTime.Now;
-                userItem.DocumentHistory.DeletedBy = new UserInformation(User);
-                string json = JsonSerializer.Serialize<UserItem>(userItem, JsonOptions);
-                bool updated = await _noSqlDbContext.UpdateDocumentStringAsync
+                // Update user information for the workspace by storing it under a USERDELETE sort key rather than
+                // a USER key - this will retain workspace change history
+                deleted = await _noSqlDbContext.DeleteDocumentStringAsync
                 (
                     Keys.GetWorkspaceKey(id),
-                    Keys.GetUserKey(userId),
-                    json
+                    Keys.GetUserKey(userId)
                 );
-                if (!updated)
+                if (!deleted)
                 {
                     _logger.LogWarning($"User item for user {userId} and workspace {workspaceItem.Id} " +
                         $"could not be found to update delete state");
                     return NotFound();
                 }
+                userItem.DocumentHistory.DateDeleted = DateTime.Now;
+                userItem.DocumentHistory.DeletedBy = currentUser;
+                string json = JsonSerializer.Serialize<UserItem>(userItem, JsonOptions);
+                await _noSqlDbContext.SaveDocumentStringAsync
+                (
+                    Keys.GetWorkspaceKey(id),
+                    Keys.GetUserDeleteKey(userId),
+                    json
+                );
             }
 
             // Return Ok if no errors occurred up to this point
