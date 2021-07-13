@@ -27,7 +27,7 @@ namespace CartaWeb.Models.DocumentItem
         /// <summary>
         /// History of the data set item
         /// </summary>
-        public DocumentHistory DatasetDocumentHistory { get; set; }
+        public DocumentHistory DocumentHistory { get; set; }
         /// <summary>
         /// Optional workflow identifier to apply by default to the data set
         /// </summary>
@@ -36,10 +36,7 @@ namespace CartaWeb.Models.DocumentItem
         /// Optional workflow version number
         /// </summary>
         public int? VersionNumber { get; set; }
-        /// <summary>
-        /// History of the workflows assigned to the data set
-        /// </summary>
-        public DocumentHistory WorkflowDocumentHistory { get; set; }
+
 
         /// <summary>
         /// Creates a new instance of the <see cref="DatasetItem"/> class
@@ -53,7 +50,7 @@ namespace CartaWeb.Models.DocumentItem
         {
             Source = source;
             Resource = resource;
-            DatasetDocumentHistory = new DocumentHistory(userInformation);
+            DocumentHistory = new DocumentHistory(userInformation);
         }
     }
 }

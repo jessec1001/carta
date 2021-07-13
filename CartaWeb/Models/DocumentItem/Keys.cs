@@ -18,18 +18,6 @@
         }
 
         /// <summary>
-        /// Returns a properly formatted user key for an item that has been deleted for that user.
-        /// </summary>
-        /// <param name="userId">A user identifier.</param>
-        /// <returns>
-        /// The user deletion key for the given user.
-        /// </returns>
-        public static string GetUserDeleteKey(string userId)
-        {
-            return "USERDELETE#" + userId;
-        }
-
-        /// <summary>
         /// Returns a properly formatted workspace key.
         /// </summary>
         /// <param name="workspaceId">A workspace identifier.</param>
@@ -51,18 +39,6 @@
         public static string GetDatasetKey(string datasetId)
         {
             return "DATASET#" + datasetId;
-        }
-
-        /// <summary>
-        /// Returns a properly formatted data set key for a dataset that has been deleted from a workspace.
-        /// </summary>
-        /// <param name="datasetId">A dataest identifier.</param>
-        /// <returns>
-        /// The dataset delete key.
-        /// </returns>
-        public static string GetDatasetDeleteKey(string datasetId)
-        {
-            return "DATASETDELETE#" + datasetId;
         }
 
         /// <summary>
@@ -90,18 +66,6 @@
         }
 
         /// <summary>
-        /// Returns a properly formatted workflow access key for a workflow that has been deleted.
-        /// </summary>
-        /// <param name="workflowId">A unique workflow ID.</param>
-        /// <returns>
-        /// The workflow deletion key.
-        /// </returns>
-        public static string GetWorkflowAccessDeleteKey(string workflowId)
-        {
-            return "WORKFLOWACCESSDELETE#" + workflowId;
-        }
-
-        /// <summary>
         /// Returns a properly formatted version key.
         /// </summary>
         /// <param name="versionNumber">Version number.</param>
@@ -111,6 +75,29 @@
         public static string GetVersionKey(int versionNumber)
         {
             return "VERSION#" + versionNumber;
+        }
+
+        /// <summary>
+        /// Returns a properly formatted workspace change key
+        /// </summary>
+        /// <param name="changeType">The type of workspace change</param>
+        /// <returns>
+        /// The workspace change key
+        /// </returns>
+        public static string GetChangeKeyPrefix(WorkspaceChangeEnumeration changeType)
+        {
+            return "CHANGE#" + changeType + "#";
+        }
+
+        /// <summary>
+        /// Returns a properly formatted workspace change key
+        /// </summary>
+        /// <returns>
+        /// The workspace change key
+        /// </returns>
+        public static string GetChangeKeyPrefix()
+        {
+            return "CHANGE#";
         }
 
         /// <summary>
