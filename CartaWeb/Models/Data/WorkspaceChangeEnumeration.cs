@@ -1,4 +1,5 @@
 ﻿using CartaWeb.Models.Meta;
+using System.Text.Json.Serialization;
 
 namespace CartaWeb.Models.Data
 {
@@ -6,6 +7,7 @@ namespace CartaWeb.Models.Data
     /// An enumeration that defines changes made in a workspace
     /// </summary>
     [ApiType(typeof(string))]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum WorkspaceChangeEnumeration
     {
         /// <summary>
@@ -19,7 +21,7 @@ namespace CartaWeb.Models.Data
         /// <summary>
         /// Addition, update or removal of a workflow
         /// </summary>
-        Worklow,
+        Workflow,
         /// <summary>
         /// Addition, update or removal of a dataset
         /// </summary>

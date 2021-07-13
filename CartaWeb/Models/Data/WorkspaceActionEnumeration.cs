@@ -1,4 +1,5 @@
 ﻿using CartaWeb.Models.Meta;
+using System.Text.Json.Serialization;
 
 namespace CartaWeb.Models.Data
 {
@@ -6,6 +7,7 @@ namespace CartaWeb.Models.Data
     /// An enumeration that defines actions taken in a workspace
     /// </summary>
     [ApiType(typeof(string))]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum WorkspaceActionEnumeration
     {
         /// <summary>
