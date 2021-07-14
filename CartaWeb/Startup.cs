@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
 
 using CartaCore.Persistence;
@@ -80,16 +81,19 @@ namespace CartaWeb
                     ));
             if (awsDynamoDbOptions.Migrate)
             {
-                services.
-                    AddSingleton<INoSqlDbMigrator>(
-                        new DynamoDbMigrator
-                        (
-                            awsOptions.AccessKey,
-                            awsOptions.SecretKey,
-                            Amazon.RegionEndpoint.GetBySystemName(awsOptions.RegionEndpoint),
-                            awsDynamoDbOptions.Table,
-                            awsCognitoOptions.PreviousUserPoolId
-                        ));     
+                services.AddSingleton<INoSqlDbMigrator>((container) =>
+                {
+                    ILogger<DynamoDbMigrator> logger = container.GetRequiredService<ILogger<DynamoDbMigrator>>();
+                    return new DynamoDbMigrator
+                            (
+                                awsOptions.AccessKey,
+                                awsOptions.SecretKey,
+                                Amazon.RegionEndpoint.GetBySystemName(awsOptions.RegionEndpoint),
+                                awsDynamoDbOptions.Table,
+                                awsCognitoOptions.PreviousUserPoolId,
+                                logger
+                            );
+                });
             }
             services.Configure<AwsCognitoOptions>(Configuration.GetSection("Authentication:Cognito"));
 

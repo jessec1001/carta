@@ -9,6 +9,7 @@ using Amazon.DynamoDBv2.Model;
 using Amazon.DynamoDBv2.DocumentModel;
 using Amazon.CognitoIdentityProvider;
 using Amazon.CognitoIdentityProvider.Model;
+using Microsoft.Extensions.Logging;
 
 using CartaCore.Workflow;
 using CartaCore.Persistence;
@@ -42,6 +43,8 @@ namespace CartaWeb.Models.Migration
 
         private string _userPoolId;
 
+        private ILogger<DynamoDbMigrator> _logger;
+
         /// <summary>
         /// Constructor that initializes private instance members, including the database context used to
         /// access DynamoDB, and the Cognito identity provider used to lookup user names for deployment of dev_v0.2.3.
@@ -51,12 +54,14 @@ namespace CartaWeb.Models.Migration
         /// <param name="regionEndpoint">AWS region endpoint</param>
         /// <param name="tableName">The name of the table to migrate</param>
         /// <param name="cognitoUserPoolId">The Cognito user pool ID to use for looking up user names</param>
+        /// <param name="logger">The application log instance</param>
         public DynamoDbMigrator(
             string awsAccessKey,
             string awsSecretKey,
             RegionEndpoint regionEndpoint,
             string tableName,
-            string cognitoUserPoolId
+            string cognitoUserPoolId,
+            ILogger<DynamoDbMigrator> logger
         )
         {
             _noSqlDbContext = new DynamoDbContext
@@ -74,6 +79,7 @@ namespace CartaWeb.Models.Migration
                     );
             _tableName = tableName;
             _userPoolId = cognitoUserPoolId;
+            _logger = logger;
         }
 
         /// <summary>
@@ -107,7 +113,7 @@ namespace CartaWeb.Models.Migration
         /// <returns>True if the backup was successful, otherwise false.</returns>
         public async ITask<bool> Backup()
         {
-            Console.WriteLine("DynamoDbMigrator: Running backup...");
+            _logger.LogInformation("Running backup...");   
             CreateBackupRequest createBackupRequest = new CreateBackupRequest();
             createBackupRequest.BackupName = "DynamoDbMigrator_" + DateTime.Now.ToFileTimeUtc();
             createBackupRequest.TableName = _noSqlDbContext.TableName;
@@ -119,7 +125,7 @@ namespace CartaWeb.Models.Migration
             bool isBackedUp = false;
             while (!isBackedUp)
             {
-                Console.WriteLine("DynamoDbMigrator: Waiting for backup...");
+                _logger.LogInformation("Waiting for backup...");
                 Thread.Sleep(15000);
                 if (i >= 20)
                 {
@@ -132,7 +138,7 @@ namespace CartaWeb.Models.Migration
                 DescribeBackupResponse describeBackupResponse =
                     await _noSqlDbContext.Client.DescribeBackupAsync(describeBackupRequest);
                 string backupStatus = describeBackupResponse.BackupDescription.BackupDetails.BackupStatus.ToString();
-                Console.WriteLine($"DynamoDbMigrator: Current status of backup {_backupARN} is {backupStatus}");
+                _logger.LogInformation($"Current status of backup {_backupARN} is {backupStatus}");
                 isBackedUp = backupStatus == "AVAILABLE";
             }
             return isBackedUp;
@@ -146,12 +152,12 @@ namespace CartaWeb.Models.Migration
         /// <returns>True if the migration steps were successful, otherwise false.</returns>
         public async ITask<bool> Migration()
         {
-            Console.WriteLine("DynamoDbMigrator: Running migration...");
+            _logger.LogInformation("Running migration...");
 
             ScanFilter scanFilter = new ScanFilter();
             scanFilter.AddCondition("SK", ScanOperator.BeginsWith, "WORKFLOW#");
             Search search = _noSqlDbContext.DbTable.Scan(scanFilter);
-            Console.WriteLine($"DynamoDbMigrator: Number of items to port is {search.Count}");
+            _logger.LogInformation($"Number of items to port is {search.Count}");
             List <Document> documentList = new List<Document>();
             do
             {
@@ -172,7 +178,7 @@ namespace CartaWeb.Models.Migration
                         new VersionInformation(0, null, new UserInformation(userId, userName))
                     );
                     jsonString = JsonSerializer.Serialize<WorkflowItem>(workflowItem, JsonOptions);
-                    Console.WriteLine($"DynamoDbMigrator: Updating workflow item with PK={partitionKey} and " +
+                    _logger.LogInformation($"Updating workflow item with PK={partitionKey} and " +
                         $"SK={sortKey} for userName={userName}");
                     await _noSqlDbContext.SaveDocumentStringAsync(partitionKey, sortKey, jsonString);               
                 }
@@ -187,7 +193,7 @@ namespace CartaWeb.Models.Migration
         /// <returns>True if the restore was successful, otherwise false.</returns>
         public async ITask<bool> Rollback()
         {
-            Console.WriteLine("DynamoDbMigrator: Running rollback...");
+            _logger.LogInformation("Running rollback...");
 
             // Restoring from a backup is not allowed on existing tables, so first delete the table
             DeleteTableRequest deleteRequest = new DeleteTableRequest();
@@ -199,7 +205,7 @@ namespace CartaWeb.Models.Migration
             bool isTableDeleted = false;
             while (!isTableDeleted)
             {
-                Console.WriteLine("DynamoDbMigrator: Waiting to delete existing table...");
+                _logger.LogInformation("Waiting to delete existing table...");
                 Thread.Sleep(15000);
                 if (i >= 20)
                 {
@@ -209,7 +215,7 @@ namespace CartaWeb.Models.Migration
                 ListTablesResponse listTablesResponse = await _noSqlDbContext.Client.ListTablesAsync();
                 isTableDeleted = !listTablesResponse.TableNames.Contains(_noSqlDbContext.TableName);
             }
-            Console.WriteLine("DynamoDbMigrator: Existing table has been deleted");
+            _logger.LogInformation("Existing table has been deleted");
 
             // Restore the table from backup
             RestoreTableFromBackupRequest restoreRequest = new RestoreTableFromBackupRequest();
@@ -223,7 +229,7 @@ namespace CartaWeb.Models.Migration
             bool isTableAvailable = false;
             while (!isTableAvailable)
             {
-                Console.WriteLine("DynamoDbMigrator: Waiting for restore to complete...");
+                _logger.LogInformation("Waiting for restore to complete...");
                 if (i >= 20)
                 {
                     throw new MigrationException(_tableName, $"Table restore request of table " +
@@ -235,7 +241,7 @@ namespace CartaWeb.Models.Migration
                 isTableAvailable = tableStatus.Table.TableStatus.ToString() == "ACTIVE";
                 Thread.Sleep(15000);
             }
-            Console.WriteLine("DynamoDbMigrator: Table is restored");
+            _logger.LogInformation("Table is restored");
             return isTableAvailable;
         }
 
@@ -257,10 +263,10 @@ namespace CartaWeb.Models.Migration
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
-                Console.WriteLine(e.StackTrace.ToString());
+                _logger.LogError(e.Message);
+                _logger.LogError(e.StackTrace.ToString());
                 bool isRolledback = await Rollback();
-                if (!isRolledback) Console.WriteLine("DynamoDbMigrator: ERROR! Attempt to rollback failed");
+                if (!isRolledback) _logger.LogInformation("ERROR! Attempt to rollback failed");
                 throw;
             }
             return false;
