@@ -8,7 +8,7 @@ import { FormGroup } from "components/ui/form";
 import { DropdownInput, TextFieldInput } from "components/ui/form/input";
 
 const UserPage: FunctionComponent = () => {
-  const userName = useUserValue("username");
+  const userName = useUserValue("name");
   const userEmail = useUserValue("email");
 
   const [hyperthoughtKey, setHyperthoughtKey] = useStoredState(

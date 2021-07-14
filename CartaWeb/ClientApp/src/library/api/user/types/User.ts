@@ -1,4 +1,8 @@
 export default interface User {
-  username: string;
+  id: string;
+  name: string;
   email: string;
+  givenName: string;
+  surname: string;
+  groups: string[];
 }
