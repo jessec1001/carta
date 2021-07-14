@@ -244,8 +244,7 @@ namespace CartaWeb.Controllers
             }
 
             // Sort the list by version number (decreasing)
-            list.Sort((p, q) => p.Number.CompareTo(q.Number));
-            list.Reverse();
+            list.Sort((p, q) => q.Number.CompareTo(p.Number));
 
             return list;
         }
