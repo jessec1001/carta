@@ -668,7 +668,7 @@ namespace CartaWeb.Controllers
             [FromRoute] string datasetId,
             [FromQuery(Name = "name")] string name,
             [FromQuery(Name = "workflow")] string workflowId,
-            [FromQuery(Name = "nr")] int? versionNumber
+            [FromQuery(Name = "workflowVersion")] int? versionNumber
         )
         {
             DatasetItem datasetItem = await LoadWorkspaceDatasetAsync(id, datasetId);
@@ -788,7 +788,7 @@ namespace CartaWeb.Controllers
         public async Task<ActionResult<WorkflowAccessItem>> PostWorkspaceWorkflow(
             [FromRoute] string id,
             [FromRoute] string workflowId,
-            [FromQuery(Name = "nr")] int? versionNumber 
+            [FromQuery(Name = "workflowVersion")] int? versionNumber 
         )
         {
             // Set the version number
@@ -921,7 +921,7 @@ namespace CartaWeb.Controllers
             [FromRoute] string id,
             [FromRoute] string workflowId,
             [FromQuery(Name = "archived")] bool? archived,
-            [FromQuery(Name = "nr")] int? versionNumber
+            [FromQuery(Name = "workflowVersion")] int? versionNumber
         )
         {
             // Load the workflow
