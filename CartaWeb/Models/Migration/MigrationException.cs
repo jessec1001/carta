@@ -9,7 +9,12 @@ namespace CartaWeb.Models.Migration
         /// <summary>
         /// Constructor
         /// </summary>
-        public MigrationException(string message) : base(message) { }
+        public MigrationException(string tableName, string message) : base(ModifyMessage(tableName, message)) { }
+
+        private static string ModifyMessage(string tableName, string message)
+        {
+            return $"Migration error while migrating table {tableName}: {message}";
+        }
     }
 }
 

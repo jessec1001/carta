@@ -38,8 +38,9 @@ namespace CartaWeb.Models.Migration
 
         private string _backupARN;
 
-        private string _userPoolId;
+        private string _tableName;
 
+        private string _userPoolId;
 
         /// <summary>
         /// Constructor that initializes private instance members, including the database context used to
@@ -71,6 +72,7 @@ namespace CartaWeb.Models.Migration
                         awsSecretKey,
                         regionEndpoint
                     );
+            _tableName = tableName;
             _userPoolId = cognitoUserPoolId;
         }
 
@@ -95,7 +97,7 @@ namespace CartaWeb.Models.Migration
             request.UserPoolId = _userPoolId;
             request.Filter = "sub=\"" + userId + "\"";
             ListUsersResponse response = await _identityProvider.ListUsersAsync(request);
-            if (response.Users.Count == 0) throw new MigrationException($"User {userId} not found");
+            if (response.Users.Count == 0) throw new MigrationException(_tableName, $"User {userId} not found");
             else return response.Users[0].Username;
         }
 
@@ -121,8 +123,8 @@ namespace CartaWeb.Models.Migration
                 Thread.Sleep(15000);
                 if (i >= 20)
                 {
-                    throw new MigrationException($"Table backup request {createBackupRequest.BackupName} of table " +
-                        $"{createBackupRequest.TableName} for ARN {_backupARN} has timed out");
+                    throw new MigrationException(_tableName, $"Table backup request {createBackupRequest.BackupName} " +
+                        $"for ARN {_backupARN} has timed out");
                 }
                 i++;
                 DescribeBackupRequest describeBackupRequest = new DescribeBackupRequest();
@@ -201,7 +203,7 @@ namespace CartaWeb.Models.Migration
                 Thread.Sleep(15000);
                 if (i >= 20)
                 {
-                    throw new MigrationException($"Table delete request has timed out");
+                    throw new MigrationException(_tableName, $"Table delete request has timed out");
                 }
                 i++;
                 ListTablesResponse listTablesResponse = await _noSqlDbContext.Client.ListTablesAsync();
@@ -224,8 +226,8 @@ namespace CartaWeb.Models.Migration
                 Console.WriteLine("DynamoDbMigrator: Waiting for restore to complete...");
                 if (i >= 20)
                 {
-                    throw new MigrationException($"Table restore request of table {restoreRequest.TargetTableName} for ARN " +
-                        $"{restoreRequest.BackupArn} has timed out");
+                    throw new MigrationException(_tableName, $"Table restore request of table " +
+                        $"{restoreRequest.TargetTableName} for ARN {restoreRequest.BackupArn} has timed out");
                 }
                 i++;
                 DescribeTableResponse tableStatus =
