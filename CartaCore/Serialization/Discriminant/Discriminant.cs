@@ -59,7 +59,7 @@ namespace CartaCore.Serialization
                     {
                         Type = derivedType,
                         Discriminant = derivedAttr.Discriminant,
-                        Hidden = semanticsAttr is null ? true : false,
+                        Hidden = semanticsAttr?.Hidden ?? true,
                         Name = semanticsAttr?.Name,
                         Group = semanticsAttr?.Group,
                     };

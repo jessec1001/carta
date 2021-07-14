@@ -1,0 +1,304 @@
+/* --- Global styles --- */
+* {
+  /* Form variables. */
+  --form-initial-opacity: 0.8;
+  --form-hover-opacity: 1;
+}
+/* ------ */
+
+/* --- Form control related styles --- */
+.form-control {
+  /* We want all form elements to share the same height and width. */
+  display: block;
+  padding: 0rem 0.2rem;
+  margin: 0rem;
+  width: 100%;
+  height: 1.5rem;
+
+  /* Set all border properties of the form control. */
+  border-width: 1px;
+  border-radius: var(--rounded-size);
+  border-style: solid;
+  border-color: var(--color-secondary);
+
+  /* Set the colors for the insides of forms. */
+  background-color: var(--color-fill-form);
+  color: var(--color-stroke-form);
+}
+.form-control:focus {
+  /* Get rid of annoying focus outline. */
+  outline: none;
+  box-shadow: none;
+
+  /* The border color should become emphasized when focused. */
+  border-color: var(--color-primary);
+}
+.form-control.error {
+  /* Errored form controls should use an error color for its border. */
+  border-color: var(--color-error-form);
+}
+
+textarea.form-control {
+  /* Only allow text areas to scale vertically. */
+  resize: vertical;
+}
+/* ------ */
+
+/* --- Form container related styles --- */
+.form-container {
+  padding: 0rem 0.5rem;
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--color-secondary);
+  border-radius: var(--rounded-size);
+}
+.form-container.error {
+  border-color: var(--color-error-form);
+}
+/* ------ */
+
+/* --- Form group related styles --- */
+.form-group {
+  width: 100%;
+  margin: 0.5rem 0rem;
+}
+.form-group.dense {
+  display: flex;
+  align-items: flex-start;
+}
+.form-group.dense .form-group-label {
+  flex-basis: min(20%, 6rem);
+  text-align: right;
+  padding-right: 1rem;
+}
+.form-group.dense .form-group-content {
+  flex-basis: 80%;
+  flex-grow: 1;
+}
+
+.form-group-description {
+  font-size: 0.8rem;
+}
+.form-group-error {
+  color: var(--color-error-form);
+}
+/* ------ */
+
+/* --- Form spaced group related styles --- */
+.form-spaced-group {
+  display: flex;
+}
+.form-spaced-group > * {
+  flex-grow: 1;
+  margin: 0 0.5rem 0rem 0rem;
+}
+.form-spaced-group > *:last-child {
+  margin-right: 0;
+}
+.form-spaced-group > *.no-grow {
+  flex-grow: 0;
+}
+/* ------ */
+
+/* --- Checkbox related styles --- */
+.form-checkbox {
+  /* We want the checkbox to display almost identically to most form elements. */
+  display: block;
+  position: relative;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: var(--rounded-size);
+
+  /* We vary the the color of the checkbox based on if it is checked or not. */
+  background-color: var(--color-secondary);
+
+  /* We make the checkbox increase opacity when hovered over. */
+  cursor: pointer;
+  opacity: var(--form-initial-opacity);
+  transition: opacity var(--transition-delay);
+}
+.form-checkbox:hover {
+  opacity: var(--form-hover-opacity);
+}
+.form-checkbox.checked {
+  /* We vary the the color of the checkbox based on if it is checked or not. */
+  background-color: var(--color-primary);
+}
+/* ------ */
+
+/* --- Slider related styles --- */
+.form-slider-container {
+  /* This variable will define the progress of the slider. */
+  --progress: 0;
+
+  /* This variable defines the size of the slider thumb. */
+  --slider-thumb-size: 1rem;
+
+  /* Position the slider correctly along with min/max labels. */
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+  margin: 0rem 0rem;
+  margin-bottom: 0.5rem;
+
+  /* Set the colors for the insides of forms. */
+  color: var(--color-stroke-form);
+}
+.form-slider-box {
+  /* This makes the slider stretch properly with space for labels. */
+  position: relative;
+  flex-grow: 1;
+  margin: 0rem 0.5rem;
+}
+.form-slider-label {
+  /* This is centered above the slider thumb using some magical layout calculations. */
+  text-align: center;
+  position: absolute;
+  top: 100%;
+  left: calc(100% * var(--progress));
+  margin: 0rem;
+  margin-left: calc(var(--slider-thumb-size) * (0.5 - var(--progress)));
+  padding: 0rem;
+  padding-top: 0.2rem;
+  transform: translate(-50%, 0%);
+}
+
+.form-slider {
+  /* The slider should have a slight fade-in to indicate hovering. */
+  opacity: var(--form-initial-opacity);
+  transition: opacity var(--transition-delay);
+
+  /* We want the slider to share similar height and width to other form controls. */
+  display: block;
+  cursor: pointer;
+  margin: 0rem 0rem;
+  width: 100%;
+  height: 0.3rem;
+  border-radius: 0.15rem;
+
+  /* We remove the default style of the slider. */
+  -webkit-appearance: none;
+  appearance: none;
+  outline: none;
+
+  background: linear-gradient(
+    to right,
+    var(--color-primary) calc(100% * var(--progress)),
+    var(--color-secondary) calc(100% * var(--progress))
+  );
+}
+.form-slider:hover {
+  opacity: var(--form-hover-opacity);
+}
+.form-slider::-webkit-slider-thumb {
+  /* Style the slider to be round with the primary color. */
+  width: var(--slider-thumb-size);
+  height: var(--slider-thumb-size);
+  border-radius: calc(var(--slider-thumb-size) / 2);
+  background-color: var(--color-primary);
+
+  /* We remove the default style of the slider. */
+  -webkit-appearance: none;
+  appearance: none;
+}
+.form-slider::-moz-range-thumb {
+  /* Style the slider to be round with the primary color. */
+  width: var(--slider-thumb-size);
+  height: var(--slider-thumb-size);
+  border-radius: calc(var(--slider-thumb-size) / 2);
+  background-color: var(--color-primary);
+}
+.form-slider-container.error .form-slider {
+  /* Style the slider thumb with error colors when an error occurs. */
+  background: linear-gradient(
+    to right,
+    var(--color-error-form) calc(100% * var(--progress)),
+    var(--color-secondary) calc(100% * var(--progress))
+  );
+}
+.form-slider-container.error .form-slider::-webkit-slider-thumb {
+  /* Style the slider thumb with error colors when an error occurs. */
+  background-color: var(--color-error-form);
+}
+.form-slider-container.error .form-slider::-moz-range-thumb {
+  /* Style the slider thumb with error colors when an error occurs. */
+  background-color: var(--color-error-form);
+}
+/* ------ */
+
+/* --- Dropdown related styles --- */
+.form-dropdown {
+  /* This allows the dropdown list to expand without changing the page layout. */
+  position: relative;
+
+  /* Disable user being able to select the text inside of the dropdown. */
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+
+  /* Make the element appear interactive. */
+  cursor: pointer;
+
+  /* Set the colors for the insides of forms. */
+  color: var(--color-stroke-form);
+}
+
+.form-dropdown .form-dropdown-header {
+  /* This allows the dropdown arrow icon to display at the correct position.*/
+  position: relative;
+}
+.form-dropdown.toggled .form-dropdown-header {
+  /* When the dropdown is toggled, the header should join with the dropdown list. */
+  border-bottom-left-radius: 0rem;
+  border-bottom-right-radius: 0rem;
+
+  /* The border color should become emphasized when focused. */
+  border-color: var(--color-primary);
+}
+
+.form-dropdown .form-dropdown-arrow {
+  /* Position the dropdown arrow to the right and centered vertically. */
+  position: absolute;
+  right: 0%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+
+  /* The arrow should be a bit smaller for most cases. */
+  font-size: 0.7rem;
+}
+
+.form-dropdown .form-dropdown-list {
+  position: absolute;
+  width: 100%;
+
+  list-style: none;
+  margin: 0rem;
+  padding: 0.2rem 0rem;
+
+  /* Set all border properties of the form control. */
+  border-width: 1px;
+  border-radius: var(--rounded-size);
+  border-top-left-radius: 0rem;
+  border-top-right-radius: 0rem;
+  border-style: solid;
+  border-color: var(--color-secondary);
+  border-top: none;
+  box-shadow: 0px 2px 4px 1px rgba(0, 0, 0, 0.2);
+
+  /* Set the colors for the insides of forms. */
+  background-color: var(--color-fill-form);
+}
+.form-dropdown.toggled .form-dropdown-list {
+  /* The border color should become emphasized when focused. */
+  border-color: var(--color-primary);
+  z-index: 1;
+}
+.form-dropdown .form-dropdown-option {
+  /* Give the same spacing as a normal form element. */
+  padding: 0rem 0.2rem;
+}
+.form-dropdown .form-dropdown-option:hover {
+  background-color: var(--color-primary-hover);
+}
+/* ------ */

@@ -1,22 +1,31 @@
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Threading.Tasks;
 
 using CartaCore.Data;
 using CartaCore.Serialization;
 
+using NJsonSchema.Annotations;
+
 namespace CartaCore.Workflow.Selection
 {
     /// <summary>
-    /// Represents a selection of vertices based on a logical OR of other selections.
+    /// Selects vertices, properties, and values based on a logical OR of other selections.
     /// </summary>
+    [JsonSchemaFlatten]
+    [DataContract]
     [DiscriminantDerived("or")]
+    [DiscriminantSemantics(Name = "Or", Group = "Logical", Hidden = true)]
     public class SelectorOr : Selector
     {
         /// <summary>
-        /// Gets or sets the list of selectors to OR together.
+        /// The list of selectors that are combined with a logical OR operator.
         /// </summary>
-        /// <returns>The list of selectors that are combined with a logical OR operator.</returns>
+        [DataMember(Name = "selectors")]
+        [Display(Name = "Selectors")]
+        [Required]
         public List<Selector> Selectors { get; set; } = new List<Selector>();
 
         /// <inheritdoc />
@@ -27,6 +36,7 @@ namespace CartaCore.Workflow.Selection
                 .ToAsyncEnumerable()
                 .AnyAwaitAsync(async selector => await selector.ContainsVertex(vertex));
         }
+        /// <inheritdoc />
         public override async Task<bool> ContainsProperty(Property property)
         {
             if (Selectors.Count == 0) return true;
@@ -34,6 +44,7 @@ namespace CartaCore.Workflow.Selection
                 .ToAsyncEnumerable()
                 .AnyAwaitAsync(async selector => await selector.ContainsProperty(property));
         }
+        /// <inheritdoc />
         public override async Task<bool> ContainsValue(object value)
         {
             if (Selectors.Count == 0) return true;
@@ -42,14 +53,17 @@ namespace CartaCore.Workflow.Selection
                 .AnyAwaitAsync(async selector => await selector.ContainsValue(value));
         }
 
+        /// <inheritdoc />
         public override async IAsyncEnumerable<IVertex> GetVertices()
         {
+            // If there are no selectors, selection is vacuuously true.
             if (Selectors is null || Selectors.Count == 0)
             {
                 await foreach (IVertex vertex in base.GetVertices())
                     yield return vertex;
             }
 
+            // Return the set of all unioned selected vertices. 
             HashSet<IVertex> vertices = null;
             foreach (Selector selector in Selectors)
             {

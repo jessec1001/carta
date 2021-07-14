@@ -1,4 +1,11 @@
-import JsonSchema from "./JsonSchema";
+import schemaDefault from "./defaults";
+import flattenSchema from "./flatten";
+import validateSchema, { ValidationError } from "./validation";
 
-export default JsonSchema;
 export * from "./JsonSchema";
+export * from "./JsonBaseSchema";
+export * from "./types";
+export { schemaDefault };
+export { flattenSchema };
+export { validateSchema };
+export { ValidationError };

@@ -15,6 +15,7 @@ using CartaCore.Serialization.Json;
 using CartaCore.Workflow.Selection;
 using CartaWeb.Serialization.Json;
 using CartaWeb.Serialization.Xml;
+using CartaCore.Workflow.Action;
 
 namespace CartaWeb.Formatters
 {
@@ -30,7 +31,7 @@ namespace CartaWeb.Formatters
     /// </summary>
     public class GraphOutputFormatter : TextOutputFormatter
     {
-        private static JsonSerializerOptions JsonOptions = new JsonSerializerOptions
+        private static JsonSerializerOptions JsonOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web)
         {
             IgnoreNullValues = true
         };
@@ -82,6 +83,8 @@ namespace CartaWeb.Formatters
             string content = string.Empty;
             if (context.Object is Selector selector && selector.Graph is null)
                 content = SerializeJson<Selector>(selector);
+            else if (context.Object is Actor actor && actor.Graph is null)
+                content = SerializeJson<Actor>(actor);
             else if (context.Object is IEntireGraph graph)
             {
                 foreach (var formatter in MediaFormatters)

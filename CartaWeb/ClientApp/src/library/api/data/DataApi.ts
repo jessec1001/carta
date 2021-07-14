@@ -16,7 +16,13 @@ class DataApi {
     const parameters: Record<string, any> = {};
     Object.entries(requiredEntries).forEach(([paramKey, storageKey]) => {
       const paramValue = localStorage.getItem(storageKey);
-      if (paramValue !== null) parameters[paramKey] = paramValue;
+      if (paramValue !== null) {
+        try {
+          parameters[paramKey] = JSON.parse(paramValue);
+        } catch {
+          parameters[paramKey] = paramValue;
+        }
+      }
     });
 
     if (Object.keys(parameters).length > 0)

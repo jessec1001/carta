@@ -1,16 +1,26 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Threading.Tasks;
+
+using NJsonSchema.Annotations;
 
 using CartaCore.Data;
 using CartaCore.Serialization;
 
 namespace CartaCore.Workflow.Action
 {
+    /// <summary>
+    /// Computes the medians of any non-empty lists of numeric values.
+    /// </summary>
+    [JsonSchemaFlatten]
+    [DataContract]
     [DiscriminantDerived("median")]
+    [DiscriminantSemantics(Name = "Sample Median", Group = "Statistics")]
     public class ActorMedian : Actor
     {
+        /// <inheritdoc />
         public override Task<Property> TransformProperty(Property property)
         {
             try
@@ -40,6 +50,7 @@ namespace CartaCore.Workflow.Action
                         property.Subproperties = Enumerable.Empty<Property>();
                     property.Subproperties = property.Subproperties.Append
                     (
+                        // TODO: Make assigning property statistics easier.
                         new Property
                         (
                             Identity.Create("Median"),

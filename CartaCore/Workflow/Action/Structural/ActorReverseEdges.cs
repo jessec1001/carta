@@ -1,20 +1,30 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 
 using MorseCode.ITask;
+using NJsonSchema.Annotations;
 
 using CartaCore.Data;
 using CartaCore.Serialization;
 
 namespace CartaCore.Workflow.Action
 {
+    /// <summary>
+    /// Reverses all edges connected to the selected vertices.
+    /// </summary>
+    [JsonSchemaFlatten]
+    [DataContract]
     [DiscriminantDerived("reverseEdges")]
+    [DiscriminantSemantics(Name = "Reverse Edges", Group = "Structural")]
+
     public class ActorReverseEdgesGraph : Actor,
         IDynamicInGraph<InOutVertex>,
         IDynamicOutGraph<InOutVertex>,
         IEntireGraph
     {
+        /// <inheritdoc />
         protected override bool ShouldProvide(Type type)
         {
             if (type.IsAssignableTo(typeof(IRootedGraph))) return false;
@@ -24,7 +34,8 @@ namespace CartaCore.Workflow.Action
             return base.ShouldProvide(type);
         }
 
-        public async ITask<InOutVertex> GetVertex(Identity id)
+        /// <inheritdoc />
+        public new async ITask<InOutVertex> GetVertex(Identity id)
         {
             if (Graph.TryProvide(out IDynamicGraph<IVertex> dynamic))
             {
@@ -43,7 +54,8 @@ namespace CartaCore.Workflow.Action
             }
             else throw new NotSupportedException();
         }
-        public async IAsyncEnumerable<IVertex> GetVertices()
+        /// <inheritdoc />
+        public new async IAsyncEnumerable<IVertex> GetVertices()
         {
             if (Graph.TryProvide(out IEntireGraph entire))
             {
@@ -63,6 +75,7 @@ namespace CartaCore.Workflow.Action
                 }
             }
         }
+        /// <inheritdoc />
         public async IAsyncEnumerable<InOutVertex> GetParentVertices(Identity id)
         {
             if (Graph.TryProvide(out IDynamicOutGraph<InOutVertex> dynamicOutGraph))
@@ -77,6 +90,7 @@ namespace CartaCore.Workflow.Action
                     yield return await GetVertex(outEdge.Target);
             }
         }
+        /// <inheritdoc />
         public async IAsyncEnumerable<InOutVertex> GetChildVertices(Identity id)
         {
             if (Graph.TryProvide(out IDynamicInGraph<InOutVertex> dynamicInGraph))

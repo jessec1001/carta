@@ -26,11 +26,17 @@ class UserManager extends EventEmitter<UserEvents> {
 
     this.user = null;
     this.loadAuthentication();
+
+    window.addEventListener("storage", ({ key, storageArea }) => {
+      if (storageArea === localStorage && key === "auth-timestamp") {
+        this.loadAuthentication();
+      }
+    })
   }
 
   private loadAuthentication() {
-    const timestamp = sessionStorage.getItem("auth-timestamp");
-    const user = sessionStorage.getItem("auth-user");
+    const timestamp = localStorage.getItem("auth-timestamp");
+    const user = localStorage.getItem("auth-user");
 
     if (timestamp && user) {
       this.#authTimestamp = JSON.parse(timestamp) as number;
@@ -43,18 +49,18 @@ class UserManager extends EventEmitter<UserEvents> {
     this.#authTimestamp = Date.now();
     this.user = user;
 
-    sessionStorage.setItem(
+    localStorage.setItem(
       "auth-timestamp",
       JSON.stringify(this.#authTimestamp)
     );
-    sessionStorage.setItem("auth-user", JSON.stringify(this.user));
+    localStorage.setItem("auth-user", JSON.stringify(this.user));
   }
   private clearAuthentication() {
     this.#authTimestamp = 0;
     this.user = null;
 
-    sessionStorage.removeItem("auth-timestamp");
-    sessionStorage.removeItem("auth-user");
+    localStorage.removeItem("auth-timestamp");
+    localStorage.removeItem("auth-user");
   }
 
   async isAuthenticatedAsync() {

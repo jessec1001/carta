@@ -1,13 +1,23 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Threading.Tasks;
+
+using NJsonSchema.Annotations;
 
 using CartaCore.Data;
 using CartaCore.Serialization;
 
 namespace CartaCore.Workflow.Action
 {
+    /// <summary>
+    /// Collects property values from ancestor vertices onto selected vertices concatenating the values into a value
+    /// list. Only selected vertices will be affected. 
+    /// </summary>
+    [JsonSchemaFlatten]
+    [DataContract]
     [DiscriminantDerived("propagate")]
+    [DiscriminantSemantics(Name = "Propagate Properties", Group = "Structural")]
     public class ActorPropagate : Actor
     {
         private void AddVertexProperties(Dictionary<Identity, List<object>> properties, IVertex vertex)
@@ -24,6 +34,7 @@ namespace CartaCore.Workflow.Action
             }
         }
 
+        /// <inheritdoc />
         public async override Task<IVertex> TransformVertex(IVertex vertex)
         {
             if (Graph.TryProvide(out IDynamicInGraph<IInVertex> dynamicInGraph))

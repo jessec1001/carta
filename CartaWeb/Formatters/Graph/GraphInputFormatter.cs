@@ -79,13 +79,15 @@ namespace CartaWeb.Formatters
                 {
                     if (contentHeader.IsSubsetOf(unformatter.MediaHeader))
                     {
+                        // Return the successful input result.
                         graph = await unformatter.Formatter(stream);
+                        return await InputFormatterResult.SuccessAsync(graph);
                     }
                 }
             }
 
-            // Return the successfull input result.
-            return await InputFormatterResult.SuccessAsync(graph);
+            // We did not find a matching format so return failure.
+            return await InputFormatterResult.FailureAsync();
         }
 
         private static async Task<T> DeserializeJson<T>(Stream stream)
