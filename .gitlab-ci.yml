@@ -53,6 +53,11 @@ test:
       /p:CollectCoverage=true
       /p:CoverletOutputFormat=lcov
       /p:CoverletOutput='../coverage.lcov'
+    - curl -sL https://deb.nodesource.com/setup_current.x | bash -
+    - apt-get install -y nodejs
+    - cd CartaWeb/ClientApp/
+    - npm install
+    - npm test
 
 docs-coverage:
   stage: docs

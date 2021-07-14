@@ -1,23 +1,45 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Runtime.Serialization;
+using System.Threading.Tasks;
 
 using MorseCode.ITask;
+using NJsonSchema.Annotations;
 
 using CartaCore.Data;
 using CartaCore.Serialization;
-using System.Threading.Tasks;
 
 namespace CartaCore.Workflow.Action
 {
+    /// <summary>
+    /// Combines the currently selected vertices into a single combined vertex.
+    /// </summary>
+    [JsonSchemaFlatten]
+    [DataContract]
     [DiscriminantDerived("combineVertices")]
+    [DiscriminantSemantics(Name = "Combine Vertices", Group = "Structural", Hidden = true)]
     public class ActorCombineVertices : Actor,
         IDynamicGraph<IVertex>,
         IEntireGraph
     {
+        /// <summary>
+        /// The unique identifier to assign to the newly combined vertex. 
+        /// </summary>
+        [DataMember(Name = "id")]
+        [Display(Name = "Id")]
+        [Required]
         public string Id { get; set; }
+        /// <summary>
+        /// The label to assign to the newly combined vertex.
+        /// </summary>
+        [DataMember(Name = "name")]
+        [Display(Name = "Name")]
+        [Required]
         public string Name { get; set; }
 
+        /// <inheritdoc />
         protected override bool ShouldProvide(Type type)
         {
             if (type.IsAssignableTo(typeof(IRootedGraph))) return false;
@@ -69,6 +91,7 @@ namespace CartaCore.Workflow.Action
             return vertex;
         }
 
+        /// <inheritdoc />
         public override async Task<Edge> TransformEdge(Edge edge)
         {
             if (Graph.TryProvide(out IDynamicGraph<IVertex> dynamic))
@@ -88,7 +111,8 @@ namespace CartaCore.Workflow.Action
             else throw new NotSupportedException();
         }
 
-        public async ITask<IVertex> GetVertex(Identity id)
+        /// <inheritdoc />
+        public new async ITask<IVertex> GetVertex(Identity id)
         {
             if (Graph.TryProvide(out IDynamicGraph<IVertex> dynamic))
             {
@@ -99,7 +123,8 @@ namespace CartaCore.Workflow.Action
             }
             else throw new NotSupportedException();
         }
-        public async IAsyncEnumerable<IVertex> GetVertices()
+        /// <inheritdoc />
+        public new async IAsyncEnumerable<IVertex> GetVertices()
         {
             if (Graph.TryProvide(out IEntireGraph entire))
             {

@@ -14,7 +14,7 @@ namespace CartaCore.Integration.Synthetic
         public ulong Seed { get; set; } = 0;
 
         /// <summary>
-        /// Whether the nodes in the graph should be labeled.
+        /// Whether the vertices in the graph should be labeled.
         /// </summary>
         public bool Labeled { get; set; } = true;
 

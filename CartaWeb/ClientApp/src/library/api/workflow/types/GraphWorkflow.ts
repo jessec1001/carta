@@ -12,17 +12,23 @@ export type GraphWorkflowEvent =
   | "workflowCreated";
 type GraphWorkflowUserOperation = "selector" | "action";
 
+interface SelectorAugment {
+  include: string[];
+  exclude: string[];
+  inverted: boolean;
+}
+
 export default class GraphWorkflow {
   _id?: string;
   _selector: Selector;
-  _selectorAugment: { include: string[]; exclude: string[] };
+  _selectorAugment: SelectorAugment;
   _callback?: () => Promise<any>;
 
   _userOperations: {
     operation: GraphWorkflowUserOperation;
     action?: Action;
     selector: Selector;
-    selectorAugment: { include: string[]; exclude: string[] };
+    selectorAugment: SelectorAugment;
   }[];
   _userOperationIndex: number;
 
@@ -31,13 +37,13 @@ export default class GraphWorkflow {
   constructor(id?: string, callback?: () => Promise<any>) {
     this._id = id;
     this._selector = { type: "none" };
-    this._selectorAugment = { include: [], exclude: [] };
+    this._selectorAugment = { include: [], exclude: [], inverted: false };
 
     this._userOperations = [
       {
         operation: "selector",
         selector: { type: "none" },
-        selectorAugment: { include: [], exclude: [] },
+        selectorAugment: { include: [], exclude: [], inverted: false },
       },
     ];
     this._userOperationIndex = 0;
@@ -57,7 +63,7 @@ export default class GraphWorkflow {
       let props: any = {};
       if (this._callback) {
         props = await this._callback();
-        if (props === null) throw Error();
+        if (props === null) return;
       }
       const workflowResource = await WorkflowApi.createWorkflowAsync({
         workflow: {
@@ -79,7 +85,9 @@ export default class GraphWorkflow {
   }
   async _removeOperation() {
     if (this._id === undefined) return;
-    await WorkflowApi.deleteWorkflowAsync({ workflowId: this._id.toString() });
+    await WorkflowApi.removeWorkflowOperationAsync({
+      workflowId: this._id.toString(),
+    });
   }
 
   _callEvent(type: GraphWorkflowEvent) {
@@ -95,12 +103,13 @@ export default class GraphWorkflow {
 
   undo(remove?: boolean) {
     if (this._userOperationIndex > 0) {
-      const userOperation = this._userOperations[this._userOperationIndex - 1];
+      const userOperation = this._userOperations[this._userOperationIndex];
       if (userOperation.operation === "selector") {
         this._selector = userOperation.selector;
         this._selectorAugment = {
           include: [...userOperation.selectorAugment.include],
           exclude: [...userOperation.selectorAugment.exclude],
+          inverted: userOperation.selectorAugment.inverted,
         };
         this._callEvent("selectorChanged");
       }
@@ -109,6 +118,7 @@ export default class GraphWorkflow {
         this._selectorAugment = {
           include: [...userOperation.selectorAugment.include],
           exclude: [...userOperation.selectorAugment.exclude],
+          inverted: userOperation.selectorAugment.inverted,
         };
         this._removeOperation().finally(() => {
           this._callEvent("workflowChanged");
@@ -126,6 +136,7 @@ export default class GraphWorkflow {
         this._selectorAugment = {
           include: [...userOperation.selectorAugment.include],
           exclude: [...userOperation.selectorAugment.exclude],
+          inverted: userOperation.selectorAugment.inverted,
         };
         this._callEvent("selectorChanged");
       }
@@ -134,6 +145,7 @@ export default class GraphWorkflow {
         this._selectorAugment = {
           include: [...userOperation.selectorAugment.include],
           exclude: [...userOperation.selectorAugment.exclude],
+          inverted: userOperation.selectorAugment.inverted,
         };
         this._appendOperation({
           actor: userOperation.action,
@@ -148,7 +160,7 @@ export default class GraphWorkflow {
     operation: GraphWorkflowUserOperation;
     action?: Action;
     selector: Selector;
-    selectorAugment: { include: string[]; exclude: string[] };
+    selectorAugment: SelectorAugment;
   }) {
     const operations = this._userOperations
       .slice(0, this._userOperationIndex + 1)
@@ -163,6 +175,7 @@ export default class GraphWorkflow {
       selectorAugment: {
         include: [...this._selectorAugment.include],
         exclude: [...this._selectorAugment.exclude],
+        inverted: this._selectorAugment.inverted,
       },
     });
   }
@@ -174,12 +187,20 @@ export default class GraphWorkflow {
       selectorAugment: {
         include: [...this._selectorAugment.include],
         exclude: [...this._selectorAugment.exclude],
+        inverted: this._selectorAugment.inverted,
       },
     });
   }
 
   getSelector(): Selector {
     let selector = this._selector;
+    console.log(this._selector, this._selectorAugment);
+    if (this._selectorAugment.inverted) {
+      selector = {
+        type: "not",
+        selector: selector,
+      };
+    }
     if (this._selectorAugment.include.length > 0) {
       const includeSelector: SelectorInclude = {
         type: "include",
@@ -200,6 +221,7 @@ export default class GraphWorkflow {
         selectors: [excludeSelector, selector],
       };
     }
+    console.log(selector);
     return selector;
   }
   applySelector(selector: Selector) {
@@ -207,7 +229,17 @@ export default class GraphWorkflow {
     this._selectorAugment = {
       include: [],
       exclude: [],
+      inverted: false,
     };
+    this.recordSelectionOperation();
+    this._callEvent("selectorChanged");
+  }
+  invertSelector() {
+    const exclude = [...this._selectorAugment.exclude];
+    const include = [...this._selectorAugment.include];
+    this._selectorAugment.include = exclude;
+    this._selectorAugment.exclude = include;
+    this._selectorAugment.inverted = !this._selectorAugment.inverted;
     this.recordSelectionOperation();
     this._callEvent("selectorChanged");
   }
