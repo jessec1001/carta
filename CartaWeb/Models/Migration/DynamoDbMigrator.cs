@@ -150,7 +150,7 @@ namespace CartaWeb.Models.Migration
         /// changes required for the specific version. 
         /// </summary>
         /// <returns>True if the migration steps were successful, otherwise false.</returns>
-        public async ITask<bool> Migration()
+        public async ITask<bool> Migrate()
         {
             _logger.LogInformation("Running migration...");
 
@@ -250,14 +250,14 @@ namespace CartaWeb.Models.Migration
         /// If migration errors occur, the database table is restored. 
         /// </summary>
         /// <returns>True if the migration was successful, otherwise false.</returns>
-        public async ITask<bool> Migrate()
+        public async ITask<bool> PerformMigration()
         {
             bool isBackedUp = await Backup();
             try
             {
                 if (isBackedUp)
                 {
-                    bool isMigrated = await Migration();
+                    bool isMigrated = await Migrate();
                     return isMigrated;
                 }
             }

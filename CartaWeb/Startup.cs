@@ -189,7 +189,7 @@ namespace CartaWeb
         {
             // Run migration
             INoSqlDbMigrator noSqlDbMigrator = app.ApplicationServices.GetRequiredService<INoSqlDbMigrator>();
-            if (noSqlDbMigrator is not null) noSqlDbMigrator.Migrate();
+            if (noSqlDbMigrator is not null) noSqlDbMigrator.PerformMigration();
 
             // Important: this solves a deployment-only issue.
             // Forwards headers from load balancers and proxy servers that terminate SSL.

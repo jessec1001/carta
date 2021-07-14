@@ -17,7 +17,7 @@ namespace CartaWeb.Models.Migration
         /// Performs the steps required to migrate the database table.
         /// </summary>
         /// <returns>True if the migration steps were successful, otherwise false.</returns>
-        ITask<bool> Migration();
+        ITask<bool> Migrate();
 
         /// <summary>
         /// Restores the database table using resources created during backup. 
@@ -30,7 +30,7 @@ namespace CartaWeb.Models.Migration
         /// If migration errors occur, the database table is restored. 
         /// </summary>
         /// <returns>True if the migration was successful, otherwise false.</returns>
-        ITask<bool> Migrate();
+        ITask<bool> PerformMigration();
     }
 }
 
