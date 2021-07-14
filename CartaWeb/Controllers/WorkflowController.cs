@@ -244,8 +244,7 @@ namespace CartaWeb.Controllers
             }
 
             // Sort the list by version number (decreasing)
-            list.Sort((p, q) => p.Number.CompareTo(q.Number));
-            list.Reverse();
+            list.Sort((p, q) => q.Number.CompareTo(p.Number));
 
             return list;
         }
@@ -421,7 +420,7 @@ namespace CartaWeb.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Workflow>> GetWorkflow(
             [FromRoute] string id,
-            [FromQuery(Name = "nr")] int? nr
+            [FromQuery(Name = "workflowVersion")] int? nr
         )
         {
             WorkflowItem workflowItem = await LoadWorkflowAsync(new UserInformation(User).Id, id, nr, _noSqlDbContext);
@@ -632,7 +631,7 @@ namespace CartaWeb.Controllers
         [HttpPatch("{id}/versions")]
         public async Task<ActionResult<VersionInformation>> PatchWorkflowVersion(
             [FromRoute] string id,
-            [FromQuery(Name = "nr")] int nr
+            [FromQuery(Name = "workflowVersion")] int nr
         )
         {
             // Check that the version number is a valid version
@@ -700,7 +699,7 @@ namespace CartaWeb.Controllers
         [HttpGet("{id}/operations")]
         public async Task<ActionResult<List<WorkflowOperation>>> GetWorkflowOperations(
             [FromRoute] string id,
-            [FromQuery(Name = "nr")] int? nr
+            [FromQuery(Name = "workflowVersion")] int? nr
         )
         {
             WorkflowItem workflowItem = await LoadWorkflowAsync(new UserInformation(User).Id, id, nr, _noSqlDbContext);
@@ -740,7 +739,7 @@ namespace CartaWeb.Controllers
         public async Task<ActionResult<WorkflowOperation>> GetWorkflowOperation(
             [FromRoute] string id,
             [FromRoute] int index,
-            [FromQuery(Name = "nr")] int? nr
+            [FromQuery(Name = "workflowVersion")] int? nr
         )
         {
             // Get the workflow.
@@ -826,7 +825,7 @@ namespace CartaWeb.Controllers
             [FromRoute] string id,
             [FromRoute] int? index,
             [FromBody] WorkflowOperation operation,
-            [FromQuery(Name = "nr")] int? nr
+            [FromQuery(Name = "workflowVersion")] int? nr
         )
         {
             // Get the workflow.
@@ -905,7 +904,7 @@ namespace CartaWeb.Controllers
             [FromRoute] string id,
             [FromRoute] int index,
             [FromBody] WorkflowOperation operation,
-            [FromQuery(Name = "nr")] int? nr
+            [FromQuery(Name = "workflowVersion")] int? nr
         )
         {
             // Get the workflow.
@@ -961,7 +960,7 @@ namespace CartaWeb.Controllers
         public async Task<ActionResult> RemoveWorkflowOperation(
             [FromRoute] string id,
             [FromRoute] int? index,
-            [FromQuery(Name = "nr")] int? nr
+            [FromQuery(Name = "workflowVersion")] int? nr
         )
         {
             // Get the workflow.

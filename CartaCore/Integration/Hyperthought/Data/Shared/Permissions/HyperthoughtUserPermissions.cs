@@ -6,20 +6,20 @@ using CartaCore.Serialization.Json;
 namespace CartaCore.Integration.Hyperthought.Data
 {
     /// <summary>
-    /// Represents the type of backend storing a particular file.
+    /// Represents the permission level of an individual user.
     /// </summary>
     [JsonConverter(typeof(JsonFullStringEnumConverter))]
-    public enum HyperthoughtBackend
+    public enum HyperthoughtUserPermissions
     {
         /// <summary>
-        /// The default data backend.
+        /// A value representing that a user is a basic member.
         /// </summary>
-        [EnumMember(Value = "default")]
-        Default,
+        [EnumMember(Value = "Member")]
+        Member,
         /// <summary>
-        /// The Simple Storage Service (S3) data backend.
+        /// A value representing that a user is a manager.
         /// </summary>
-        [EnumMember(Value = "s3")]
-        S3
+        [EnumMember(Value = "Manager")]
+        Manager
     }
 }

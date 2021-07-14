@@ -9,7 +9,7 @@ namespace CartaCore.Integration.Hyperthought.Data
     /// The type of process of a HyperThought node.
     /// </summary>
     [JsonConverter(typeof(JsonFullStringEnumConverter))]
-    public enum HyperthoughtWorkflowType
+    public enum HyperthoughtProcessType
     {
         /// <summary>
         /// A workflow.

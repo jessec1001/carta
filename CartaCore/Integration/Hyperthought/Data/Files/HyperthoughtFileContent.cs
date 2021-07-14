@@ -20,7 +20,7 @@ namespace CartaCore.Integration.Hyperthought.Data
         [JsonPropertyName("ftype")]
         public string FileExtension { get; set; }
         /// <summary>
-        /// The path of the file by UUID comma-separated list.
+        /// The path of the file's parent directory by UUID comma-separated list.
         /// </summary>
         /// <value></value>
         [JsonPropertyName("path")]
@@ -30,6 +30,17 @@ namespace CartaCore.Integration.Hyperthought.Data
         /// </summary>
         [JsonPropertyName("path_string")]
         public string DirectoryPath { get; set; }
+
+        /// <summary>
+        /// Whether the file entry is a directory rather than a file.
+        /// </summary>
+        [JsonIgnore]
+        public bool IsDirectory { get => FileExtension == "Folder"; }
+        /// <summary>
+        /// Whether the file entry is a file rather than a folder.
+        /// </summary>
+        [JsonIgnore]
+        public bool IsFile { get => FileExtension != "Folder"; }
         #endregion
 
         #region Identity Information
@@ -42,7 +53,7 @@ namespace CartaCore.Integration.Hyperthought.Data
         /// How the file is stored.
         /// </summary>
         [JsonPropertyName("backend")]
-        public HyperthoughtBackend Backend { get; set; }
+        public HyperthoughtFileBackend Backend { get; set; }
         /// <summary>
         /// The unique primary key that this file is stored by.
         /// </summary>

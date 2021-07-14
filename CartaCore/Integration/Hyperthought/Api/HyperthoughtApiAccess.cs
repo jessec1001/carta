@@ -1,7 +1,7 @@
 using System;
 using System.Text.Json.Serialization;
 
-namespace CartaCore.Integration.Hyperthought
+namespace CartaCore.Integration.Hyperthought.Api
 {
     /// <summary>
     /// Represents the fields stored in a HyperThought API access key.
@@ -40,5 +40,10 @@ namespace CartaCore.Integration.Hyperthought
         /// </summary>
         [JsonPropertyName("clientId")]
         public string ClientId { get; set; }
+        /// <summary>
+        /// The user client secret.
+        /// </summary>
+        [JsonPropertyName("clientSecret")]
+        public string ClientSecret { get; set; }
     }
 }
