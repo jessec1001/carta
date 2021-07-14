@@ -4,6 +4,7 @@ import { Graph, GraphProperties, Node, Edge } from ".";
 import { DataApi } from "library/api";
 import { GraphWorkflow } from "library/api/workflow";
 import { Selector } from "library/api/workflow";
+import { escapeRegex } from "library/utility";
 
 export interface DataNode extends Node {
   expanded?: boolean;
@@ -205,6 +206,9 @@ export default class GraphData {
             this.computeSelection(subSelector)(node)
           );
         break;
+      case "not":
+        filter = (node) => !this.computeSelection(selector.selector)(node);
+        break;
       case "include":
         filter = (node) => selector.ids.includes(node.id);
         break;
@@ -218,12 +222,12 @@ export default class GraphData {
         filter = (node) => (node as any).expanded !== true;
         break;
       case "vertexName":
-        let vertexPattern = selector.pattern;
+        let vertexPattern = escapeRegex(selector.regexPattern);
         filter = (node) =>
           !!node.label && !!node.label.match(new RegExp(vertexPattern, "g"));
         break;
       case "propertyName":
-        let propertyPattern = selector.pattern;
+        let propertyPattern = escapeRegex(selector.regexPattern);
         filter = (node) => {
           const regexp = new RegExp(propertyPattern, "g");
           if (node.properties) {
@@ -238,13 +242,12 @@ export default class GraphData {
         filter = (node) => {
           if (!node.properties) return false;
           const property = node.properties.find(
-            (property) => property.id === selector.property
+            (property) => property.id === selector.propertyName
           );
           if (!property) return false;
-          const observations = property.values;
-          return observations.some((observation) => {
-            if (typeof observation.value !== "number") return false;
-            const value = observation.value;
+          const values = property.values;
+          return values.some((value) => {
+            if (typeof value !== "number") return false;
             if (selector.minimum && value < selector.minimum) return false;
             if (selector.maximum && value > selector.maximum) return false;
             return true;
@@ -253,31 +256,55 @@ export default class GraphData {
         break;
       case "descendants":
         const descendantIds: string[] = [];
-        const openDescendantIds: string[] = [...selector.ids];
+        if (selector.includeRoots) descendantIds.push(...selector.ids);
+        const openDescendantIds: { depth: number; id: string }[] =
+          selector.ids.map((id) => ({
+            depth: 0,
+            id: id,
+          }));
         while (openDescendantIds.length > 0) {
-          const descendantId = openDescendantIds.pop();
+          const descendantId = openDescendantIds.pop()!;
+          if (selector.depth !== null && descendantId.depth >= selector.depth)
+            continue;
           const newDescendantIds = this.edges
             .get()
-            .filter((edge) => edge.from === descendantId)
+            .filter((edge) => edge.from === descendantId.id)
             .map((edge) => edge.to);
 
           descendantIds.push(...newDescendantIds);
-          openDescendantIds.push(...newDescendantIds);
+          openDescendantIds.push(
+            ...newDescendantIds.map((id) => ({
+              depth: descendantId.depth + 1,
+              id: id,
+            }))
+          );
         }
         filter = (node) => descendantIds.includes(node.id);
         break;
       case "ancestors":
         const ancestorIds: string[] = [];
-        const openAncestorIds: string[] = [...selector.ids];
+        if (selector.includeRoots) ancestorIds.push(...selector.ids);
+        const openAncestorIds: { depth: number; id: string }[] =
+          selector.ids.map((id) => ({
+            depth: 0,
+            id: id,
+          }));
         while (openAncestorIds.length > 0) {
-          const ancestorId = openAncestorIds.pop();
+          const ancestorId = openAncestorIds.pop()!;
+          if (selector.depth !== null && ancestorId.depth >= selector.depth)
+            continue;
           const newAncestorIds = this.edges
             .get()
-            .filter((edge) => edge.to === ancestorId)
+            .filter((edge) => edge.to === ancestorId.id)
             .map((edge) => edge.from);
 
           ancestorIds.push(...newAncestorIds);
-          openAncestorIds.push(...newAncestorIds);
+          openAncestorIds.push(
+            ...newAncestorIds.map((id) => ({
+              depth: ancestorId.depth + 1,
+              id: id,
+            }))
+          );
         }
         filter = (node) => ancestorIds.includes(node.id);
         break;
@@ -291,9 +318,8 @@ export default class GraphData {
           const outEdgeCount = this.edges
             .get()
             .filter((edge) => edge.from === node.id).length;
-          if (inDegree !== undefined && inDegree !== inEdgeCount) return false;
-          if (outDegree !== undefined && outDegree !== outEdgeCount)
-            return false;
+          if (inDegree !== null && inDegree !== inEdgeCount) return false;
+          if (outDegree !== null && outDegree !== outEdgeCount) return false;
           return true;
         };
         break;

@@ -1,0 +1,39 @@
+.dropdown {
+  font-size: 0.85rem;
+}
+.dropdown-item {
+  padding: 0rem 1rem;
+  font-size: 0.9rem;
+}
+
+hr.divider {
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+.dropdown-item {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.dropdown-item .shortcut {
+  margin-left: 1rem;
+  color: #888;
+}
+
+.toolbar-group-label {
+  margin: 0rem 0.4rem;
+  font-size: 0.8rem;
+  overflow: hidden;
+  color: #888;
+}
+.toolbar-group-label::after {
+  background-color: #bbb;
+  content: "";
+  display: inline-block;
+  height: 1px;
+  position: relative;
+  vertical-align: middle;
+  width: 100%;
+  left: 0.5rem;
+  margin-right: -50%;
+}

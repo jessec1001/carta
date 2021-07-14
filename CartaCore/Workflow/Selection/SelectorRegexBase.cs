@@ -1,11 +1,16 @@
 using System;
 using System.Text.RegularExpressions;
 
+using NJsonSchema.Annotations;
+
+using CartaCore.Workflow.Utility;
+
 namespace CartaCore.Workflow.Selection
 {
     /// <summary>
     /// Represents a base selection based on a regular expression match.
     /// </summary>
+    [JsonSchemaFlatten]
     public abstract class SelectorRegexBase : Selector
     {
         /// <summary>
@@ -22,7 +27,7 @@ namespace CartaCore.Workflow.Selection
         /// <summary>
         /// The regular expression pattern to use to match naming.
         /// </summary>
-        public string Pattern
+        protected string Pattern
         {
             get => RegexPattern;
             set
@@ -34,7 +39,7 @@ namespace CartaCore.Workflow.Selection
                 {
                     Regex = new Regex
                     (
-                        Pattern,
+                        Pattern.EscapeRegex(),
                         RegexOptions.Multiline |
                         RegexOptions.Compiled,
                         Timeout

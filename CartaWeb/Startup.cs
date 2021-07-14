@@ -18,6 +18,7 @@ using CartaCore.Serialization.Json;
 using CartaWeb.Formatters;
 using CartaWeb.Models.Binders;
 using CartaWeb.Models.Options;
+using System.Text.Json;
 
 namespace CartaWeb
 {
@@ -91,6 +92,7 @@ namespace CartaWeb
                     options.OutputFormatters.Insert(0, new GraphOutputFormatter());
                 }).AddJsonOptions(options =>
                 {
+                    options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
                     options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
                     options.JsonSerializerOptions.IgnoreNullValues = true;
                     options.JsonSerializerOptions.Converters.Insert(0, new JsonDiscriminantConverter());

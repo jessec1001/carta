@@ -6,8 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.Extensions.Logging;
 
-using Json.Schema;
-using Json.Schema.Generation;
+using NJsonSchema;
+using NJsonSchema.Generation;
 
 using CartaCore.Serialization;
 using CartaCore.Workflow.Action;
@@ -250,6 +250,36 @@ namespace CartaWeb.Controllers
         }
 
         /// <summary>
+        /// Constructs a JSON schema for the specified discriminant type.
+        /// </summary>
+        /// <param name="type">The discriminant type.</param>
+        /// <returns>The constructed JSON schema.</returns>
+        protected JsonSchema ConstructSchema(DiscriminantType type)
+        {
+            // Generate the schema from the underlying discrinant type.
+            JsonSchemaGeneratorSettings settings = new JsonSchemaGeneratorSettings();
+            JsonSchemaGenerator generator = new JsonSchemaGenerator(settings);
+            JsonSchema schema = JsonSchema.FromType(type.Type);
+
+            // Use the name provided in the discriminant type as the schema title.
+            schema.Title = type.Name;
+            schema.Id = Request.Host.Port.HasValue
+                ? new UriBuilder
+                    (
+                        Request.Scheme,
+                        Request.Host.Host,
+                        Request.Host.Port.Value,
+                        Request.Path
+                    ).ToString()
+                : new Uri
+                    (
+                        new UriBuilder(Request.Scheme, Request.Host.Host).Uri,
+                        Request.Path.ToString()
+                    ).ToString();
+            return schema;
+        }
+
+        /// <summary>
         /// Gets a key-value listing of all available actions. The keys are the discriminant values used when querying
         /// other endpoints. The values contain information about how to display this information to a user.
         /// </summary>
@@ -314,10 +344,14 @@ namespace CartaWeb.Controllers
             // Generate the schema for an action if the action is valid.
             if (Discriminant.TryGetType<Actor>(actor, out DiscriminantType actorType))
             {
-                JsonSchemaBuilder schemaBuilder = new JsonSchemaBuilder();
-                JsonSchema schema = schemaBuilder.FromType(actorType.Type).Build();
-
-                return Ok(schema);
+                JsonSchema schema = ConstructSchema(actorType);
+                ContentResult result = new ContentResult
+                {
+                    Content = schema.ToJson(),
+                    ContentType = "application/json",
+                    StatusCode = 200
+                };
+                return result;
             }
             else return BadRequest();
         }
@@ -387,10 +421,14 @@ namespace CartaWeb.Controllers
             // Generate the schema for an selector if the selector is valid.
             if (Discriminant.TryGetType<Selector>(selector, out DiscriminantType selectorType))
             {
-                JsonSchemaBuilder schemaBuilder = new JsonSchemaBuilder();
-                JsonSchema schema = schemaBuilder.FromType(selectorType.Type).Build();
-
-                return Ok(schema);
+                JsonSchema schema = ConstructSchema(selectorType);
+                ContentResult result = new ContentResult
+                {
+                    Content = schema.ToJson(),
+                    ContentType = "application/json",
+                    StatusCode = 200
+                };
+                return result;
             }
             else return BadRequest();
         }

@@ -1,5 +1,15 @@
-import LabeledInput from "./LabeledInput";
-import StoredInput from "./StoredInput";
-import UserInput from "./UserInput";
+import NumberFieldInput from "./NumberFieldInput";
+import NumberSliderInput from "./NumberSliderInput";
+import TextFieldInput from "./TextFieldInput";
+import TextAreaInput from "./TextAreaInput";
+import CheckboxInput from "./CheckboxInput";
+import DropdownInput from "./DropdownInput";
 
-export { LabeledInput, UserInput, StoredInput };
+export {
+  TextFieldInput,
+  TextAreaInput,
+  NumberFieldInput,
+  NumberSliderInput,
+  CheckboxInput,
+  DropdownInput,
+};

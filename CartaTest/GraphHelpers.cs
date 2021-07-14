@@ -12,7 +12,7 @@ namespace CartaTest
         /// <summary>
         /// Gets an undirected graph sample usable in testing.
         /// </summary>
-        /// <value>An undirected graph with no properties on the nodes.</value>
+        /// <value>An undirected graph with no properties on the vertices.</value>
         public static FiniteGraph UndirectedGraphSample
         {
             get
@@ -52,7 +52,7 @@ namespace CartaTest
         /// <summary>
         /// Gets a directed graph sample usable in testing.
         /// </summary>
-        /// <value>A directed graph with no properties on the nodes.</value>
+        /// <value>A directed graph with no properties on the vertices.</value>
         public static FiniteGraph DirectedGraphSample
         {
             get
@@ -89,7 +89,7 @@ namespace CartaTest
         /// <summary>
         /// Gets an undirected graph sample with properties usable in testing.
         /// </summary>
-        /// <value>An undirected graph with properties on the nodes.</value>
+        /// <value>An undirected graph with properties on the vertices.</value>
         public static FiniteGraph UndirectedPropertyGraphSample
         {
             get

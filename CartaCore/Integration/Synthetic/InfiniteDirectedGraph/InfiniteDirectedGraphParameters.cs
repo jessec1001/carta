@@ -14,7 +14,7 @@ namespace CartaCore.Integration.Synthetic
         public ulong Seed { get; set; } = 0;
 
         /// <summary>
-        /// Whether the nodes in the graph should be labeled.
+        /// Whether the vertices in the graph should be labeled.
         /// </summary>
         public bool Labeled { get; set; } = true;
 
@@ -30,7 +30,7 @@ namespace CartaCore.Integration.Synthetic
         public double PropertyInclusionProbability { get; set; } = 0.75;
 
         /// <summary>
-        /// Gets or sets the distribution of the number of children each node should generate in the graph.
+        /// Gets or sets the distribution of the number of children each vertex should generate in the graph.
         /// </summary>
         /// <returns>The child count distribution.</returns>
         public IIntegerDistribution ChildCount { get; set; } = new PoissonDistribution(2);

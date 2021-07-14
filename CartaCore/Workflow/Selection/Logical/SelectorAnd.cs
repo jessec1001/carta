@@ -1,22 +1,31 @@
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Threading.Tasks;
 
 using CartaCore.Data;
 using CartaCore.Serialization;
 
+using NJsonSchema.Annotations;
+
 namespace CartaCore.Workflow.Selection
 {
     /// <summary>
-    /// Represents a selection of vertices based on a logical AND of other selections.
+    /// Selects vertices, properties, and values based on a logical AND of other selections.
     /// </summary>
+    [JsonSchemaFlatten]
+    [DataContract]
     [DiscriminantDerived("and")]
+    [DiscriminantSemantics(Name = "And", Group = "Logical", Hidden = true)]
     public class SelectorAnd : Selector
     {
         /// <summary>
-        /// Gets or sets the list of selectors to AND together.
+        /// The list of selectors that are combined with a logical AND operator.
         /// </summary>
-        /// <returns>The list of selectors that are combined with a logical AND operator.</returns>
+        [DataMember(Name = "selectors")]
+        [Display(Name = "Selectors")]
+        [Required]
         public List<Selector> Selectors { get; set; } = new List<Selector>();
 
         /// <inheritdoc />
@@ -27,6 +36,7 @@ namespace CartaCore.Workflow.Selection
                 .ToAsyncEnumerable()
                 .AllAwaitAsync(async selector => await selector.ContainsVertex(vertex));
         }
+        /// <inheritdoc />
         public override async Task<bool> ContainsProperty(Property property)
         {
             if (Selectors is null || Selectors.Count == 0) return true;
@@ -34,6 +44,7 @@ namespace CartaCore.Workflow.Selection
                 .ToAsyncEnumerable()
                 .AllAwaitAsync(async selector => await selector.ContainsProperty(property));
         }
+        /// <inheritdoc />
         public override async Task<bool> ContainsValue(object value)
         {
             if (Selectors is null || Selectors.Count == 0) return true;
@@ -42,6 +53,7 @@ namespace CartaCore.Workflow.Selection
                 .AllAwaitAsync(async selector => await selector.ContainsValue(value));
         }
 
+        /// <inheritdoc />
         public override async IAsyncEnumerable<IVertex> GetVertices()
         {
             if (Selectors is null || Selectors.Count == 0)

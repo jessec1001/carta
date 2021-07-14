@@ -1,4 +1,5 @@
-import React, { Component } from "react";
+import { Component } from "react";
+import { NullSymbol, EmptySymbol } from "components/ui/symbols";
 import "./ObservationList.css";
 
 interface ObservationListProps {
@@ -35,17 +36,11 @@ export class ObservationList extends Component<ObservationListProps> {
     }
   }
 
-  renderNull() {
-    return <span style={{ color: "#ff6666" }}>NULL</span>;
-  }
-  renderEmpty() {
-    return <span style={{ color: "#aaaaaa" }}>EMPTY</span>;
-  }
   renderObservation(obs: any) {
     if (obs === null) {
-      return this.renderNull();
+      return <NullSymbol />;
     } else if (Array.isArray(obs)) {
-      if (obs.length === 0) return this.renderEmpty();
+      if (obs.length === 0) return <EmptySymbol />;
       else
         return (
           <table>
@@ -57,7 +52,7 @@ export class ObservationList extends Component<ObservationListProps> {
           </table>
         );
     } else if (typeof obs === "object") {
-      if (Object.keys(obs).length === 0) return this.renderEmpty();
+      if (Object.keys(obs).length === 0) return <EmptySymbol />;
       else
         return (
           <table>
@@ -70,7 +65,7 @@ export class ObservationList extends Component<ObservationListProps> {
           </table>
         );
     } else if (typeof obs === "string" && obs === "") {
-      return <span style={{ color: "#aaaaaa" }}>EMPTY</span>;
+      return <EmptySymbol />;
     } else {
       return obs.toString();
     }

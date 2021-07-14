@@ -1,4 +1,5 @@
-import React, { Component, HTMLProps } from "react";
+import { Component, HTMLProps } from "react";
+import { Link as RouterLink } from "react-router-dom";
 import classNames from "classnames";
 import "./Link.css";
 
@@ -6,11 +7,11 @@ export interface LinkProps extends HTMLProps<HTMLAnchorElement> {}
 
 export default class Link extends Component<LinkProps> {
   render() {
-    const { className, children, ...restProps } = this.props;
+    const { className, children, href } = this.props;
     return (
-      <a className={classNames(className, `link`)} {...restProps}>
+      <RouterLink className={classNames(className, `link`)} to={href ?? "/"}>
         {children}
-      </a>
+      </RouterLink>
     );
   }
 }

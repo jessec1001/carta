@@ -115,10 +115,10 @@ namespace CartaWeb.Serialization.Json
         public bool Directed { get; set; }
 
         /// <summary>
-        /// Gets or sets the graph nodes.
+        /// Gets or sets the graph vertices.
         /// </summary>
         /// <value>
-        /// The map of identifier-node pairs of graph nodes.
+        /// The map of identifier-vertex pairs of graph vertices.
         /// </value>
         [JsonPropertyName("nodes")]
         public Dictionary<string, JgFormatNode> Nodes { get; set; }

@@ -1,0 +1,10 @@
+.button-block {
+  border: none;
+  border-radius: var(--rounded-size);
+}
+.button-block.primary {
+  background-color: var(--color-primary);
+}
+.button-block.secondary {
+  background-color: var(--color-secondary);
+}

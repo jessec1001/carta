@@ -1,85 +1,153 @@
-import { Component, FormEvent, HTMLProps } from "react";
-import JsonSchema, { JsonSchemaType } from "library/schema/JsonSchema";
-import { SchemaBaseFormProps } from "./SchemaBaseForm";
-import SchemaNumberForm from "./SchemaNumberForm";
-import SchemaStringForm from "./SchemaStringForm";
-import SchemaBooleanForm from "./SchemaBooleanForm";
-import SchemaEnumForm from "./SchemaEnumForm";
-import SchemaObjectForm from "./SchemaObjectForm";
-import SchemaArrayForm from "./SchemaArrayForm";
+import React, {
+  FunctionComponent,
+  HTMLProps,
+  useState,
+} from "react";
+import { useControllableState } from "hooks";
+import { Modify } from "types";
+import {
+  flattenSchema,
+  JsonSchema,
+  schemaDefault,
+  validateSchema,
+  ValidationError,
+} from "library/schema";
+import Logging, { LogSeverity } from "library/logging";
+import { BlockButton } from "components/ui/buttons";
+import FormGroup from "../FormGroup";
+import SchemaBaseInput from "./SchemaBaseInput";
+
+import "../form.css";
 
 /** The props used for the {@link SchemaForm} component. */
-interface SchemaFormProps extends HTMLProps<HTMLFormElement> {
+interface SchemaFormProps {
   schema: JsonSchema;
   value?: any;
 
+  cancelable?: boolean;
+
+  submitText?: string;
+  cancelText?: string;
+
   onChange?: (value: any) => void;
   onSubmit?: (value: any) => void;
+  onError?: (error: ValidationError) => void;
+  onCancel?: () => void;
 }
 
 /** A form component that inputs a value according to a JSON schema. */
-class SchemaForm extends Component<SchemaFormProps> {
-  constructor(props: SchemaFormProps) {
-    super(props);
+const SchemaForm: FunctionComponent<
+  Modify<HTMLProps<HTMLFormElement>, SchemaFormProps>
+> = ({
+  schema,
+  value,
+  cancelable,
+  submitText,
+  cancelText,
+  onChange,
+  onSubmit,
+  onError,
+  onCancel,
+}) => {
+  // We allow the component to have an optionally controlled value.
+  // Notice that we flatten the schema first so that our interactive components are simpler.
+  const actualSchema = flattenSchema(schema);
+  const defaultValue = schemaDefault(actualSchema, value);
+  const [actualValue, setValue] = useControllableState(
+    defaultValue,
+    defaultValue,
+    onChange
+  );
 
-    // Bind event handlers.
-    this.handleSubmit = this.handleSubmit.bind(this);
-    this.handleChange = this.handleChange.bind(this);
-  }
+  // We use an internal state only for error handling.
+  const [error, setError] = useState<ValidationError | undefined>(undefined);
 
-  /** Handles submitting the form. */
-  private handleSubmit(event: FormEvent<HTMLFormElement>) {
-    const { value } = this.props;
-    const { onSubmit } = this.props;
-    if (onSubmit) {
-      onSubmit(value);
-      event.preventDefault();
+  // Set defaults for the button text.
+  submitText = submitText ?? "Submit";
+  cancelText = cancelText ?? "Cancel";
+
+  // We forward cancellations.
+  const handleCancel = () => {
+    Logging.log({
+      severity: LogSeverity.Debug,
+      source: "Schema Form",
+      title: "Canceled Form",
+    });
+    if (onCancel) onCancel();
+  };
+  // We forward value changes.
+  const handleChange = (value: any) => {
+    // We clear errors when we change any inputs.
+    setError(undefined);
+    setValue(value);
+  };
+  // We stop the normal submit functionality of a form since this is a SPA.
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    // Try validating the submitted value against the schema.
+    // The validation error variable will be set if the validation fails.
+    let validationError: ValidationError | undefined = undefined;
+    try {
+      validateSchema(actualSchema, actualValue);
+    } catch (err) {
+      if (err instanceof ValidationError) {
+        validationError = err;
+      } else throw err;
     }
-  }
-  /** Handles changing the form value. */
-  private handleChange(value: any) {
-    const { onChange } = this.props;
-    if (onChange) onChange(value);
-  }
+    setError(validationError);
 
-  render() {
-    const { schema, value, ...restProps } = this.props;
-    const { onChange, onSubmit, ...formProps } = restProps;
-    return (
-      <form {...formProps} onSubmit={this.handleSubmit}>
-        {SchemaForm.renderProperty({
-          schema: schema,
-          value: value,
-          onChange: this.handleChange,
-        })}
-        <input type="submit" />
-      </form>
-    );
-  }
-
-  /** Renders a specific form based on its schema type. */
-  static renderProperty<T extends JsonSchemaType>(
-    props: SchemaBaseFormProps<T, any>
-  ): JSX.Element {
-    switch (props.schema.type) {
-      case "object":
-        return <SchemaObjectForm {...(props as any)} />;
-      case "array":
-        return <SchemaArrayForm {...(props as any)} />;
-      case "integer":
-      case "number":
-        return <SchemaNumberForm {...(props as any)} />;
-      case "boolean":
-        return <SchemaBooleanForm {...(props as any)} />;
-      case "string":
-      case undefined:
-        if ("enum" in props.schema)
-          return <SchemaEnumForm {...(props as any)} />;
-        else return <SchemaStringForm {...(props as any)} />;
+    // Try submitting if we validated successfully.
+    // Try erroring if we validated unsuccessfully.
+    if (validationError === undefined && onSubmit) {
+      Logging.log({
+        severity: LogSeverity.Debug,
+        source: "Schema Form",
+        title: "Submitted Form",
+        data: actualValue,
+      });
+      onSubmit(actualValue);
     }
-    return null as any;
-  }
-}
+    if (validationError !== undefined && onError) {
+      Logging.log({
+        severity: LogSeverity.Debug,
+        source: "Schema Form",
+        title: "Errored Form",
+        data: [actualValue, validationError],
+      });
+      onError(validationError);
+    }
+    event.preventDefault();
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      {/* We wrap whatever input is required in an overall form group. */}
+      <FormGroup
+        error={error?.trace === [] ? error : undefined}
+        title={actualSchema.title}
+        description={actualSchema.description}
+      >
+        <SchemaBaseInput
+          schema={actualSchema}
+          error={error}
+          value={actualValue}
+          onChange={handleChange}
+        />
+      </FormGroup>
+
+      {/* Submit and cancel buttons go down here. */}
+      <div className="form-spaced-group">
+        <BlockButton type="submit" color="primary">
+          {submitText}
+        </BlockButton>
+        {cancelable && (
+          <BlockButton color="secondary" onClick={handleCancel}>
+            {cancelText}
+          </BlockButton>
+        )}
+      </div>
+    </form>
+  );
+};
 
 // Export component and underlying types.
 export default SchemaForm;

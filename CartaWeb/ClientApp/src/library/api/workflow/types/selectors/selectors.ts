@@ -28,15 +28,15 @@ export interface SelectorCollapsed {
 }
 export interface SelectorVertexName {
   type: "vertexName";
-  pattern: string;
+  regexPattern: string;
 }
 export interface SelectorPropertyName {
   type: "propertyName";
-  pattern: string;
+  regexPattern: string;
 }
 export interface SelectorPropertyRange {
   type: "propertyRange";
-  property: string;
+  propertyName: string;
   minimum?: number;
   maximum?: number;
 }
@@ -44,14 +44,14 @@ export interface SelectorDescendants {
   type: "descendants";
   ids: string[];
   includeRoots?: boolean;
-  depth?: number;
+  depth: number | null;
   traversal?: "preorder" | "postorder";
 }
 export interface SelectorAncestors {
   type: "ancestors";
   ids: string[];
   includeRoots?: boolean;
-  depth?: number;
+  depth: number | null;
   traversal?: "preorder" | "postorder";
 }
 export interface SelectorChildren {
@@ -70,13 +70,17 @@ export interface SelectorParents {
 }
 export interface SelectorDegree {
   type: "degree";
-  inDegree?: number;
-  outDegree?: number;
+  inDegree: number | null;
+  outDegree: number | null;
 }
 export interface SelectorRoots {
   type: "roots";
   inDegree?: number;
   outDegree?: number;
+}
+export interface SelectorNot {
+  type: "not";
+  selector: Selector;
 }
 
 type Selector =
@@ -96,5 +100,6 @@ type Selector =
   | SelectorChildren
   | SelectorParents
   | SelectorDegree
-  | SelectorRoots;
+  | SelectorRoots
+  | SelectorNot;
 export default Selector;
