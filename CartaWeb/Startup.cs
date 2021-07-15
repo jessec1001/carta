@@ -57,7 +57,7 @@ namespace CartaWeb
                 .GetSection("Deployment:AWS")
                 .Get<AwsAccessOptions>();
             AwsDynamoDbOptions awsDynamoDbOptions = Configuration
-                .GetSection("Database:DynamoDb")
+                .GetSection("Database:DynamoDb:Table")
                 .Get<AwsDynamoDbOptions>();
             AwsCognitoOptions awsCognitoOptions = Configuration.
                 GetSection("Authentication:Cognito").
@@ -69,7 +69,7 @@ namespace CartaWeb
                         awsOptions.AccessKey,
                         awsOptions.SecretKey,
                         Amazon.RegionEndpoint.GetBySystemName(awsOptions.RegionEndpoint),
-                        awsDynamoDbOptions.Table
+                        awsDynamoDbOptions.TableName
                     ));
             services.
                 AddSingleton<IAmazonCognitoIdentityProvider>(
@@ -79,21 +79,23 @@ namespace CartaWeb
                         awsOptions.SecretKey,
                         Amazon.RegionEndpoint.GetBySystemName(awsOptions.RegionEndpoint)
                     ));
-            if (awsDynamoDbOptions.Migrate)
+            if (awsDynamoDbOptions.MigrationClass is not null)
             {
                 services.AddSingleton<INoSqlDbMigrator>((container) =>
                 {
-                    ILogger<DynamoDbMigratorWorkflowVersioning> logger =
-                        container.GetRequiredService<ILogger<DynamoDbMigratorWorkflowVersioning>>();
-                    return new DynamoDbMigratorWorkflowVersioning
-                            (
-                                awsOptions.AccessKey,
+                    ILogger logger =
+                        container.GetRequiredService<ILogger<DynamoDbMigrator>>();
+                    return (DynamoDbMigrator)Activator.CreateInstance
+                        (
+                            Type.GetType(awsDynamoDbOptions.MigrationClass),
+                            new Object[]
+                            {   awsOptions.AccessKey,
                                 awsOptions.SecretKey,
                                 Amazon.RegionEndpoint.GetBySystemName(awsOptions.RegionEndpoint),
-                                awsDynamoDbOptions.Table,
-                                awsCognitoOptions.PreviousUserPoolId,
+                                awsDynamoDbOptions.TableName,
                                 logger
-                            );
+                            }
+                        ); 
                 });
             }
             services.Configure<AwsCognitoOptions>(Configuration.GetSection("Authentication:Cognito"));
@@ -188,10 +190,11 @@ namespace CartaWeb
         /// <param name="env">The web host environment.</param>
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            // Run migration
-            INoSqlDbMigrator noSqlDbMigrator = app.ApplicationServices.GetRequiredService<INoSqlDbMigrator>();
+            // Perform database migrations
+            INoSqlDbMigrator noSqlDbMigrator =
+                app.ApplicationServices.GetService<INoSqlDbMigrator>();
             if (noSqlDbMigrator is not null) noSqlDbMigrator.PerformMigration();
-
+                
             // Important: this solves a deployment-only issue.
             // Forwards headers from load balancers and proxy servers that terminate SSL.
             app.UseForwardedHeaders();

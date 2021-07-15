@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace CartaWeb.Models.Options
 {
     /// <summary>
@@ -9,12 +11,12 @@ namespace CartaWeb.Models.Options
         /// Gets or sets the table.
         /// </summary>
         /// <value>The name of the DynamoDB table.</value>
-        public string Table { get; set; }
+        public string TableName { get; set; }
 
         /// <summary>
-        /// Gets or sets a flag for performing database migration.
+        /// Gets or sets the migration class for the table for new software releases
         /// </summary>
-        /// <value>true if dabase migration should be performed, else false.</value>
-        public bool Migrate { get; set; }
+        /// <value>The migration class name</value>
+        public string MigrationClass { get; set; }
     }
 }

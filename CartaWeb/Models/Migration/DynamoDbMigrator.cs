@@ -1,30 +1,27 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Text.Json;
 using MorseCode.ITask;
 using Amazon;
 using Amazon.DynamoDBv2.Model;
-using Amazon.DynamoDBv2.DocumentModel;
-using Amazon.CognitoIdentityProvider;
-using Amazon.CognitoIdentityProvider.Model;
 using Microsoft.Extensions.Logging;
 
-using CartaCore.Workflow;
 using CartaCore.Persistence;
 using CartaCore.Serialization.Json;
-using CartaWeb.Models.Data;
-using CartaWeb.Models.DocumentItem;
 
 namespace CartaWeb.Models.Migration
 {
     /// <summary>
-    /// Represents methods to migrate DynamoDB items for release dev_v0.2.3
+    /// A base class that codifies steps to migrate DynamoDB items. Steps to backup, rollback and perform migration will
+    /// likely not change between software releases, and base implementations are provided. The specific steps
+    /// required in the migration will vary between releases, and should be implemented by child classes.
     /// </summary>
-    public class DynamoDbMigrator : INoSqlDbMigrator
+    public abstract class DynamoDbMigrator : INoSqlDbMigrator
     {
-        private static JsonSerializerOptions JsonOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+        /// <summary>
+        /// Options for serialization
+        /// </summary>
+        protected static JsonSerializerOptions JsonOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web);
 
         static DynamoDbMigrator()
         {
@@ -33,78 +30,52 @@ namespace CartaWeb.Models.Migration
             JsonOptions.Converters.Insert(0, new JsonDiscriminantConverter());
         }
 
-        private DynamoDbContext _noSqlDbContext;
+        /// <summary>
+        /// The NoSQL DB context for this migrator.
+        /// </summary>
+        protected DynamoDbContext NoSqlDbContext;
 
-        private readonly IAmazonCognitoIdentityProvider _identityProvider;
+        /// <summary>
+        /// The ARN identifying the table backup created during migration.
+        /// </summary>
+        protected string BackupARN;
 
-        private string _backupARN;
+        /// <summary>
+        /// The name of the table being migrated.
+        /// </summary>
+        protected string TableName;
 
-        private string _tableName;
-
-        private string _userPoolId;
-
-        private ILogger<DynamoDbMigrator> _logger;
+        /// <summary>
+        /// The logger for this migrator.
+        /// </summary>
+        protected ILogger Logger;
 
         /// <summary>
         /// Constructor that initializes private instance members, including the database context used to
-        /// access DynamoDB, and the Cognito identity provider used to lookup user names for deployment of dev_v0.2.3.
+        /// access DynamoDB, and the Cognito identity provider used to lookup user names for deployment of devv0.2.3.
         /// </summary>
         /// <param name="awsAccessKey">AWS application access key</param>
         /// <param name="awsSecretKey">AWS application secrect key</param>
         /// <param name="regionEndpoint">AWS region endpoint</param>
         /// <param name="tableName">The name of the table to migrate</param>
-        /// <param name="cognitoUserPoolId">The Cognito user pool ID to use for looking up user names</param>
         /// <param name="logger">The application log instance</param>
         public DynamoDbMigrator(
             string awsAccessKey,
             string awsSecretKey,
             RegionEndpoint regionEndpoint,
             string tableName,
-            string cognitoUserPoolId,
-            ILogger<DynamoDbMigrator> logger
+            ILogger logger
         )
         {
-            _noSqlDbContext = new DynamoDbContext
+            NoSqlDbContext = new DynamoDbContext
                 (
                     awsAccessKey,
                     awsSecretKey,
                     regionEndpoint,
                     tableName
                 );
-            _identityProvider = new AmazonCognitoIdentityProviderClient
-                    (
-                        awsAccessKey,
-                        awsSecretKey,
-                        regionEndpoint
-                    );
-            _tableName = tableName;
-            _userPoolId = cognitoUserPoolId;
-            _logger = logger;
-        }
-
-        /// <summary>
-        /// Retrieves the user identifier from the given document item partition key.
-        /// </summary>
-        /// <param name="partitionKey">A document item partition key</param>
-        /// <returns>The user identifier.</returns>
-        private string GetUserId(String partitionKey)
-        {
-            return partitionKey.Remove(0, 5);
-        }
-
-        /// <summary>
-        /// Retrieves the user name associated with the given user identifier.
-        /// </summary>
-        /// <param name="userId">The user identifier</param>
-        /// <returns>The user name.</returns>
-        private async Task<string> GetUserName(string userId)
-        {
-            ListUsersRequest request = new ListUsersRequest();
-            request.UserPoolId = _userPoolId;
-            request.Filter = "sub=\"" + userId + "\"";
-            ListUsersResponse response = await _identityProvider.ListUsersAsync(request);
-            if (response.Users.Count == 0) throw new MigrationException(_tableName, $"User {userId} not found");
-            else return response.Users[0].Username;
+            TableName = tableName;
+            Logger = logger;
         }
 
         /// <summary>
@@ -113,32 +84,32 @@ namespace CartaWeb.Models.Migration
         /// <returns>True if the backup was successful, otherwise false.</returns>
         public async ITask<bool> Backup()
         {
-            _logger.LogInformation("Running backup...");   
+            Logger.LogInformation("Running backup...");
             CreateBackupRequest createBackupRequest = new CreateBackupRequest();
-            createBackupRequest.BackupName = "DynamoDbMigrator_" + DateTime.Now.ToFileTimeUtc();
-            createBackupRequest.TableName = _noSqlDbContext.TableName;
+            createBackupRequest.BackupName = "DynamoDbMigrator" + DateTime.Now.ToFileTimeUtc();
+            createBackupRequest.TableName = NoSqlDbContext.TableName;
             CreateBackupResponse createBackupResponse =
-                await _noSqlDbContext.Client.CreateBackupAsync(createBackupRequest);
-            _backupARN = createBackupResponse.BackupDetails.BackupArn;
+                await NoSqlDbContext.Client.CreateBackupAsync(createBackupRequest);
+            BackupARN = createBackupResponse.BackupDetails.BackupArn;
             // Check if backup completed before returning
             int i = 0;
             bool isBackedUp = false;
             while (!isBackedUp)
             {
-                _logger.LogInformation("Waiting for backup...");
+                Logger.LogInformation("Waiting for backup...");
                 Thread.Sleep(15000);
                 if (i >= 20)
                 {
-                    throw new MigrationException(_tableName, $"Table backup request {createBackupRequest.BackupName} " +
-                        $"for ARN {_backupARN} has timed out");
+                    throw new MigrationException(TableName, $"Table backup request {createBackupRequest.BackupName} " +
+                        $"for ARN {BackupARN} has timed out");
                 }
                 i++;
                 DescribeBackupRequest describeBackupRequest = new DescribeBackupRequest();
-                describeBackupRequest.BackupArn = _backupARN;
+                describeBackupRequest.BackupArn = BackupARN;
                 DescribeBackupResponse describeBackupResponse =
-                    await _noSqlDbContext.Client.DescribeBackupAsync(describeBackupRequest);
+                    await NoSqlDbContext.Client.DescribeBackupAsync(describeBackupRequest);
                 string backupStatus = describeBackupResponse.BackupDescription.BackupDetails.BackupStatus.ToString();
-                _logger.LogInformation($"Current status of backup {_backupARN} is {backupStatus}");
+                Logger.LogInformation($"Current status of backup {BackupARN} is {backupStatus}");
                 isBackedUp = backupStatus == "AVAILABLE";
             }
             return isBackedUp;
@@ -150,42 +121,7 @@ namespace CartaWeb.Models.Migration
         /// changes required for the specific version. 
         /// </summary>
         /// <returns>True if the migration steps were successful, otherwise false.</returns>
-        public async ITask<bool> Migrate()
-        {
-            _logger.LogInformation("Running migration...");
-
-            ScanFilter scanFilter = new ScanFilter();
-            scanFilter.AddCondition("SK", ScanOperator.BeginsWith, "WORKFLOW#");
-            Search search = _noSqlDbContext.DbTable.Scan(scanFilter);
-            _logger.LogInformation($"Number of items to port is {search.Count}");
-            List <Document> documentList = new List<Document>();
-            do
-            {
-                documentList = await search.GetNextSetAsync();     
-                foreach (Document document in documentList)
-                {
-                    string partitionKey = document["PK"];
-                    string sortKey = document["SK"];
-                    document.Remove("PK");
-                    document.Remove("SK");
-                    string jsonString = document.ToJson();
-                    Workflow workflow = JsonSerializer.Deserialize<Workflow>(jsonString, JsonOptions);
-                    string userId = GetUserId(partitionKey);
-                    string userName = await GetUserName(userId);
-                    WorkflowItem workflowItem = new WorkflowItem
-                    (
-                        workflow,
-                        new VersionInformation(0, null, new UserInformation(userId, userName))
-                    );
-                    jsonString = JsonSerializer.Serialize<WorkflowItem>(workflowItem, JsonOptions);
-                    _logger.LogInformation($"Updating workflow item with PK={partitionKey} and " +
-                        $"SK={sortKey} for userName={userName}");
-                    await _noSqlDbContext.SaveDocumentStringAsync(partitionKey, sortKey, jsonString);               
-                }
-            } while (!search.IsDone);
-
-            return true;
-        }
+        public abstract ITask<bool> Migrate();
 
         /// <summary>
         /// Restores the database table using the previously created backup.
@@ -193,55 +129,55 @@ namespace CartaWeb.Models.Migration
         /// <returns>True if the restore was successful, otherwise false.</returns>
         public async ITask<bool> Rollback()
         {
-            _logger.LogInformation("Running rollback...");
+            Logger.LogInformation("Running rollback...");
 
             // Restoring from a backup is not allowed on existing tables, so first delete the table
             DeleteTableRequest deleteRequest = new DeleteTableRequest();
-            deleteRequest.TableName = _noSqlDbContext.TableName;
-            DeleteTableResponse deleteResponse = await _noSqlDbContext.Client.DeleteTableAsync(deleteRequest);
+            deleteRequest.TableName = NoSqlDbContext.TableName;
+            DeleteTableResponse deleteResponse = await NoSqlDbContext.Client.DeleteTableAsync(deleteRequest);
 
             // Check that table is deleted before attempting to restore
             int i = 0;
             bool isTableDeleted = false;
             while (!isTableDeleted)
             {
-                _logger.LogInformation("Waiting to delete existing table...");
+                Logger.LogInformation("Waiting to delete existing table...");
                 Thread.Sleep(15000);
                 if (i >= 20)
                 {
-                    throw new MigrationException(_tableName, $"Table delete request has timed out");
+                    throw new MigrationException(TableName, $"Table delete request has timed out");
                 }
                 i++;
-                ListTablesResponse listTablesResponse = await _noSqlDbContext.Client.ListTablesAsync();
-                isTableDeleted = !listTablesResponse.TableNames.Contains(_noSqlDbContext.TableName);
+                ListTablesResponse listTablesResponse = await NoSqlDbContext.Client.ListTablesAsync();
+                isTableDeleted = !listTablesResponse.TableNames.Contains(NoSqlDbContext.TableName);
             }
-            _logger.LogInformation("Existing table has been deleted");
+            Logger.LogInformation("Existing table has been deleted");
 
             // Restore the table from backup
             RestoreTableFromBackupRequest restoreRequest = new RestoreTableFromBackupRequest();
-            restoreRequest.BackupArn = _backupARN;
-            restoreRequest.TargetTableName = _noSqlDbContext.TableName;
+            restoreRequest.BackupArn = BackupARN;
+            restoreRequest.TargetTableName = NoSqlDbContext.TableName;
             RestoreTableFromBackupResponse response =
-                await _noSqlDbContext.Client.RestoreTableFromBackupAsync(restoreRequest);
+                await NoSqlDbContext.Client.RestoreTableFromBackupAsync(restoreRequest);
 
             // Ensure the table is available before returning
             i = 0;
             bool isTableAvailable = false;
             while (!isTableAvailable)
             {
-                _logger.LogInformation("Waiting for restore to complete...");
+                Logger.LogInformation("Waiting for restore to complete...");
                 if (i >= 20)
                 {
-                    throw new MigrationException(_tableName, $"Table restore request of table " +
+                    throw new MigrationException(TableName, $"Table restore request of table " +
                         $"{restoreRequest.TargetTableName} for ARN {restoreRequest.BackupArn} has timed out");
                 }
                 i++;
                 DescribeTableResponse tableStatus =
-                    await _noSqlDbContext.Client.DescribeTableAsync(restoreRequest.TargetTableName);
+                    await NoSqlDbContext.Client.DescribeTableAsync(restoreRequest.TargetTableName);
                 isTableAvailable = tableStatus.Table.TableStatus.ToString() == "ACTIVE";
                 Thread.Sleep(15000);
             }
-            _logger.LogInformation("Table is restored");
+            Logger.LogInformation("Table is restored");
             return isTableAvailable;
         }
 
@@ -258,15 +194,17 @@ namespace CartaWeb.Models.Migration
                 if (isBackedUp)
                 {
                     bool isMigrated = await Migrate();
+                    if (isMigrated) Logger.LogInformation("Migration completed successfully");
+                    else Logger.LogError("ERROR! Migration failed");
                     return isMigrated;
                 }
             }
             catch (Exception e)
             {
-                _logger.LogError(e.Message);
-                _logger.LogError(e.StackTrace.ToString());
+                Logger.LogError(e.Message);
+                Logger.LogError(e.StackTrace.ToString());
                 bool isRolledback = await Rollback();
-                if (!isRolledback) _logger.LogInformation("ERROR! Attempt to rollback failed");
+                if (!isRolledback) Logger.LogError("ERROR! Attempt to rollback failed");
                 throw;
             }
             return false;
