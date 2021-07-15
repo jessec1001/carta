@@ -15,7 +15,7 @@ import "styles/app.css";
 const App: FunctionComponent = () => {
   // TODO: Temporary effect.
   useEffect(() => {
-    document.body.classList.add("theme-light");
+    document.body.classList.add("theme-dark");
   }, []);
 
   return (
