@@ -83,8 +83,9 @@ namespace CartaWeb
             {
                 services.AddSingleton<INoSqlDbMigrator>((container) =>
                 {
-                    ILogger<DynamoDbMigrator> logger = container.GetRequiredService<ILogger<DynamoDbMigrator>>();
-                    return new DynamoDbMigrator
+                    ILogger<DynamoDbMigratorWorkflowVersioning> logger =
+                        container.GetRequiredService<ILogger<DynamoDbMigratorWorkflowVersioning>>();
+                    return new DynamoDbMigratorWorkflowVersioning
                             (
                                 awsOptions.AccessKey,
                                 awsOptions.SecretKey,
