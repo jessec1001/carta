@@ -1,0 +1,15 @@
+/* #region Theme Definitions */
+.theme-light {
+  --color-primary: #53b853;
+  --color-primary-hover: #e2f3e2;
+  --color-secondary: #c1c7c1;
+
+  --color-stroke: #222222;
+  --color-stroke-lowlight: #404040;
+  --color-stroke-faint: #606060;
+  --color-fill-body: #f0f0f0;
+  --color-fill-element: #ffffff;
+}
+.theme-dark {
+}
+/* #endregion */

@@ -1,7 +1,7 @@
 import React, { Component, HTMLProps } from "react";
 import classNames from "classnames";
 import { LogWidget, LogSeverity } from "library/logging";
-import NotificationContext from "./NotificationContext";
+import NotificationContext from "../../../context/NotificationContext";
 import "./NotificationAlert.css";
 
 export interface NotificationAlertProps extends HTMLProps<HTMLDivElement> {

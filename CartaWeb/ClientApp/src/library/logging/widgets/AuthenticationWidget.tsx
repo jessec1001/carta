@@ -1,6 +1,5 @@
-import React from "react";
 import { Link } from "react-router-dom";
-import UserContext from "components/ui/user";
+import { UserContext } from "context";
 
 function AuthenticationWidget() {
   return (

@@ -1,0 +1,36 @@
+/* Make sure elements are sized as expected. */
+* {
+  box-sizing: border-box;
+}
+
+/* Make the core elements stretch to fit the entire page. */
+html,
+body,
+#root {
+  margin: 0rem;
+  padding: 0rem;
+  width: 100%;
+  height: 100%;
+}
+
+/* Remove any spacing from all text elements. */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+a,
+ol,
+ul,
+li {
+  margin: 0;
+  padding: 0;
+}
+
+/* Lists with a role should not be formatted with bullet points. */
+ol[role],
+ul[role] {
+  list-style: none;
+}

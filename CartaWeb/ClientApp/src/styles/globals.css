@@ -1,0 +1,9 @@
+/* Defines some global constants accessible throughout all elements. */
+html {
+  /* Font constants */
+  --font-small: 0.8rem;
+  --font-normal: 1rem;
+
+  /* Shadow constants */
+  --shadow: 0px 0px 4px 1px rgba(0, 0, 0, 0.05);
+}

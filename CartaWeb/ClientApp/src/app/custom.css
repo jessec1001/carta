@@ -24,6 +24,15 @@ html {
 }
 /* #endregion */
 
+.nav-link > * {
+  color: #404040;
+  text-decoration: none;
+}
+.nav-link > *:hover {
+  color: #222222;
+  text-decoration: none;
+}
+
 /* --- Common Buttons --- */
 /* #region */
 .icon-button {
@@ -118,21 +127,6 @@ a:hover {
   border-bottom-left-radius: 0rem !important;
 }
 
-.hover-light {
-  color: #f8f8f8;
-}
-.hover-light:hover {
-  cursor: pointer;
-  color: #a8f8a8;
-}
-.hover-dark {
-  color: #181818;
-}
-.hover-dark:hover {
-  cursor: pointer;
-  color: #002200;
-}
-
 .button {
   display: inline-block;
   margin: auto 0rem;
@@ -147,28 +141,4 @@ a:hover {
 }
 .button:focus {
   outline: none;
-}
-
-.w-100 {
-  width: 100%;
-}
-.h-100 {
-  height: 100%;
-}
-
-.flex-row {
-  display: flex;
-  flex-direction: row;
-}
-.flex-col {
-  display: flex;
-  flex-direction: column;
-}
-
-.bg-action {
-  background-color: #53b853;
-  color: rgba(0, 0, 0, 0.8);
-}
-.bg-action:hover {
-  background-color: #6bcc6b;
 }
