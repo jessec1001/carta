@@ -1,7 +1,7 @@
 /* #region Theme Definitions */
 .theme-light {
   --color-primary: #53b853;
-  --color-primary-hover: #e2f3e2;
+  --color-primary-hover: #53b853a0;
   --color-secondary: #c1c7c1;
 
   --color-stroke: #222222;
@@ -9,7 +9,18 @@
   --color-stroke-faint: #606060;
   --color-fill-body: #f0f0f0;
   --color-fill-element: #ffffff;
+  --color-fill-overlay: #ffffff80;
 }
 .theme-dark {
+  --color-primary: #53b853;
+  --color-primary-hover: #53b85380;
+  --color-secondary: #c1c7c1;
+
+  --color-stroke: #dddddd;
+  --color-stroke-lowlight: #a4a4a4;
+  --color-stroke-faint: #606060;
+  --color-fill-body: #141414;
+  --color-fill-element: #101010;
+  --color-fill-overlay: #000000a0;
 }
 /* #endregion */

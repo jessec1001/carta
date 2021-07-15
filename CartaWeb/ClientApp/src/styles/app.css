@@ -1,5 +1,15 @@
 /* Defines how to apply theming and globals to basic UI elements. */
+
+/* The body should use the basic colors for foreground and background. */
 body {
   color: var(--color-stroke);
   background-color: var(--color-fill-body);
+}
+
+/* Selections should be based on the primary color. */
+::selection {
+  background-color: var(--color-primary-hover);
+}
+::-moz-selection {
+  background-color: var(--color-primary-hover);
 }

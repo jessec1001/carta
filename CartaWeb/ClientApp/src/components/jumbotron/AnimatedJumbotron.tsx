@@ -40,7 +40,7 @@ const AnimatedJumbotron: FunctionComponent = ({ children }) => {
       <div
         style={{
           backdropFilter: "blur(2px)",
-          backgroundColor: "rgba(255, 255, 255, 0.5)",
+          backgroundColor: "var(--color-fill-overlay)",
         }}
       >
         {children}

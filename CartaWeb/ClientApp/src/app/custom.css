@@ -61,13 +61,6 @@ label {
 hr {
   margin: 0rem;
 }
-
-::selection {
-  background-color: var(--color-primary);
-}
-::-moz-selection {
-  background-color: var(--color-primary);
-}
 /* #endregion */
 
 a {
