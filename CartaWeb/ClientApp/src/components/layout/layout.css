@@ -1,0 +1,65 @@
+/* #region Layout */
+.layout-container {
+  /*
+    We make the layout container flex in the column direction so that
+    the header and footer can be properly placed.
+  */
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+.layout-content {
+  /* The content of a layout should grow to fill remaining space. */
+  flex-grow: 1;
+}
+/* #endregion */
+
+/* #region Header/Footer */
+.header,
+.footer {
+  /* The header and footer should be displayed as an elevated element with a shadow. */
+  background-color: var(--color-fill-element);
+  box-shadow: var(--shadow);
+  padding: 1rem;
+  z-index: 1;
+}
+.header {
+  /* Center icons and links in the header vertically and allow for stretching. */
+  display: flex;
+  align-items: center;
+}
+.footer {
+  /* Footer text should be smaller and lighter since it is non-important. */
+  font-size: var(--font-small);
+  color: var(--color-stroke-faint);
+}
+/* #endregion */
+
+/* #region Navigation */
+.nav-link {
+  /* TODO: Remove when Bootstrap is no longer a dependency. */
+  display: inline;
+  margin: 0;
+  padding: 0;
+
+  /* Links should have a special color and look to them. */
+  color: var(--color-stroke-lowlight);
+  text-transform: lowercase;
+  text-decoration: none;
+}
+.nav-link:hover {
+  /* Links change color when hovered over. */
+  color: var(--color-stroke);
+}
+
+.nav-link-list {
+  /* The link list should have some spacing and grow to fill space. */
+  flex-grow: 1;
+  margin: 0rem 1rem;
+}
+.nav-link-list li {
+  /* Links should be displayed in an inline list. */
+  display: inline;
+  padding: 0rem 0.5rem;
+}
+/* #endregion */

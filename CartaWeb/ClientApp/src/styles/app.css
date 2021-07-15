@@ -1,0 +1,5 @@
+/* Defines how to apply theming and globals to basic UI elements. */
+body {
+  color: var(--color-stroke);
+  background-color: var(--color-fill-body);
+}

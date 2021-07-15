@@ -1,35 +1,19 @@
-import React, { Component, createContext } from "react";
+import { Component } from "react";
+import { UserContext } from "context";
 import { User, UserManager } from "library/api/user/types";
 
-/** The type of value of {@link UserContext}. */
-interface UserContextValue {
-  manager: UserManager;
-  user: User | null;
-  authenticated: boolean;
-}
-
-/** A context for user authentication that is updated when authentication is updated */
-const UserContext = createContext<UserContextValue>({
-  manager: new UserManager(),
-  user: null,
-  authenticated: false,
-});
-
 /** The props used for the {@link UserContextWrapper} component. */
-interface UserContextWrapperProps {}
+interface UserWrapperProps {}
 /** The state used for the {@link UserContextWrapper} component. */
-interface UserContextWrapperState {
+interface UserWrapperState {
   user: User | null;
   authenticated: boolean;
 }
 
 /** A component that wraps a user context around its children components. */
-class UserContextWrapper extends Component<
-  UserContextWrapperProps,
-  UserContextWrapperState
-> {
+class UserWrapper extends Component<UserWrapperProps, UserWrapperState> {
   /** Used for debugging display name readability. */
-  static displayName = UserContextWrapper.name;
+  static displayName = UserWrapper.name;
 
   private manager: UserManager;
 
@@ -37,7 +21,7 @@ class UserContextWrapper extends Component<
    * Creates an instance of the {@link UserContextWrapper} component.
    * @param props The prop values.
    */
-  constructor(props: UserContextWrapperProps) {
+  constructor(props: UserWrapperProps) {
     super(props);
 
     // Bind event handlers.
@@ -97,8 +81,5 @@ class UserContextWrapper extends Component<
   }
 }
 
-// Export React wrapper and context.
-export default UserContext;
-export type { UserContextValue };
-export { UserContextWrapper };
-export type { UserContextWrapperProps, UserContextWrapperState };
+export default UserWrapper;
+export type { UserWrapperProps, UserWrapperState };

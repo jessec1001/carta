@@ -1,6 +1,6 @@
 import React, { Component, HTMLProps } from "react";
 import classNames from "classnames";
-import NotificationContext from "./NotificationContext";
+import NotificationContext from "../../../context/NotificationContext";
 import NotificationAlert from "./NotificationAlert";
 import "./NotificationCenter.css";
 

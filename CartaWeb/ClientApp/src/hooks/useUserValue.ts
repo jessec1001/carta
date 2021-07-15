@@ -1,6 +1,6 @@
 import { useContext } from "react";
 import { User } from "library/api/user/types";
-import UserContext from "components/ui/user";
+import { UserContext } from "context";
 
 /**
  * If a user is currently authenticated, returns a specified user claim value. If the user is not currently
@@ -12,7 +12,6 @@ const useUserValue = <T extends keyof User>(claim: T): User[T] | null => {
   // We try to use the user context if it is available.
   // If one isn't available, the user is guaranteed to be null.
   const { user } = useContext(UserContext);
-  console.log(user);
 
   // Return the claim or null depending on whether we have a user object.
   if (user === null) return null;
