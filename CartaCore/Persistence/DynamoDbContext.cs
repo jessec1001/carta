@@ -95,7 +95,7 @@ namespace CartaCore.Persistence
             Document item = Document.FromJson(docString);
             item.Add(PRIMARY_KEY, partitionKey);
             item.Add(SORT_KEY, sortKeyPrefix + docId);
-            item.Add(ID_FIELD, docId);
+            if (!item.ContainsKey(ID_FIELD)) item.Add(ID_FIELD, docId);
 
             // Define an expression to ensure that the item does not get overwritten
             Expression expression = new Expression();
