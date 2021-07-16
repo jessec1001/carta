@@ -37,3 +37,9 @@ ol[role],
 ul[role] {
   list-style: none;
 }
+
+/* Make interactables always have a pointer cursor. */
+button,
+a {
+  cursor: pointer;
+}

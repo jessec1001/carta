@@ -3,8 +3,11 @@ import { User, UserManager } from "library/api/user/types";
 
 /** The type of value of {@link UserContext}. */
 interface UserContextValue {
+  /** The manager for the user account. */
   manager: UserManager;
+  /** The user information if authenticated; otherwise null. */
   user: User | null;
+  /** Whether the user is currently authenticated. */
   authenticated: boolean;
 }
 
@@ -15,6 +18,5 @@ const UserContext = createContext<UserContextValue>({
   authenticated: false,
 });
 
-// Export React wrapper and context.
 export default UserContext;
 export type { UserContextValue };
