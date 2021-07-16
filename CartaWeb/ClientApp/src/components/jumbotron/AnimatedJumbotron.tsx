@@ -27,13 +27,23 @@ const AnimatedJumbotron: FunctionComponent = ({ children }) => {
 
   // Update the angle of the wind by the specified amount on an interval.
   useEffect(() => {
-    const intervalId = setInterval(() => {
+    const updateAnimation = () => {
+      // Update the wind angle.
       setAngle(
         (prevAngle) =>
           prevAngle + (2 * Math.PI) / (windPeriod / windUpdateInterval)
       );
-      network.current?.focus("root", { locked: true, scale: 1.0 });
-    }, windUpdateInterval);
+
+      // Make sure the animation is going and focused correctly.
+      network.current?.startSimulation();
+      network.current?.focus("root", {
+        locked: true,
+        scale: 1.0,
+      });
+    };
+    updateAnimation();
+
+    const intervalId = setInterval(updateAnimation, windUpdateInterval);
     return () => clearInterval(intervalId);
   }, []);
 
@@ -47,7 +57,6 @@ const AnimatedJumbotron: FunctionComponent = ({ children }) => {
   // Otherwise, some unknown circumstances can cause the graph to not update.
   const handleCreateNetwork = useCallback((visNetwork: VisNetwork) => {
     network.current = visNetwork;
-    network.current.startSimulation();
   }, []);
 
   return (

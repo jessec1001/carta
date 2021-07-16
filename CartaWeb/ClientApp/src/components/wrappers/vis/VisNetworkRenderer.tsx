@@ -1,4 +1,4 @@
-import { FunctionComponent, useEffect, useRef } from "react";
+import { FunctionComponent, useEffect, useLayoutEffect, useRef } from "react";
 import {
   Options as VisNetworkOptions,
   Network as VisNetwork,
@@ -33,7 +33,7 @@ const VisNetworkRenderer: FunctionComponent<VisNetworkRendererProps> = ({
   const localData = useRef(data);
 
   // The network needs to be created and destroyed on mount and unmount respectively.
-  useEffect(() => {
+  useLayoutEffect(() => {
     // Construct the VisJS Network.
     if (container.current === null) return;
     network.current = new VisNetwork(container.current, localData.current);
