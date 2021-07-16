@@ -2,73 +2,70 @@ import { FunctionComponent, useEffect, useRef } from "react";
 import {
   Options as VisNetworkOptions,
   Network as VisNetwork,
-  Node as VisNode,
-  Edge as VisEdge,
+  Data as VisData,
 } from "vis-network";
+import "./vis.css";
 
+/** The props used for the {@link VisNetworkRenderer} component. */
 interface VisNetworkRendererProps {
+  /** The graph data that should be rendered. */
+  data: VisData;
+  /** The options for the renderer. */
   options?: VisNetworkOptions;
+
+  /** Called when the graph network is initially created. */
+  onCreateNetwork?: (network: VisNetwork) => void;
+  /** Called when the graph network is destroyed. */
+  onDestroyNetwork?: () => void;
 }
 
+/** A component that renders a graph network using VisJS. */
 const VisNetworkRenderer: FunctionComponent<VisNetworkRendererProps> = ({
+  data,
   options,
+  onCreateNetwork,
+  onDestroyNetwork,
 }) => {
   const container = useRef<HTMLDivElement>(null);
   const network = useRef<VisNetwork | null>(null);
 
-  // We need to create the network after our container element has been constructed.
+  // To efficiently update props, we use a reference to store the most recent data and events values.
+  const localData = useRef(data);
+
+  // The network needs to be created and destroyed on mount and unmount respectively.
   useEffect(() => {
+    // Construct the VisJS Network.
     if (container.current === null) return;
+    network.current = new VisNetwork(container.current, localData.current);
+    if (onCreateNetwork) onCreateNetwork(network.current);
 
-    const numClusters = Math.floor(5 * Math.random() + 5);
+    // Destroy the VisJS Network.
+    return () => {
+      if (network.current === null) return;
+      network.current.destroy();
+      network.current = null;
+      if (onDestroyNetwork) onDestroyNetwork();
+    };
+  }, [onCreateNetwork, onDestroyNetwork]);
 
-    const nodes: VisNode[] = [{ id: "root", fixed: true, color: "gray" }];
-    const edges: VisEdge[] = [];
-    for (let k = 0; k < numClusters; k++) {
-      const numNodes = Math.floor(5 * Math.random() + 5);
-      const id = `${k}`;
-      const color = `hsl(${360 * (k / numClusters)}, 100%, 50%)`;
-      nodes.push({ id, color });
-      edges.push({ from: "root", to: id });
-      for (let n = 0; n < numNodes; n++) {
-        const id = `${k}-${n}`;
-        const color = `hsl(${
-          360 * (k / numClusters + n / numClusters / numNodes)
-        }, 100%, 50%)`;
-        nodes.push({ id, color });
-        edges.push({ from: `${k}`, to: id });
-      }
+  // When the network data are changed, we reset the data on the network.
+  useEffect(() => {
+    if (localData.current !== data) {
+      localData.current = data;
+      network.current?.setData(data);
     }
-
-    network.current = new VisNetwork(container.current, { nodes, edges });
-    network.current.focus("root");
-  }, []);
+  }, [data]);
 
   // When the network options are changed, we reset those options on the network.
   useEffect(() => {
-    if (network.current === null) return;
-    network.current.setOptions(options ?? {});
-    network.current.focus("root", {
-      locked: true,
-      scale: 1,
-    });
+    network.current?.setOptions(options ?? {});
   }, [options]);
 
   /*
     We render only a container element for the network.
     VisJS Network handles the construction of the canvas and its internal elements.
   */
-  return (
-    <div
-      className="vis-network-container"
-      style={{
-        position: "relative",
-        width: "100%",
-        height: "100%",
-      }}
-      ref={container}
-    />
-  );
+  return <div className="vis-network-container" ref={container} />;
 };
 
 export default VisNetworkRenderer;

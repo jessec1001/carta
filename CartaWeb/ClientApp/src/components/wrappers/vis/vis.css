@@ -1,0 +1,6 @@
+/* Make VisJS Network visualizations fit their containers. */
+.vis-network-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}

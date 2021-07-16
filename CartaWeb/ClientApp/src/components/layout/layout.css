@@ -37,12 +37,8 @@
 
 /* #region Navigation */
 .nav-link {
-  /* TODO: Remove when Bootstrap is no longer a dependency. */
-  display: inline;
-  margin: 0;
-  padding: 0;
-
   /* Links should have a special color and look to them. */
+  margin: 0rem 0.5rem;
   color: var(--color-stroke-lowlight);
   text-transform: lowercase;
   text-decoration: none;
@@ -60,6 +56,5 @@
 .nav-link-list li {
   /* Links should be displayed in an inline list. */
   display: inline;
-  padding: 0rem 0.5rem;
 }
 /* #endregion */

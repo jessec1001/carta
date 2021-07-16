@@ -13,9 +13,9 @@ import "styles/app.css";
  * Used to store routing information for each page.
  */
 const App: FunctionComponent = () => {
-  // TODO: Temporary effect.
+  // TODO: Temporary effect; use theming.
   useEffect(() => {
-    document.body.classList.add("theme-dark");
+    document.body.classList.add("theme-light");
   }, []);
 
   return (

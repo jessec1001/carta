@@ -22,11 +22,14 @@ h5,
 h6,
 p,
 a,
+label,
 ol,
 ul,
-li {
+li,
+hr {
   margin: 0;
   padding: 0;
+  font-weight: 500;
 }
 
 /* Lists with a role should not be formatted with bullet points. */

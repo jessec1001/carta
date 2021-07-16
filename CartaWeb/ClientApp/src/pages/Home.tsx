@@ -8,23 +8,16 @@ import { AnimatedJumbotron } from "components/jumbotron";
 const HomePage: FunctionComponent = () => {
   return (
     <Layout navigation footer>
+      {/* Jumbotron goes with nice animation. */}
       <AnimatedJumbotron>
-        <div
-          style={{
-            padding: "4rem 20%",
-            fontSize: "1.4rem",
-            background: "none",
-            textAlign: "center",
-          }}
-        >
-          <Title>Welcome to Carta!</Title>
-          <p>
-            Carta is a web-based API and application that provides graph-based
-            tools for accessing, exploring, and transforming existing datasets
-            and models.
-          </p>
-        </div>
+        <Title>Welcome to Carta!</Title>
+        <p>
+          Carta is a web-based API and application that provides graph-based
+          tools for accessing, exploring, and transforming existing datasets and
+          models.
+        </p>
       </AnimatedJumbotron>
+
       <div
         style={{
           padding: "2rem 4rem",
