@@ -79,23 +79,21 @@ namespace CartaWeb
                         awsOptions.SecretKey,
                         Amazon.RegionEndpoint.GetBySystemName(awsOptions.RegionEndpoint)
                     ));
-            if (awsDynamoDbOptions.MigrationClass is not null)
+            if (awsDynamoDbOptions.MigrationSteps is not null)
             {
-                services.AddSingleton<INoSqlDbMigrator>((container) =>
+                services.AddSingleton<INoSqlDbMigrationBuilder>((container) =>
                 {
                     ILogger logger =
-                        container.GetRequiredService<ILogger<DynamoDbMigrator>>();
-                    return (DynamoDbMigrator)Activator.CreateInstance
+                        container.GetRequiredService<ILogger<DynamoDbMigrationBuilder>>();
+                    return new DynamoDbMigrationBuilder
                         (
-                            Type.GetType(awsDynamoDbOptions.MigrationClass),
-                            new Object[]
-                            {   awsOptions.AccessKey,
-                                awsOptions.SecretKey,
-                                Amazon.RegionEndpoint.GetBySystemName(awsOptions.RegionEndpoint),
-                                awsDynamoDbOptions.TableName,
-                                logger
-                            }
-                        ); 
+                            awsDynamoDbOptions.MigrationSteps,
+                            awsOptions.AccessKey,
+                            awsOptions.SecretKey,
+                            Amazon.RegionEndpoint.GetBySystemName(awsOptions.RegionEndpoint),
+                            awsDynamoDbOptions.TableName,
+                            logger
+                        );
                 });
             }
             services.Configure<AwsCognitoOptions>(Configuration.GetSection("Authentication:Cognito"));
@@ -191,9 +189,9 @@ namespace CartaWeb
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             // Perform database migrations
-            INoSqlDbMigrator noSqlDbMigrator =
-                app.ApplicationServices.GetService<INoSqlDbMigrator>();
-            if (noSqlDbMigrator is not null) noSqlDbMigrator.PerformMigration();
+            INoSqlDbMigrationBuilder noSqlDbMigrationBuilder =
+                app.ApplicationServices.GetService<INoSqlDbMigrationBuilder>();
+            if (noSqlDbMigrationBuilder is not null) noSqlDbMigrationBuilder.PerformMigrations();
                 
             // Important: this solves a deployment-only issue.
             // Forwards headers from load balancers and proxy servers that terminate SSL.

@@ -14,9 +14,10 @@ namespace CartaWeb.Models.Options
         public string TableName { get; set; }
 
         /// <summary>
-        /// Gets or sets the migration class for the table for new software releases
+        /// Gets or sets table migration steps
         /// </summary>
-        /// <value>The migration class name</value>
-        public string MigrationClass { get; set; }
+        /// <value>A sorted dictionary of migration steps, with key set to the step name, and the
+        /// value set to the migration class name</value>
+        public SortedDictionary<string, string> MigrationSteps { get; set; }
     }
 }

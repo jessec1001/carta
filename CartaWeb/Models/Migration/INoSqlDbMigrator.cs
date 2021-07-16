@@ -30,7 +30,7 @@ namespace CartaWeb.Models.Migration
         /// If migration errors occur, the database table is restored. 
         /// </summary>
         /// <returns>True if the migration was successful, otherwise false.</returns>
-        ITask<bool> PerformMigration();
+        ITask PerformMigration();
     }
 }
 

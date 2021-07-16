@@ -186,7 +186,7 @@ namespace CartaWeb.Models.Migration
         /// If migration errors occur, the database table is restored. 
         /// </summary>
         /// <returns>True if the migration was successful, otherwise false.</returns>
-        public async ITask<bool> PerformMigration()
+        public async ITask PerformMigration()
         {
             bool isBackedUp = await Backup();
             try
@@ -196,7 +196,6 @@ namespace CartaWeb.Models.Migration
                     bool isMigrated = await Migrate();
                     if (isMigrated) Logger.LogInformation("Migration completed successfully");
                     else Logger.LogError("ERROR! Migration failed");
-                    return isMigrated;
                 }
             }
             catch (Exception e)
@@ -207,7 +206,6 @@ namespace CartaWeb.Models.Migration
                 if (!isRolledback) Logger.LogError("ERROR! Attempt to rollback failed");
                 throw;
             }
-            return false;
         }
 
     }
