@@ -2,10 +2,6 @@
 /* #region */
 html {
   /* Color variables. */
-  --color-primary: #53b853;
-  --color-primary-hover: #e2f3e2;
-  --color-secondary: #c1c7c1;
-
   --color-stroke-form: #454745;
   --color-fill-form: #ffffff;
   --color-error-form: #e63e38;
@@ -24,15 +20,6 @@ html {
 }
 /* #endregion */
 
-.nav-link > * {
-  color: #404040;
-  text-decoration: none;
-}
-.nav-link > *:hover {
-  color: #222222;
-  text-decoration: none;
-}
-
 /* --- Common Buttons --- */
 /* #region */
 .icon-button {
@@ -46,29 +33,6 @@ html {
   cursor: default;
 }
 /* #endregion */
-
-/* --- Reboot --- */
-/* #region */
-* {
-  font-family: "Source Sans Pro", sans-serif;
-}
-
-label {
-  margin: 0;
-  padding: 0;
-}
-
-hr {
-  margin: 0rem;
-}
-/* #endregion */
-
-a {
-  color: #409c40;
-}
-a:hover {
-  color: #1d751d;
-}
 
 .relative {
   position: relative;
