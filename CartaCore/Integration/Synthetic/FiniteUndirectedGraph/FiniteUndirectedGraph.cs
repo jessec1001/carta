@@ -11,7 +11,7 @@ namespace CartaCore.Integration.Synthetic
     /// Represents graph data of a random, finite, undirected graph. Both the vertices and edges are randomly generated
     /// and connected.
     /// </summary>
-    public class FiniteUndirectedGraph : SubGraph,
+    public class FiniteUndirectedGraph : FiniteGraph,
         IParameterizedGraph<FiniteUndirectedGraphParameters>
     {
         /// <inheritdoc />

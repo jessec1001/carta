@@ -417,11 +417,15 @@ namespace CartaCore.Integration.Hyperthought
         }
 
         /// <inheritdoc />
-        public override bool IsFinite() => true;
-        /// <inheritdoc />
-        public override bool IsDirected() => true;
-        /// <inheritdoc />
-        public override bool IsDynamic() => true;
+        public override GraphProperties GetProperties()
+        {
+            return new GraphProperties
+            {
+                Directed = true,
+                Dynamic = true,
+                Finite = true
+            };
+        }
 
         /// <inheritdoc />
         public IEnumerable<Identity> GetRoots()

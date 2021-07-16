@@ -92,8 +92,8 @@ namespace CartaWeb.Serialization.Json
 
             if (graph is Graph baseGraph) visFormat.Id = baseGraph.Identifier.ToString();
 
-            visFormat.Directed = graph.IsDirected();
-            visFormat.Dynamic = graph.IsDynamic();
+            visFormat.Directed = graph.GetProperties().Directed;
+            visFormat.Dynamic = graph.GetProperties().Dynamic;
             visFormat.Nodes = await graph.GetVertices().SelectAwait
             (
                 node => new ValueTask<VisFormatNode>(Task.FromResult(new VisFormatNode(node)))

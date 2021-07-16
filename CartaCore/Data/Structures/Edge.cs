@@ -21,7 +21,14 @@ namespace CartaCore.Data
         /// <value>The target vertex identifier.</value>
         public Identity Target { get; protected init; }
 
-
+        /// <summary>
+        /// Initializates an instance of the <see cref="Edge"/> class with the specified identity, source and target
+        /// vertex identifiers and assigned properties.
+        /// </summary>
+        /// <param name="id">The edge identifier.</param>
+        /// <param name="source">The source vertex identifier.</param>
+        /// <param name="target">The target vertex identifier.</param>
+        /// <param name="properties">The properties assigned to the edge.</param>
         public Edge(Identity id, Identity source, Identity target, IEnumerable<Property> properties)
             : base(id, properties)
         {

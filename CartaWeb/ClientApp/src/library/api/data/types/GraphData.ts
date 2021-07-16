@@ -122,7 +122,11 @@ export default class GraphData {
   }
   _request(ids: string[], force?: boolean, stopPrefetch?: boolean) {
     // We should try to prefetch children of newly added nodes.
-    if (!stopPrefetch) {
+    if (
+      !stopPrefetch &&
+      this.properties?.dynamic &&
+      this.properties?.directed
+    ) {
       ids
         .filter((id) => !this.hasNodeChildrenOrLoading(id))
         .forEach((id) => {
@@ -476,14 +480,40 @@ export default class GraphData {
     this.nodes.clear();
     this.edges.clear();
 
-    // Get the base graph data.
-    const data = await this._buffer.request(async () => {
-      return await DataApi.getGraphRootsAsync({
+    // We need to determine properties of the graph first.
+    const preinitData = await this._buffer.request(async () => {
+      return await DataApi.getGraphSelectionAsync({
         source: this._source,
         resource: this._resource,
         parameters: this._parameters,
+        selector: { type: "none" },
       });
     });
+    this.properties = {
+      directed: preinitData.directed,
+      dynamic: preinitData.dynamic,
+    };
+
+    // Get the base graph data.
+    let data: Graph;
+    if (this.properties.directed) {
+      data = await this._buffer.request(async () => {
+        return await DataApi.getGraphRootsAsync({
+          source: this._source,
+          resource: this._resource,
+          parameters: this._parameters,
+        });
+      });
+    } else {
+      data = await this._buffer.request(async () => {
+        return await DataApi.getGraphSelectionAsync({
+          source: this._source,
+          resource: this._resource,
+          parameters: this._parameters,
+          selector: { type: "all" },
+        });
+      });
+    }
 
     // Set the initial identifiers for the graph.
     const initialNodes = data.nodes.map((node) => node.id);
