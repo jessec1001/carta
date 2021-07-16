@@ -711,12 +711,13 @@ namespace CartaWeb.Controllers
                 (
                     WorkspaceChangeEnumeration.Dataset,
                     datasetId,
-                    $"{source}/{resource}",
+                    name,
                     WorkspaceActionEnumeration.Added,
                     userInformation.Name
                 );
                 workspaceChangeItem.WorkspaceChangeInformation = new WorkspaceChangeInformation();
-                workspaceChangeItem.WorkspaceChangeInformation.DatasetName = name;
+                workspaceChangeItem.WorkspaceChangeInformation.DatasetSource = source.ToString();
+                workspaceChangeItem.WorkspaceChangeInformation.DatasetResource = resource;
                 await SaveWorkspaceChangeItemAsync(id, workspaceChangeItem);
 
                 datasetItem.Id = datasetId;
@@ -772,7 +773,7 @@ namespace CartaWeb.Controllers
             (
                 WorkspaceChangeEnumeration.Dataset,
                 datasetId,
-                $"{datasetItem.Source}/{datasetItem.Resource}",
+                datasetItem.Name,
                 WorkspaceActionEnumeration.Updated,
                 userInformation.Name
             );
@@ -780,7 +781,8 @@ namespace CartaWeb.Controllers
             if (name is not null)
             {
                 datasetItem.Name = name;
-                workspaceChangeItem.WorkspaceChangeInformation.DatasetName = name;
+                workspaceChangeItem.WorkspaceChangeInformation.DatasetSource = datasetItem.Source.ToString();
+                workspaceChangeItem.WorkspaceChangeInformation.DatasetResource = datasetItem.Resource;
             }
             if (workflowId is not null)
             {
@@ -894,12 +896,13 @@ namespace CartaWeb.Controllers
                 (
                     WorkspaceChangeEnumeration.Dataset,
                     datasetId,
-                    $"{datasetItem.Source}/{datasetItem.Resource}",
+                    datasetItem.Name,
                     WorkspaceActionEnumeration.Removed,
                     new UserInformation(User).Name
                 );
                 workspaceChangeItem.WorkspaceChangeInformation = new WorkspaceChangeInformation();
-                workspaceChangeItem.WorkspaceChangeInformation.DatasetName = datasetItem.Name;
+                workspaceChangeItem.WorkspaceChangeInformation.DatasetSource = datasetItem.Source.ToString();
+                workspaceChangeItem.WorkspaceChangeInformation.DatasetResource = datasetItem.Resource;
                 await SaveWorkspaceChangeItemAsync(id, workspaceChangeItem);
                 return Ok();
             }      

@@ -23,8 +23,13 @@ namespace CartaWeb.Models.Data
         public int? WorkflowVersion { get; set; }
 
         /// <summary>
-        /// The dataset name 
+        /// The dataset source 
         /// </summary>
-        public string DatasetName { get; set; }
+        public string DatasetSource { get; set; }
+
+        /// <summary>
+        /// The dataset resource 
+        /// </summary>
+        public string DatasetResource { get; set; }
     }
 }
