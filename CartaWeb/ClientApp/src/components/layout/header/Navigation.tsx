@@ -1,5 +1,6 @@
 import { FunctionComponent } from "react";
 import { CartaIcon } from "components/icons";
+import { ThemeButton } from "components/utility";
 import NavigationLink from "./NavigationLink";
 import NavigationLinkList from "./NavigationLinkList";
 
@@ -23,6 +24,9 @@ const Navigation: FunctionComponent = () => {
 
       {/* Render sign in or profile link depending on authentication state. */}
       <NavigationLink to="#">Sign In</NavigationLink>
+
+      {/* Render a theme button to change themes. */}
+      <ThemeButton />
     </header>
   );
 };

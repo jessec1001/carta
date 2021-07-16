@@ -1,7 +1,11 @@
-import { FunctionComponent, useEffect } from "react";
+import { FunctionComponent } from "react";
 import { Route, Switch } from "react-router";
 import { HomePage, GraphPage, DocsPage, UserPage } from "pages";
-import { UserWrapper, NotificationWrapper } from "components/utility";
+import {
+  UserWrapper,
+  NotificationWrapper,
+  ThemeWrapper,
+} from "components/utility";
 
 import "styles/reset.css";
 import "styles/globals.css";
@@ -13,20 +17,17 @@ import "styles/app.css";
  * Used to store routing information for each page.
  */
 const App: FunctionComponent = () => {
-  // TODO: Temporary effect; use theming.
-  useEffect(() => {
-    document.body.classList.add("theme-light");
-  }, []);
-
   return (
     <UserWrapper>
       <NotificationWrapper>
-        <Switch>
-          <Route exact path="/" component={HomePage} />
-          <Route path="/docs/:topic" component={DocsPage} />
-          <Route path="/user" component={UserPage} />
-          <Route path="/graph" component={GraphPage} />
-        </Switch>
+        <ThemeWrapper>
+          <Switch>
+            <Route exact path="/" component={HomePage} />
+            <Route path="/documentation/:topic" component={DocsPage} />
+            <Route path="/user" component={UserPage} />
+            <Route path="/graph" component={GraphPage} />
+          </Switch>
+        </ThemeWrapper>
       </NotificationWrapper>
     </UserWrapper>
   );

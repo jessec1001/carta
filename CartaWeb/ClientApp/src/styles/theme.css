@@ -24,3 +24,19 @@
   --color-fill-overlay: #000000a0;
 }
 /* #endregion */
+
+/* #region Theme Components */
+.theme-button {
+  display: block;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin: 0rem 1rem;
+  border: none;
+  border-radius: 1.25rem;
+  background: linear-gradient(
+    0.375turn,
+    var(--color-fill-body) 0%,
+    var(--color-fill-element) 100%
+  );
+}
+/* #endregion */
