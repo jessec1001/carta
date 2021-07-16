@@ -7,6 +7,11 @@ namespace CartaCore.Data
     /// </summary>
     public interface IVertex : IElement<Vertex>
     {
+        /// <summary>
+        /// Gets all of the in- and out-edges of the specified vertex.
+        /// </summary>
+        /// <param name="vertex">The vertex to get the edges of.</param>
+        /// <returns>An enumerable of all edges of the vertex.</returns>
         static IEnumerable<Edge> GetEdges(IVertex vertex)
         {
             if (vertex is IInVertex inVertex)
