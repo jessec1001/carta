@@ -15,6 +15,10 @@ namespace CartaCore.Data
         /// </summary>
         /// <value>The observations recorded for this property.</value>
         public IEnumerable<object> Values { get; set; }
+        /// <summary>
+        /// Gets or sets the subproperties.
+        /// </summary>
+        /// <value>The subproperties or metadata for this property.</value>
         public IEnumerable<Property> Subproperties { get; set; }
 
         /// <summary>

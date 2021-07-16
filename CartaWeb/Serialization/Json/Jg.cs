@@ -173,7 +173,7 @@ namespace CartaWeb.Serialization.Json
         {
             JgFormatGraph jgFormatGraph = new JgFormatGraph();
 
-            jgFormatGraph.Directed = graph.IsDirected();
+            jgFormatGraph.Directed = graph.GetProperties().Directed;
             jgFormatGraph.Nodes = await graph.GetVertices().ToDictionaryAwaitAsync
             (
                 node => new ValueTask<string>(Task.FromResult(node.Identifier.ToString())),

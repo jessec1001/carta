@@ -222,7 +222,7 @@ namespace CartaWeb.Serialization.Xml
 
             // Set the graph properties.
             gexFormatGraph.Mode = GexFormatMode.Static;
-            gexFormatGraph.EdgeType = graph.IsDirected() ? GexFormatEdgeType.Directed : GexFormatEdgeType.Undirected;
+            gexFormatGraph.EdgeType = graph.GetProperties().Directed ? GexFormatEdgeType.Directed : GexFormatEdgeType.Undirected;
             gexFormatGraph.PropertyDefinitions = new GexFormatPropertyDefinitionList(properties);
 
             return gexFormatGraph;
