@@ -13,6 +13,7 @@ enum Theme {
 interface ThemeContextValue {
   /** The current theme of the application. */
   theme: Theme;
+
   /** Sets the current theme of the application. */
   setTheme: (theme: Theme) => void;
 }

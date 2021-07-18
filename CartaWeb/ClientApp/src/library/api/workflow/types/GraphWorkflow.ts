@@ -194,7 +194,6 @@ export default class GraphWorkflow {
 
   getSelector(): Selector {
     let selector = this._selector;
-    console.log(this._selector, this._selectorAugment);
     if (this._selectorAugment.inverted) {
       selector = {
         type: "not",
@@ -221,7 +220,6 @@ export default class GraphWorkflow {
         selectors: [excludeSelector, selector],
       };
     }
-    console.log(selector);
     return selector;
   }
   applySelector(selector: Selector) {

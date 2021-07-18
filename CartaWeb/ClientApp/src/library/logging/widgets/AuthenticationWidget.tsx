@@ -4,10 +4,10 @@ import { UserContext } from "context";
 function AuthenticationWidget() {
   return (
     <UserContext.Consumer>
-      {({ manager }) => (
+      {({ signIn }) => (
         <span>
           You must be authenticated to perform this action. Please &nbsp;
-          <Link to="#" onClick={manager.signInAsync}>
+          <Link to="#" onClick={signIn}>
             sign in
           </Link>
           .

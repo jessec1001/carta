@@ -1,5 +1,6 @@
-import { FunctionComponent } from "react";
-import { useStoredState, useUserValue } from "hooks";
+import { FunctionComponent, useContext } from "react";
+import { useStoredState } from "hooks";
+import { UserContext } from "context";
 import { Container } from "reactstrap";
 import { Mainbar, Sidebar, SidebarLayout } from "components/ui/layout";
 import { Link } from "components/ui/common/link";
@@ -8,8 +9,12 @@ import { FormGroup } from "components/ui/form";
 import { DropdownInput, TextFieldInput } from "components/ui/form/input";
 
 const UserPage: FunctionComponent = () => {
-  const userName = useUserValue("name");
-  const userEmail = useUserValue("email");
+  const { user } = useContext(UserContext);
+  let name: string | null = null;
+  let email: string | null = null;
+  if (user) {
+    ({ name, email } = user);
+  }
 
   const [hyperthoughtKey, setHyperthoughtKey] = useStoredState(
     "",
@@ -25,7 +30,7 @@ const UserPage: FunctionComponent = () => {
       <SidebarLayout side="left">
         <Sidebar>
           <IndentList>
-            {userName !== null && (
+            {user !== null && (
               <Link href="/user/profile#profile-general">General</Link>
             )}
             <Link href="/user/profile/#profile-integration">Integeration</Link>
@@ -49,21 +54,21 @@ const UserPage: FunctionComponent = () => {
               saved when changed.
             </p>
           </div>
-          {userName !== null && (
+          {user !== null && (
             <Section title="General" {...({ id: "profile-general" } as any)}>
               <FormGroup
                 title="Username"
                 description="The username associated with this account."
                 density="dense"
               >
-                <TextFieldInput value={userName!} disabled />
+                <TextFieldInput value={name!} disabled />
               </FormGroup>
               <FormGroup
                 title="E-mail"
                 description="The e-mail associated with this account."
                 density="dense"
               >
-                <TextFieldInput value={userEmail!} disabled />
+                <TextFieldInput value={email!} disabled />
               </FormGroup>
             </Section>
           )}

@@ -1,3 +1,3 @@
-import UserApi from "./UserApi";
+import User from "./User";
 
-export default UserApi;
+export type { User };

@@ -1,6 +1,6 @@
 import { FunctionComponent } from "react";
 import { Section, Title } from "components/structure";
-import { UserIsNotAuthenticated } from "components/utility";
+import { UserIsNotAuthenticated, UserSignIn } from "components/utility";
 import { Layout } from "components/layout";
 import { AnimatedJumbotron } from "components/jumbotron";
 
@@ -32,20 +32,18 @@ const HomePage: FunctionComponent = () => {
                   color: "var(--color-primary)",
                   cursor: "pointer",
                 }}
-                onClick={() => console.log("Click!")}
               >
-                <a>sign in</a>
+                <UserSignIn>sign in</UserSignIn>
               </span>{" "}
               or
               <span
-                onClick={() => console.log("Click!")}
                 style={{
                   color: "var(--color-primary)",
                   cursor: "pointer",
                 }}
               >
                 {" "}
-                <a>sign up</a>
+                <UserSignIn>sign up</UserSignIn>
               </span>{" "}
               to use this functionality.
             </p>

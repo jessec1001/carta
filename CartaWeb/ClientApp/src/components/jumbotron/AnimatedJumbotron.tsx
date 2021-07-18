@@ -36,6 +36,7 @@ const AnimatedJumbotron: FunctionComponent = ({ children }) => {
 
       // Make sure the animation is going and focused correctly.
       network.current?.startSimulation();
+      network.current?.moveNode("root", 0, 0);
       network.current?.focus("root", {
         locked: true,
         scale: 1.0,

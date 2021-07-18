@@ -1,85 +1,61 @@
-import { Component } from "react";
+import { FunctionComponent, useEffect, useRef, useState } from "react";
 import { UserContext } from "context";
-import { User, UserManager } from "library/api/user/types";
-
-/** The props used for the {@link UserContextWrapper} component. */
-interface UserWrapperProps {}
-/** The state used for the {@link UserContextWrapper} component. */
-interface UserWrapperState {
-  user: User | null;
-  authenticated: boolean;
-}
+import { UserApi, User } from "library/api";
 
 /** A component that wraps a user context around its children components. */
-class UserWrapper extends Component<UserWrapperProps, UserWrapperState> {
-  /** Used for debugging display name readability. */
-  static displayName = UserWrapper.name;
+const UserWrapper: FunctionComponent = ({ children }) => {
+  // We need a reference to the user API to execute calls.
+  const userApiRef = useRef(new UserApi());
+  const userApi = userApiRef.current;
 
-  private manager: UserManager;
+  // We use this state to store information about whether the user is authenticated and their relevant information.
+  // TODO: How might we communicate this authentication information with other tabs when the state changes?
+  const [user, setUser] = useState<User | null>(null);
+  const [authenticated, setAuthenticated] = useState<boolean>(false);
 
-  /**
-   * Creates an instance of the {@link UserContextWrapper} component.
-   * @param props The prop values.
-   */
-  constructor(props: UserWrapperProps) {
-    super(props);
+  // We check for authentication when this component is initialized.
+  useEffect(() => {
+    (async () => {
+      if (await userApi.isAuthenticated()) {
+        setUser(await userApi.getUserInfo());
+        setAuthenticated(true);
+      }
+    })();
+  }, [userApi]);
 
-    // Bind event handlers.
-    this.handleUserSignin = this.handleUserSignin.bind(this);
-    this.handleUserSignout = this.handleUserSignout.bind(this);
+  // Prepare functions to handle sign in and sign out requests.
+  const handleSignIn = async () => {
+    // Execute sign in request.
+    await userApi.signIn();
 
-    // Set initial logged out state.
-    this.state = {
-      user: null,
-      authenticated: false,
-    };
+    // We must check that we are authenticated before we can retrieve user information.
+    if (await userApi.isAuthenticated()) {
+      setUser(await userApi.getUserInfo());
+      setAuthenticated(true);
+    }
+  };
+  const handleSignOut = async () => {
+    // Execute sign out request.
+    userApi.signOut();
 
-    // Set up the user manager and attach the relevant event handlers.
-    this.manager = new UserManager();
-    this.manager.on("signin", this.handleUserSignin);
-    this.manager.on("signout", this.handleUserSignout);
-  }
+    // We assume that authentication information has been cleared.
+    setUser(null);
+    setAuthenticated(false);
+  };
 
-  /**
-   * Handles when the user is authenticated and signed-in.
-   * @param user The signed in user.
-   */
-  private handleUserSignin(user: User) {
-    this.setState({
-      user: user,
-      authenticated: true,
-    });
-  }
-  /**
-   * Handles when the user is unauthenticated and signed-out.
-   */
-  private handleUserSignout() {
-    this.setState({
-      user: null,
-      authenticated: false,
-    });
-  }
+  return (
+    <UserContext.Provider
+      value={{
+        user,
+        authenticated,
 
-  /** Renders the component into a DOM. */
-  render() {
-    // Get the relevant rendered values of this object.
-    const { children } = this.props;
-    const { user, authenticated } = this.state;
-
-    // Simply wrap the children in a context provider.
-    return (
-      <UserContext.Provider
-        value={{
-          manager: this.manager,
-          user,
-          authenticated,
-        }}
-      >
-        {children}
-      </UserContext.Provider>
-    );
-  }
-}
+        signIn: handleSignIn,
+        signOut: handleSignOut,
+      }}
+    >
+      {children}
+    </UserContext.Provider>
+  );
+};
 
 export default UserWrapper;
-export type { UserWrapperProps, UserWrapperState };
