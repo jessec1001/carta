@@ -7,7 +7,7 @@ import { PropertyList } from "components/visualizations/graph/PropertyList";
 import { GraphVisualizer } from "components/visualizations";
 import { GraphToolbar } from "./graph/GraphToolbar";
 import { Property } from "library/api/data/types/graph";
-import { SplitPane, Tab, TabPane } from "components/ui/common/panes";
+import { SplitPane, Tab, TabPane } from "components/common/panes";
 import GraphOpenForm from "./graph/GraphOpenForm";
 import { GraphData } from "library/api/data/types";
 import { GraphWorkflow } from "library/api/workflow/types";
@@ -22,9 +22,7 @@ import {
 import "./GraphPage.css";
 import WorkflowCreateForm from "./workflow/WorkflowCreateForm";
 import WorkflowApplyForm from "./workflow/WorkflowApplyForm";
-import SchemaForm, {
-  SchemaFormProps,
-} from "components/ui/form/schema/SchemaForm";
+import SchemaForm, { SchemaFormProps } from "components/form/schema/SchemaForm";
 
 export interface GraphPageProps extends RouteComponentProps {}
 export interface GraphPageState {

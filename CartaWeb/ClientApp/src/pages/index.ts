@@ -1,6 +1,6 @@
 import HomePage from "./Home";
 import GraphPage from "./graph/GraphPage";
 import DocsPage from "./docs/DocsPage";
-import UserPage from "./user/UserPage";
+import ProfilePage from "./Profile";
 
-export { HomePage, GraphPage, DocsPage, UserPage };
+export { HomePage, GraphPage, DocsPage, ProfilePage };

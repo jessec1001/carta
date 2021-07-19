@@ -1,4 +1,4 @@
-import { TextFieldInput } from "components/ui/form";
+import { TextFieldInput } from "components/input";
 import { Component, HTMLProps } from "react";
 import { Button, Modal, ModalBody, ModalFooter } from "reactstrap";
 

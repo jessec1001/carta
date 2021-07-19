@@ -1,8 +1,8 @@
 import React, { Component } from "react";
 import queryString from "query-string";
 import { MetaParameter, MetaRequest } from "library/api/meta";
-import { TabPane, Tab } from "components/ui/common/panes";
-import { ApiExample } from "components/ui/common/code";
+import { TabPane, Tab } from "components/common/panes";
+import { ApiExample } from "components/common/code";
 import "./ApiRequestCollectionView.css";
 
 export interface ApiRequestCollecetionViewProps {

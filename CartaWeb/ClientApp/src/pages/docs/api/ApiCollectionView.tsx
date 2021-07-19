@@ -5,6 +5,7 @@ import { MetaCollection } from "library/api/meta";
 import ApiEndpointView from "./ApiEndpointView";
 
 import "./ApiCollectionView.css";
+import { Paragraph } from "components/structure";
 
 export interface ApiCollectionViewProps {
   collection: MetaCollection;
@@ -17,7 +18,7 @@ export default class ApiCollectionView extends Component<ApiCollectionViewProps>
     return (
       <li className="bg-light api-collection">
         <h4 className="api-collection-name">{this.props.collection.name}</h4>
-        <p>{this.props.collection.description}</p>
+        <Paragraph>{this.props.collection.description}</Paragraph>
         <ul className="api-endpoint-list">
           {this.props.collection.endpoints.map((endpoint) => (
             <ApiEndpointView

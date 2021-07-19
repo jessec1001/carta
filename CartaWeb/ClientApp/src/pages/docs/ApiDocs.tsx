@@ -1,4 +1,4 @@
-import { Section, Subsection } from "components/structure";
+import { Paragraph, Section, Subsection } from "components/structure";
 import { Component } from "react";
 
 import ApiVisualizer from "./api/ApiVisualizer";
@@ -9,17 +9,17 @@ export class ApiDocs extends Component {
   render() {
     return (
       <Section title="API">
-        <p>
+        <Paragraph>
           Carta implements a simple backend API. Currently, its main APIs are
           the <em>Data</em> API and <code>Meta</code> API. In the future, there
           will likely be a <em>Workflow</em> API that will manage tools and
           transformations applied to graph data.
-        </p>
-        <p>
+        </Paragraph>
+        <Paragraph>
           The <em>Data</em> API is responsible for retrieving a particular
           resource from a source collection of data. It has the following
           parameters:
-        </p>
+        </Paragraph>
         <ul>
           <li>
             <code>source</code>: Must either by <code>Synthetic</code> or{" "}
@@ -43,7 +43,7 @@ export class ApiDocs extends Component {
             workflow process.
           </li>
         </ul>
-        <p>
+        <Paragraph>
           The <em>Meta</em> API is responsible for generating information on the
           available Carta API endpoints. Currently, it only provides the path of
           the endpoint and the{" "}
@@ -51,7 +51,7 @@ export class ApiDocs extends Component {
             HTTP method
           </a>{" "}
           of the discussed APIs.
-        </p>
+        </Paragraph>
 
         <Subsection title="Endpoints">
           <ApiVisualizer />

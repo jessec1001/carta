@@ -5,7 +5,7 @@ import {
   JsonStringSchema,
   JsonStringSchemaWidgets,
 } from "library/schema";
-import { TextFieldInput, TextAreaInput } from "components/ui/form/input";
+import { TextFieldInput, TextAreaInput } from "components/input";
 import { SchemaTypedInputProps } from "./SchemaBaseInput";
 
 /** The props used for the {@link SchemaStringInput} component. */

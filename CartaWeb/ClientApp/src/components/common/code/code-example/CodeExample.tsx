@@ -1,7 +1,7 @@
 import React, { Component, HTMLProps } from "react";
 import classNames from "classnames";
 import { PrismWrapper } from "components/wrappers";
-import { CopyButton } from "components/ui/common/clipboard";
+import { CopyButton } from "components/common/clipboard";
 import "../Code.css";
 
 export interface CodeExampleProps extends HTMLProps<HTMLDivElement> {

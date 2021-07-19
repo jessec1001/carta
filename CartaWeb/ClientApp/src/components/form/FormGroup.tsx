@@ -1,8 +1,10 @@
 import { FunctionComponent } from "react";
 import classNames from "classnames";
 import ReactMarkdown from "react-markdown";
+import { Link } from "components/common";
 
 import "./form.css";
+import { Paragraph } from "components/structure";
 
 /** The props used for the {@link FormGroup} component. */
 interface FormGroupProps {
@@ -48,9 +50,27 @@ const FormGroup: FunctionComponent<FormGroupProps> = ({
         <label className={classNames("form-group", actualDensity)} {...props}>
           <span className="form-group-label">{title}</span>
           <span className="form-group-description">
-            <ReactMarkdown linkTarget="_blank">
-              {description ?? ""}
-            </ReactMarkdown>
+            <Paragraph>
+              <ReactMarkdown
+                linkTarget="_blank"
+                components={{
+                  a: ({ children, href }) => {
+                    return (
+                      <a
+                        className="link"
+                        href={href as string}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        {children}
+                      </a>
+                    );
+                  },
+                }}
+              >
+                {description ?? ""}
+              </ReactMarkdown>
+            </Paragraph>
           </span>
           <span className="form-group-content">
             {children}

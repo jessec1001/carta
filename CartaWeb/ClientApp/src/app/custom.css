@@ -2,18 +2,11 @@
 /* #region */
 html {
   /* Color variables. */
-  --color-stroke-form: #454745;
-  --color-fill-form: #ffffff;
-  --color-error-form: #e63e38;
-
   --color-addition: #35e04c;
   --color-deletion: #d83c3c;
 
   --color-empty: #aaaaaa;
   --color-null: #ff6666;
-
-  /* Size variables. */
-  --rounded-size: 0.2rem;
 
   /* Speed variables. */
   --transition-delay: 0.1s;

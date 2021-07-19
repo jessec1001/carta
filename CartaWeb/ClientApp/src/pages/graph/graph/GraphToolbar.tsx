@@ -14,7 +14,7 @@ import { GraphWorkflow } from "library/api/workflow/types";
 import "./GraphToolbar.css";
 import { MetaApi } from "library/api";
 import { MetaTypeEntry } from "library/api/meta";
-import { SchemaFormProps } from "components/ui/form/schema/SchemaForm";
+import { SchemaFormProps } from "components/form/schema/SchemaForm";
 
 interface GraphToolbarProps extends NavbarProps {
   graph?: GraphData;

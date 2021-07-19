@@ -17,13 +17,13 @@
 
   /* Set all border properties of the form control. */
   border-width: 1px;
-  border-radius: var(--rounded-size);
+  border-radius: var(--border-radius);
   border-style: solid;
-  border-color: var(--color-secondary);
+  border-color: var(--color-stroke-faint);
 
   /* Set the colors for the insides of forms. */
-  background-color: var(--color-fill-form);
-  color: var(--color-stroke-form);
+  background-color: var(--color-fill-element);
+  color: var(--color-stroke-lowlight);
 }
 .form-control:focus {
   /* Get rid of annoying focus outline. */
@@ -35,7 +35,7 @@
 }
 .form-control.error {
   /* Errored form controls should use an error color for its border. */
-  border-color: var(--color-error-form);
+  border-color: var(--color-stroke-error);
 }
 
 textarea.form-control {
@@ -49,11 +49,11 @@ textarea.form-control {
   padding: 0rem 0.5rem;
   border-width: 1px;
   border-style: solid;
-  border-color: var(--color-secondary);
-  border-radius: var(--rounded-size);
+  border-color: var(--color-stroke-faint);
+  border-radius: var(--border-radius);
 }
 .form-container.error {
-  border-color: var(--color-error-form);
+  border-color: var(--color-stroke-error);
 }
 /* ------ */
 
@@ -77,10 +77,10 @@ textarea.form-control {
 }
 
 .form-group-description {
-  font-size: 0.8rem;
+  font-size: var(--font-small);
 }
 .form-group-error {
-  color: var(--color-error-form);
+  color: var(--color-stroke-error);
 }
 /* ------ */
 
@@ -107,10 +107,10 @@ textarea.form-control {
   position: relative;
   width: 1.5rem;
   height: 1.5rem;
-  border-radius: var(--rounded-size);
+  border-radius: var(--border-radius);
 
   /* We vary the the color of the checkbox based on if it is checked or not. */
-  background-color: var(--color-secondary);
+  background-color: var(--color-stroke-faint);
 
   /* We make the checkbox increase opacity when hovered over. */
   cursor: pointer;
@@ -143,7 +143,7 @@ textarea.form-control {
   margin-bottom: 0.5rem;
 
   /* Set the colors for the insides of forms. */
-  color: var(--color-stroke-form);
+  color: var(--color-stroke-lowlight);
 }
 .form-slider-box {
   /* This makes the slider stretch properly with space for labels. */
@@ -185,7 +185,7 @@ textarea.form-control {
   background: linear-gradient(
     to right,
     var(--color-primary) calc(100% * var(--progress)),
-    var(--color-secondary) calc(100% * var(--progress))
+    var(--color-stroke-lowlight) calc(100% * var(--progress))
   );
 }
 .form-slider:hover {
@@ -213,8 +213,8 @@ textarea.form-control {
   /* Style the slider thumb with error colors when an error occurs. */
   background: linear-gradient(
     to right,
-    var(--color-error-form) calc(100% * var(--progress)),
-    var(--color-secondary) calc(100% * var(--progress))
+    var(--color-stroke-error) calc(100% * var(--progress)),
+    var(--color-stroke-lowlight) calc(100% * var(--progress))
   );
 }
 .form-slider-container.error .form-slider::-webkit-slider-thumb {
@@ -241,12 +241,14 @@ textarea.form-control {
   cursor: pointer;
 
   /* Set the colors for the insides of forms. */
-  color: var(--color-stroke-form);
+  color: var(--color-stroke-lowlight);
 }
 
 .form-dropdown .form-dropdown-header {
   /* This allows the dropdown arrow icon to display at the correct position.*/
   position: relative;
+  display: flex;
+  align-items: center;
 }
 .form-dropdown.toggled .form-dropdown-header {
   /* When the dropdown is toggled, the header should join with the dropdown list. */
@@ -256,16 +258,8 @@ textarea.form-control {
   /* The border color should become emphasized when focused. */
   border-color: var(--color-primary);
 }
-
-.form-dropdown .form-dropdown-arrow {
-  /* Position the dropdown arrow to the right and centered vertically. */
-  position: absolute;
-  right: 0%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-
-  /* The arrow should be a bit smaller for most cases. */
-  font-size: 0.7rem;
+.form-dropdown-value {
+  flex-grow: 1;
 }
 
 .form-dropdown .form-dropdown-list {
@@ -274,25 +268,26 @@ textarea.form-control {
 
   list-style: none;
   margin: 0rem;
-  padding: 0.2rem 0rem;
+  padding: 0rem;
 
   /* Set all border properties of the form control. */
   border-width: 1px;
-  border-radius: var(--rounded-size);
+  border-radius: var(--border-radius);
   border-top-left-radius: 0rem;
   border-top-right-radius: 0rem;
   border-style: solid;
-  border-color: var(--color-secondary);
+  border-color: var(--color-stroke-lowlight);
   border-top: none;
   box-shadow: 0px 2px 4px 1px rgba(0, 0, 0, 0.2);
 
   /* Set the colors for the insides of forms. */
-  background-color: var(--color-fill-form);
+  background-color: var(--color-fill-element);
 }
 .form-dropdown.toggled .form-dropdown-list {
   /* The border color should become emphasized when focused. */
   border-color: var(--color-primary);
-  z-index: 1;
+  z-index: 5;
+  overflow: hidden;
 }
 .form-dropdown .form-dropdown-option {
   /* Give the same spacing as a normal form element. */

@@ -2,7 +2,7 @@ import { FunctionComponent, HTMLProps } from "react";
 import { Modify } from "types";
 import classNames from "classnames";
 
-import "components/ui/form/form.css";
+import "components/form/form.css";
 
 /** The props used for the {@link NumberFieldInput} component. */
 interface NumberFieldInputProps {

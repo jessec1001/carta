@@ -5,7 +5,7 @@ import {
   JsonBooleanSchemaWidgets,
   schemaDefault,
 } from "library/schema";
-import { CheckboxInput } from "components/ui/form/input";
+import { CheckboxInput } from "components/input";
 import { SchemaTypedInputProps } from "./SchemaBaseInput";
 
 /** The props used for the {@link SchemaBooleanInput} component. */

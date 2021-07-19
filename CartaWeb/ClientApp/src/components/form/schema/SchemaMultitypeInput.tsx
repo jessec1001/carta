@@ -6,7 +6,7 @@ import {
   JsonSchemaBasicTypename,
   schemaDefault,
 } from "library/schema";
-import { DropdownInput } from "components/ui/form/input";
+import { DropdownInput } from "components/input";
 import SchemaBaseInput, { SchemaTypedInputProps } from "./SchemaBaseInput";
 
 /** The props used for the {@link SchemaMultitypeInput} component. */

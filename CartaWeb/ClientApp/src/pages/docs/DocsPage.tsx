@@ -3,10 +3,10 @@ import { Container } from "reactstrap";
 import { GraphingDocs } from "./GraphingDocs";
 import { DataFormatsDocs } from "./DataFormatsDocs";
 import { ApiDocs } from "./ApiDocs";
-import { IndentList, Title } from "components/structure";
+import { IndentList, Paragraph, Title } from "components/structure";
 import { useParams } from "react-router-dom";
 import { Mainbar, Sidebar, SidebarLayout } from "components/ui/layout";
-import { Link } from "components/ui/common/link";
+import { Link } from "components/common";
 
 /** The type of topic parameter used for the {@link DocsPage}. */
 enum Topic {
@@ -33,7 +33,7 @@ const DocsPage: FunctionComponent = ({ children }) => {
       contents = <ApiDocs />;
       break;
     default:
-      contents = <p>Please select a documentation topic.</p>;
+      contents = <Paragraph>Please select a documentation topic.</Paragraph>;
       break;
   }
 
@@ -43,9 +43,9 @@ const DocsPage: FunctionComponent = ({ children }) => {
       <SidebarLayout side="left">
         <Sidebar>
           <IndentList>
-            <Link href={`/docs/${Topic.Graphing}`}>Graphing</Link>
-            <Link href={`/docs/${Topic.DataFormat}`}>Data Format</Link>
-            <Link href={`/docs/${Topic.Api}`}>API</Link>
+            <Link to={`/docs/${Topic.Graphing}`}>Graphing</Link>
+            <Link to={`/docs/${Topic.DataFormat}`}>Data Format</Link>
+            <Link to={`/docs/${Topic.Api}`}>API</Link>
           </IndentList>
         </Sidebar>
         <Mainbar>

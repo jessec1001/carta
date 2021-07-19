@@ -1,14 +1,20 @@
 import { FunctionComponent, useContext } from "react";
 import { useStoredState } from "hooks";
 import { UserContext } from "context";
-import { Container } from "reactstrap";
+import { Layout } from "components/layout";
+import { Link } from "components/common";
+import {
+  IndentList,
+  Paragraph,
+  Section,
+  Subsection,
+  Title,
+} from "components/structure";
+import { FormGroup } from "components/form";
+import { DropdownInput, TextFieldInput } from "components/input";
 import { Mainbar, Sidebar, SidebarLayout } from "components/ui/layout";
-import { Link } from "components/ui/common/link";
-import { IndentList, Section, Subsection, Title } from "components/structure";
-import { FormGroup } from "components/ui/form";
-import { DropdownInput, TextFieldInput } from "components/ui/form/input";
 
-const UserPage: FunctionComponent = () => {
+const ProfilePage: FunctionComponent = () => {
   const { user } = useContext(UserContext);
   let name: string | null = null;
   let email: string | null = null;
@@ -26,33 +32,31 @@ const UserPage: FunctionComponent = () => {
   );
 
   return (
-    <Container>
+    <Layout header footer>
       <SidebarLayout side="left">
         <Sidebar>
           <IndentList>
             {user !== null && (
-              <Link href="/user/profile#profile-general">General</Link>
+              <Link to="/user/profile#profile-general">General</Link>
             )}
-            <Link href="/user/profile/#profile-integration">Integeration</Link>
+            <Link to="/user/profile/#profile-integration">Integeration</Link>
             <IndentList>
-              <Link href="/user/profile/#profile-integration-hyperthought">
+              <Link to="/user/profile/#profile-integration-hyperthought">
                 HyperThought&trade;
               </Link>
             </IndentList>
-            <Link href="/user/profile/#profile-notifications">
-              Notifications
-            </Link>
+            <Link to="/user/profile/#profile-notifications">Notifications</Link>
           </IndentList>
         </Sidebar>
         <Mainbar>
           <div>
             <Title>Profile</Title>
-            <p>
+            <Paragraph>
               Here, you will find a collection of information about your account
               along with some adjustable settings that affect your experience on
               Carta. All modifiable settings on this page are automatically
               saved when changed.
-            </p>
+            </Paragraph>
           </div>
           {user !== null && (
             <Section title="General" {...({ id: "profile-general" } as any)}>
@@ -111,8 +115,8 @@ const UserPage: FunctionComponent = () => {
           </Section>
         </Mainbar>
       </SidebarLayout>
-    </Container>
+    </Layout>
   );
 };
 
-export default UserPage;
+export default ProfilePage;

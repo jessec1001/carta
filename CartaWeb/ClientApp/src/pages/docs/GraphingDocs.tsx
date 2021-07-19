@@ -1,4 +1,4 @@
-import { Section } from "components/structure";
+import { Paragraph, Section } from "components/structure";
 import { Component } from "react";
 
 export class GraphingDocs extends Component {
@@ -7,10 +7,10 @@ export class GraphingDocs extends Component {
   render() {
     return (
       <Section title="Graphing">
-        <p>
+        <Paragraph>
           Carta provides the graphing view to explore and transform data. It has
           the following controls.
-        </p>
+        </Paragraph>
         <ul>
           <li>Select Vertex - left click (on vertex)</li>
           <li>
@@ -23,7 +23,7 @@ export class GraphingDocs extends Component {
         </ul>
 
         <h4>Naming</h4>
-        <p>
+        <Paragraph>
           The properties contained in vertices can be changed in the{" "}
           <em>Naming</em> panel. Simply select the vertex or vertices with the
           properties that you would like to group together or rename. Then,
@@ -31,7 +31,7 @@ export class GraphingDocs extends Component {
           selecting a vertex in the left column and selecting vertices in the
           right column, you will rename the properties on the right to the
           property on the left.
-        </p>
+        </Paragraph>
       </Section>
     );
   }

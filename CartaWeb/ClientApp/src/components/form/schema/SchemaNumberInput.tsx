@@ -5,7 +5,7 @@ import {
   JsonNumberSchema,
   JsonNumberSchemaWidgets,
 } from "library/schema";
-import { NumberFieldInput, NumberSliderInput } from "components/ui/form/input";
+import { NumberFieldInput, NumberSliderInput } from "components/input";
 import { SchemaTypedInputProps } from "./SchemaBaseInput";
 
 /** The props used for the {@link SchemaNumberInput} component. */

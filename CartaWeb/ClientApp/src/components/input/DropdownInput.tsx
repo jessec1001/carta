@@ -8,8 +8,9 @@ import {
 import { useControllableState } from "hooks";
 import { Modify } from "types";
 import classNames from "classnames";
+import { CaretIcon } from "components/icons";
 
-import "components/ui/form/form.css";
+import "components/form/form.css";
 
 /** The props used for the {@link DropdownInput} component. */
 interface DropdownInputProps {
@@ -58,9 +59,8 @@ const DropdownInput: FunctionComponent<
       {...props}
     >
       <div className="form-control form-dropdown-header" ref={headerElement}>
-        {actualValue}
-        {/* TODO: Create a custom arrow for dropdowns. */}
-        <span className="form-dropdown-arrow">&#x25BC;</span>
+        <span className="form-dropdown-value">{actualValue}</span>
+        <CaretIcon />
       </div>
       {toggled && (
         <ul className="form-dropdown-list">

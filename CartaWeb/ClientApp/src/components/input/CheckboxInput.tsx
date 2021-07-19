@@ -3,7 +3,7 @@ import { useControllableState } from "hooks";
 import { Modify } from "types";
 import classNames from "classnames";
 
-import "components/ui/form/form.css";
+import "components/form/form.css";
 
 /** The props used for the {@link CheckboxInput} component. */
 interface CheckboxInputProps {

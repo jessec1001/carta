@@ -1,5 +1,5 @@
 import { FunctionComponent } from "react";
-import { Section, Title } from "components/structure";
+import { Paragraph, Section, Title } from "components/structure";
 import { UserIsNotAuthenticated, UserSignIn } from "components/utility";
 import { Layout } from "components/layout";
 import { AnimatedJumbotron } from "components/jumbotron";
@@ -11,11 +11,11 @@ const HomePage: FunctionComponent = () => {
       {/* Jumbotron goes with nice animation. */}
       <AnimatedJumbotron>
         <Title>Welcome to Carta!</Title>
-        <p>
+        <Paragraph>
           Carta is a web-based API and application that provides graph-based
           tools for accessing, exploring, and transforming existing datasets and
           models.
-        </p>
+        </Paragraph>
       </AnimatedJumbotron>
 
       <div
@@ -25,7 +25,7 @@ const HomePage: FunctionComponent = () => {
       >
         <Section title="Workspaces">
           <UserIsNotAuthenticated>
-            <p>
+            <Paragraph>
               You must{" "}
               <span
                 style={{
@@ -46,7 +46,7 @@ const HomePage: FunctionComponent = () => {
                 <UserSignIn>sign up</UserSignIn>
               </span>{" "}
               to use this functionality.
-            </p>
+            </Paragraph>
           </UserIsNotAuthenticated>
         </Section>
       </div>

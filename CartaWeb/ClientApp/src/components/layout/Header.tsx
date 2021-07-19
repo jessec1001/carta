@@ -12,9 +12,8 @@ import {
   DropdownToggler,
   DropdownArea,
   DropdownItem,
-  NavigationLink,
-  NavigationLinkList,
-} from "components/menu";
+} from "components/dropdown";
+import { NavigationLink, NavigationLinkList } from "components/navigation";
 import { UserContext } from "context";
 
 /**
@@ -50,7 +49,7 @@ const Header: FunctionComponent = () => {
       <UserIsAuthenticated>
         <Dropdown side="bottom-left">
           <DropdownToggler caret>
-            <NavigationLink to="#">{username}</NavigationLink>
+            <NavigationLink to="/profile">{username}</NavigationLink>
           </DropdownToggler>
           <DropdownArea>
             <DropdownItem>

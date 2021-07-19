@@ -1,5 +1,4 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import { Link } from "components/common";
 
 function HyperthoughtAuthenticationWidget() {
   return (
