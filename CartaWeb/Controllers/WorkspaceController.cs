@@ -226,6 +226,22 @@ namespace CartaWeb.Controllers
         }
 
         /// <summary>
+        /// Saves information on changes made to a workspace.
+        /// </summary>
+        /// <param name="workspaceId">The workspace identifier.</param>
+        /// <param name="workspaceChangeItem">The workspace change information.</param>
+        protected async Task SaveWorkspaceChangeItemAsync(string workspaceId, WorkspaceChangeItem workspaceChangeItem)
+        {
+            string json = JsonSerializer.Serialize<WorkspaceChangeItem>(workspaceChangeItem, JsonOptions);
+            await _noSqlDbContext.CreateDocumentStringAsync
+            (
+                Keys.GetWorkspaceKey(workspaceId),
+                Keys.GetChangeKeyPrefix(workspaceChangeItem.ChangeType),
+                json
+            );
+        }
+
+        /// <summary>
         /// Loads data set information for the given workspace identifier and data set identifier
         /// </summary>
         /// <param name="workspaceId">The workspace identifier.</param>
@@ -307,6 +323,19 @@ namespace CartaWeb.Controllers
             else return (JsonSerializer.Deserialize<WorkflowAccessItem>(jsonString, JsonOptions));
         }
 
+        /// <summary>
+        /// Checks whether a specified workspace change date falls within from date and to date criteria.
+        /// </summary>
+        /// <param name="changeDate">The date and time of the workspace change.</param>
+        /// <param name="dateFrom">From which date onwards should a change have occured in.</param>
+        /// <param name="dateTo">Prior to which date should a change have occurred in.</param>
+        /// <returns>True if the change date falls within the specified range, else false</returns>
+        protected static bool IsDateInRange(DateTime changeDate, DateTime? dateFrom = null, DateTime? dateTo = null)
+        {
+            if ((dateFrom is not null) & (changeDate < dateFrom)) return false;
+            if ((dateTo is not null) & (changeDate > dateTo)) return false;
+            return true;
+        }
 
         /// <summary>
         /// Create a new workspace for the given user.
@@ -333,6 +362,15 @@ namespace CartaWeb.Controllers
             if (id is null) return Conflict();
             else
             {
+                WorkspaceChangeItem workspaceChangeItem = new WorkspaceChangeItem
+                (
+                    WorkspaceChangeEnumeration.Workspace,
+                    id,
+                    workspaceItem.Name,
+                    WorkspaceActionEnumeration.Added,
+                    userItem.UserInformation.Name
+                );
+                await SaveWorkspaceChangeItemAsync(id, workspaceChangeItem);
                 workspaceItem.Id = id;
                 return Ok(workspaceItem);
             }            
@@ -458,19 +496,40 @@ namespace CartaWeb.Controllers
             UserItem userItem = await LoadUserItemAsync(id, userInformation.Id);
             if (userItem is null) return NotFound();
             workspaceItem.Archived = archived;
+            WorkspaceChangeItem workspaceChangeItem = null;
             if (archived)
             {
                 userItem.DocumentHistory.DateDeleted = DateTime.Now;
                 userItem.DocumentHistory.DeletedBy = userInformation;
                 workspaceItem.DocumentHistory.DateArchived = DateTime.Now;
+                workspaceChangeItem = new WorkspaceChangeItem
+                (
+                    WorkspaceChangeEnumeration.User,
+                    userItem.UserInformation.Id,
+                    userItem.UserInformation.Name,
+                    WorkspaceActionEnumeration.Removed,
+                    userItem.UserInformation.Name
+                );
             } else
             {
                 userItem.DocumentHistory.DateAdded = DateTime.Now;
                 userItem.DocumentHistory.AddedBy = userInformation;
                 workspaceItem.DocumentHistory.DateUnarchived = DateTime.Now;
+                workspaceChangeItem = new WorkspaceChangeItem
+                (
+                    WorkspaceChangeEnumeration.User,
+                    userItem.UserInformation.Id,
+                    userItem.UserInformation.Name,
+                    WorkspaceActionEnumeration.Added,
+                    userItem.UserInformation.Name
+                );
             }
             bool updated = await UpdateWorkspaceAsync(userItem, workspaceItem);
-            if (updated) return Ok(workspaceItem);
+            if (updated)
+            {
+                await SaveWorkspaceChangeItemAsync(id, workspaceChangeItem);
+                return Ok(workspaceItem);
+            }      
             else return NotFound();
         }
 
@@ -515,6 +574,15 @@ namespace CartaWeb.Controllers
                 userItem.DocumentHistory.DateAdded = DateTime.Now;
                 userItem.DocumentHistory.AddedBy = userInformation;
                 await SaveWorkspaceAsync(userItem, workspaceItem);
+                WorkspaceChangeItem workspaceChangeItem = new WorkspaceChangeItem
+                (
+                    WorkspaceChangeEnumeration.User,
+                    userItem.UserInformation.Id,
+                    userItem.UserInformation.Name,
+                    WorkspaceActionEnumeration.Added,
+                    userInformation.Name
+                );
+                await SaveWorkspaceChangeItemAsync(id, workspaceChangeItem);
             }
             return Ok(userItems);
         }
@@ -547,7 +615,8 @@ namespace CartaWeb.Controllers
                 if (userItem is null) return NotFound();
 
                 // Delete the workspace for the given user if the workspace is owned by the logged in user
-                if (workspaceItem.DocumentHistory.AddedBy.Id != new UserInformation(User).Id)
+                UserInformation currentUser = new UserInformation(User);
+                if (workspaceItem.DocumentHistory.AddedBy.Id != currentUser.Id)
                 {
                     _logger.LogWarning($"Workspace item for user {userId} and workspace {workspaceItem.Id} " +
                         $"not created by logged in user");
@@ -565,21 +634,29 @@ namespace CartaWeb.Controllers
                     return NotFound();
                 }
 
-                // Update user item information to record the deletion
-                userItem.DocumentHistory.DateDeleted = DateTime.Now;
-                userItem.DocumentHistory.DeletedBy = new UserInformation(User);
-                string json = JsonSerializer.Serialize<UserItem>(userItem, JsonOptions);
-                bool updated = await _noSqlDbContext.UpdateDocumentStringAsync
+                // Delete the user from the workspace
+                deleted = await _noSqlDbContext.DeleteDocumentStringAsync
                 (
                     Keys.GetWorkspaceKey(id),
-                    Keys.GetUserKey(userId),
-                    json
+                    Keys.GetUserKey(userId)
                 );
-                if (!updated)
+                if (!deleted)
                 {
                     _logger.LogWarning($"User item for user {userId} and workspace {workspaceItem.Id} " +
                         $"could not be found to update delete state");
                     return NotFound();
+                }
+                else
+                {
+                    WorkspaceChangeItem workspaceChangeItem = new WorkspaceChangeItem
+                    (
+                        WorkspaceChangeEnumeration.User,
+                        userItem.UserInformation.Id,
+                        userItem.UserInformation.Name,
+                        WorkspaceActionEnumeration.Removed,
+                        currentUser.Name
+                    );
+                    await SaveWorkspaceChangeItemAsync(id, workspaceChangeItem);
                 }
             }
 
@@ -616,7 +693,8 @@ namespace CartaWeb.Controllers
             [FromQuery(Name = "name")] string name
         )
         {
-            DatasetItem datasetItem = new DatasetItem(source, resource, new UserInformation(User));
+            UserInformation userInformation = new UserInformation(User);
+            DatasetItem datasetItem = new DatasetItem(source, resource, userInformation);
             if (name is not null) datasetItem.Name = name;
             string json = JsonSerializer.Serialize<DatasetItem>(datasetItem, JsonOptions);
             string datasetId = await _noSqlDbContext.CreateDocumentStringAsync
@@ -628,6 +706,20 @@ namespace CartaWeb.Controllers
             if (datasetId is null) return Conflict();
             else
             {
+                // Save history
+                WorkspaceChangeItem workspaceChangeItem = new WorkspaceChangeItem
+                (
+                    WorkspaceChangeEnumeration.Dataset,
+                    datasetId,
+                    name,
+                    WorkspaceActionEnumeration.Added,
+                    userInformation.Name
+                );
+                workspaceChangeItem.WorkspaceChangeInformation = new WorkspaceChangeInformation();
+                workspaceChangeItem.WorkspaceChangeInformation.DatasetSource = source.ToString();
+                workspaceChangeItem.WorkspaceChangeInformation.DatasetResource = resource;
+                await SaveWorkspaceChangeItemAsync(id, workspaceChangeItem);
+
                 datasetItem.Id = datasetId;
                 return Ok(datasetItem);
             }
@@ -640,7 +732,7 @@ namespace CartaWeb.Controllers
         /// <param name="datasetId">The unique data set identifier.</param>
         /// <param name="name">Optional name for the data set.</param>
         /// <param name="workflowId">Optional workflow identifier to apply to the data set.</param>
-        /// <param name="versionNumber">Optional version number to apply to the data set.</param>
+        /// <param name="versionNumber">Optional workflow version number to apply to the data set.</param>
         /// <request name="Example to update name">
         ///     <arg name="id">01F68ES7FSMMY1PYCG72B31759</arg>
         ///     <arg name="datasetId">02F69ES5FSMMY1PYCG72B31531</arg>
@@ -660,7 +752,8 @@ namespace CartaWeb.Controllers
         /// </request>
         /// <returns status="200">Occurs when the operation is successful. The
         /// data set information will be attached to the response.</returns>
-        /// <returns status="404">Occurs when the data set could not be found.</returns>
+        /// <returns status="400">Occurs when a version number is specified but a workflow identifier is not</returns>
+        /// <returns status="404">Occurs when the data set or workflow could not be found.</returns>
         [Authorize]
         [HttpPatch("{id}/data/{datasetId}")]
         public async Task<ActionResult<DatasetItem>> PatchWorkspaceData(
@@ -671,11 +764,39 @@ namespace CartaWeb.Controllers
             [FromQuery(Name = "workflowVersion")] int? versionNumber
         )
         {
+            if (versionNumber.HasValue & (workflowId is null)) return BadRequest();
+
+            UserInformation userInformation = new UserInformation(User);
             DatasetItem datasetItem = await LoadWorkspaceDatasetAsync(id, datasetId);
             if (datasetItem is null) return NotFound();
-            if (name is not null) datasetItem.Name = name;
-            if (workflowId is not null) datasetItem.WorkflowId = workflowId;
-            if (versionNumber.HasValue) datasetItem.VersionNumber = versionNumber.Value;
+            WorkspaceChangeItem workspaceChangeItem = new WorkspaceChangeItem
+            (
+                WorkspaceChangeEnumeration.Dataset,
+                datasetId,
+                datasetItem.Name,
+                WorkspaceActionEnumeration.Updated,
+                userInformation.Name
+            );
+            workspaceChangeItem.WorkspaceChangeInformation = new WorkspaceChangeInformation();
+            if (name is not null)
+            {
+                datasetItem.Name = name;
+                workspaceChangeItem.WorkspaceChangeInformation.DatasetSource = datasetItem.Source.ToString();
+                workspaceChangeItem.WorkspaceChangeInformation.DatasetResource = datasetItem.Resource;
+            }
+            if (workflowId is not null)
+            {
+                WorkflowAccessItem workflowAccessItem = await LoadWorkflowAccessAsync(id, workflowId);
+                if (workflowAccessItem is null) return NotFound();
+                datasetItem.WorkflowId = workflowId;
+                workspaceChangeItem.WorkspaceChangeInformation.WorkflowId = workflowId;
+                workspaceChangeItem.WorkspaceChangeInformation.WorkflowName = workflowAccessItem.Name;
+                if (versionNumber.HasValue)
+                {
+                    datasetItem.VersionNumber = versionNumber.Value;
+                    workspaceChangeItem.WorkspaceChangeInformation.WorkflowVersion = versionNumber.Value;
+                }           
+            }  
             string json = JsonSerializer.Serialize<DatasetItem>(datasetItem, JsonOptions);
             bool updated = await _noSqlDbContext.UpdateDocumentStringAsync
             (
@@ -684,7 +805,12 @@ namespace CartaWeb.Controllers
                 json
             );
             if (!updated) return NotFound();
-            else return Ok(datasetItem);
+            else
+            {
+                // Save history
+                await SaveWorkspaceChangeItemAsync(id, workspaceChangeItem);
+                return Ok(datasetItem);
+            }     
         }
 
         /// <summary>
@@ -755,13 +881,31 @@ namespace CartaWeb.Controllers
             [FromRoute] string datasetId
         )
         {
+            DatasetItem datasetItem = await LoadWorkspaceDatasetAsync(id, datasetId);
+            if (datasetItem is null) return NotFound();
             bool deleted = await _noSqlDbContext.DeleteDocumentStringAsync
             (
                 Keys.GetWorkspaceKey(id),
                 Keys.GetDatasetKey(datasetId)
             );
-            if (deleted) return Ok();
-            else return NotFound();
+            if (!deleted) return NotFound();
+            else
+            {
+                // Save history
+                WorkspaceChangeItem workspaceChangeItem = new WorkspaceChangeItem
+                (
+                    WorkspaceChangeEnumeration.Dataset,
+                    datasetId,
+                    datasetItem.Name,
+                    WorkspaceActionEnumeration.Removed,
+                    new UserInformation(User).Name
+                );
+                workspaceChangeItem.WorkspaceChangeInformation = new WorkspaceChangeInformation();
+                workspaceChangeItem.WorkspaceChangeInformation.DatasetSource = datasetItem.Source.ToString();
+                workspaceChangeItem.WorkspaceChangeInformation.DatasetResource = datasetItem.Resource;
+                await SaveWorkspaceChangeItemAsync(id, workspaceChangeItem);
+                return Ok();
+            }      
         }
 
         /// <summary>
@@ -813,6 +957,20 @@ namespace CartaWeb.Controllers
                 workflowItem.Workflow.Name,
                 workflowItem.VersionInformation
             );
+
+            // Save history
+            UserInformation userInformation = new UserInformation(User);
+            WorkspaceChangeItem workspaceChangeItem = new WorkspaceChangeItem
+            (
+                WorkspaceChangeEnumeration.Workflow,
+                workflowId,
+                workflowItem.Workflow.Name,
+                WorkspaceActionEnumeration.Added,
+                userInformation.Name
+            );
+            workspaceChangeItem.WorkspaceChangeInformation = new WorkspaceChangeInformation();
+            workspaceChangeItem.WorkspaceChangeInformation.WorkflowVersion = workflowItem.VersionInformation.Number;
+            await SaveWorkspaceChangeItemAsync(id, workspaceChangeItem);
 
             // Return access information
             return Ok(workflowAccessItem);
@@ -934,6 +1092,7 @@ namespace CartaWeb.Controllers
             }
 
             // Update archive information
+            WorkspaceChangeItem workspaceChangeItem = null;
             if (archived.HasValue)
             {
                 workflowAccessItem.Archived = archived.Value;
@@ -941,11 +1100,27 @@ namespace CartaWeb.Controllers
                 {
                     workflowAccessItem.DocumentHistory.ArchivedBy = new UserInformation(User);
                     workflowAccessItem.DocumentHistory.DateArchived = DateTime.Now;
+                    workspaceChangeItem = new WorkspaceChangeItem
+                    (
+                        WorkspaceChangeEnumeration.Workflow,
+                        workflowId,
+                        workflowAccessItem.Name,
+                        WorkspaceActionEnumeration.Removed,
+                        workflowAccessItem.DocumentHistory.ArchivedBy.Name
+                    );
                 }
                 else
                 {
                     workflowAccessItem.DocumentHistory.UnarchivedBy = new UserInformation(User);
                     workflowAccessItem.DocumentHistory.DateUnarchived = DateTime.Now;
+                    workspaceChangeItem = new WorkspaceChangeItem
+                    (
+                        WorkspaceChangeEnumeration.Workflow,
+                        workflowId,
+                        workflowAccessItem.Name,
+                        WorkspaceActionEnumeration.Added,
+                        workflowAccessItem.DocumentHistory.UnarchivedBy.Name
+                    );
                 }
             }
 
@@ -965,10 +1140,24 @@ namespace CartaWeb.Controllers
                     return NotFound();
                 }
                 workflowAccessItem.VersionInformation = workflowItem.VersionInformation;
+                UserInformation userInformation = new UserInformation(User);
+                workspaceChangeItem = new WorkspaceChangeItem
+                (
+                    WorkspaceChangeEnumeration.Workflow,
+                    workflowId,
+                    workflowItem.Workflow.Name,
+                    WorkspaceActionEnumeration.Updated,
+                    userInformation.Name
+                );
+                workspaceChangeItem.WorkspaceChangeInformation = new WorkspaceChangeInformation();
+                workspaceChangeItem.WorkspaceChangeInformation.WorkflowVersion = workflowItem.VersionInformation.Number;
             }
 
             // Persist access information
             await UpdateWorkflowAccessAsync(id, workflowId, workflowAccessItem);
+
+            // Save history
+            await SaveWorkspaceChangeItemAsync(id, workspaceChangeItem);
 
             // Return access information
             return Ok(workflowAccessItem);
@@ -994,13 +1183,114 @@ namespace CartaWeb.Controllers
         )
         {
             WorkflowAccessItem workflowAccessItem = await LoadWorkflowAccessAsync(id, workflowId);
+            UserInformation currentUser = new UserInformation(User);
             if (workflowAccessItem is null) return NotFound();
-            if (workflowAccessItem.DocumentHistory.AddedBy.Id != new UserInformation(User).Id) return Forbid();
+            if (workflowAccessItem.DocumentHistory.AddedBy.Id != currentUser.Id) return Forbid();
             string partitionKey = Keys.GetWorkspaceKey(id);
             string sortKey = Keys.GetWorkflowAccessKey(workflowId);
             bool deleted = await _noSqlDbContext.DeleteDocumentStringAsync(partitionKey, sortKey);
             if (!deleted) return NotFound();
-            else return Ok();
+            else
+            {
+                // Save history
+                WorkspaceChangeItem workspaceChangeItem = new WorkspaceChangeItem
+                (
+                    WorkspaceChangeEnumeration.Workflow,
+                    workflowId,
+                    workflowAccessItem.Name,
+                    WorkspaceActionEnumeration.Removed,
+                    currentUser.Name
+                );
+                await SaveWorkspaceChangeItemAsync(id, workspaceChangeItem);
+
+                return Ok();
+            }
+        }
+
+        /// <summary>
+        /// Retrieve a summary of changes made to a workspace.
+        /// </summary>
+        /// <param name="id">A unique workspace identifier.</param>
+        /// <param name="type">The type of workspace change to return - Workspace, User, Workflow or Dataset.
+        /// If not specified, changes of all types will be returned.</param>
+        /// <param name="dateFrom">An ISO-8601 formatted string specifying from which date onwards changes should be
+        /// returned. If not specified, no from date filter will be applied.</param>
+        /// <param name="dateTo">An ISO-8601 formatted string specifying the date prior to whichchanges should be
+        /// returned. If not specified, no to date filter will be applied.</param>
+        /// <request name="Example all changes">
+        ///     <arg name="id">01F68ES7FSMMY1PYCG72B31759</arg>
+        /// </request>
+        /// <request name="Example all workspace changes">
+        ///     <arg name="id">01F68ES7FSMMY1PYCG72B31759</arg>
+        ///     <arg name="type">Workspace</arg>
+        /// </request>
+        /// <request name="Example all user changes">
+        ///     <arg name="id">01F68ES7FSMMY1PYCG72B31759</arg>
+        ///     <arg name="type">User</arg>
+        /// </request>
+        /// <request name="Example all workflow changes">
+        ///     <arg name="id">01F68ES7FSMMY1PYCG72B31759</arg>
+        ///     <arg name="type">Workflow</arg>
+        /// </request>
+        /// <request name="Example all dataset changes">
+        ///     <arg name="id">01F68ES7FSMMY1PYCG72B31759</arg>
+        ///     <arg name="type">Dataset</arg>
+        /// </request>
+        /// <request name="Example all changes from a specified date onwards">
+        ///     <arg name="id">01F68ES7FSMMY1PYCG72B31759</arg>
+        ///     <arg name="dateFrom">2021-01-01</arg>
+        /// </request>
+        /// <request name="Example all changes prior to a specified date">
+        ///     <arg name="id">01F68ES7FSMMY1PYCG72B31759</arg>
+        ///     <arg name="dateTo">2021-01-01</arg>
+        /// </request>
+        /// <request name="Example all changes between a specified date range">
+        ///     <arg name="id">01F68ES7FSMMY1PYCG72B31759</arg>
+        ///     <arg name="dateFrom">2021-01-01</arg>
+        ///     <arg name="dateTo">2021-01-31</arg>
+        /// </request>
+        /// <returns status="200">A list of workspace changes will be attached to the returned object.
+        /// The list will be empty if no changes corresponding to the specified criteria exist. 
+        /// </returns>
+        /// <returns status="400">
+        /// Occurs when the specified <code>toDate</code> occurs before the specified <code>fromDate</code>
+        /// </returns>
+        [Authorize]
+        [HttpGet("{id}/changes")]
+        public async Task<ActionResult<List<WorkspaceChangeItem>>> GetWorkspaceChanges(
+            [FromRoute] string id,
+            [FromQuery(Name = "type")] WorkspaceChangeEnumeration? type,
+            [FromQuery(Name = "dateFrom")] DateTime? dateFrom,
+            [FromQuery(Name = "dateTo")] DateTime? dateTo
+        )
+        {
+            // Check that dateTo does not precede dateFrom
+            if (dateFrom.HasValue & dateTo.HasValue)
+                if (dateFrom.Value > dateTo.Value)
+                    return BadRequest();
+
+            // Retrieve all changes in the workspace of the relevant type
+            string partitionKey = Keys.GetWorkspaceKey(id);
+            string sortKey = Keys.GetChangeKeyPrefix(); // Defaults to all changes
+            if (type.HasValue) sortKey = Keys.GetChangeKeyPrefix(type.Value);
+            List<string> jsonStrings = await _noSqlDbContext.LoadDocumentStringsAsync(partitionKey, sortKey);
+
+            // Filter changes by date
+            List<WorkspaceChangeItem> workspaceChangeItems = new() { };
+            foreach (string jsonString in jsonStrings)
+            {
+                WorkspaceChangeItem workspaceChangeItem =
+                    JsonSerializer.Deserialize<WorkspaceChangeItem>(jsonString, JsonOptions);
+                if (IsDateInRange(workspaceChangeItem.WorkspaceAction.DateTime, dateFrom, dateTo))
+                    workspaceChangeItems.Add(JsonSerializer.Deserialize<WorkspaceChangeItem>(jsonString, JsonOptions));
+            }
+        
+            // Sort the list by date
+            workspaceChangeItems.Sort((p, q) => p.WorkspaceAction.DateTime.CompareTo(q.WorkspaceAction.DateTime));
+            workspaceChangeItems.Reverse();
+
+            // Return changes
+            return Ok(workspaceChangeItems);
         }
 
     }

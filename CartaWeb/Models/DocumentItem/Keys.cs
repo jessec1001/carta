@@ -78,6 +78,29 @@
         }
 
         /// <summary>
+        /// Returns a properly formatted workspace change key
+        /// </summary>
+        /// <param name="changeType">The type of workspace change</param>
+        /// <returns>
+        /// The workspace change key
+        /// </returns>
+        public static string GetChangeKeyPrefix(WorkspaceChangeEnumeration changeType)
+        {
+            return "CHANGE#" + changeType + "#";
+        }
+
+        /// <summary>
+        /// Returns a properly formatted workspace change key
+        /// </summary>
+        /// <returns>
+        /// The workspace change key
+        /// </returns>
+        public static string GetChangeKeyPrefix()
+        {
+            return "CHANGE#";
+        }
+
+        /// <summary>
         /// Returns a properly formatted version key prefix
         /// </summary>
         /// <returns>

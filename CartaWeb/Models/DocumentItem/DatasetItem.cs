@@ -37,6 +37,7 @@ namespace CartaWeb.Models.DocumentItem
         /// </summary>
         public int? VersionNumber { get; set; }
 
+
         /// <summary>
         /// Creates a new instance of the <see cref="DatasetItem"/> class
         /// </summary>
