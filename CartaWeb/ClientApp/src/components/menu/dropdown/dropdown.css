@@ -1,0 +1,112 @@
+.dropdown {
+  /*
+    We need to position the dropdown relatively so the dropdown area can be
+    positioned absolutely.
+  */
+  position: relative;
+}
+
+/* #region Dropdown Toggler */
+.dropdown .dropdown-toggler {
+  /*
+    We position the dropdown toggler above the dropdown area to cover up the
+    overlapping shadowed areas.
+  */
+  position: relative;
+
+  /* We give some space around the dropdown toggler to avoid tight packing. */
+  padding: 0.5rem;
+
+  /* The corners of the dropdown should be slightly rounded to pop out. */
+  border-radius: var(--border-radius);
+  cursor: pointer;
+}
+.dropdown.toggled .dropdown-toggler {
+  /* The toggler should match the style of the area when toggled. */
+  background-color: var(--color-fill-body);
+}
+.dropdown.toggled .dropdown-toggler::after {
+  content: "";
+
+  /* This pseudo-element should stretch over the original element. */
+  display: block;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+
+  /* Hide the dropdown toggler shadow beneath the dropdown area. */
+  z-index: -2;
+  box-shadow: var(--shadow);
+}
+
+.dropdown.top-left .dropdown-toggler,
+.dropdown.top-right .dropdown-toggler {
+  /* Top-facing togglers should be flat at the top. */
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+.dropdown.bottom-left .dropdown-toggler,
+.dropdown.bottom-right .dropdown-toggler {
+  /* Bottom-facing togglers should be flat at the bottom. */
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+/* #endregion */
+
+/* #region Dropdown Area */
+.dropdown .dropdown-area {
+  /*
+    We position the dropdown area below the dropdown toggler and based on the
+    specified side.
+  */
+  position: absolute;
+  z-index: -1;
+
+  /*
+    The dropdown area should match dropdown toggler width and items should be
+    kept to single lines instead of wrapping.
+  */
+  min-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+
+  /* Give the dropdown a distinct look from surrounding elements. */
+  background: var(--color-fill-body);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+}
+.dropdown.top-left .dropdown-area {
+  /* Position above and facing left. */
+  bottom: 100%;
+  right: 0%;
+  border-bottom-right-radius: 0;
+}
+.dropdown.top-right .dropdown-area {
+  /* Position above and facing right. */
+  bottom: 100%;
+  left: 0%;
+  border-bottom-left-radius: 0;
+}
+.dropdown.bottom-left .dropdown-area {
+  /* Position below and facing left. */
+  top: 100%;
+  right: 0%;
+  border-top-right-radius: 0;
+}
+.dropdown.bottom-right .dropdown-area {
+  /* Position below and facing right. */
+  top: 100%;
+  left: 0%;
+  border-top-left-radius: 0;
+}
+/* #endregion */
+
+/* #region Dropdown Item */
+.dropdown-item {
+  /* Dropdown items should have some padding around them to give spacing. */
+  display: block;
+  padding: 0.5rem;
+}
+/* #endregion */

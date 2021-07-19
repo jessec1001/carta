@@ -9,6 +9,7 @@ body {
 hr {
   border: none;
   border-top: 1px solid var(--color-stroke-faint);
+  opacity: 0.5;
 }
 
 /* Selections should be based on the primary color. */
@@ -17,4 +18,10 @@ hr {
 }
 ::-moz-selection {
   background-color: var(--color-primary-hover);
+}
+
+/* Vertically normalizes text environments. */
+.normal-text {
+  display: inline-flex;
+  align-items: center;
 }

@@ -27,5 +27,5 @@
   */
   backdrop-filter: blur(2px);
   background-color: var(--color-fill-overlay);
-  box-shadow: inset 0px 0px 4px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: inset var(--shadow);
 }

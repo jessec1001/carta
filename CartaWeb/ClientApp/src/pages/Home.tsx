@@ -7,7 +7,7 @@ import { AnimatedJumbotron } from "components/jumbotron";
 /** The page users will see when first visiting the website. */
 const HomePage: FunctionComponent = () => {
   return (
-    <Layout navigation footer>
+    <Layout header footer>
       {/* Jumbotron goes with nice animation. */}
       <AnimatedJumbotron>
         <Title>Welcome to Carta!</Title>
