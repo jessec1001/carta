@@ -1,4 +1,10 @@
-import { FunctionComponent, useEffect, useRef, useState } from "react";
+import {
+  FunctionComponent,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { Paragraph, Section, Title } from "components/structure";
 import {
   UserIsAuthenticated,
@@ -10,6 +16,7 @@ import { AnimatedJumbotron } from "components/jumbotron";
 import { Link } from "components/common";
 import { Workspace, WorkspaceAPI } from "library/api";
 import { TextFieldInput } from "components/input";
+import { UserContext } from "context";
 
 /** The page users will see when first visiting the website. */
 const HomePage: FunctionComponent = () => {
@@ -17,13 +24,19 @@ const HomePage: FunctionComponent = () => {
   const workspaceApiRef = useRef(new WorkspaceAPI());
   const workspaceApi = workspaceApiRef.current;
 
+  // We cannot retrieve workspaces if we are not authenticated.
+  const { authenticated } = useContext(UserContext);
+
   const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
 
   useEffect(() => {
-    (async () => {
-      setWorkspaces(await workspaceApi.getCompleteWorkspaces());
-    })();
-  }, [workspaceApi]);
+    console.log("Execute");
+    if (authenticated) {
+      (async () => {
+        setWorkspaces(await workspaceApi.getCompleteWorkspaces());
+      })();
+    }
+  }, [authenticated, workspaceApi]);
 
   return (
     <Layout header footer>
@@ -98,6 +111,7 @@ const HomePage: FunctionComponent = () => {
               >
                 {workspaces.map((workspace) => (
                   <li
+                    key={workspace.id}
                     style={{
                       display: "block",
                       padding: "1rem",

@@ -1,6 +1,12 @@
 import { FunctionComponent } from "react";
 import { Route, Switch } from "react-router";
-import { HomePage, GraphPage, DocsPage, ProfilePage } from "pages";
+import {
+  HomePage,
+  GraphPage,
+  DocsPage,
+  ProfilePage,
+  WorkspacePage,
+} from "pages";
 import {
   UserWrapper,
   NotificationWrapper,
@@ -11,7 +17,6 @@ import "styles/reset.css";
 import "styles/globals.css";
 import "styles/theme.css";
 import "styles/app.css";
-
 /**
  * The main app component which renders all other components.
  * Used to store routing information for each page.
@@ -26,6 +31,11 @@ const App: FunctionComponent = () => {
             <Route path="/profile" component={ProfilePage} />
             <Route path="/documentation/:topic" component={DocsPage} />
             <Route path="/graph" component={GraphPage} />
+            <Route exact path="/workspace/:id" component={WorkspacePage} />
+            <Route
+              path="/workspace"
+              component={({ children }: any) => <div>{children}</div>}
+            />
           </Switch>
         </ThemeWrapper>
       </NotificationWrapper>

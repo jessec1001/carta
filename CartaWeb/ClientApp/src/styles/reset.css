@@ -32,6 +32,11 @@ hr {
   font-weight: 500;
 }
 
+/* Some elements need to inherit colors so they don't get browser defaults. */
+button {
+  color: inherit;
+}
+
 /* Lists with a role should not be formatted with bullet points. */
 ol[role],
 ul[role] {
