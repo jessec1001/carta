@@ -1,11 +1,30 @@
-import { FunctionComponent } from "react";
+import { FunctionComponent, useEffect, useRef, useState } from "react";
 import { Paragraph, Section, Title } from "components/structure";
-import { UserIsNotAuthenticated, UserSignIn } from "components/utility";
-import { Layout } from "components/layout";
+import {
+  UserIsAuthenticated,
+  UserIsNotAuthenticated,
+  UserSignIn,
+} from "components/utility";
+import { Layout, Wrapper } from "components/layout";
 import { AnimatedJumbotron } from "components/jumbotron";
+import { Link } from "components/common";
+import { Workspace, WorkspaceAPI } from "library/api";
+import { TextFieldInput } from "components/input";
 
 /** The page users will see when first visiting the website. */
 const HomePage: FunctionComponent = () => {
+  // We need a reference to the workspace API to execute calls.
+  const workspaceApiRef = useRef(new WorkspaceAPI());
+  const workspaceApi = workspaceApiRef.current;
+
+  const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      setWorkspaces(await workspaceApi.getCompleteWorkspaces());
+    })();
+  }, [workspaceApi]);
+
   return (
     <Layout header footer>
       {/* Jumbotron goes with nice animation. */}
@@ -18,38 +37,93 @@ const HomePage: FunctionComponent = () => {
         </Paragraph>
       </AnimatedJumbotron>
 
-      <div
-        style={{
-          padding: "2rem 4rem",
-        }}
-      >
-        <Section title="Workspaces">
+      <Wrapper>
+        <section>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+            }}
+          >
+            <span className="normal-text">
+              <h2>Workspaces</h2>
+              <button
+                style={{
+                  margin: "0rem 0.5rem",
+                  width: "1.5rem",
+                  height: "1.5rem",
+                  borderRadius: "1.5rem",
+                  border: "none",
+                  backgroundColor: "var(--color-fill-element)",
+                  boxShadow: "var(--shadow-offset)",
+                  fontWeight: 500,
+                  fontSize: "1.2rem",
+                  cursor: "pointer",
+                }}
+              >
+                +
+              </button>
+            </span>
+            <span
+              style={{
+                flexBasis: "12rem",
+              }}
+            >
+              <TextFieldInput placeholder="Search" />
+            </span>
+          </div>
           <UserIsNotAuthenticated>
             <Paragraph>
               You must{" "}
-              <span
-                style={{
-                  color: "var(--color-primary)",
-                  cursor: "pointer",
-                }}
-              >
+              <Link to="#">
                 <UserSignIn>sign in</UserSignIn>
-              </span>{" "}
-              or
-              <span
-                style={{
-                  color: "var(--color-primary)",
-                  cursor: "pointer",
-                }}
-              >
-                {" "}
+              </Link>{" "}
+              or{" "}
+              <Link to="#">
                 <UserSignIn>sign up</UserSignIn>
-              </span>{" "}
+              </Link>{" "}
               to use this functionality.
             </Paragraph>
           </UserIsNotAuthenticated>
-        </Section>
-      </div>
+          <UserIsAuthenticated>
+            {workspaces && (
+              <ul
+                style={{
+                  marginTop: "1rem",
+                  display: "grid",
+                  gridTemplateColumns: "repeat(4, 1fr)",
+                  columnGap: "0.5rem",
+                  listStyle: "none",
+                }}
+              >
+                {workspaces.map((workspace) => (
+                  <li
+                    style={{
+                      display: "block",
+                      padding: "1rem",
+                      width: "100%",
+                      minHeight: "8rem",
+                      backgroundColor: "var(--color-fill-element)",
+                      boxShadow: "var(--shadow-offset)",
+                      borderRadius: "var(--border-radius)",
+                    }}
+                  >
+                    <h3
+                      style={{
+                        fontSize: "1.2rem",
+                      }}
+                    >
+                      <Link to={`/workspace/${workspace.id}`}>
+                        {workspace.name}
+                      </Link>
+                    </h3>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </UserIsAuthenticated>
+        </section>
+      </Wrapper>
     </Layout>
   );
 };

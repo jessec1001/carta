@@ -1,11 +1,11 @@
 import { FunctionComponent, useEffect, useRef, useState } from "react";
 import { UserContext } from "context";
-import { UserApi, User } from "library/api";
+import { UserAPI, User } from "library/api";
 
 /** A component that wraps a user context around its children components. */
 const UserWrapper: FunctionComponent = ({ children }) => {
   // We need a reference to the user API to execute calls.
-  const userApiRef = useRef(new UserApi());
+  const userApiRef = useRef(new UserAPI());
   const userApi = userApiRef.current;
 
   // We use this state to store information about whether the user is authenticated and their relevant information.

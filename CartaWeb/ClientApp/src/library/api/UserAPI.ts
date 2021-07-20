@@ -1,8 +1,9 @@
 import { User } from "./user";
-import { ApiException, BrowserException } from "library/exceptions";
+import { BrowserException } from "library/exceptions";
+import BaseAPI from "./BaseAPI";
 
 /** Contains methods for accessing the Carta User API module. */
-class UserApi {
+class UserAPI extends BaseAPI {
   /** The amount of time to wait for an authentication popup to display before aborting. */
   private PopupExpirationTimeout = 500;
   /** The display features of the authentication popup windows. */
@@ -19,42 +20,8 @@ class UserApi {
   /** The time between authentication checks to the API. */
   private AuthenticationCheckInterval = 1000;
 
-  /**
-   * Gets the URL of the API. Endpoint routes should be appended onto the end of this URL to form endpoint URLs.
-   * @returns The base URL of the API.
-   */
   protected getApiUrl() {
     return "/api/user";
-  }
-  /**
-   * Ensures that an HTTP response has a successful status code (200-299). If not, raises an {@link ApiException}.
-   * @param response The response to check.
-   * @param errorMessage The error message that should be passed to the exception.
-   */
-  protected ensureSuccess(response: Response, errorMessage: string) {
-    if (!response.ok) {
-      throw new ApiException(response, errorMessage);
-    }
-  }
-  /**
-   * Reads a JSON value from a response.
-   * If the response has no body, throws an {@link ApiException}.
-   * If the response has an empty body, throws an {@link ApiException}.
-   * @param response The response to read JSON from.
-   * @returns The parsed JSON object.
-   */
-  protected async readJSON<T>(response: Response): Promise<T> {
-    // Check that response body is set.
-    if (response.body === null)
-      throw new ApiException(response, "No response body to be read.");
-
-    // Check if the response body is empty.
-    const text = await response.text();
-    if (text.length === 0)
-      throw new ApiException(response, "Response body was empty.");
-
-    // Return the correctly-typed JSON version.
-    return JSON.parse(text) as T;
   }
 
   /**
@@ -69,7 +36,7 @@ class UserApi {
       response,
       "Error occurred while trying to check authentication."
     );
-    return (await this.readJSON<boolean>(response)) ?? false;
+    return await this.readJSON<boolean>(response);
   }
   /**
    * Retrieves information about the currently authenticated user.
@@ -150,4 +117,4 @@ class UserApi {
   }
 }
 
-export default UserApi;
+export default UserAPI;

@@ -58,3 +58,9 @@
   display: inline;
 }
 /* #endregion */
+
+/* #region Wrapper */
+.wrapper {
+  padding: 2rem 4rem;
+}
+/* #endregion */

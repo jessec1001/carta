@@ -68,6 +68,7 @@
     The dropdown area should match dropdown toggler width and items should be
     kept to single lines instead of wrapping.
   */
+  /* min-width: 100%; */
   min-width: calc(100% + max(var(--border-radius), 1rem));
   white-space: nowrap;
   overflow: hidden;

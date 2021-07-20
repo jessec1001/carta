@@ -1,7 +1,6 @@
 import { FunctionComponent } from "react";
 import classNames from "classnames";
 import ReactMarkdown from "react-markdown";
-import { Link } from "components/common";
 
 import "./form.css";
 import { Paragraph } from "components/structure";
