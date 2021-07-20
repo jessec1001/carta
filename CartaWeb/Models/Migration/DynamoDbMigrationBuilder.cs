@@ -26,6 +26,7 @@ namespace CartaWeb.Models.Migration
         /// <param name="awsAccessKey">AWS application access key</param>
         /// <param name="awsSecretKey">AWS application secrect key</param>
         /// <param name="regionEndpoint">AWS region endpoint</param>
+        /// <param name="tableName">The dynamoDB table name</param>
         /// <param name="logger">The application log instance</param>
         public DynamoDbMigrationBuilder(
             SortedDictionary<string, string> migrations,
