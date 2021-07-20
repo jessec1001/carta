@@ -16,7 +16,9 @@ using CartaCore.Serialization.Json;
 using CartaCore.Workflow;
 using CartaCore.Workflow.Selection;
 using CartaWeb.Models.Data;
+using CartaWeb.Models.DocumentItem;
 using CartaWeb.Serialization.Json;
+using CartaCore.Persistence;
 
 namespace CartaWeb.Controllers
 {
@@ -32,6 +34,8 @@ namespace CartaWeb.Controllers
     public class DataController : ControllerBase
     {
         private readonly ILogger<DataController> _logger;
+
+        private readonly INoSqlDbContext _noSqlDbContext;
 
         private static Dictionary<DataSource, IDataResolver> DataResolvers;
 
@@ -145,9 +149,10 @@ namespace CartaWeb.Controllers
 
 
         /// <inheritdoc />
-        public DataController(ILogger<DataController> logger)
+        public DataController(ILogger<DataController> logger, INoSqlDbContext noSqlDbContext)
         {
             _logger = logger;
+            _noSqlDbContext = noSqlDbContext;
         }
 
         /// <summary>
@@ -310,7 +315,14 @@ namespace CartaWeb.Controllers
         ///     <arg name="source">synthetic</arg>
         ///     <arg name="resource">infiniteDirectedGraph</arg>
         ///     <arg name="selector">roots</arg>
-        ///     <arg name="workflow">0</arg>
+        ///     <arg name="workflow">01F7S2CBC9WHE5YMBHX8FB2FAM</arg>
+        /// </request>
+        /// <request name="Synthetic Graph with Workflow and Version Number - Root">
+        ///     <arg name="source">synthetic</arg>
+        ///     <arg name="resource">infiniteDirectedGraph</arg>
+        ///     <arg name="selector">roots</arg>
+        ///     <arg name="nr">3</arg>
+        ///     <arg name="workflow">01F7S2CBC9WHE5YMBHX8FB2FAM</arg>
         /// </request>
         /// <request name="HyperThought Workflow Graph - Root">
         ///     <arg name="source">hyperthought</arg>
@@ -358,6 +370,7 @@ namespace CartaWeb.Controllers
             [FromRoute] DataSource source,
             [FromRoute] string resource,
             [FromRoute] string selector,
+            [FromQuery(Name = "nr")] int? versionNumber,
             [FromQuery(Name = "workflow")] string workflowId = null
         )
         {
@@ -375,10 +388,16 @@ namespace CartaWeb.Controllers
                         return Forbid();
 
                     string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                    Workflow workflow = await WorkflowController.LoadWorkflowAsync(userId, workflowId);
-                    if (workflow is null) return NotFound();
+                    WorkflowItem workflowItem = await WorkflowController.LoadWorkflowAsync
+                    (
+                        userId,
+                        workflowId,
+                        versionNumber,
+                        _noSqlDbContext
+                    );
+                    if (workflowItem is null) return NotFound();
                     else
-                        graph = workflow.Apply(graph);
+                        graph = workflowItem.Workflow.Apply(graph);
                 }
 
                 // We find the appropriate selector class corresponding to the specified discriminant.

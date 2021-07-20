@@ -106,6 +106,7 @@ namespace CartaWeb.Controllers
             return userInformation;
         }
 
+        /// <summary>
         /// Determines whether the user is currently authenticated or not.
         /// </summary>
         /// <returns status="200">A boolean indicated whether the user is authenticated.</returns>
