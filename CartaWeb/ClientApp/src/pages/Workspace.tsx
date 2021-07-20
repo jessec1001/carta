@@ -1,3 +1,4 @@
+import { DatasetIcon } from "components/icons";
 import { Layout } from "components/layout";
 import { Workspace, WorkspaceAPI } from "library/api";
 import { FunctionComponent, useEffect, useRef, useState } from "react";
@@ -54,6 +55,8 @@ const WorkspacePage: FunctionComponent = () => {
       return () => clearInterval(changeTipIntervalId);
     }
   }, [loading]);
+
+  console.log(workspace, workspace?.datasets);
 
   return (
     <Layout header>
@@ -119,6 +122,31 @@ const WorkspacePage: FunctionComponent = () => {
           >
             <p>{tip}</p>
           </div>
+        </div>
+      )}
+      {!loading && workspace && (
+        <div
+          style={{
+            flexGrow: 1,
+          }}
+        >
+          <p>Datasets</p>
+          <ul>
+            {workspace.datasets &&
+              workspace.datasets.map((dataset) => (
+                <li>
+                  <span
+                    className="normal-text"
+                    style={{
+                      color: "var(--color-stroke-lowlight)",
+                    }}
+                  >
+                    <DatasetIcon />
+                    {dataset.name ?? `(${dataset.source}/${dataset.resource})`}
+                  </span>
+                </li>
+              ))}
+          </ul>
         </div>
       )}
     </Layout>
