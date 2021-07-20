@@ -8,14 +8,15 @@ import UserContext from "components/ui/user";
  * @param claim The user claim to obtain.
  * @returns The user claim value or `null` depending on the authentication state.
  */
-const useUserValue = (claim: keyof User): string | null => {
-  // We try to use the user context if it is available.
-  // If one isn't available, the user is guaranteed to be null.
-  const { user } = useContext(UserContext);
+const useUserValue = <T extends keyof User>(claim: T): User[T] | null => {
+    // We try to use the user context if it is available.
+    // If one isn't available, the user is guaranteed to be null.
+    const { user } = useContext(UserContext);
+    console.log(user);
 
-  // Return the claim or null depending on whether we have a user object.
-  if (user === null) return null;
-  else return user[claim];
+    // Return the claim or null depending on whether we have a user object.
+    if (user === null) return null;
+    else return user[claim];
 };
 
-export default useUserValue;
+export default useUserValue
