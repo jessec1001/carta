@@ -206,53 +206,7 @@ namespace CartaWeb.Controllers
         /// </summary>
         /// <param name="userId">The unique identifier for the user.</param>
         /// <param name="id">The identifier of the workflow to get.</param>
-<<<<<<< HEAD
-        /// <param name="versionNumber">The version number of the workflow to get. If not specified, the user's
-        /// temporary working version of the workflow is returned if it exists. If no temporary working version exist,
-        /// the current version of the workflow is returned.</param>
-        /// <param name="noSqlDbContext">The database context driver.</param>
-        /// <returns>
-        /// The loaded workflow or <c>null</c> if there is no workflow corresponding to the specified identifier.
-        /// </returns>
-        public static async Task<WorkflowItem> LoadWorkflowAsync(
-            string userId,
-            string id,
-            int? versionNumber,
-            INoSqlDbContext noSqlDbContext
-        )
-        {
-            if (versionNumber.HasValue)
-            {
-                return await LoadWorkflowAsync(id, versionNumber.Value, noSqlDbContext);
-            }
-            else
-            {
-                WorkflowItem workflowItem = await LoadTemporaryWorkflowAsync(userId, id, noSqlDbContext);
-                if (workflowItem is not null)
-                {
-                    Workflow workflow = workflowItem.Workflow;
-                    workflow.Id = workflowItem.Id;
-                    workflow.VersionNumber = workflowItem.VersionInformation.Number;
-                    return workflowItem;
-                }
-                else
-                {
-                    int nr = await GetCurrentWorkflowVersionNumber(userId, id, noSqlDbContext);
-                    return await LoadWorkflowAsync(id, nr, noSqlDbContext);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Loads a single workflow item asynchronously for the specified workflow identifier.
-        /// </summary>
-        /// <param name="id">The identifier of the workflow to get.</param>
-        /// <param name="versionNumber">The version number of the workflow to get.
-        /// Defaults to the current version (0) if not set.</param>
-        /// <param name="noSqlDbContext">The database context driver.</param>
-=======
         /// <param name="noSqlDbContext">The database context driver</param>
->>>>>>> 959864e (feat: Updated workspace controller to persist, retrieve and update information on workflows accessible through the workspace)
         /// <returns>
         /// The loaded workflow or <c>null</c> if there is no workflow corresponding to the specified identifier.
         /// </returns>
