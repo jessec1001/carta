@@ -1157,7 +1157,8 @@ namespace CartaWeb.Controllers
             await UpdateWorkflowAccessAsync(id, workflowId, workflowAccessItem);
 
             // Save history
-            await SaveWorkspaceChangeItemAsync(id, workspaceChangeItem);
+            if (workspaceChangeItem is not null)
+                await SaveWorkspaceChangeItemAsync(id, workspaceChangeItem);
 
             // Return access information
             return Ok(workflowAccessItem);
