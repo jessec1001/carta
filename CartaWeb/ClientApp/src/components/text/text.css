@@ -1,0 +1,42 @@
+/* #region Title */
+.title {
+  font-size: 2.4rem;
+  margin-bottom: 1rem;
+}
+/* #endregion */
+
+/* #region Section */
+.section-heading {
+  font-size: 1.8rem;
+  margin: 0rem;
+  margin-bottom: 0.5rem;
+}
+.section-content {
+  padding: 0.5rem 0rem;
+}
+/* #endregion */
+
+/* #region Subsection */
+.subsection-heading {
+  margin: 0rem;
+  font-size: 1.4rem;
+}
+.subsection-content {
+  padding: 0.25rem 0rem;
+}
+/* #endregion */
+
+/* #region Heading */
+.heading {
+  font-size: var(--font-medium);
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+/* #endregion */
+
+/* #region Paragraph */
+.paragraph {
+  margin: 0.5rem 0rem;
+}
+/* #endregion */

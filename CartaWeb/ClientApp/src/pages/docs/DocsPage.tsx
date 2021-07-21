@@ -3,7 +3,7 @@ import { Container } from "reactstrap";
 import { GraphingDocs } from "./GraphingDocs";
 import { DataFormatsDocs } from "./DataFormatsDocs";
 import { ApiDocs } from "./ApiDocs";
-import { IndentList, Paragraph, Title } from "components/structure";
+import { Paragraph, Title } from "components/text";
 import { useParams } from "react-router-dom";
 import { Mainbar, Sidebar, SidebarLayout } from "components/ui/layout";
 import { Link } from "components/common";
@@ -42,11 +42,9 @@ const DocsPage: FunctionComponent = ({ children }) => {
     <Container>
       <SidebarLayout side="left">
         <Sidebar>
-          <IndentList>
-            <Link to={`/docs/${Topic.Graphing}`}>Graphing</Link>
-            <Link to={`/docs/${Topic.DataFormat}`}>Data Format</Link>
-            <Link to={`/docs/${Topic.Api}`}>API</Link>
-          </IndentList>
+          <Link to={`/docs/${Topic.Graphing}`}>Graphing</Link>
+          <Link to={`/docs/${Topic.DataFormat}`}>Data Format</Link>
+          <Link to={`/docs/${Topic.Api}`}>API</Link>
         </Sidebar>
         <Mainbar>
           <Title>Documentation</Title>

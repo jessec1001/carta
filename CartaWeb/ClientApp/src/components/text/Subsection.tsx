@@ -1,5 +1,6 @@
 import { FunctionComponent } from "react";
-import "./structure.css";
+
+import "./text.css";
 
 /** The props used for the {@link Subsection} component. */
 interface SubsectionProps {

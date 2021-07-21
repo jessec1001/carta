@@ -1,5 +1,6 @@
 import { FunctionComponent } from "react";
-import "./structure.css";
+
+import "./text.css";
 
 /** A component that contains a title for a page. */
 const Title: FunctionComponent = ({ children, ...props }) => {

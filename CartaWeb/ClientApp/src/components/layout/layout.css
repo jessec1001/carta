@@ -24,6 +24,10 @@
   box-shadow: var(--shadow);
   padding: 1rem;
   z-index: 1;
+
+  /* Allows the header to be scrolled when displayed on a small screen. */
+  /* overflow-x: auto; */
+  /* overflow-y: visible; */
 }
 .header {
   /* Center icons and links in the header vertically and allow for stretching. */

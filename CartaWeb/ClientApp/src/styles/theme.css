@@ -2,36 +2,40 @@
 .theme-light {
   --color-primary: #53b853;
   --color-primary-hover: #53b853a0;
-  --color-secondary: #c1c7c1;
+  --color-secondary: #141414;
 
   --color-stroke: #222222;
   --color-stroke-lowlight: #404040;
   --color-stroke-faint: #808080;
   --color-stroke-error: #e63e38;
+
   --color-fill-body: #f6f6f6;
   --color-fill-element: #ffffff;
   --color-fill-overlay: #ffffff80;
+  --color-fill-empty: #c1c7c1;
 }
 .theme-dark {
   --color-primary: #53b853;
   --color-primary-hover: #53b85380;
-  --color-secondary: #c1c7c1;
+  --color-secondary: #141414;
 
   --color-stroke: #dddddd;
   --color-stroke-lowlight: #a4a4a4;
   --color-stroke-faint: #606060;
   --color-stroke-error: #e63e38;
+
   --color-fill-body: #141414;
   --color-fill-element: #101010;
   --color-fill-overlay: #000000a0;
+  --color-fill-empty: #c1c7c1;
 }
 /* #endregion */
 
 /* #region Theme Components */
 .theme-button {
-  display: block;
-  width: 1.25rem;
-  height: 1.25rem;
+  display: inline-block;
+  min-width: 1.25rem;
+  min-height: 1.25rem;
   margin: 0rem 1rem;
   border: none;
   border-radius: 1.25rem;

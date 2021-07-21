@@ -1,6 +1,6 @@
 import { Component } from "react";
 import { ColumnTable } from "components/ui/layout/ColumnTable.js";
-import { Paragraph, Subsection } from "components/structure";
+import { Paragraph, Subsection } from "components/text";
 
 export class GraphFormatDocs extends Component {
   static displayName = GraphFormatDocs.name;

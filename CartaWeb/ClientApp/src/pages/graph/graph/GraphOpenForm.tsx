@@ -5,7 +5,7 @@ import { DataApi } from "library/api";
 import { HeightScroll } from "components/ui/layout/scroll/HeightScroll";
 
 import "./GraphOpenForm.css";
-import { Section, Subsection } from "components/structure";
+import { Section, Subsection } from "components/text";
 
 interface GraphOpenFormProps {
   parameters?: Record<string, any>;

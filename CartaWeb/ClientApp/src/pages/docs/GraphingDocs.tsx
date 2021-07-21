@@ -1,4 +1,4 @@
-import { Paragraph, Section } from "components/structure";
+import { Paragraph, Section } from "components/text";
 import { Component } from "react";
 
 export class GraphingDocs extends Component {

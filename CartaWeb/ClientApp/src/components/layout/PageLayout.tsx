@@ -4,8 +4,8 @@ import Footer from "./Footer";
 
 import "./layout.css";
 
-/** The props used for the {@link Layout} component. */
-interface LayoutProps {
+/** The props used for the {@link PageLayout} component. */
+interface PageLayoutProps {
   /** Whether a header navigation bar should be included in the layout. */
   header?: boolean;
   /** Whether a footer should be included in the layout. */
@@ -13,7 +13,7 @@ interface LayoutProps {
 }
 
 /** A component that adds typically visible components such as a header and footer to a page. */
-const Layout: FunctionComponent<LayoutProps> = ({
+const PageLayout: FunctionComponent<PageLayoutProps> = ({
   header,
   footer,
   children,
@@ -28,4 +28,5 @@ const Layout: FunctionComponent<LayoutProps> = ({
   );
 };
 
-export default Layout;
+export default PageLayout;
+export type { PageLayoutProps };

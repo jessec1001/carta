@@ -1,8 +1,4 @@
-import React, {
-  FunctionComponent,
-  HTMLProps,
-  useState,
-} from "react";
+import React, { FunctionComponent, HTMLProps, useState } from "react";
 import { useControllableState } from "hooks";
 import { Modify } from "types";
 import {
@@ -13,7 +9,7 @@ import {
   ValidationError,
 } from "library/schema";
 import Logging, { LogSeverity } from "library/logging";
-import { BlockButton } from "components/ui/buttons";
+import { BlockButton } from "components/buttons";
 import FormGroup from "../FormGroup";
 import SchemaBaseInput from "./SchemaBaseInput";
 

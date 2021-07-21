@@ -1,7 +1,4 @@
-import IndentList from "./IndentList";
-import Paragraph from "./Paragraph";
-import Section from "./Section";
-import Subsection from "./Subsection";
-import Title from "./Title";
+import Column from "./Column";
+import Row from "./Row";
 
-export { Title, Section, Subsection, Paragraph, IndentList };
+export { Row, Column };

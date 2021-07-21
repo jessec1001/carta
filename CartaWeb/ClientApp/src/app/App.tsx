@@ -7,11 +7,9 @@ import {
   ProfilePage,
   WorkspacePage,
 } from "pages";
-import {
-  UserWrapper,
-  NotificationWrapper,
-  ThemeWrapper,
-} from "components/utility";
+import { UserWrapper } from "components/user";
+import { NotificationWrapper } from "components/notifications";
+import { ThemeWrapper } from "components/theme";
 
 import "styles/reset.css";
 import "styles/globals.css";
@@ -31,11 +29,7 @@ const App: FunctionComponent = () => {
             <Route path="/profile" component={ProfilePage} />
             <Route path="/documentation/:topic" component={DocsPage} />
             <Route path="/graph" component={GraphPage} />
-            <Route exact path="/workspace/:id" component={WorkspacePage} />
-            <Route
-              path="/workspace"
-              component={({ children }: any) => <div>{children}</div>}
-            />
+            <Route path="/workspace" component={WorkspacePage} />
           </Switch>
         </ThemeWrapper>
       </NotificationWrapper>

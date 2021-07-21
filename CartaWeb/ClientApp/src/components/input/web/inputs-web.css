@@ -1,0 +1,27 @@
+.join-right > * {
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+.join-left > * {
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+}
+.join-top > * {
+  border-top-left-radius: 0 !important;
+  border-top-right-radius: 0 !important;
+}
+.join-bottom > * {
+  border-bottom-left-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+
+.input-augment {
+  color: var(--color-stroke-lowlight);
+}
+.input-augment:hover {
+  color: var(--color-stroke);
+}
+
+.input-augmented .form-control {
+  padding-right: 1.5rem;
+}

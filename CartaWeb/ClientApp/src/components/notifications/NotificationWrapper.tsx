@@ -1,6 +1,6 @@
 import { Component } from "react";
-import Logging, { LogWidget, NotificationLogger } from "library/logging";
 import { NotificationContext } from "context";
+import Logging, { LogWidget, NotificationLogger } from "library/logging";
 
 interface NotificationWrapperProps {}
 interface NotificationWrapperState {

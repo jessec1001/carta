@@ -8,7 +8,7 @@ import ApiReturnsView from "./ApiReturnsView";
 import ApiRequestCollectionView from "./ApiRequestCollectionView";
 
 import "./ApiEndpointView.css";
-import { Paragraph } from "components/structure";
+import { Paragraph } from "components/text";
 
 export interface ApiEndpointViewProps {
   endpoint: MetaEndpoint;

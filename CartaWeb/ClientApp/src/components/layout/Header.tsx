@@ -1,12 +1,12 @@
 import { FunctionComponent, useContext } from "react";
 import { CartaIcon } from "components/icons";
+import { ThemeButton } from "components/theme";
 import {
-  ThemeButton,
   UserIsAuthenticated,
   UserIsNotAuthenticated,
   UserSignIn,
   UserSignOut,
-} from "components/utility";
+} from "components/user";
 import {
   Dropdown,
   DropdownToggler,

@@ -1,4 +1,4 @@
-import { Paragraph, Section, Subsection } from "components/structure";
+import { Paragraph, Section, Subsection } from "components/text";
 import { Component } from "react";
 import { GraphFormatDocs } from "./GraphFormatsDocs";
 

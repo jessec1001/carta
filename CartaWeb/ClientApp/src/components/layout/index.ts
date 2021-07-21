@@ -1,6 +1,6 @@
 import Header from "./Header";
 import Footer from "./Footer";
-import Layout from "./Layout";
+import PageLayout from "./PageLayout";
 import Wrapper from "./Wrapper";
 
-export { Header, Footer, Layout, Wrapper };
+export { Header, Footer, PageLayout, Wrapper };

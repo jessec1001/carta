@@ -1,0 +1,26 @@
+/* #region Icon Button */
+.icon-button {
+  display: inline-block;
+  width: 1.5em;
+  height: 1.5em;
+  border-radius: 1.5em;
+  border: none;
+  text-align: center;
+  margin: 0rem 0.5rem;
+  background-color: var(--color-fill-element);
+  background-color: var(--color-primary);
+  color: var(--color-secondary);
+  box-shadow: var(--shadow-offset);
+}
+/* #endregion */
+
+.button-block {
+  border: none;
+  border-radius: var(--rounded-size);
+}
+.button-block.primary {
+  background-color: var(--color-primary);
+}
+.button-block.secondary {
+  background-color: var(--color-secondary);
+}

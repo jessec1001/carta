@@ -1,15 +1,9 @@
 import { FunctionComponent, useContext } from "react";
 import { useStoredState } from "hooks";
 import { UserContext } from "context";
-import { Layout } from "components/layout";
+import { PageLayout } from "components/layout";
 import { Link } from "components/common";
-import {
-  IndentList,
-  Paragraph,
-  Section,
-  Subsection,
-  Title,
-} from "components/structure";
+import { Paragraph, Section, Subsection, Title } from "components/text";
 import { FormGroup } from "components/form";
 import { DropdownInput, TextFieldInput } from "components/input";
 import { Mainbar, Sidebar, SidebarLayout } from "components/ui/layout";
@@ -32,21 +26,17 @@ const ProfilePage: FunctionComponent = () => {
   );
 
   return (
-    <Layout header footer>
+    <PageLayout header footer>
       <SidebarLayout side="left">
         <Sidebar>
-          <IndentList>
-            {user !== null && (
-              <Link to="/user/profile#profile-general">General</Link>
-            )}
-            <Link to="/user/profile/#profile-integration">Integeration</Link>
-            <IndentList>
-              <Link to="/user/profile/#profile-integration-hyperthought">
-                HyperThought&trade;
-              </Link>
-            </IndentList>
-            <Link to="/user/profile/#profile-notifications">Notifications</Link>
-          </IndentList>
+          {user !== null && (
+            <Link to="/user/profile#profile-general">General</Link>
+          )}
+          <Link to="/user/profile/#profile-integration">Integeration</Link>
+          <Link to="/user/profile/#profile-integration-hyperthought">
+            HyperThought&trade;
+          </Link>
+          <Link to="/user/profile/#profile-notifications">Notifications</Link>
         </Sidebar>
         <Mainbar>
           <div>
@@ -115,7 +105,7 @@ const ProfilePage: FunctionComponent = () => {
           </Section>
         </Mainbar>
       </SidebarLayout>
-    </Layout>
+    </PageLayout>
   );
 };
 

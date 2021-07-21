@@ -5,7 +5,7 @@ import { MetaCollection } from "library/api/meta";
 import ApiEndpointView from "./ApiEndpointView";
 
 import "./ApiCollectionView.css";
-import { Paragraph } from "components/structure";
+import { Paragraph } from "components/text";
 
 export interface ApiCollectionViewProps {
   collection: MetaCollection;

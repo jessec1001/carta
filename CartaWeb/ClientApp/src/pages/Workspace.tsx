@@ -1,12 +1,12 @@
 import { DatasetIcon } from "components/icons";
-import { Layout } from "components/layout";
+import { PageLayout } from "components/layout";
 import { Workspace, WorkspaceAPI } from "library/api";
 import { FunctionComponent, useEffect, useRef, useState } from "react";
-import { useParams } from "react-router";
+import { useLocation } from "react-router";
 
 const tips: string[] = [
   "Every operation in Carta does not mutate input data.",
-  "You can integrate with federated data providers such as HyperThought&trade;",
+  "You can integrate with federated data providers such as HyperThought™.",
   "Customizing your workspace can help you be more productive.",
   "You can invert a selection to negate a certain condition.",
 ];
@@ -17,7 +17,8 @@ const WorkspacePage: FunctionComponent = () => {
   const workspaceApiRef = useRef(new WorkspaceAPI());
   const workspaceApi = workspaceApiRef.current;
 
-  const { id } = useParams<{ id: string }>();
+  const id = new URLSearchParams(useLocation().search).get("id") as string;
+  // const { id } =  useQuery<{ id: string }>();
 
   const [tip, setTip] = useState("");
   const [loading, setLoading] = useState(true);
@@ -59,7 +60,7 @@ const WorkspacePage: FunctionComponent = () => {
   console.log(workspace, workspace?.datasets);
 
   return (
-    <Layout header>
+    <PageLayout header>
       {loading && (
         <div
           style={{
@@ -77,7 +78,7 @@ const WorkspacePage: FunctionComponent = () => {
               height: "4px",
               background: `linear-gradient(to right, var(--color-primary) ${
                 loadingProgress * 100
-              }%, var(--color-secondary) ${loadingProgress * 100}%)`,
+              }%, var(--color-fill-empty) ${loadingProgress * 100}%)`,
             }}
           ></div>
           <div
@@ -149,7 +150,7 @@ const WorkspacePage: FunctionComponent = () => {
           </ul>
         </div>
       )}
-    </Layout>
+    </PageLayout>
   );
 };
 

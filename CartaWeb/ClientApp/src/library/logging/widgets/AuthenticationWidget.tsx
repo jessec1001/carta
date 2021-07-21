@@ -1,5 +1,5 @@
 import { Link } from "components/common";
-import { UserSignIn } from "components/utility";
+import { UserSignIn } from "components/user";
 
 function AuthenticationWidget() {
   return (

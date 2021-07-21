@@ -1,42 +1,15 @@
-/* #region Indent List */
-.indent-list {
-  margin: 0rem;
-  padding: 0rem;
-  list-style-type: none;
+.row {
+  /* Displays contents of the row across the width of the screen in a flexbox. */
+  display: flex;
+  flex-direction: row;
+  width: 100%;
 }
-.indent-list-item {
-  padding-left: 1.5rem;
-}
-/* #endregion */
+.column {
+  /* Sets the column up to displayed as evenly split in the row. */
+  flex: 1;
 
-/* #region Title */
-.title {
-  font-size: 2.4rem;
-  margin-bottom: 1rem;
+  /* Displays context of the column across the height of the screen in a flexbox. */
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
-/* #endregion */
-/* #region Section */
-.section-heading {
-  font-size: 1.8rem;
-  margin: 0rem;
-  margin-bottom: 0.5rem;
-}
-.section-content {
-  padding: 0.5rem 0rem;
-}
-/* #endregion */
-/* #region Subsection */
-.subsection-heading {
-  margin: 0rem;
-  font-size: 1.4rem;
-}
-.subsection-content {
-  padding: 0.25rem 0rem;
-}
-/* #endregion */
-
-/* #region Paragraph */
-.paragraph {
-  margin: 0rem 0rem 0.5rem 0rem;
-}
-/* #endregion */

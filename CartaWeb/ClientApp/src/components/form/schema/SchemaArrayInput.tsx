@@ -8,7 +8,7 @@ import {
   schemaDefault,
   ValidationError,
 } from "library/schema";
-import { AddButton, RemoveButton } from "components/ui/buttons";
+import { IconAddButton, IconRemoveButton } from "components/buttons";
 import { EmptySymbol } from "components/ui/symbols";
 import FormGroup from "../FormGroup";
 import SchemaBaseInput, { SchemaTypedInputProps } from "./SchemaBaseInput";
@@ -163,8 +163,8 @@ const SchemaArrayItemInput: FunctionComponent<SchemaArrayItemInputProps> = ({
       <div>{children}</div>
       {(addable || removeable) && (
         <div className="no-grow">
-          {addable && <AddButton onClick={onAdd} />}
-          {removeable && <RemoveButton onClick={onRemove} />}
+          {addable && <IconAddButton onClick={onAdd} />}
+          {removeable && <IconRemoveButton onClick={onRemove} />}
         </div>
       )}
     </div>
