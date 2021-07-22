@@ -47,13 +47,9 @@ const SchemaForm: FunctionComponent<
 }) => {
   // We allow the component to have an optionally controlled value.
   // Notice that we flatten the schema first so that our interactive components are simpler.
+  const [stateValue, setValue] = useControllableState(value, value, onChange);
   const actualSchema = flattenSchema(schema);
-  const defaultValue = schemaDefault(actualSchema, value);
-  const [actualValue, setValue] = useControllableState(
-    defaultValue,
-    defaultValue,
-    onChange
-  );
+  const actualValue = schemaDefault(actualSchema, stateValue);
 
   // We use an internal state only for error handling.
   const [error, setError] = useState<ValidationError | undefined>(undefined);

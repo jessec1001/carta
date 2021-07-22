@@ -1,26 +1,44 @@
 /* #region Icon Button */
 .icon-button {
-  display: inline-block;
+  /* TODO: Clean this up. */
+
+  /* Icon buttons are round buttons that surround text. */
   width: 1.5em;
   height: 1.5em;
   border-radius: 1.5em;
-  border: none;
+
+  /* Remove some default styling to buttons. */
   text-align: center;
-  margin: 0rem 0.5rem;
+  display: inline-block;
+  outline: none;
+  border: none;
+
+  /* We give some spacing to the button. */
+  margin: 0rem 0.25rem;
+
+  /* Make the button appear to pop out of the page slightly. */
   background-color: var(--color-fill-element);
-  background-color: var(--color-primary);
-  color: var(--color-secondary);
+  color: var(--color-stroke-lowlight);
   box-shadow: var(--shadow-offset);
 }
 /* #endregion */
 
-.button-block {
+/* #region Block Button */
+.block-button {
+  /* Remove some default styling to buttons. */
+  outline: none;
   border: none;
-  border-radius: var(--rounded-size);
+  border-radius: var(--border-radius);
+
+  /* Give a decent amount of padding internally. */
+  padding: 0.5rem;
 }
-.button-block.primary {
+.block-button.primary {
   background-color: var(--color-primary);
+  color: var(--color-primary-stroke);
 }
-.button-block.secondary {
+.block-button.secondary {
   background-color: var(--color-secondary);
+  color: var(--color-secondary-stroke);
 }
+/* #endregion */

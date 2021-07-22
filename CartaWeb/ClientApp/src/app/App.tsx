@@ -6,6 +6,7 @@ import {
   DocsPage,
   ProfilePage,
   WorkspacePage,
+  WorkspaceCreatePage,
 } from "pages";
 import { UserWrapper } from "components/user";
 import { NotificationWrapper } from "components/notifications";
@@ -29,6 +30,12 @@ const App: FunctionComponent = () => {
             <Route path="/profile" component={ProfilePage} />
             <Route path="/documentation/:topic" component={DocsPage} />
             <Route path="/graph" component={GraphPage} />
+
+            <Route
+              exact
+              path="/workspace/new"
+              component={WorkspaceCreatePage}
+            />
             <Route path="/workspace" component={WorkspacePage} />
           </Switch>
         </ThemeWrapper>

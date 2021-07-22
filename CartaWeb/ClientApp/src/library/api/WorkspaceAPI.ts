@@ -107,7 +107,7 @@ class WorkspaceAPI extends BaseAPI {
    * @returns The newly created workspace.
    */
   public async createWorkspace(workspaceName: string): Promise<Workspace> {
-    const url = `${this.getApiUrl()}/${encodeURI(workspaceName)}`;
+    const url = `${this.getApiUrl()}/${encodeURIComponent(workspaceName)}`;
     const response = await fetch(url, { method: "POST" });
 
     this.ensureSuccess(
@@ -116,6 +116,24 @@ class WorkspaceAPI extends BaseAPI {
     );
 
     return parseWorkspace(await this.readJSON<WorkspaceDTO>(response));
+  }
+  public async createCompleteWorkspace(
+    workspace: Workspace
+  ): Promise<Workspace> {
+    const newWorkspace = await this.createWorkspace(workspace.name);
+
+    // TODO: Add support for posting datasets.
+    // We add the users and datasets to the new workspace if included.
+    const [users] = await Promise.all([
+      workspace.users === undefined || workspace.users.length === 0
+        ? workspace.users
+        : this.addWorkspaceUsers(newWorkspace.id, workspace.users),
+    ]);
+
+    // Merge in the newly created resources from the server.
+    newWorkspace.users = users;
+
+    return newWorkspace;
   }
   /**
    * Archives a specific workspace so that it is no longer visible to the user.
@@ -249,7 +267,7 @@ class WorkspaceAPI extends BaseAPI {
     workspaceId: string,
     datasetId: string
   ): Promise<WorkspaceDataset> {
-    const url = `${this.getWorkspaceUrl(workspaceId)}/data/${encodeURI(
+    const url = `${this.getWorkspaceUrl(workspaceId)}/data/${encodeURIComponent(
       datasetId
     )}`;
     const response = await fetch(url, { method: "GET" });
@@ -275,7 +293,9 @@ class WorkspaceAPI extends BaseAPI {
     source: string,
     resource: string
   ): Promise<WorkspaceDataset> {
-    const dataUrlPart = `${encodeURI(source)}/${encodeURI(resource)}`;
+    const dataUrlPart = `${encodeURIComponent(source)}/${encodeURIComponent(
+      resource
+    )}`;
     const url = `${this.getWorkspaceUrl(workspaceId)}/data/${dataUrlPart}`;
     const response = await fetch(url, { method: "POST" });
 
@@ -297,7 +317,7 @@ class WorkspaceAPI extends BaseAPI {
     workspaceId: string,
     datasetId: string
   ): Promise<void> {
-    const url = `${this.getWorkspaceUrl(workspaceId)}/data/${encodeURI(
+    const url = `${this.getWorkspaceUrl(workspaceId)}/data/${encodeURIComponent(
       datasetId
     )}`;
     const response = await fetch(url, { method: "DELETE" });
@@ -321,7 +341,7 @@ class WorkspaceAPI extends BaseAPI {
       name: dataset.name,
       workflow: dataset.workflowId,
     };
-    const url = `${this.getWorkspaceUrl(workspaceId)}/data/${encodeURI(
+    const url = `${this.getWorkspaceUrl(workspaceId)}/data/${encodeURIComponent(
       dataset.id
     )}?${Object.entries(params)
       .filter(([key, value]) => value !== undefined)

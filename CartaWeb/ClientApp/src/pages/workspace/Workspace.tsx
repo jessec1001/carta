@@ -57,8 +57,6 @@ const WorkspacePage: FunctionComponent = () => {
     }
   }, [loading]);
 
-  console.log(workspace, workspace?.datasets);
-
   return (
     <PageLayout header>
       {loading && (
@@ -78,7 +76,7 @@ const WorkspacePage: FunctionComponent = () => {
               height: "4px",
               background: `linear-gradient(to right, var(--color-primary) ${
                 loadingProgress * 100
-              }%, var(--color-fill-empty) ${loadingProgress * 100}%)`,
+              }%, var(--color-secondary) ${loadingProgress * 100}%)`,
             }}
           ></div>
           <div

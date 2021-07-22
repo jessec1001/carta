@@ -1,8 +1,10 @@
 /* #region Theme Definitions */
 .theme-light {
   --color-primary: #53b853;
+  --color-primary-stroke: #141414;
   --color-primary-hover: #53b853a0;
-  --color-secondary: #141414;
+  --color-secondary: #c1c7c1;
+  --color-secondary-stroke: #141414;
 
   --color-stroke: #222222;
   --color-stroke-lowlight: #404040;
@@ -12,12 +14,13 @@
   --color-fill-body: #f6f6f6;
   --color-fill-element: #ffffff;
   --color-fill-overlay: #ffffff80;
-  --color-fill-empty: #c1c7c1;
 }
 .theme-dark {
   --color-primary: #53b853;
+  --color-primary-stroke: #141414;
   --color-primary-hover: #53b85380;
-  --color-secondary: #141414;
+  --color-secondary: #c1c7c1;
+  --color-secondary-stroke: #141414;
 
   --color-stroke: #dddddd;
   --color-stroke-lowlight: #a4a4a4;
@@ -27,7 +30,6 @@
   --color-fill-body: #141414;
   --color-fill-element: #101010;
   --color-fill-overlay: #000000a0;
-  --color-fill-empty: #c1c7c1;
 }
 /* #endregion */
 

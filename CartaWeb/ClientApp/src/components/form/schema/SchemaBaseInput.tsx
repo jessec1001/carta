@@ -17,7 +17,7 @@ import SchemaBooleanInput from "./SchemaBooleanInput";
 import SchemaObjectInput from "./SchemaObjectInput";
 import SchemaArrayInput from "./SchemaArrayInput";
 import SchemaMultitypeInput from "./SchemaMultitypeInput";
-import { NullSymbol } from "components/ui/symbols";
+import { NullSymbol } from "components/symbols";
 
 interface SchemaTypedInputProps<
   TSchema extends JsonBaseSchema,

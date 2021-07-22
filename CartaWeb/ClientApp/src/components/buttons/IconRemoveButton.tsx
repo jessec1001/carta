@@ -9,7 +9,12 @@ const IconRemoveButton: FunctionComponent<HTMLProps<HTMLButtonElement>> = ({
   ...props
 }) => {
   return (
-    <button className="icon-button" type={type as any} {...props}>
+    <button
+      className="icon-button"
+      type={type as any}
+      style={{ color: "#d83c3c" }}
+      {...props}
+    >
       ×
     </button>
   );

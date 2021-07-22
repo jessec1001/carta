@@ -13,6 +13,7 @@ import { Heading } from "components/text";
 import { IconAddButton } from "components/buttons";
 import { Searchbox } from "components/input";
 import { UserIsAuthenticated, UserNeedsAuthentication } from "components/user";
+import { Link } from "components/common";
 
 /** The props used for the {@link WorkspaceCarousel} component. */
 interface WorkspaceCarouselProps {
@@ -71,47 +72,11 @@ const WorkspaceCarousel: FunctionComponent<WorkspaceCarouselProps> = ({
           </Heading>
         </Column>
         <Column>
-          <Searchbox clearable />
+          <UserIsAuthenticated>
+            <Searchbox clearable />
+          </UserIsAuthenticated>
         </Column>
       </Row>
-
-      {/* <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-        }}
-      >
-        <span className="normal-text">
-          <h2>Workspaces</h2>
-          {authenticated && (
-            <button
-              style={{
-                margin: "0rem 0.5rem",
-                width: "1.5rem",
-                height: "1.5rem",
-                borderRadius: "1.5rem",
-                border: "none",
-                backgroundColor: "var(--color-fill-element)",
-                boxShadow: "var(--shadow-offset)",
-                fontWeight: 500,
-                fontSize: "1.2rem",
-                cursor: "pointer",
-              }}
-            >
-              +
-            </button>
-          )}
-        </span> */}
-      {/* {authenticated && ( */}
-      {/* // <span */}
-      {/* //   style={{ */}
-      {/* //     flexBasis: "12rem", */}
-      {/* //   }} */}
-      {/* // > */}
-      {/* //   <TextFieldInput placeholder="Search" /> */}
-      {/* // </span> */}
-      {/* // )} */}
-      {/* // </div> */}
 
       {/* Display a message indicating that the user should sign in. */}
       {needsAuthentication && <UserNeedsAuthentication />}
@@ -123,42 +88,43 @@ const WorkspaceCarousel: FunctionComponent<WorkspaceCarouselProps> = ({
             <WorkspaceCard key={workspace.id} workspace={workspace} />
           ))}
         </Carousel>
-
-        // <ul
-        //   style={{
-        //     marginTop: "1rem",
-        //     display: "grid",
-        //     gridTemplateColumns: "repeat(4, 1fr)",
-        //     columnGap: "1rem",
-        //     listStyle: "none",
-        //   }}
-        // >
-        //   {actualWorkspaces.map((workspace) => (
-        //     <li
-        //       key={workspace.id}
-        //       style={{
-        //         display: "block",
-        //         padding: "1rem",
-        //         width: "100%",
-        //         minHeight: "8rem",
-        //         backgroundColor: "var(--color-fill-element)",
-        //         boxShadow: "var(--shadow-offset)",
-        //         borderRadius: "var(--border-radius)",
-        //       }}
-        //     >
-        //       <h3
-        //         style={{
-        //           fontSize: "1.2rem",
-        //         }}
-        //       >
-        //         <Link to={`/workspace?id=${workspace.id}`}>
-        //           {workspace.name}
-        //         </Link>
-        //       </h3>
-        //     </li>
-        //   ))}
-        // </ul>
-      )} */}
+      */}
+      {actualWorkspaces && (
+        <ul
+          style={{
+            marginTop: "1rem",
+            display: "grid",
+            gridTemplateColumns: "repeat(4, 1fr)",
+            columnGap: "1rem",
+            listStyle: "none",
+          }}
+        >
+          {actualWorkspaces.map((workspace) => (
+            <li
+              key={workspace.id}
+              style={{
+                display: "block",
+                padding: "1rem",
+                width: "100%",
+                minHeight: "8rem",
+                backgroundColor: "var(--color-fill-element)",
+                boxShadow: "var(--shadow-offset)",
+                borderRadius: "var(--border-radius)",
+              }}
+            >
+              <h3
+                style={{
+                  fontSize: "1.2rem",
+                }}
+              >
+                <Link to={`/workspace?id=${workspace.id}`}>
+                  {workspace.name}
+                </Link>
+              </h3>
+            </li>
+          ))}
+        </ul>
+      )}
     </section>
   );
 };

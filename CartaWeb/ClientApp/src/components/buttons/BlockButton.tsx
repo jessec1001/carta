@@ -1,6 +1,7 @@
 import { FunctionComponent, HTMLProps } from "react";
 import { Modify } from "types";
 import classNames from "classnames";
+
 import "./buttons.css";
 
 /** The props used for the {@link BlockButton} component. */
@@ -15,7 +16,7 @@ const BlockButton: FunctionComponent<
 > = ({ color, children, className, ...props }) => {
   return (
     <button
-      className={classNames(className, "button-block", color ?? "primary")}
+      className={classNames(className, "block-button", color ?? "primary")}
       {...props}
     >
       {children}

@@ -1,5 +1,5 @@
 import { Component } from "react";
-import { NullSymbol, EmptySymbol } from "components/ui/symbols";
+import { NullSymbol, EmptySymbol } from "components/symbols";
 import "./ObservationList.css";
 
 interface ObservationListProps {

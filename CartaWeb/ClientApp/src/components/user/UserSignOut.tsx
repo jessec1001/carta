@@ -1,5 +1,5 @@
-import { UserContext } from "context";
 import { FunctionComponent, useContext } from "react";
+import { UserContext } from "context";
 
 /** A component that signs out the user when its children are clicked. */
 const UserSignOut: FunctionComponent = ({ children }) => {

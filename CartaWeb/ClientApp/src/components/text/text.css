@@ -40,3 +40,9 @@
   margin: 0.5rem 0rem;
 }
 /* #endregion */
+
+/* #region Error */
+.error {
+  color: var(--color-stroke-error);
+}
+/* #endregion */
