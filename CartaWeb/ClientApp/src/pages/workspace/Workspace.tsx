@@ -1,5 +1,5 @@
-import { DatasetIcon } from "components/icons";
 import { PageLayout } from "components/layout";
+import { DatasetListView } from "components/views";
 import { Workspace, WorkspaceAPI } from "library/api";
 import { FunctionComponent, useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router";
@@ -9,6 +9,8 @@ const tips: string[] = [
   "You can integrate with federated data providers such as HyperThought™.",
   "Customizing your workspace can help you be more productive.",
   "You can invert a selection to negate a certain condition.",
+  "You can view multiple datasets simultaneously by dragging tabs to other portions of the screen.",
+  "Opening the same workspace in multiple tabs or windows automatically synchronizes operations between them.",
 ];
 
 const WorkspacePage: FunctionComponent = () => {
@@ -123,30 +125,8 @@ const WorkspacePage: FunctionComponent = () => {
           </div>
         </div>
       )}
-      {!loading && workspace && (
-        <div
-          style={{
-            flexGrow: 1,
-          }}
-        >
-          <p>Datasets</p>
-          <ul>
-            {workspace.datasets &&
-              workspace.datasets.map((dataset) => (
-                <li>
-                  <span
-                    className="normal-text"
-                    style={{
-                      color: "var(--color-stroke-lowlight)",
-                    }}
-                  >
-                    <DatasetIcon />
-                    {dataset.name ?? `(${dataset.source}/${dataset.resource})`}
-                  </span>
-                </li>
-              ))}
-          </ul>
-        </div>
+      {!loading && workspace?.datasets && (
+        <DatasetListView datasets={workspace.datasets} />
       )}
     </PageLayout>
   );

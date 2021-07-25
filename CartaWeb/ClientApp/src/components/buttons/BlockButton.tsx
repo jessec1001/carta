@@ -17,6 +17,7 @@ const BlockButton: FunctionComponent<
   return (
     <button
       className={classNames(className, "block-button", color ?? "primary")}
+      type="button"
       {...props}
     >
       {children}

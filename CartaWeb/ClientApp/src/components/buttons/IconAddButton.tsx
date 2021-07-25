@@ -11,7 +11,7 @@ const IconAddButton: FunctionComponent<HTMLProps<HTMLButtonElement>> = ({
   return (
     <button
       className="icon-button"
-      type={type as any}
+      type={(type ?? "button") as any}
       style={{ color: "#2bb038" }}
       {...props}
     >

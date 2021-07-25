@@ -48,31 +48,29 @@ const FormGroup: FunctionComponent<FormGroupProps> = ({
       return (
         <label className={classNames("form-group", actualDensity)} {...props}>
           <span className="form-group-label">{title}</span>
-          <span className="form-group-description">
-            {description && (
-              <Paragraph>
-                <ReactMarkdown
-                  linkTarget="_blank"
-                  components={{
-                    a: ({ children, href }) => {
-                      return (
-                        <a
-                          className="link"
-                          href={href as string}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          {children}
-                        </a>
-                      );
-                    },
-                  }}
-                >
-                  {description ?? ""}
-                </ReactMarkdown>
-              </Paragraph>
-            )}
-          </span>
+          {description && (
+            <span className="form-group-description">
+              <ReactMarkdown
+                linkTarget="_blank"
+                components={{
+                  a: ({ children, href }) => {
+                    return (
+                      <a
+                        className="link"
+                        href={href as string}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        {children}
+                      </a>
+                    );
+                  },
+                }}
+              >
+                {description ?? ""}
+              </ReactMarkdown>
+            </span>
+          )}
           <span className="form-group-content">
             {children}
             {error !== undefined && (

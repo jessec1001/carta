@@ -29,7 +29,7 @@ exploring and analyzing data.
       type: "string",
       title: "Name",
       description: `
-This is the name that will be displayed when navigating to, or searching for, workspaces.
+This is the name that will be displayed when navigating to, or searching for workspaces.
 `,
       minLength: 1,
     } as JsonStringSchema,

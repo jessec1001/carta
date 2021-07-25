@@ -78,6 +78,8 @@ textarea.form-control {
 }
 
 .form-group-description {
+  display: block;
+  margin: 0.5rem 0rem;
   font-size: var(--font-normal);
   color: var(--color-stroke-lowlight);
 }

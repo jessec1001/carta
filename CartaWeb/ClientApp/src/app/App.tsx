@@ -26,11 +26,14 @@ const App: FunctionComponent = () => {
       <NotificationWrapper>
         <ThemeWrapper>
           <Switch>
+            {/* Home page route. */}
             <Route exact path="/" component={HomePage} />
+
             <Route path="/profile" component={ProfilePage} />
             <Route path="/documentation/:topic" component={DocsPage} />
             <Route path="/graph" component={GraphPage} />
 
+            {/* Workspace page routes. */}
             <Route
               exact
               path="/workspace/new"
