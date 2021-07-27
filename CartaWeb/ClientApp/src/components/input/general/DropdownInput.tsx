@@ -1,4 +1,4 @@
-import {
+import React, {
   FunctionComponent,
   HTMLProps,
   useEffect,
@@ -7,17 +7,14 @@ import {
 } from "react";
 import { useControllableState } from "hooks";
 import { Modify } from "types";
-import classNames from "classnames";
 import { CaretIcon } from "components/icons";
+import OptionSelectorInput from "./OptionSelectorInput";
+import OptionInput, { OptionInputProps } from "./OptionInput";
 
-import "components/form/form.css";
+import "./input.css";
 
 /** The props used for the {@link DropdownInput} component. */
 interface DropdownInputProps {
-  options: any[];
-  // TODO: Allow for multiple selection.
-  // multiple?: boolean;
-
   value?: any;
   onChange?: (value: any) => void;
 }
@@ -25,7 +22,7 @@ interface DropdownInputProps {
 /** A component that defines a dropdown select-like input. */
 const DropdownInput: FunctionComponent<
   Modify<HTMLProps<HTMLDivElement>, DropdownInputProps>
-> = ({ children, className, options, value, onChange, ...props }) => {
+> = ({ children, className, value, onChange, ...props }) => {
   // We need to allow this component to be optionally controllable because we are not using a native UI element.
   const [actualValue, setValue] = useControllableState(value, value, onChange);
   const [toggled, setToggled] = useState(false);
@@ -52,35 +49,23 @@ const DropdownInput: FunctionComponent<
 
   // TODO: Attempt to use native input element for accessibility.
 
+  // We try to find the component with corresponding value to display exactly what was specified.
+  const valueComponent = React.Children.toArray(children).filter(
+    (child) =>
+      React.isValidElement(child) &&
+      child.type === OptionInput &&
+      (child.props as OptionInputProps).value === actualValue
+  );
+
   // Render a custom component that emulates a select/option input.
   return (
-    <div
-      className={classNames("form-dropdown", { toggled }, className)}
-      {...props}
-    >
-      <div className="form-control form-dropdown-header" ref={headerElement}>
-        <span className="form-dropdown-value">{actualValue}</span>
+    <OptionSelectorInput toggled={toggled} onSelect={setValue}>
+      <div className="form-control form-dropdown" ref={headerElement}>
+        <span className="form-dropdown-value">{valueComponent}</span>
         <CaretIcon />
       </div>
-      {toggled && (
-        <ul className="form-dropdown-list">
-          {options.map((option, index) => {
-            // Each inner option sets the value of
-            return (
-              <li
-                key={index}
-                onClick={(event) => {
-                  if (actualValue !== option) setValue(option);
-                }}
-                className="form-dropdown-option"
-              >
-                {option}
-              </li>
-            );
-          })}
-        </ul>
-      )}
-    </div>
+      {children}
+    </OptionSelectorInput>
   );
 };
 

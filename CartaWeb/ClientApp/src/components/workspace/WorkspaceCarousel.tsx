@@ -11,7 +11,7 @@ import { Workspace, WorkspaceAPI } from "library/api";
 import { Column, Row } from "components/structure";
 import { Heading } from "components/text";
 import { IconAddButton } from "components/buttons";
-import { Searchbox } from "components/input";
+import { SearchboxInput } from "components/input";
 import { UserIsAuthenticated, UserNeedsAuthentication } from "components/user";
 import { Link } from "components/common";
 
@@ -73,7 +73,7 @@ const WorkspaceCarousel: FunctionComponent<WorkspaceCarouselProps> = ({
         </Column>
         <Column>
           <UserIsAuthenticated>
-            <Searchbox clearable />
+            <SearchboxInput clearable />
           </UserIsAuthenticated>
         </Column>
       </Row>

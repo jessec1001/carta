@@ -3,7 +3,6 @@ import classNames from "classnames";
 import ReactMarkdown from "react-markdown";
 
 import "./form.css";
-import { Paragraph } from "components/text";
 
 /** The props used for the {@link FormGroup} component. */
 interface FormGroupProps {

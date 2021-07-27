@@ -8,6 +8,7 @@ import {
 /** The type of widgets that can be used to input a JSON object. */
 enum JsonObjectSchemaWidgets {
   List = "list",
+  User = "user",
 }
 
 /** The schema specification for a JSON object. */

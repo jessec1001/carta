@@ -1,16 +1,16 @@
-.join-right > * {
+.join-right * {
   border-top-right-radius: 0 !important;
   border-bottom-right-radius: 0 !important;
 }
-.join-left > * {
+.join-left * {
   border-top-left-radius: 0 !important;
   border-bottom-left-radius: 0 !important;
 }
-.join-top > * {
+.join-top * {
   border-top-left-radius: 0 !important;
   border-top-right-radius: 0 !important;
 }
-.join-bottom > * {
+.join-bottom * {
   border-bottom-left-radius: 0 !important;
   border-bottom-right-radius: 0 !important;
 }

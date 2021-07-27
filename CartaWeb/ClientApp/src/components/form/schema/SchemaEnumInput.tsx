@@ -5,7 +5,7 @@ import {
   JsonEnumSchemaWidgets,
   schemaDefault,
 } from "library/schema";
-import { DropdownInput } from "components/input";
+import { DropdownInput, OptionInput } from "components/input";
 import { SchemaTypedInputProps } from "./SchemaBaseInput";
 
 /** The props used for the {@link SchemaEnumInput} component. */
@@ -43,12 +43,15 @@ const SchemaEnumInput: FunctionComponent<SchemaEnumInputProps> = ({
     case JsonEnumSchemaWidgets.Dropdown:
       return (
         <DropdownInput
-          options={schema.enum}
           value={actualValue}
           onChange={setValue}
           className={error === undefined ? undefined : "error"}
           {...props}
-        />
+        >
+          {schema.enum.map((option, index) => (
+            <OptionInput value={option}>{option}</OptionInput>
+          ))}
+        </DropdownInput>
       );
     default:
       return null;

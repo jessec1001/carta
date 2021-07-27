@@ -1,11 +1,11 @@
 import { FunctionComponent, useRef, useState } from "react";
 import { useHistory } from "react-router";
+import { UserJsonSchema, Workspace, WorkspaceAPI } from "library/api";
 import {
   JsonObjectSchema,
   JsonStringSchema,
   JsonArraySchema,
 } from "library/schema";
-import { Workspace, WorkspaceAPI } from "library/api";
 import { ApiException } from "library/exceptions";
 import { PageLayout, Wrapper } from "components/layout";
 import { ErrorText, Title } from "components/text";
@@ -40,10 +40,7 @@ This is the name that will be displayed when navigating to, or searching for wor
 You can share a workspace with numerous other users. You can add these users here or you can modify these settings
 later.
 `,
-      items: {
-        type: "string",
-        // TODO: Use a user widget to select this using calls to the API.
-      },
+      items: UserJsonSchema,
     } as JsonArraySchema,
   } as Record<keyof Workspace, any>,
 };

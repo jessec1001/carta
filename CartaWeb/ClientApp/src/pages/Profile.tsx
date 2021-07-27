@@ -5,7 +5,7 @@ import { PageLayout } from "components/layout";
 import { Link } from "components/common";
 import { Paragraph, Section, Subsection, Title } from "components/text";
 import { FormGroup } from "components/form";
-import { DropdownInput, TextFieldInput } from "components/input";
+import { DropdownInput, TextFieldInput, OptionInput } from "components/input";
 import { Mainbar, Sidebar, SidebarLayout } from "components/ui/layout";
 
 const ProfilePage: FunctionComponent = () => {
@@ -99,8 +99,12 @@ const ProfilePage: FunctionComponent = () => {
               <DropdownInput
                 value={notificationLevel}
                 onChange={setNotificationLevel}
-                options={["Debug", "Info", "Warning", "Error"]}
-              />
+              >
+                <OptionInput value="debug">Debug</OptionInput>
+                <OptionInput value="info">Information</OptionInput>
+                <OptionInput value="warn">Warning</OptionInput>
+                <OptionInput value="error">Error</OptionInput>
+              </DropdownInput>
             </FormGroup>
           </Section>
         </Mainbar>

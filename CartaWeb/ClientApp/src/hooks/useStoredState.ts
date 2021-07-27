@@ -91,5 +91,4 @@ const useStoredState = <T>(
   return [stateValue, handleValue];
 };
 
-// Export the React hook.
 export default useStoredState;

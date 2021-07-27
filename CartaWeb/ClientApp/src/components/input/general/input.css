@@ -1,0 +1,82 @@
+/* #region Option inputs */
+.input-option-selector {
+  /* This allows the dropdown list to expand without changing the page layout. */
+  position: relative;
+
+  /* Disable user being able to select the text inside of the dropdown. */
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+
+  /* Make the element appear interactive. */
+  cursor: pointer;
+}
+
+.input-option {
+  /* Give the same spacing as a normal form element. */
+  padding: 0rem 0.25rem;
+}
+.input-option.selected {
+  background-color: var(--color-primary-hover);
+}
+
+.input-option-list {
+  /* The input option list will be placed underneath another component. */
+  position: absolute;
+  width: 100%;
+
+  /* Give the option list a maximum height and conditional scroll. */
+  max-height: calc(10 * 1.5rem);
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  /* The list should not have any predefined style. */
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  /* Set all border properties of the form control. */
+  border-width: 1px;
+  border-radius: var(--border-radius);
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-style: solid;
+  border-color: var(--color-primary);
+  border-top: none;
+  box-shadow: var(--shadow-offset);
+
+  /* Set the colors for the insides of forms. */
+  background-color: var(--color-fill-element);
+
+  /* The border color should become emphasized when focused. */
+  z-index: 10;
+}
+/* #endregion */
+
+/* #region Dropdown */
+.form-dropdown {
+  /* This allows the dropdown arrow icon to display at the correct position.*/
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.toggled .form-dropdown {
+  /* When the dropdown is toggled, the header should join with the dropdown list. */
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+
+  /* The border color should become emphasized when focused. */
+  border-color: var(--color-primary);
+}
+.form-dropdown-value {
+  flex-grow: 1;
+}
+/* #endregion */
+
+/* #region Combobox */
+.toggled .input-combobox {
+  /* When the combobox is toggled, the header should join with the dropdown list. */
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+/* #endregion */

@@ -20,22 +20,23 @@ const useControllableState = <T>(
   const handleValue: Dispatch<SetStateAction<T>> = (
     value: T | ((prevValue: T) => T)
   ) => {
-    setStateValue((prevValue: T) => {
-      // Compute the next value depending on whether we are using a callback function or a simple value.
-      const nextValue =
-        typeof value === "function"
-          ? (value as (prevValue: T) => T)(prevValue)
-          : value;
+    // Compute the next value depending on whether we are using a callback function or a simple value.
+    const nextValue =
+      typeof value === "function"
+        ? (value as (prevValue: T) => T)(actualValue)
+        : value;
 
-      // We call the change value event handler if it exists.
-      if (handleChangeValue) handleChangeValue(nextValue);
-      return propValue === undefined ? nextValue : prevValue;
-    });
+    // Notify the change handler.
+    if (handleChangeValue) handleChangeValue(nextValue);
+
+    // If uncontrolled, we change this component state.
+    if (propValue === undefined) {
+      setStateValue(nextValue);
+    }
   };
 
   // Return the same signature as the use state React hook.
   return [actualValue, handleValue];
 };
 
-// Export the React hook.
 export default useControllableState;

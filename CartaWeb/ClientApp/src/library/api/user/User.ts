@@ -9,9 +9,9 @@ interface User {
   email: string;
 
   /** The user's first name. */
-  firstName: string;
+  firstName?: string;
   /** The user's last name. */
-  lastName: string;
+  lastName?: string;
 
   /** The groups that a user is part of. */
   groups: string[];

@@ -6,7 +6,8 @@ import {
   JsonSchemaBasicTypename,
   schemaDefault,
 } from "library/schema";
-import { DropdownInput } from "components/input";
+import { toTitleCase } from "library/utility";
+import { DropdownInput, OptionInput } from "components/input";
 import SchemaBaseInput, { SchemaTypedInputProps } from "./SchemaBaseInput";
 
 /** The props used for the {@link SchemaMultitypeInput} component. */
@@ -112,11 +113,13 @@ const SchemaMultitypeInput: FunctionComponent<SchemaMultitypeInputProps> = ({
             />
           </div>
           <label>
-            <DropdownInput
-              options={typeOptions}
-              value={type}
-              onChange={handleChangeType}
-            />
+            <DropdownInput value={type} onChange={handleChangeType}>
+              {typeOptions.map((type) => (
+                <OptionInput value={type}>
+                  {toTitleCase(type ?? "")}
+                </OptionInput>
+              ))}
+            </DropdownInput>
           </label>
         </div>
       );

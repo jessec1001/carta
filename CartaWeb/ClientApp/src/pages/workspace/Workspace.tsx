@@ -13,6 +13,8 @@ const tips: string[] = [
   "Opening the same workspace in multiple tabs or windows automatically synchronizes operations between them.",
 ];
 
+// TODO: There should be preset layouts available for this page.
+
 const WorkspacePage: FunctionComponent = () => {
   const tipInterval = 5000;
 

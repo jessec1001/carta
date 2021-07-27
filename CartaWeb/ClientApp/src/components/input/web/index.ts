@@ -1,3 +1,3 @@
-import Searchbox from "./Searchbox";
+import SearchboxInput from "./SearchboxInput";
 
-export { Searchbox };
+export { SearchboxInput };

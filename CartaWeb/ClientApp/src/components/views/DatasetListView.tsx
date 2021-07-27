@@ -1,6 +1,6 @@
 import { FunctionComponent } from "react";
 import { WorkspaceDataset } from "library/api";
-import { Searchbox } from "components/input";
+import { SearchboxInput } from "components/input";
 import { DatasetIcon } from "components/icons";
 import { Heading } from "components/text";
 import { IconAddButton } from "components/buttons";
@@ -18,7 +18,7 @@ const DatasetListView: FunctionComponent<DatasetListViewProps> = ({
   return (
     <div>
       <Heading>
-        <Searchbox clearable />
+        <SearchboxInput clearable />
         <IconAddButton />
       </Heading>
       <ul>

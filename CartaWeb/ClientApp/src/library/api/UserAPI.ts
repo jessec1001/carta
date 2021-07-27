@@ -1,4 +1,4 @@
-import { User } from "./user";
+import { User, UserSearcheableAttribute } from "./user";
 import { BrowserException } from "library/exceptions";
 import BaseAPI from "./BaseAPI";
 
@@ -38,6 +38,7 @@ class UserAPI extends BaseAPI {
     );
     return await this.readJSON<boolean>(response);
   }
+
   /**
    * Retrieves information about the currently authenticated user.
    * @returns Information on the user.
@@ -51,6 +52,65 @@ class UserAPI extends BaseAPI {
       "Error occurred while trying to fetch user information."
     );
     return await this.readJSON<User>(response);
+  }
+  /**
+   * Retrives information about all users (limited to 256 entries) satisfying a optionally specified filter.
+   * @param matchAttribute The attribute to use to filter users.
+   * @param matchValue The value used to match against the specified attribute.
+   * @param matchType The type of match to use in filtering.
+   * - `"begin"` matches only the beginning of the string.
+   * - `"end"` matches the entire string value.
+   * @returns A list of information on users.
+   */
+  public async getUsersInfo(
+    matchAttribute: UserSearcheableAttribute | null = null,
+    matchValue: string | null = null,
+    matchType: "exact" | "begin" = "begin"
+  ): Promise<User[]> {
+    const baseUrl = `${this.getApiUrl()}/users`;
+
+    let response: Response;
+    if (matchAttribute === null) {
+      // We are not filtering the users so we make a more basic request.
+      response = await fetch(baseUrl, { method: "GET" });
+    } else {
+      // We are filtering so we need to format and add the advanced request parameters.
+      const attributeName = matchAttribute as string;
+      const attributeValue = matchValue ?? "";
+      let attributeFilter: "=" | "^=";
+      switch (matchType) {
+        case "exact":
+          attributeFilter = "=";
+          break;
+        case "begin":
+          attributeFilter = "^=";
+          break;
+      }
+
+      const url = `${baseUrl}?attributeName=${attributeName}&attributeValue=${attributeValue}&attributeFilter=${attributeFilter}`;
+      response = await fetch(url, { method: "GET" });
+    }
+
+    this.ensureSuccess(
+      response,
+      "Error occurred while trying to fetch users information."
+    );
+    return await this.readJSON<User[]>(response);
+  }
+  /**
+   * Retrieves information about all users within a specific group.
+   * @param groupId The unique identifier of the group.
+   * @returns A list of information on users.
+   */
+  public async getGroupUsersInfo(groupId: string): Promise<User[]> {
+    const url = `${this.getApiUrl()}/group/${encodeURIComponent(groupId)}`;
+    const response = await fetch(url, { method: "GET" });
+
+    this.ensureSuccess(
+      response,
+      "Error occurred while trying to fetch user information."
+    );
+    return await this.readJSON<User[]>(response);
   }
 
   /**

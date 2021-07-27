@@ -4,6 +4,8 @@ import TextFieldInput from "./TextFieldInput";
 import TextAreaInput from "./TextAreaInput";
 import CheckboxInput from "./CheckboxInput";
 import DropdownInput from "./DropdownInput";
+import OptionInput from "./OptionInput";
+import OptionSelectorInput from "./OptionSelectorInput";
 
 export {
   TextFieldInput,
@@ -12,4 +14,6 @@ export {
   NumberSliderInput,
   CheckboxInput,
   DropdownInput,
+  OptionInput,
+  OptionSelectorInput,
 };

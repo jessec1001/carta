@@ -35,8 +35,8 @@ const Join: FunctionComponent<JoinProps> = ({ direction, children }) => {
   );
 };
 
-/** The props used for the {@link Searchbox} component. */
-interface SearchboxProps {
+/** The props used for the {@link SearchboxInput} component. */
+interface SearchboxInputProps {
   clearable?: boolean;
   searchable?: boolean;
 
@@ -47,7 +47,7 @@ interface SearchboxProps {
 }
 
 /** A searchbox component that can be cleared and searched by the click of special inserted buttons. */
-const Searchbox: FunctionComponent<SearchboxProps> = ({
+const SearchboxInput: FunctionComponent<SearchboxInputProps> = ({
   clearable,
   searchable,
   value,
@@ -125,5 +125,5 @@ const Searchbox: FunctionComponent<SearchboxProps> = ({
   );
 };
 
-export default Searchbox;
-export type { SearchboxProps };
+export default SearchboxInput;
+export type { SearchboxInputProps };

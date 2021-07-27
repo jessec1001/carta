@@ -40,7 +40,11 @@ const CheckboxInput: FunctionComponent<
 
   return (
     <div
-      className={classNames("form-checkbox", { checked: value }, className)}
+      className={classNames(
+        "form-checkbox",
+        { checked: actualValue },
+        className
+      )}
       onClick={(event) => setValue(!actualValue)}
       {...props}
     />

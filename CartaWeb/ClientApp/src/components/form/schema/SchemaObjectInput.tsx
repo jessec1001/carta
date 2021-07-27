@@ -7,6 +7,7 @@ import {
   schemaDefault,
   ValidationError,
 } from "library/schema";
+import { UserInput } from "components/input";
 import FormGroup from "../FormGroup";
 import SchemaBaseInput, { SchemaTypedInputProps } from "./SchemaBaseInput";
 
@@ -93,6 +94,8 @@ const SchemaObjectInput: FunctionComponent<SchemaObjectInputProps> = ({
           })}
         </div>
       );
+    case JsonObjectSchemaWidgets.User:
+      return <UserInput value={value} onChange={setValue} />;
     default:
       return null;
   }
