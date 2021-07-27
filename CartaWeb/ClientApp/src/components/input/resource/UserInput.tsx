@@ -1,9 +1,10 @@
 import { FunctionComponent, useEffect, useState } from "react";
 import { useAPI, useControllableState, useSequentialRequest } from "hooks";
 import { UserAPI, User, UserSearcheableAttribute } from "library/api";
+import { UserIcon } from "components/icons";
+import { JoinContainer, JoinInputLabel } from "components/join";
 import ComboboxInput from "../general/ComboboxInput";
 import OptionInput from "../general/OptionInput";
-import { UserIcon } from "components/icons";
 
 /**
  * Converts a query string entered by the user to a request for user information.
@@ -100,58 +101,30 @@ const UserInput: FunctionComponent<UserInputProps> = ({
 
   return (
     /* We render a combobox based on the current user query. */
-    <span
-      style={{
-        display: "flex",
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          alignSelf: "stretch",
-          width: "1.5em",
-          textAlign: "center",
-          margin: "0",
-          padding: "0",
-          border: "1px solid var(--color-stroke-faint)",
-          borderRadius: "var(--border-radius)",
-          borderRight: "none",
-          borderTopRightRadius: 0,
-          borderBottomRightRadius: 0,
-          background: "none",
-        }}
-      >
+    <JoinContainer direction="horizontal" grow="grow-last">
+      <JoinInputLabel>
         <UserIcon />
-      </div>
-      <span
-        className="join-left"
-        style={{
-          flexGrow: 1,
-        }}
+      </JoinInputLabel>
+      <ComboboxInput
+        text={query}
+        value={actualValue}
+        onTextChanged={setQuery}
+        onValueChanged={setValue}
       >
-        <ComboboxInput
-          text={query}
-          value={actualValue}
-          onTextChanged={setQuery}
-          onValueChanged={setValue}
-        >
-          {/* If there are no users found in the search, display as such. Notice that a non-value option works here. */}
-          {users.length === 0 && <OptionInput>No users found</OptionInput>}
+        {/* If there are no users found in the search, display as such. Notice that a non-value option works here. */}
+        {users.length === 0 && <OptionInput>No users found</OptionInput>}
 
-          {/* Each combobox option displays as `{firstName} {lastName} (@{userName})`. */}
-          {users.map((user) => (
-            <OptionInput key={user.id} value={user} alias={`@${user.name}`}>
-              {user.firstName} {user.lastName}{" "}
-              <span style={{ color: "var(--color-stroke-lowlight)" }}>
-                (@{user.name})
-              </span>
-            </OptionInput>
-          ))}
-        </ComboboxInput>
-      </span>
-    </span>
+        {/* Each combobox option displays as `{firstName} {lastName} (@{userName})`. */}
+        {users.map((user) => (
+          <OptionInput key={user.id} value={user} alias={`@${user.name}`}>
+            {user.firstName} {user.lastName}{" "}
+            <span style={{ color: "var(--color-stroke-lowlight)" }}>
+              (@{user.name})
+            </span>
+          </OptionInput>
+        ))}
+      </ComboboxInput>
+    </JoinContainer>
   );
 };
 

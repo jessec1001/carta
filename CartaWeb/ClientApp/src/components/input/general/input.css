@@ -53,30 +53,13 @@
 }
 /* #endregion */
 
-/* #region Dropdown */
-.form-dropdown {
-  /* This allows the dropdown arrow icon to display at the correct position.*/
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-.toggled .form-dropdown {
+/* #region Form controls */
+.toggled .form-control {
   /* When the dropdown is toggled, the header should join with the dropdown list. */
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
 
   /* The border color should become emphasized when focused. */
   border-color: var(--color-primary);
-}
-.form-dropdown-value {
-  flex-grow: 1;
-}
-/* #endregion */
-
-/* #region Combobox */
-.toggled .input-combobox {
-  /* When the combobox is toggled, the header should join with the dropdown list. */
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
 }
 /* #endregion */

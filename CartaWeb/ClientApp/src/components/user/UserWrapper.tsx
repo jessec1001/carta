@@ -16,28 +16,28 @@ const UserWrapper: FunctionComponent = ({ children }) => {
   const [authTimestamp, setAuthTimestamp] = useStoredState(0, "authTimestamp");
   const [authenticated, setAuthenticated] = useState<boolean>(false);
 
-  // We check for authentication when this component is initialized.
+  // Get the user information if they appear to be authenticated.
   useEffect(() => {
-    (async () => {
-      if (await userAPI.isAuthenticated()) {
-        setUser(await userAPI.getUserInfo());
-        setAuthenticated(true);
-      }
-    })();
-  }, [userAPI]);
+    if (Date.now() - authTimestamp < maxAuthTimespan) {
+      (async () => {
+        if (await userAPI.isAuthenticated()) {
+          setUser(await userAPI.getUserInfo());
+          setAuthenticated(true);
+        }
+      })();
+    }
+  }, [userAPI, authTimestamp, maxAuthTimespan]);
 
-  // Depending on the authentication timestamp, we set a timer to automatically refresh authentication state.
+  // Set a timer to automatically deauthenticate user when their session appears to expire.
   useEffect(() => {
     // We only setup/teardown a timer if the user is authenticated.
-    if (authenticated) {
-      const authenticationRefreshId = setTimeout(() => {
-        // When the timer callback is hit, we clear the user.
-        setUser(null);
-        setAuthenticated(false);
-      }, maxAuthTimespan - (Date.now() - authTimestamp));
-      return () => clearTimeout(authenticationRefreshId);
-    }
-  }, [authenticated, authTimestamp, maxAuthTimespan]);
+    const authenticationRefreshId = setTimeout(() => {
+      // When the timer callback is hit, we clear the user.
+      setUser(null);
+      setAuthenticated(false);
+    }, Math.max(0, maxAuthTimespan - (Date.now() - authTimestamp)));
+    return () => clearTimeout(authenticationRefreshId);
+  }, [authTimestamp, maxAuthTimespan]);
 
   // Prepare functions to handle sign in and sign out requests.
   const handleSignIn = async () => {

@@ -1,7 +1,10 @@
 import React, { FunctionComponent, useState } from "react";
+import { InputAugment, InputAugmentContainer } from "../augment";
 import OptionSelectorInput from "./OptionSelectorInput";
 import OptionInput, { OptionInputProps } from "./OptionInput";
 import TextFieldInput from "./TextFieldInput";
+
+import "./input.css";
 
 /** The props used for the {@link ComboboxInput} component. */
 interface ComboboxInputProps {
@@ -52,7 +55,7 @@ const ComboboxInput: FunctionComponent<ComboboxInputProps> = ({
     <OptionSelectorInput toggled={toggled} onSelect={onValueChanged}>
       {/* This text field will end up in the header of the option selector input. */}
       {/* When this text input is focused or blurred, the option visibility is toggled on or off respectively. */}
-      <span>
+      <InputAugmentContainer side="right">
         <TextFieldInput
           value={value === null ? text : valueString}
           onChange={onTextChanged}
@@ -61,22 +64,11 @@ const ComboboxInput: FunctionComponent<ComboboxInputProps> = ({
           className="input-combobox"
         />
         {value !== null && (
-          <span
-            className="input-augment"
-            style={{
-              position: "absolute",
-              right: "0%",
-              top: "50%",
-              transform: "translate(0, -50%)",
-              cursor: "pointer",
-              padding: "0rem 0.5rem",
-              color: "var(--color-primary)",
-            }}
-          >
+          <InputAugment style={{ color: "var(--color-primary)" }}>
             ✓
-          </span>
+          </InputAugment>
         )}
-      </span>
+      </InputAugmentContainer>
       {children}
     </OptionSelectorInput>
   );

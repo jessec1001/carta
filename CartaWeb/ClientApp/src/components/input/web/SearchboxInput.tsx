@@ -1,48 +1,26 @@
-import React, { FunctionComponent } from "react";
+import { FunctionComponent } from "react";
 import { useControllableState } from "hooks";
 import { SearchIcon } from "components/icons";
-import { TextFieldInput } from "components/input";
-import classNames from "classnames";
-
-import "./inputs-web.css";
-
-interface JoinProps {
-  direction: "horizontal" | "vertical";
-}
-
-const Join: FunctionComponent<JoinProps> = ({ direction, children }) => {
-  const childCount = React.Children.count(children);
-  return (
-    <span
-      style={{
-        display: "flex",
-      }}
-    >
-      {React.Children.map(children, (child, index) => (
-        <span
-          key={index}
-          className={classNames({
-            "join-left": direction === "horizontal" && index > 0,
-            "join-right": direction === "horizontal" && index + 1 < childCount,
-            "join-top": direction === "vertical" && index > 0,
-            "join-bototm": direction === "vertical" && index + 1 < childCount,
-          })}
-        >
-          {child}
-        </span>
-      ))}
-    </span>
-  );
-};
+import {
+  InputAugment,
+  InputAugmentContainer,
+  TextFieldInput,
+} from "components/input";
+import { JoinContainer, JoinInputButton } from "components/join";
 
 /** The props used for the {@link SearchboxInput} component. */
 interface SearchboxInputProps {
+  /** Whether the searchbox is clearable via an augment. */
   clearable?: boolean;
+  /** Whether the searchbox is searcheable via a search button. */
   searchable?: boolean;
 
+  /** The search text currently inside the searchbox. */
   value?: string;
 
+  /** The event handler for when the text entered by the user has changed. */
   onChange?: (value: string) => void;
+  /** The event handler for when the search button has been clicked. */
   onSearch?: (value: string) => void;
 }
 
@@ -59,69 +37,28 @@ const SearchboxInput: FunctionComponent<SearchboxInputProps> = ({
   const [actualValue, setValue] = useControllableState("", value, onChange);
 
   return (
-    <span
-      style={{
-        display: "flex",
-      }}
-    >
-      <span
-        className={
-          searchable ? "input-augmented join-right" : "input-augmented"
-        }
-        style={{
-          position: "relative",
-          flexGrow: 1,
-        }}
-      >
+    <JoinContainer direction="horizontal" grow="grow-first">
+      {/* Render the optional clear button as an augment. */}
+      <InputAugmentContainer side="right">
         <TextFieldInput
           value={actualValue}
           placeholder="Search"
           onChange={(value) => setValue(value)}
         />
         {clearable && (
-          <span
-            className="input-augment"
-            style={{
-              position: "absolute",
-              right: "0%",
-              top: "50%",
-              transform: "translate(0, -50%)",
-              cursor: "pointer",
-              padding: "0rem 0.5rem",
-            }}
-            onClick={() => setValue("")}
-          >
+          <InputAugment interactive onClick={() => setValue("")}>
             ×
-          </span>
+          </InputAugment>
         )}
-      </span>
-      <span
-        style={{
-          flexGrow: 0,
-        }}
-      >
-        {searchable && (
-          <button
-            className="join-left"
-            onClick={() => onSearch && onSearch(actualValue)}
-            style={{
-              width: "2em",
-              height: "100%",
-              textAlign: "center",
-              border: "none",
-              margin: "0",
-              padding: "0",
-              backgroundColor: "var(--color-primary)",
-              borderRadius: "var(--border-radius)",
-              borderTopLeftRadius: 0,
-              borderBottomLeftRadius: 0,
-            }}
-          >
-            <SearchIcon />
-          </button>
-        )}
-      </span>
-    </span>
+      </InputAugmentContainer>
+
+      {/* Render the optional search button as a join. */}
+      {searchable && (
+        <JoinInputButton onClick={() => onSearch && onSearch(actualValue)}>
+          <SearchIcon />
+        </JoinInputButton>
+      )}
+    </JoinContainer>
   );
 };
 

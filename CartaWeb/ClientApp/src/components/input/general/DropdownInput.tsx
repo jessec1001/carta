@@ -8,6 +8,7 @@ import React, {
 import { useControllableState } from "hooks";
 import { Modify } from "types";
 import { CaretIcon } from "components/icons";
+import { InputAugment, InputAugmentContainer } from "../augment";
 import OptionSelectorInput from "./OptionSelectorInput";
 import OptionInput, { OptionInputProps } from "./OptionInput";
 
@@ -60,10 +61,14 @@ const DropdownInput: FunctionComponent<
   // Render a custom component that emulates a select/option input.
   return (
     <OptionSelectorInput toggled={toggled} onSelect={setValue}>
-      <div className="form-control form-dropdown" ref={headerElement}>
-        <span className="form-dropdown-value">{valueComponent}</span>
-        <CaretIcon />
-      </div>
+      <InputAugmentContainer side="right">
+        <div className="form-control" ref={headerElement}>
+          {valueComponent}
+        </div>
+        <InputAugment>
+          <CaretIcon />
+        </InputAugment>
+      </InputAugmentContainer>
       {children}
     </OptionSelectorInput>
   );

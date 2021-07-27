@@ -1,0 +1,82 @@
+/* #region Join container */
+.join-container {
+  display: flex;
+}
+.join-container > * {
+  flex-grow: 0;
+}
+.join-container > .grow {
+  flex-grow: 1;
+}
+.join-container.horizontal {
+  flex-direction: row;
+}
+.join-container.vertical {
+  flex-direction: column;
+}
+/* #endregion */
+
+/* #region Join element */
+.join-right * {
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+.join-left * {
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+}
+.join-top * {
+  border-top-left-radius: 0 !important;
+  border-top-right-radius: 0 !important;
+}
+.join-bottom * {
+  border-bottom-left-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+/* #endregion */
+
+/* #region Join input element */
+.join-input {
+  /* Typical joined input elements should be sized large enough to fit an icon. */
+  display: flex;
+  width: 1.5em;
+  height: 100%;
+
+  /* There should be no extra spacing for joined input elements. */
+  margin: 0;
+  padding: 0;
+
+  /* Items inside the joined input element should be perfectly centered. */
+  align-items: center;
+  align-self: stretch;
+  justify-content: center;
+  text-align: center;
+
+  /* Typical joined input elements should have a faint border. */
+  border: 1px solid var(--color-stroke-faint);
+  border-radius: var(--border-radius);
+  background-color: var(--color-fill-element);
+}
+
+.join-input-button {
+  /* Joined input buttons should be wider without a border and a primary color fill. */
+  width: 2em;
+  border: none;
+  background-color: var(--color-primary);
+  color: var(--color-primary-stroke);
+}
+
+/* Depending on the direction of the join, we need to remove a border from a label. */
+.join-right .join-input-label {
+  border-right: none;
+}
+.join-left .join-input-label {
+  border-left: none;
+}
+.join-top .join-input-label {
+  border-top: none;
+}
+.join-bottom .join-input-label {
+  border-bottom: none;
+}
+/* #endregion */

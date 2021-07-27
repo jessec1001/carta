@@ -1,0 +1,35 @@
+/* #region Input augment */
+.input-augment {
+  display: flex;
+
+  position: absolute;
+  transform: translate(0, -50%);
+  padding: 0rem 0.5rem;
+}
+.input-augment.interactive {
+  cursor: pointer;
+}
+/* #endregion */
+
+/* #region Input augment form control */
+.input-augment-container.left .form-control {
+  padding-left: 1.5em;
+}
+.input-augment-container.right .form-control {
+  padding-right: 1.5em;
+}
+/* #endregion */
+
+/* #region Input augment container */
+.input-augment-container {
+  position: relative;
+}
+.input-augment-container.left .input-augment {
+  left: 0%;
+  top: 50%;
+}
+.input-augment-container.right .input-augment {
+  right: 0%;
+  top: 50%;
+}
+/* #endregion */

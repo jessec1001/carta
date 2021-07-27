@@ -8,6 +8,7 @@ import React, {
 import classNames from "classnames";
 import OptionInput, { OptionInputProps } from "./OptionInput";
 
+/** The props used for the {@link OptionSelectorInput} component. */
 interface OptionSelectorInputProps {
   /** Whether the option selector menu is toggled to be visible. */
   toggled?: boolean;
@@ -18,6 +19,7 @@ interface OptionSelectorInputProps {
   onSelect?: (value: any) => void;
 }
 
+/** A component that allows for any of multiple {@link OptionInput} components to have their value selected. */
 const OptionSelectorInput: FunctionComponent<OptionSelectorInputProps> = ({
   toggled,
   onSelect,
