@@ -6,12 +6,8 @@ namespace CartaWeb.Models.DocumentItem
     /// <summary>
     /// Represents information about data set storage
     /// </summary>
-    public class DatasetItem
+    public class DatasetItem : Item
     {
-        /// <summary>
-        /// The unique data set identifier, generated when persisting the data set under a workspace
-        /// </summary>
-        public string Id { get; set; }
         /// <summary>
         /// The data source
         /// </summary>
@@ -37,20 +33,56 @@ namespace CartaWeb.Models.DocumentItem
         /// </summary>
         public int? VersionNumber { get; set; }
 
+        /// <summary>
+        /// Parameterless constructor required for deserialization
+        /// </summary>
+        public DatasetItem() { }
 
         /// <summary>
-        /// Creates a new instance of the <see cref="DatasetItem"/> class
+        /// Creates a new instance of the <see cref="DatasetItem"/> class, used to persist a new data set item.
         /// </summary>
-        public DatasetItem() {}
-
-        /// <summary>
-        /// Creates a new instance of the <see cref="DatasetItem"/> class
-        /// </summary>
-        public DatasetItem(DataSource source, string resource, UserInformation userInformation)
+        /// <param name="partitionKeyId">The partition key identifier.</param>
+        /// <param name="source">The data source.</param>
+        /// <param name="resource">The data resource.</param>
+        /// <param name="userInformation">Information on the user that created the dataset item.</param>
+        public DatasetItem(string partitionKeyId, DataSource source, string resource, UserInformation userInformation)
         {
+            PartitionKeyId = partitionKeyId;
             Source = source;
             Resource = resource;
             DocumentHistory = new DocumentHistory(userInformation);
+        }
+
+        /// <summary>
+        /// Constructor, used to create an instance for reading all items stored under the partition key identifier. 
+        /// </summary>
+        /// <param name="partitionKeyId">The partition key identifier.</param>
+        public DatasetItem(string partitionKeyId) : base(partitionKeyId) { }
+
+        /// <summary>
+        /// Constructor, used to create an instance for reading the item stored under the partition and sort key
+        /// identifiers. 
+        /// </summary>
+        /// <param name="partitionKeyId">The partition key identifier.</param>
+        /// <param name="id">The document = sort key identifier.</param>
+        public DatasetItem(string partitionKeyId, string id) : base(partitionKeyId, id) { }
+
+        /// <summary>
+        /// Codifies the partition key prefix to use for the document.
+        /// </summary>
+        /// <returns>The partition key prefix.</returns>
+        public override string GetPartitionKeyPrefix()
+        {
+            return "WORKSPACE#";
+        }
+
+        /// <summary>
+        /// Codifies the sort key prefix to use for the document.
+        /// </summary>
+        /// <returns>The sort key prefix.</returns>
+        public override string GetSortKeyPrefix()
+        {
+            return "DATASET#";
         }
     }
 }

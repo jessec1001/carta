@@ -1,20 +1,15 @@
 using System;
 using System.Collections.Generic;
-using System.Security.Claims;
-using System.Text.Json;
 using System.Threading.Tasks;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
-using CartaCore.Serialization.Json;
 using CartaCore.Persistence;
 using CartaCore.Workflow;
-
 using CartaWeb.Models.Data;
 using CartaWeb.Models.DocumentItem;
-
-using NUlid;
 
 namespace CartaWeb.Controllers
 {
@@ -29,48 +24,20 @@ namespace CartaWeb.Controllers
     public class WorkflowController : ControllerBase
     {
         /// <summary>
-        /// Options for serialization
-        /// </summary>
-        private static JsonSerializerOptions JsonOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web);
-
-        static WorkflowController()
-        {
-            JsonOptions.PropertyNameCaseInsensitive = false;
-            JsonOptions.IgnoreNullValues = true;
-            JsonOptions.Converters.Insert(0, new JsonDiscriminantConverter());
-        }
-
-        /// <summary>
         /// The logger for this controller.
         /// </summary>
         private readonly ILogger<WorkflowController> _logger;
 
         /// <summary>
-        /// The NoSQL DB context for this controller
+        /// The persistence object used to read and write from the database
         /// </summary>
-        private readonly INoSqlDbContext _noSqlDbContext;
+        private readonly Persistence _persistence;
 
         /// <inheritdoc />
         public WorkflowController(ILogger<WorkflowController> logger, INoSqlDbContext noSqlDbContext)
         {
             _logger = logger;
-            _noSqlDbContext = noSqlDbContext;
-
-        }
-
-        /// <summary>
-        /// Returns a workflow deserialized from a workflow item JSON string.
-        /// </summary>
-        /// <param name="workflowItemJsonString">A workflow item JSON string.</param>
-        /// <returns>
-        /// The workflow including version number and identifier.
-        /// </returns>
-        protected static WorkflowItem GetWorkflowItem(string workflowItemJsonString)
-        {
-            WorkflowItem workflowItem = JsonSerializer.Deserialize<WorkflowItem>(workflowItemJsonString, JsonOptions);
-            if (workflowItem.Workflow.Id is null) workflowItem.Workflow.Id = workflowItem.Id;
-            workflowItem.Workflow.VersionNumber = workflowItem.VersionInformation.Number;
-            return workflowItem;
+            _persistence = new Persistence(noSqlDbContext);
         }
 
         /// <summary>
@@ -78,25 +45,20 @@ namespace CartaWeb.Controllers
         /// </summary>
         /// <param name="userId">The unique identifier for the user.</param>
         /// <param name="id">The identifier of the workflow.</param>
-        /// <param name="noSqlDbContext">The database context driver</param>
+        /// <param name="persistence">The persistence class used to access the database.</param>
         /// <returns>
         /// The current version number.
         /// </returns>
         public static async Task<int> GetCurrentWorkflowVersionNumber(
             string userId,
             string id,
-            INoSqlDbContext noSqlDbContext
+            Persistence persistence
         )
         {
-            string jsonString = await noSqlDbContext.LoadDocumentStringAsync
-            (
-                Keys.GetUserKey(userId),
-                Keys.GetWorkflowAccessKey(id)
-            );
-            if (jsonString is null) return 0;
-            WorkflowAccessItem workflowAccessItem =
-                JsonSerializer.Deserialize<WorkflowAccessItem>(jsonString, JsonOptions);
-            return workflowAccessItem.VersionInformation.Number;
+            WorkflowAccessItem workflowAccessItem = new WorkflowAccessItem(true, userId, id);
+            workflowAccessItem = (WorkflowAccessItem)await persistence.LoadItemAsync(workflowAccessItem);
+            if (workflowAccessItem is null) return 0;
+            else return workflowAccessItem.VersionInformation.Number;
         }
 
         /// <summary>
@@ -109,27 +71,25 @@ namespace CartaWeb.Controllers
             List<Workflow> workflows = new() { };
 
             // Retrieve temporary working versions of workflows
-            string partitionKey = Keys.GetUserKey(userId);
-            string sortKeyPrefix = Keys.GetWorkflowKey("");
-            List<string> jsonStrings = await _noSqlDbContext.LoadDocumentStringsAsync(partitionKey, sortKeyPrefix);
-            foreach (string jsonString in jsonStrings)
+            WorkflowItem readWorkflowItem = new WorkflowItem(true, userId);
+            List<Item> workflowItems = await _persistence.LoadItemsAsync(readWorkflowItem);
+            foreach (WorkflowItem workflowItem in workflowItems)
             {
-                workflows.Add(GetWorkflowItem(jsonString).Workflow);
+                workflowItem.Workflow.VersionNumber = workflowItem.VersionInformation.Number;
+                workflows.Add(workflowItem.Workflow);
             }
 
             // Retrieve persisted workflows
-            partitionKey = Keys.GetUserKey(userId);
-            sortKeyPrefix = Keys.GetWorkflowAccessKey("");
-            jsonStrings = await _noSqlDbContext.LoadDocumentStringsAsync(partitionKey, sortKeyPrefix);
-            foreach (string jsonString in jsonStrings)
+            WorkflowAccessItem readWorkflowAccessItem = new WorkflowAccessItem(true, userId);
+            List<Item> WorkflowAccessItems =
+                await _persistence.LoadItemsAsync(readWorkflowAccessItem);
+            foreach (WorkflowAccessItem workflowAccessItem in WorkflowAccessItems)
             {
-                WorkflowAccessItem workflowAccessItem =
-                    JsonSerializer.Deserialize<WorkflowAccessItem>(jsonString, JsonOptions);
                 WorkflowItem workflowItem = await LoadWorkflowAsync
                 (
                     workflowAccessItem.Id,
                     workflowAccessItem.VersionInformation.Number,
-                    _noSqlDbContext
+                    _persistence
                 );
                 if (workflowItem != null) workflows.Add(workflowItem.Workflow);
             }
@@ -145,7 +105,7 @@ namespace CartaWeb.Controllers
         /// <param name="versionNumber">The version number of the workflow to get. If not specified, the user's
         /// temporary working version of the workflow is returned if it exists. If no temporary working version exist,
         /// the current version of the workflow is returned.</param>
-        /// <param name="noSqlDbContext">The database context driver.</param>
+        /// <param name="persistence">The persistence class used to access the database.</param>
         /// <returns>
         /// The loaded workflow or <c>null</c> if there is no workflow corresponding to the specified identifier.
         /// </returns>
@@ -153,16 +113,16 @@ namespace CartaWeb.Controllers
             string userId,
             string id,
             int? versionNumber,
-            INoSqlDbContext noSqlDbContext
+            Persistence persistence
         )
         {
             if (versionNumber.HasValue)
             {
-                return await LoadWorkflowAsync(id, versionNumber.Value, noSqlDbContext);
+                return await LoadWorkflowAsync(id, versionNumber.Value, persistence);
             }
             else
             {
-                WorkflowItem workflowItem = await LoadTemporaryWorkflowAsync(userId, id, noSqlDbContext);
+                WorkflowItem workflowItem = await LoadTemporaryWorkflowAsync(userId, id, persistence);
                 if (workflowItem is not null)
                 {
                     Workflow workflow = workflowItem.Workflow;
@@ -172,8 +132,8 @@ namespace CartaWeb.Controllers
                 }
                 else
                 {
-                    int nr = await GetCurrentWorkflowVersionNumber(userId, id, noSqlDbContext);
-                    return await LoadWorkflowAsync(id, nr, noSqlDbContext);
+                    int nr = await GetCurrentWorkflowVersionNumber(userId, id, persistence);
+                    return await LoadWorkflowAsync(id, nr, persistence);
                 }
             }
         }
@@ -182,23 +142,22 @@ namespace CartaWeb.Controllers
         /// Loads a single workflow item asynchronously for the specified workflow identifier.
         /// </summary>
         /// <param name="id">The identifier of the workflow to get.</param>
-        /// <param name="versionNumber">The version number of the workflow to get.
-        /// Defaults to the current version (0) if not set.</param>
-        /// <param name="noSqlDbContext">The database context driver.</param>
+        /// <param name="versionNumber">The version number of the workflow to get.</param>
+        /// <param name="persistence">The persistence class used to access the database.</param>
         /// <returns>
         /// The loaded workflow or <c>null</c> if there is no workflow corresponding to the specified identifier.
         /// </returns>
         public static async Task<WorkflowItem> LoadWorkflowAsync(
             string id,
             int versionNumber,
-            INoSqlDbContext noSqlDbContext
+            Persistence persistence
         )
         {
-            string partitionKey = Keys.GetWorkflowKey(id);
-            string sortKey = Keys.GetVersionKey(versionNumber);
-            string jsonString = await noSqlDbContext.LoadDocumentStringAsync(partitionKey, sortKey);
-            if (jsonString is null) return null;
-            else return GetWorkflowItem(jsonString);
+            WorkflowItem workflowItem = new WorkflowItem(id, versionNumber);
+            Item item = await persistence.LoadItemAsync(workflowItem);
+            workflowItem = (WorkflowItem)item;
+            if (workflowItem is not null) workflowItem.IsTempWorkflow = false;
+            return workflowItem;
         }
 
         /// <summary>
@@ -206,21 +165,21 @@ namespace CartaWeb.Controllers
         /// </summary>
         /// <param name="userId">The unique identifier for the user.</param>
         /// <param name="id">The identifier of the workflow to get.</param>
-        /// <param name="noSqlDbContext">The database context driver</param>
+        /// <param name="persistence">The persistence class used to access the database.</param>
         /// <returns>
         /// The loaded workflow or <c>null</c> if there is no workflow corresponding to the specified identifier.
         /// </returns>
         protected static async Task<WorkflowItem> LoadTemporaryWorkflowAsync(
             string userId,
             string id,
-            INoSqlDbContext noSqlDbContext
+            Persistence persistence
         )
         {
-            string partitionKey = Keys.GetUserKey(userId);
-            string sortKey = Keys.GetWorkflowKey(id);
-            string jsonString = await noSqlDbContext.LoadDocumentStringAsync(partitionKey, sortKey);
-            if (jsonString is null) return null;
-            else return GetWorkflowItem(jsonString);
+            WorkflowItem workflowItem = new WorkflowItem(userId, id);
+            Item item = await persistence.LoadItemAsync(workflowItem);
+            workflowItem = (WorkflowItem)item;
+            if (workflowItem is not null) workflowItem.IsTempWorkflow = true;
+            return workflowItem;
         }
 
         /// <summary>
@@ -235,12 +194,11 @@ namespace CartaWeb.Controllers
             List<VersionInformation> list = new() { };
 
             // Retrieve version information
-            string partitionKey = Keys.GetWorkflowKey(id);
-            string sortKeyPrefix = Keys.GetVersionKeyPrefix();
-            List<string> jsonStrings = await _noSqlDbContext.LoadDocumentStringsAsync(partitionKey, sortKeyPrefix);
-            foreach (string jsonString in jsonStrings)
+            WorkflowItem readWorkflowItem = new WorkflowItem(false, id);
+            List<Item> workflowItems = await _persistence.LoadItemsAsync(readWorkflowItem);
+            foreach (WorkflowItem workflowItem in workflowItems)
             {
-                list.Add(JsonSerializer.Deserialize<WorkflowItem>(jsonString, JsonOptions).VersionInformation);
+                list.Add(workflowItem.VersionInformation);
             }
 
             // Sort the list by version number (decreasing)
@@ -249,143 +207,44 @@ namespace CartaWeb.Controllers
             return list;
         }
 
-        /// <summary>
-        /// Saves a single workflow asynchronously under the given version
-        /// </summary>
-        /// <param name="userId">The unique identifier for the user.</param>
-        /// <param name="id">The unique identifier for the workflow.</param>
-        /// <param name="workflow">The workflow object.</param>
-        /// <param name="versionInformation">Workflow version information.</param>
-        protected async Task SaveWorkflowAsync(
-            string userId,
-            string id,
-            Workflow workflow,
-            VersionInformation versionInformation)
-        {
-            await _noSqlDbContext.SaveDocumentStringAsync
-            (
-                Keys.GetWorkflowKey(id),
-                Keys.GetVersionKey(versionInformation.Number),
-                JsonSerializer.Serialize<WorkflowItem>(new WorkflowItem(workflow, versionInformation), JsonOptions)
-            );
-        }
 
         /// <summary>
-        /// Saves a single workflow asynchronously as the user's temporary working version.
-        /// </summary>
-        /// <param name="userId">The unique identifier for the user.</param>
-        /// <param name="id">The unique identifier for the workflow.</param>
-        /// <param name="workflow">The workflow object.</param>
-        /// <param name="versionInformation">Workflow version information.</param>
-        protected async Task SaveTemporaryWorkflowAsync(
-            string userId,
-            string id,
-            Workflow workflow,
-            VersionInformation versionInformation)
-        {
-            // Make sure that the operations list exists.
-            workflow.Operations = workflow.Operations ?? new List<WorkflowOperation>();
-
-            // Write the item.
-            await _noSqlDbContext.SaveDocumentStringAsync
-            (
-                Keys.GetUserKey(userId),
-                Keys.GetWorkflowKey(id),
-                JsonSerializer.Serialize<WorkflowItem>(new WorkflowItem(workflow, versionInformation), JsonOptions)
-            );
-
-            // Delete access through the workflow access item
-            await DeleteWorkflowAsync(userId, id);
-        }
-
-        /// <summary>
-        /// Updates a single workflow asynchronously specified by an identifier and version number by merging in another
-        /// workflow and its properties.
+        /// Saves a workflow as a user's temporary workflow
         /// </summary>
         /// <param name="userId">The unique identifier for the user.</param>
         /// <param name="id">The identifier of the workflow to update.</param>
-        /// <param name="workflow">The workflow whose properties should be merged in.</param>
-        /// <param name="versionNumber">The version number of the workflow whose properties should be merged in.</param>
-        /// <returns>The updated workflow.</returns>
-        protected async Task<Workflow> UpdateWorkflowAsync(
+        /// <param name="workflowItem">The workflowItem that should be persisted.</param>
+        /// <returns>true if the workflow was updated successfully, else false.</returns>
+        protected async Task<bool> SaveTemporaryWorkflowAsync(
             string userId,
             string id,
-            Workflow workflow,
-            int? versionNumber)
+            WorkflowItem workflowItem)
         {
-            // We get the stored workflow first so we can perform updates on it.
-            WorkflowItem storedWorkflowItem = await LoadWorkflowAsync(userId, id, versionNumber, _noSqlDbContext);
-            Workflow storedWorkflow = null;
+            WorkflowItem saveWorkflowItem = new WorkflowItem
+            (
+                true,
+                userId,
+                workflowItem.Workflow,
+                workflowItem.VersionInformation
+            );
 
-            if (storedWorkflowItem is null)
-                // The stored workflow does not exist so we just assign the entire object.
-                storedWorkflow = workflow;
+            WorkflowAccessItem readWorkflowAccessItem = new WorkflowAccessItem(true, userId, id);
+            Item readItem = await _persistence.LoadItemAsync(readWorkflowAccessItem);
+            if (readItem is null)
+            {
+                return await _persistence.WriteDbDocumentAsync(saveWorkflowItem.SaveDbDocument());
+            }
             else
             {
-                // Copy over all the properties if specified on the updating object.
-                storedWorkflow = storedWorkflowItem.Workflow;
-                storedWorkflow.Name = workflow.Name ?? storedWorkflow.Name;
-                storedWorkflow.Operations = workflow.Operations ?? storedWorkflow.Operations;
-            }
-            await SaveTemporaryWorkflowAsync(userId, id, workflow, storedWorkflowItem.VersionInformation);
-            return storedWorkflow;
+                // Also delete the workflow access item 
+                WorkflowAccessItem deleteWorkflowAccessItem = new WorkflowAccessItem(true, userId, id);
+                return await _persistence.WriteDbDocumentsAsync(new List<DbDocument>
+                {
+                    saveWorkflowItem.SaveDbDocument(),
+                    deleteWorkflowAccessItem.DeleteDbDocument()
+                });
+            }      
         }
-
-        /// <summary>Updates the version that a user has access to.</summary>
-        /// <param name="userId">The unique identifier for the user.</param>
-        /// <param name="id">The unique identifier for the workflow.</param>
-        /// <param name="workflowName">The workflow name.</param>
-        /// <param name="versionInformation">Version information for the workflow.</param>
-        protected async Task UpdateWorkflowAccessAsync(
-            string userId,
-            string id,
-            string workflowName,
-            VersionInformation versionInformation)
-        {
-            // Persist that the user has access to the workflow
-            WorkflowAccessItem workflowAccessItem = new WorkflowAccessItem
-            (
-                id,
-                workflowName,
-                versionInformation
-            );
-            string jsonString = JsonSerializer.Serialize<WorkflowAccessItem>(workflowAccessItem, JsonOptions);
-            await _noSqlDbContext.SaveDocumentStringAsync
-            (
-                Keys.GetUserKey(userId),
-                Keys.GetWorkflowAccessKey(id),
-                jsonString
-            );
-
-            // Delete access through the temporary workflow item
-            await DeleteTemporaryWorkflowAsync(userId, id);
-        }
-
-        /// <summary>
-        /// Deletes a user's temporary workflow specified by an identifier.
-        /// </summary>
-        /// <param name="userId">The unique identifier for the user.</param>
-        /// <param name="id">The identifier of the workflow to delete.</param>
-        protected async Task<bool> DeleteTemporaryWorkflowAsync(string userId, string id)
-        {
-            return await _noSqlDbContext.DeleteDocumentStringAsync(Keys.GetUserKey(userId), Keys.GetWorkflowKey(id));
-        }
-
-
-        /// <summary>
-        /// Deletes a user's access to a workflow identified by an identifier.
-        /// </summary>
-        /// <param name="userId">The unique identifier for the user.</param>
-        /// <param name="id">The identifier of the workflow to delete.</param>
-        protected async Task<bool> DeleteWorkflowAsync(string userId, string id)
-        {
-            return await _noSqlDbContext.DeleteDocumentStringAsync
-            (
-                Keys.GetUserKey(userId),
-                Keys.GetWorkflowAccessKey(id)
-            );
-        }
-
 
         /// <summary>
         /// Gets a list of workflow objects that the user has access to. 
@@ -424,7 +283,7 @@ namespace CartaWeb.Controllers
             [FromQuery(Name = "workflowVersion")] int? nr
         )
         {
-            WorkflowItem workflowItem = await LoadWorkflowAsync(new UserInformation(User).Id, id, nr, _noSqlDbContext);
+            WorkflowItem workflowItem = await LoadWorkflowAsync(new UserInformation(User).Id, id, nr, _persistence);
             if (workflowItem is null) return NotFound();
             else return Ok(workflowItem.Workflow);
         }
@@ -454,7 +313,7 @@ namespace CartaWeb.Controllers
             List<VersionInformation> list = await LoadWorkflowVersionsAsync(id);
 
             // Get the current version number for the user
-            int nr = await GetCurrentWorkflowVersionNumber(new UserInformation(User).Id, id, _noSqlDbContext);
+            int nr = await GetCurrentWorkflowVersionNumber(new UserInformation(User).Id, id, _persistence);
             if (nr == 0) return NotFound();
 
             // Put the current version entry at the top of the list
@@ -513,6 +372,9 @@ namespace CartaWeb.Controllers
         /// The workflow object that was created. An automatically generated identifier will be attached to the returned
         /// object.
         /// </returns>
+        /// <returns status="409">
+        /// Returned when an unexpected database conflict occured when trying to persist the workflow. 
+        /// </returns>
         [Authorize]
         [HttpPost]
         public async Task<ActionResult<Workflow>> PostWorkflow(
@@ -523,22 +385,23 @@ namespace CartaWeb.Controllers
             UserInformation userInformation = new UserInformation(User);
             WorkflowItem workflowItem = new WorkflowItem
             (
+                true,
+                userInformation.Id,
                 workflow,
                 new VersionInformation(0, null, userInformation)
             );
 
-            // Write the item.
-            string json = JsonSerializer.Serialize<WorkflowItem>(workflowItem, JsonOptions);
-            string id = await _noSqlDbContext.CreateDocumentStringAsync
-            (
-                Keys.GetUserKey(userInformation.Id),
-                Keys.GetWorkflowKey(""),
-                json
-            );
-
-            // Return the workflow with the created ID set
-            workflow.Id = id;
-            return Ok(workflow);
+            // Write the item
+            bool isCreated = await _persistence.WriteDbDocumentAsync(workflowItem.CreateDbDocument());
+            if (isCreated)
+            {
+                return Ok(workflow);
+            }
+            else
+            {
+                _logger.LogWarning($"User {userInformation.Name} could not post workflow {workflow.Name}"); 
+                return Conflict();
+            }
         }
 
         /// <summary>
@@ -555,6 +418,9 @@ namespace CartaWeb.Controllers
         /// <returns status="404">
         /// Occurs if the workflow with the specified identifier has no temporary working version.
         /// </returns>
+        /// <returns status="409">
+        /// Returned when an unexpected database conflict occured when trying to persist the workflow version.
+        /// </returns>
         [Authorize]
         [HttpPost("{id}/versions")]
         public async Task<ActionResult<VersionInformation>> PostWorkflowVersion(
@@ -564,50 +430,59 @@ namespace CartaWeb.Controllers
         {
             // Retrieve the temporary working version of a workflow
             UserInformation userInformation = new UserInformation(User);
-            WorkflowItem workflowItem = await LoadTemporaryWorkflowAsync
-            (
-                userInformation.Id,
-                id,
-                _noSqlDbContext
-            );
+            string userId = userInformation.Id;
+            WorkflowItem workflowItem = await LoadTemporaryWorkflowAsync(userId, id, _persistence);
             if (workflowItem is null)
             {
                 _logger.LogWarning($"Temporary workflow {id} could not be found for creating a new version");
                 return NotFound();
             }
 
-            // Get the maximum version number
+            // Get the maximum version number and update version information
             int maxVersionNumber = 0;
-            List <VersionInformation> versionInformationList = await LoadWorkflowVersionsAsync(id);
+            List<VersionInformation> versionInformationList = await LoadWorkflowVersionsAsync(id);
             if (versionInformationList.Count > 0) maxVersionNumber = versionInformationList[0].Number;
-                
-            // Update version information
             workflowItem.VersionInformation.BaseNumber = workflowItem.VersionInformation.Number;
             workflowItem.VersionInformation.Number = ++maxVersionNumber;
             workflowItem.VersionInformation.Description = description;
             workflowItem.VersionInformation.CreatedBy = userInformation;
             workflowItem.VersionInformation.DateCreated = DateTime.Now;
 
-            // Persist the new version
-            await SaveWorkflowAsync
+            // Perform the database write operations
+            WorkflowItem saveWorkflowItem = new WorkflowItem
             (
-                userInformation.Id,
+                false,
                 id,
                 workflowItem.Workflow,
                 workflowItem.VersionInformation
             );
-
-            // Persist that the user has access to that workflow and version
-            await UpdateWorkflowAccessAsync
+            WorkflowAccessItem saveWorkflowAccessItem = new WorkflowAccessItem
             (
-                userInformation.Id,
+                true,
+                userId,
                 id,
                 workflowItem.Workflow.Name,
                 workflowItem.VersionInformation
             );
-
+            WorkflowItem deleteTempWorkflowItem = new WorkflowItem(userId, id);
+            bool isSaved = await _persistence.WriteDbDocumentsAsync(new List<DbDocument>
+            {
+                saveWorkflowItem.SaveDbDocument(),
+                saveWorkflowAccessItem.SaveDbDocument(),
+                deleteTempWorkflowItem.DeleteDbDocument()
+            });
+            
             // Return the version information
-            return Ok(workflowItem.VersionInformation);
+            if (isSaved)
+            {
+                return Ok(workflowItem.VersionInformation);
+            }
+            else
+            {
+                _logger.LogWarning($"User {userInformation.Name} could not post a new version of workflow " +
+                    $"{workflowItem.Workflow.Name}");
+                return Conflict();
+            }
         }
 
         /// <summary>
@@ -628,6 +503,9 @@ namespace CartaWeb.Controllers
         /// <returns status="404">
         /// Occurs if the workflow with the specified identifier and version number does not exist. 
         /// </returns>
+        /// <returns status="409">
+        /// Returned when an unexpected database conflict occured when trying to persist the workflow version.
+        /// </returns>
         [Authorize]
         [HttpPatch("{id}/versions")]
         public async Task<ActionResult<VersionInformation>> PatchWorkflowVersion(
@@ -639,20 +517,37 @@ namespace CartaWeb.Controllers
             if (nr <= 0) return BadRequest();
 
             // Get the workflow and version information of the specified version number
-            WorkflowItem workflowItem = await LoadWorkflowAsync(id, nr, _noSqlDbContext);
+            WorkflowItem workflowItem = await LoadWorkflowAsync(id, nr, _persistence);
             if (workflowItem is null) return NotFound();
 
-            // Persist the version that the user has access to
-            await UpdateWorkflowAccessAsync
+            // Perform the database write operations
+            string userId = new UserInformation(User).Id;
+            WorkflowAccessItem saveWorkflowAccessItem = new WorkflowAccessItem
             (
-                new UserInformation(User).Id,
+                true,
+                userId,
                 id,
                 workflowItem.Workflow.Name,
                 workflowItem.VersionInformation
             );
+            WorkflowItem deleteWorkflowItem = new WorkflowItem(userId, id);
+            bool isSaved = await _persistence.WriteDbDocumentsAsync(new List<DbDocument>
+            {
+                saveWorkflowAccessItem.SaveDbDocument(),
+                deleteWorkflowItem.DeleteDbDocument()
+            });
 
-            // Return version information
-            return workflowItem.VersionInformation;
+            // Return the version information
+            if (isSaved)
+            {
+                return Ok(workflowItem.VersionInformation);
+            }
+            else
+            {
+                _logger.LogWarning($"User {new UserInformation(User).Name} could not patch version {nr} of workflow " +
+                    $"{workflowItem.Workflow.Name}");
+                return Conflict();
+            }
         }
 
         /// <summary>
@@ -673,8 +568,18 @@ namespace CartaWeb.Controllers
         )
         {
             string userId = new UserInformation(User).Id;
-            bool deleted = await DeleteTemporaryWorkflowAsync(userId, id);
-            if (!deleted) deleted = await DeleteWorkflowAsync(userId, id);
+
+            // First try and delete the workflow access item
+            WorkflowAccessItem deleteWorkflowAccessItem = new WorkflowAccessItem(true, userId, id);
+            bool deleted = await _persistence.WriteDbDocumentAsync(deleteWorkflowAccessItem.DeleteDbDocument());
+
+            // If the workflow access item does not exist, this is a temporary workflow to delete
+            if (!deleted)
+            {
+                WorkflowItem deleteWorkflowItem = new WorkflowItem(userId, id);
+                deleted = await _persistence.WriteDbDocumentAsync(deleteWorkflowItem.DeleteDbDocument());
+            }
+
             if (deleted) return Ok(); else return NotFound();
         }
 
@@ -703,7 +608,7 @@ namespace CartaWeb.Controllers
             [FromQuery(Name = "workflowVersion")] int? nr
         )
         {
-            WorkflowItem workflowItem = await LoadWorkflowAsync(new UserInformation(User).Id, id, nr, _noSqlDbContext);
+            WorkflowItem workflowItem = await LoadWorkflowAsync(new UserInformation(User).Id, id, nr, _persistence);
             if (workflowItem is null) return NotFound();
             else return Ok(workflowItem.Workflow.Operations);
         }
@@ -744,7 +649,7 @@ namespace CartaWeb.Controllers
         )
         {
             // Get the workflow.
-            WorkflowItem workflowItem = await LoadWorkflowAsync(new UserInformation(User).Id, id, nr, _noSqlDbContext);
+            WorkflowItem workflowItem = await LoadWorkflowAsync(new UserInformation(User).Id, id, nr, _persistence);
             if (workflowItem is null) return NotFound();
 
             // Convert the index and get the operation.
@@ -820,6 +725,9 @@ namespace CartaWeb.Controllers
         /// <returns status="404">
         /// Occurs when there is no workflow corresponding to the specified identifier.
         /// </returns>
+        /// <returns status="409">
+        /// Returned when an unexpected database conflict occured when trying to persist the workflow. 
+        /// </returns>
         [Authorize]
         [HttpPost("{id}/operations/{index?}")]
         public async Task<ActionResult<WorkflowOperation>> InsertWorkflowOperation(
@@ -831,7 +739,7 @@ namespace CartaWeb.Controllers
         {
             // Get the workflow.
             string userId = new UserInformation(User).Id;
-            WorkflowItem workflowItem = await LoadWorkflowAsync(userId, id, nr, _noSqlDbContext);
+            WorkflowItem workflowItem = await LoadWorkflowAsync(userId, id, nr, _persistence);
             if (workflowItem is null) return NotFound();
 
             // Try to perform the insertion.
@@ -846,8 +754,16 @@ namespace CartaWeb.Controllers
             else workflowItem.Workflow.Operations.Add(operation);
                 
             // Save the changes to the workflow.
-            await UpdateWorkflowAsync(userId, id, workflowItem.Workflow, nr);
-            return Ok(operation);
+            bool updated = await SaveTemporaryWorkflowAsync(userId, id, workflowItem);
+            if (updated)
+            {
+                return Ok(operation);
+            }
+            else
+            {
+                _logger.LogWarning($"Operation for workflow {workflowItem.Workflow.Name} could not be inserted");
+                return Conflict();
+            }
         }
 
         /// <summary>
@@ -899,6 +815,9 @@ namespace CartaWeb.Controllers
         /// <returns status="404">
         /// Occurs when there is no workflow corresponding to the specified identifier.
         /// </returns>
+        /// <returns status="409">
+        /// Returned when an unexpected database conflict occured when trying to persist the workflow. 
+        /// </returns>
         [Authorize]
         [HttpPatch("{id}/operations/{index}")]
         public async Task<ActionResult<WorkflowOperation>> PatchWorkflowOperation(
@@ -910,7 +829,7 @@ namespace CartaWeb.Controllers
         {
             // Get the workflow.
             string userId = new UserInformation(User).Id;
-            WorkflowItem workflowItem = await LoadWorkflowAsync(userId, id, nr, _noSqlDbContext);
+            WorkflowItem workflowItem = await LoadWorkflowAsync(userId, id, nr, _persistence);
             if (workflowItem is null) return NotFound();
 
             // Try to perform the update.
@@ -926,8 +845,16 @@ namespace CartaWeb.Controllers
                 operation.Actor ?? workflowItem.Workflow.Operations[index].Actor;
 
             // Save the changes to the workflow.
-            await UpdateWorkflowAsync(userId, id, workflowItem.Workflow, nr);
-            return Ok(workflowItem.Workflow.Operations[index]);
+            bool updated = await SaveTemporaryWorkflowAsync(userId, id, workflowItem);
+            if (updated)
+            {
+                return Ok(workflowItem.Workflow.Operations[index]);
+            }
+            else
+            {
+                _logger.LogWarning($"Operation for workflow {workflowItem.Workflow.Name} could not be patched");
+                return Conflict();
+            }            
         }
 
         /// <summary>
@@ -956,6 +883,9 @@ namespace CartaWeb.Controllers
         /// Occurs when there is no workflow corresponding to the specified identifier or there is no workflow operation
         /// corresponding to the specified index.
         /// </returns>
+        /// <returns status="409">
+        /// Returned when an unexpected database conflict occured when trying to persist the workflow. 
+        /// </returns>
         [Authorize]
         [HttpDelete("{id}/operations/{index?}")]
         public async Task<ActionResult> RemoveWorkflowOperation(
@@ -966,7 +896,7 @@ namespace CartaWeb.Controllers
         {
             // Get the workflow.
             string userId = new UserInformation(User).Id;
-            WorkflowItem workflowItem = await LoadWorkflowAsync(userId, id, nr, _noSqlDbContext);
+            WorkflowItem workflowItem = await LoadWorkflowAsync(userId, id, nr, _persistence);
             if (workflowItem is null) return NotFound();
 
             // Try to perform the deletion.
@@ -981,8 +911,16 @@ namespace CartaWeb.Controllers
                 workflowItem.Workflow.Operations.RemoveAt(workflowItem.Workflow.Operations.Count - 1);
 
             // Save the changes to the workflow.
-            await UpdateWorkflowAsync(userId, id, workflowItem.Workflow, nr);
-            return Ok();
+            bool updated = await SaveTemporaryWorkflowAsync(userId, id, workflowItem);
+            if (updated)
+            {
+                return Ok();
+            }
+            else
+            {
+                _logger.LogWarning($"Operation for workflow {workflowItem.Workflow.Name} could not be deleted");
+                return Conflict();
+            }
         }
     }
 }

@@ -127,21 +127,26 @@ namespace CartaTest
         {
             // Test save new and load
             string inJsonString = "{\"field1\":\"value1\"}";
-            await NoSqlDbContext.SaveDocumentStringAsync("pk1", "sk1", inJsonString);
-            string readJsonString = await NoSqlDbContext.LoadDocumentStringAsync("pk1", "sk1");
-            Assert.AreEqual(inJsonString, readJsonString);
+            DbDocument dbDocument = new DbDocument("pk#1", "sk#1", inJsonString, DbOperationEnumeration.Save);
+            bool isSaved = await NoSqlDbContext.WriteDocumentAsync(dbDocument);
+            Assert.IsTrue(isSaved);
+            DbDocument dbDocumentRead = await NoSqlDbContext.ReadDocumentAsync("pk#1", "sk#1");
+            Assert.AreEqual(inJsonString, dbDocumentRead.JsonString);
 
             // Test save update
             inJsonString = "{\"field1\":\"value1b\"}";
-            await NoSqlDbContext.SaveDocumentStringAsync("pk1", "sk1", inJsonString);
-            readJsonString = await NoSqlDbContext.LoadDocumentStringAsync("pk1", "sk1");
-            Assert.AreEqual(inJsonString, readJsonString);
+            dbDocument = new DbDocument("pk#1", "sk#1", inJsonString, DbOperationEnumeration.Save);
+            isSaved = await NoSqlDbContext.WriteDocumentAsync(dbDocument);
+            Assert.IsTrue(isSaved);
+            dbDocumentRead = await NoSqlDbContext.ReadDocumentAsync("pk#1", "sk#1");
+            Assert.AreEqual(inJsonString, dbDocumentRead.JsonString);
 
             // Test delete
-            bool deleted = await NoSqlDbContext.DeleteDocumentStringAsync("pk1", "sk1");
+            bool deleted =
+                await NoSqlDbContext.WriteDocumentAsync(new DbDocument("pk#1", "sk#1", DbOperationEnumeration.Delete));
             Assert.IsTrue(deleted);
-            readJsonString = await NoSqlDbContext.LoadDocumentStringAsync("pk1", "sk1");
-            Assert.IsNull(readJsonString);
+            dbDocumentRead = await NoSqlDbContext.ReadDocumentAsync("pk#1", "sk#1");
+            Assert.IsNull(dbDocumentRead);
         }
 
         /// <summary>
@@ -151,21 +156,23 @@ namespace CartaTest
         public async Task TestLoadDocumentStringsAsync()
         {
             // Test that no records are returned if records do not exist
-            List<string> readJsonStrings = await NoSqlDbContext.LoadDocumentStringsAsync("pk1", "sk1");
-            Assert.AreEqual(0, readJsonStrings.Count);
+            List<DbDocument> readDocs = await NoSqlDbContext.ReadDocumentsAsync("pk#1", "sk#");
+            Assert.AreEqual(0, readDocs.Count);
 
             // Save 2 document strings under the same primary key but different sort keys
             string inJsonString = "{\"field1\":\"value1\"}";
-            await NoSqlDbContext.SaveDocumentStringAsync("pk1", "sk1", inJsonString);
-            await NoSqlDbContext.SaveDocumentStringAsync("pk1", "sk2", inJsonString);
+            await NoSqlDbContext.WriteDocumentAsync(
+                new DbDocument("pk#1", "sk#1", inJsonString, DbOperationEnumeration.Save));
+            await NoSqlDbContext.WriteDocumentAsync(
+                new DbDocument("pk#1", "sk#2", inJsonString, DbOperationEnumeration.Save));
 
             // Test that 2 document strings are returned
-            readJsonStrings = await NoSqlDbContext.LoadDocumentStringsAsync("pk1", "sk");
-            Assert.AreEqual(2, readJsonStrings.Count);
+            readDocs = await NoSqlDbContext.ReadDocumentsAsync("pk#1", "sk#");
+            Assert.AreEqual(2, readDocs.Count);
 
             // Cleanup
-            await NoSqlDbContext.DeleteDocumentStringAsync("pk1", "sk1");
-            await NoSqlDbContext.DeleteDocumentStringAsync("pk1", "sk2");
+            await NoSqlDbContext.WriteDocumentAsync(new DbDocument("pk#1", "sk#1", DbOperationEnumeration.Delete));
+            await NoSqlDbContext.WriteDocumentAsync(new DbDocument("pk#1", "sk#2", DbOperationEnumeration.Delete));
         }
 
         /// <summary>
@@ -176,13 +183,12 @@ namespace CartaTest
         {
             // Test create for record that does not exist
             string inJsonString = "{\"field1\":\"value1\"}";
-            string docId = await NoSqlDbContext.CreateDocumentStringAsync("pk1", "sk", inJsonString);
-            string readJsonString = await NoSqlDbContext.LoadDocumentStringAsync("pk1", "sk" + docId);
-            Assert.IsNotNull(docId);
-            Assert.AreEqual("{\"field1\":\"value1\",\"id\":\"" + docId + "\"}", readJsonString);
-
-            // Cleanup
-            await NoSqlDbContext.DeleteDocumentStringAsync("pk1", "sk" + docId);
+            DbDocument dbDocument = new DbDocument("pk#1", "skcreate1#", inJsonString, DbOperationEnumeration.Create);
+            bool isCreated = await NoSqlDbContext.WriteDocumentAsync(dbDocument);
+            Assert.IsTrue(isCreated);
+            List<DbDocument> dbDocuments = await NoSqlDbContext.ReadDocumentsAsync("pk#1", "skcreate1#");
+            DbDocument dbDocumentRead = dbDocuments[0];
+            Assert.AreEqual(inJsonString, dbDocumentRead.JsonString);
         }
 
         /// <summary>
@@ -193,19 +199,23 @@ namespace CartaTest
         {
             // Test update for record that does not exist
             string inJsonString = "{\"field1\":\"value1\"}";
-            bool updated = await NoSqlDbContext.UpdateDocumentStringAsync("pk1", "sk-not-exist", inJsonString);
+            DbDocument dbDocument = new DbDocument("pk#1", "sk-not-exist", inJsonString, DbOperationEnumeration.Update);
+            bool updated = await NoSqlDbContext.WriteDocumentAsync(dbDocument);
             Assert.IsFalse(updated);
 
             // Test update for record that does exist
-            string docId = await NoSqlDbContext.CreateDocumentStringAsync("pk1", "sk", inJsonString);
+            inJsonString = "{\"field1\":\"value1\"}";
+            dbDocument = new DbDocument("pk#1", "sk#1", inJsonString, DbOperationEnumeration.Save);
+            await NoSqlDbContext.WriteDocumentAsync(dbDocument);
             inJsonString = "{\"field1b\":\"value1b\"}";
-            updated = await NoSqlDbContext.UpdateDocumentStringAsync("pk1", "sk" + docId, inJsonString);
+            dbDocument = new DbDocument("pk#1", "sk#1", inJsonString, DbOperationEnumeration.Update);
+            updated = await NoSqlDbContext.WriteDocumentAsync(dbDocument);
             Assert.IsTrue(updated);
-            string readJsonString = await NoSqlDbContext.LoadDocumentStringAsync("pk1", "sk" + docId);
-            Assert.AreEqual(inJsonString, readJsonString);
+            DbDocument dbDocumentRead = await NoSqlDbContext.ReadDocumentAsync("pk#1", "sk#1");
+            Assert.AreEqual(inJsonString, dbDocumentRead.JsonString);
 
             // Cleanup
-            await NoSqlDbContext.DeleteDocumentStringAsync("pk1", "sk" + docId);
+            await NoSqlDbContext.WriteDocumentAsync(new DbDocument("pk#1", "sk#1", DbOperationEnumeration.Delete));
         }
 
         /// <summary>
@@ -215,9 +225,137 @@ namespace CartaTest
         public async Task TestNotExistDeleteDocumentStringAsync()
         {
             // Test delete
-            bool deleted = await NoSqlDbContext.DeleteDocumentStringAsync("pkx", "sky");
+            bool deleted =
+                await NoSqlDbContext.WriteDocumentAsync(new DbDocument("pk#x", "sky", DbOperationEnumeration.Delete));
             Assert.IsFalse(deleted);
         }
 
+        /// <summary>
+        /// Tests that read operations return false if used with a write instruction
+        /// </summary>
+        [Test]
+        public async Task TestReadOperationWithWrite()
+        {
+            // Test single write
+            bool isRead =
+                await NoSqlDbContext.WriteDocumentAsync(new DbDocument("pk#x", "sky", null, DbOperationEnumeration.Read));
+            Assert.IsFalse(isRead);
+
+            // Test transaction write
+            isRead =
+                await NoSqlDbContext.WriteDocumentsAsync(
+                    new List<DbDocument>() { new DbDocument("pk#x", "sky", null, DbOperationEnumeration.Read) }) ;
+            Assert.IsFalse(isRead);
+        }
+
+        /// <summary>
+        /// Tests that the create, save, update, delete operations work when called with the transaction method
+        /// </summary>
+        [Test]
+        public async Task TestCreateSaveUpdateDeleteSingleWriteTransactions()
+        {
+            // Test create of new item - should succeed
+            string inJsonString = "{\"field1\":\"value1\"}";
+            DbDocument dbDocument = new DbDocument("pk#1", "skcreate2#", inJsonString, DbOperationEnumeration.Create);
+            bool isCreated = await NoSqlDbContext.WriteDocumentsAsync(new List<DbDocument>() { dbDocument });
+            Assert.IsTrue(isCreated);
+            List<DbDocument> dbDocuments = await NoSqlDbContext.ReadDocumentsAsync("pk#1", "skcreate2#");
+            DbDocument dbDocumentRead = dbDocuments[0];
+            Assert.AreEqual(inJsonString, dbDocumentRead.JsonString);
+
+            // Test save of new item - should succeed
+            inJsonString = "{\"field1\":\"value1c\"}";
+            dbDocument = new DbDocument("pk#1", "sk#2", inJsonString, DbOperationEnumeration.Save);
+            bool isSaved = await NoSqlDbContext.WriteDocumentsAsync(new List<DbDocument>() { dbDocument });
+            Assert.IsTrue(isSaved);
+            dbDocumentRead = await NoSqlDbContext.ReadDocumentAsync("pk#1", "sk#2");
+            Assert.AreEqual(inJsonString, dbDocumentRead.JsonString);
+
+            // Test save of existing item - should succeed
+            inJsonString = "{\"field1\":\"value1d\"}";
+            dbDocument = new DbDocument("pk#1", "sk#2", inJsonString, DbOperationEnumeration.Save);
+            isSaved = await NoSqlDbContext.WriteDocumentsAsync(new List<DbDocument>() { dbDocument });
+            Assert.IsTrue(isSaved);
+            dbDocumentRead = await NoSqlDbContext.ReadDocumentAsync("pk#1", "sk#2");
+            Assert.AreEqual(inJsonString, dbDocumentRead.JsonString);
+
+            // Test update of new item - should fail
+            inJsonString = "{\"field1\":\"value1e\"}";
+            dbDocument = new DbDocument("pk#1", "sk-not-exist", inJsonString, DbOperationEnumeration.Update);
+            bool isUpdated = await NoSqlDbContext.WriteDocumentsAsync(new List<DbDocument>() { dbDocument });
+            Assert.IsFalse(isUpdated);
+
+            // Test update of existing item - should succeed
+            inJsonString = "{\"field1\":\"value1f\"}";
+            dbDocument = new DbDocument("pk#1", "sk#2", inJsonString, DbOperationEnumeration.Update);
+            isUpdated = await NoSqlDbContext.WriteDocumentsAsync(new List<DbDocument>() { dbDocument });
+            Assert.IsTrue(isUpdated);
+            dbDocumentRead = await NoSqlDbContext.ReadDocumentAsync("pk#1", "sk#2");
+            Assert.AreEqual(inJsonString, dbDocumentRead.JsonString);
+
+            // Test delete of new item - should fail
+            dbDocument = new DbDocument("pk#1", "sk#not-exist", DbOperationEnumeration.Delete);
+            bool isDeleted = await NoSqlDbContext.WriteDocumentsAsync(new List<DbDocument>() { dbDocument });
+            Assert.IsFalse(isDeleted);
+            List<DbDocument> readDocs = await NoSqlDbContext.ReadDocumentsAsync("pk#1", "sk#");
+            Assert.AreEqual(1, readDocs.Count);
+
+            // Test delete of existing item - should succeed
+            dbDocument = new DbDocument("pk#1", "sk#2", DbOperationEnumeration.Delete);
+            isDeleted = await NoSqlDbContext.WriteDocumentsAsync(new List<DbDocument>() { dbDocument });
+            Assert.IsTrue(isDeleted);
+            readDocs = await NoSqlDbContext.ReadDocumentsAsync("pk#1", "sk#");
+            Assert.AreEqual(0, readDocs.Count);
+        }
+
+        /// <summary>
+        /// Tests that a sequence of write items run successfully as a transaction
+        /// </summary>
+        [Test]
+        public async Task TestWriteTransaction()
+        {
+            // Create write items
+            List<DbDocument> dbDocuments = new List<DbDocument>() { };
+            string inJsonString = "{\"field1\":\"value1\"}";
+            dbDocuments.Add(new DbDocument("pk#1", "sk#1", inJsonString, DbOperationEnumeration.Save));
+            inJsonString = "{\"field1\":\"value1b\"}";
+            dbDocuments.Add(new DbDocument("pk#1", "sk#2", inJsonString, DbOperationEnumeration.Save));
+
+            // Check that the operation completes
+            bool completed = await NoSqlDbContext.WriteDocumentsAsync(dbDocuments);
+            Assert.IsTrue(completed);
+
+            // Check that persisted values are as expected
+            DbDocument dbDocumentRead = await NoSqlDbContext.ReadDocumentAsync("pk#1", "sk#1");
+            Assert.AreEqual("{\"field1\":\"value1\"}", dbDocumentRead.JsonString);
+            dbDocumentRead = await NoSqlDbContext.ReadDocumentAsync("pk#1", "sk#2");
+            Assert.AreEqual("{\"field1\":\"value1b\"}", dbDocumentRead.JsonString);
+
+            // Cleanup
+            await NoSqlDbContext.WriteDocumentAsync(new DbDocument("pk#1", "sk#1", DbOperationEnumeration.Delete));
+            await NoSqlDbContext.WriteDocumentAsync(new DbDocument("pk#1", "sk#2", DbOperationEnumeration.Delete));
+        }
+
+        /// <summary>
+        /// Tests that a sequence of write items where one should fail, does not get completed as a transaction
+        /// </summary>
+        [Test]
+        public async Task TestWriteTransactionFail()
+        {
+            // Create write items
+            List<DbDocument> dbDocuments = new List<DbDocument>() { };
+            string inJsonString = "{\"field1\":\"value1\"}";
+            dbDocuments.Add(new DbDocument("pk#1", "sk#1", inJsonString, DbOperationEnumeration.Save));
+            inJsonString = "{\"field1\":\"value1b\"}";
+            dbDocuments.Add(new DbDocument("pk#1", "sk-non-exist", DbOperationEnumeration.Delete));
+
+            // Check that the operation does not complete
+            bool completed = await NoSqlDbContext.WriteDocumentsAsync(dbDocuments);
+            Assert.IsFalse(completed);
+
+            // Check that no values have been persistied
+            DbDocument dbDocumentRead = await NoSqlDbContext.ReadDocumentAsync("pk#1", "sk#1");
+            Assert.IsNull(dbDocumentRead);
+        }
     }
 }

@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using CartaCore.Workflow;
 using CartaWeb.Models.Data;
 using CartaWeb.Models.DocumentItem;
+using CartaCore.Persistence;
 
 namespace CartaWeb.Models.Migration
 {
@@ -83,7 +84,7 @@ namespace CartaWeb.Models.Migration
         public override async ITask<bool> Migrate()
         {
             Logger.LogInformation("Running migration...");
-
+            
             ScanFilter scanFilter = new ScanFilter();
             scanFilter.AddCondition("SK", ScanOperator.BeginsWith, "WORKFLOW#");
             Search search = NoSqlDbContext.DbTable.Scan(scanFilter);
@@ -104,16 +105,20 @@ namespace CartaWeb.Models.Migration
                     string userName = await GetUserName(userId);
                     WorkflowItem workflowItem = new WorkflowItem
                     (
+                        true,
+                        userId,
                         workflow,
                         new VersionInformation(0, null, new UserInformation(userId, userName))
                     );
                     jsonString = JsonSerializer.Serialize<WorkflowItem>(workflowItem, JsonOptions);
                     Logger.LogInformation($"Updating workflow item with PK={partitionKey} and " +
                         $"SK={sortKey} for userName={userName}");
-                    await NoSqlDbContext.SaveDocumentStringAsync(partitionKey, sortKey, jsonString);               
+                    DbDocument dbDocument =
+                        new DbDocument(partitionKey, sortKey, jsonString, DbOperationEnumeration.Save);
+                    await NoSqlDbContext.WriteDocumentAsync(dbDocument);               
                 }
             } while (!search.IsDone);
-
+            
             return true;
         }
     }

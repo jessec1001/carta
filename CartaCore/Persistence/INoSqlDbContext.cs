@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-
 using MorseCode.ITask;
 
 namespace CartaCore.Persistence
@@ -10,55 +9,37 @@ namespace CartaCore.Persistence
     public interface INoSqlDbContext
     {
         /// <summary>
-        /// Creates the given document string under the given key asynchronously.
-        /// If the key does not exist, perform a CREATE, else perform an UPDATE.
+        /// Reads the stored document for the given keys asynchronously.
         /// </summary>
-        /// <param name="partitionKey">The partition key of the of document</param>
-        /// <param name="sortKeyPrefix">The sort key prefix of the of document</param>
-        /// <param name="docString">The document string</param>
-        /// <returns>An unique document identifier; null if the record already exists and the create failed</returns>
-        ITask<string> CreateDocumentStringAsync(string partitionKey, string sortKeyPrefix, string docString);
-
-        /// <summary>
-        /// Load the stored document for the given keys asynchronously.
-        /// </summary>
-        /// <param name="partitionKey">The partition key of the of document</param>
-        /// <param name="sortKey">The sort key of the of document</param>
-        /// <returns>A document string</returns>
-        ITask<string> LoadDocumentStringAsync(string partitionKey, string sortKey);
-
-        /// <summary>
-        /// Load all of the documents for the given keys asynchronously.
-        /// </summary>
-        /// <param name="partitionKey">The partition key of the of documents</param>
-        /// <param name="sortKeyPrefix">The sort key prefix of the of documents</param>
-        /// <returns>A list of document strings</returns>
-        ITask<List<string>> LoadDocumentStringsAsync(string partitionKey, string sortKeyPrefix);
-
-        /// <summary>
-        /// Updates the given document string under the given key asynchronously.
-        /// </summary>
-        /// <param name="partitionKey">The partition key of the of document</param>
-        /// <param name="sortKey">The sort key of the of document</param>
-        /// <param name="docString">The document string</param>
-        /// <returns>Returns true if the update was successful, otherwise false</returns>
-        ITask<bool> UpdateDocumentStringAsync(string partitionKey, string sortKey, string docString);
-
-        /// <summary>
-        /// Creates or updates the given document string under the given key asynchronously.
-        /// If a document under the key does not exist, the entry is created, otherwise it is updated. 
-        /// </summary>
-        /// <param name="partitionKey">The partition key of the of document</param>
-        /// <param name="sortKey">The sort key of the of document</param>
-        /// <param name="docString">The document string</param>
-        ITask SaveDocumentStringAsync(string partitionKey, string sortKey, string docString);
-
-        /// <summary>
-        /// Deletes the document stored under the given key asynchronously.
-        /// </summary>
-        /// <param name="partitionKey">The partition key of the of document</param>
+        /// <param name="partitionKey">The partition key of the document</param>
         /// <param name="sortKey">The sort key of the document</param>
-        /// <returns>Returns true if the update was successful, otherwise false</returns>
-        ITask<bool> DeleteDocumentStringAsync(string partitionKey, string sortKey);
+        /// <returns>A database document object</returns>
+        ITask<DbDocument> ReadDocumentAsync(string partitionKey, string sortKey);
+
+        /// <summary>
+        /// Reads all of the documents for the given keys asynchronously.
+        /// </summary>
+        /// <param name="partitionKey">The partition key of the documents</param>
+        /// <param name="sortKeyPrefix">The sort key prefix of the documents</param>
+        /// <returns>A list of database document objects</returns>
+        ITask<List<DbDocument>> ReadDocumentsAsync(string partitionKey, string sortKeyPrefix);
+
+        /// <summary>
+        /// Performs a database write operation.
+        /// </summary>
+        /// <param name="dbDocument">A database document object, containing the partition and sort key, JSON
+        /// document string, and type of write operation (Create, Save, Update or Delete) to perform.</param>
+        /// <returns>true if the write operation completed successfully, else false</returns>
+        ITask<bool> WriteDocumentAsync(DbDocument dbDocument);
+
+        /// <summary>
+        /// Performs a list of database write operations within a single database transaction.
+        /// </summary>
+        /// <param name="dbDocuments">A list of database document objects, with each object containing a partition and
+        /// sort key, JSON document string, and type of write operation (Create, Save, Update or Delete) to
+        /// perform.</param>
+        /// <returns>true if the write operations all completed successfully, else false.</returns>
+        ITask<bool> WriteDocumentsAsync(List<DbDocument> dbDocuments);
+
     }
 }

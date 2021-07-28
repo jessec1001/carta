@@ -35,7 +35,7 @@ namespace CartaWeb.Controllers
     {
         private readonly ILogger<DataController> _logger;
 
-        private readonly INoSqlDbContext _noSqlDbContext;
+        private readonly Persistence _persistence;
 
         private static Dictionary<DataSource, IDataResolver> DataResolvers;
 
@@ -152,7 +152,7 @@ namespace CartaWeb.Controllers
         public DataController(ILogger<DataController> logger, INoSqlDbContext noSqlDbContext)
         {
             _logger = logger;
-            _noSqlDbContext = noSqlDbContext;
+            _persistence = new Persistence(noSqlDbContext);
         }
 
         /// <summary>
@@ -393,7 +393,7 @@ namespace CartaWeb.Controllers
                         userId,
                         workflowId,
                         versionNumber,
-                        _noSqlDbContext
+                        _persistence
                     );
                     if (workflowItem is null) return NotFound();
                     else
