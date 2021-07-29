@@ -109,12 +109,12 @@ textarea.form-control {
   /* We want the checkbox to display almost identically to most form elements. */
   display: block;
   position: relative;
-  width: 1.5rem;
-  height: 1.5rem;
+  width: 1em;
+  height: 1em;
   border-radius: var(--border-radius);
 
   /* We vary the the color of the checkbox based on if it is checked or not. */
-  background-color: var(--color-stroke-faint);
+  background-color: var(--color-secondary);
 
   /* We make the checkbox increase opacity when hovered over. */
   cursor: pointer;

@@ -48,5 +48,26 @@ const DatasetListView: FunctionComponent<DatasetListViewProps> = ({
 //   <Database Icon> <Accordian> Resource
 //     <Dataset Icon> Dataset Name
 
+// TODO: INTERACTIONS
+/** Search
+ * const filter = new ObjectFilter(searchText);
+ * const filteredObjects = filter.filter(datasets);
+ */
+
+/** Focus
+ * handleSingleClick = () => setFocusIndex(index)
+ */
+
+/** Rename
+ * handleSingleClick = (event) => {
+ *   if (event.detail === 1) {
+ *     setRenamining(true);
+ *   }
+ * }
+ *
+ * handleRename = (event) => {
+ * }
+ */
+
 export default DatasetListView;
 export type { DatasetListViewProps };

@@ -11,6 +11,7 @@ import {
   WorkspaceUserDTO,
 } from "./workspace";
 
+/** Contains methods for accessing the Carta Workspace API module. */
 class WorkspaceAPI extends BaseAPI {
   protected getApiUrl() {
     return "/api/workspace";

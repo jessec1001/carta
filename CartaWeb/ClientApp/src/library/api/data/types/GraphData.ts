@@ -1,6 +1,6 @@
 import RequestBuffer from "library/requests/RequestBuffer";
 import { DataSet, DataView } from "vis-data";
-import { Graph, GraphProperties, Node, Edge } from ".";
+import { Graph, GraphProperties, Node, Edge } from "..";
 import { DataApi } from "library/api";
 import { GraphWorkflow } from "library/api/workflow";
 import { Selector } from "library/api/workflow";

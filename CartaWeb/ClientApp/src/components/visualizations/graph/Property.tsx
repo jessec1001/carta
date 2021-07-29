@@ -1,6 +1,6 @@
 import React, { Component, MouseEvent } from "react";
 import { CaretDownFill, CaretUpFill } from "react-bootstrap-icons";
-import { Property as GraphProperty } from "library/api/data/types/graph";
+import { Property as GraphProperty } from "library/api/data";
 import { ObservationList } from "./ObservationList";
 import "./Property.css";
 import { PropertyList } from "./PropertyList";

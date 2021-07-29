@@ -1,6 +1,6 @@
+import BaseAPI from "./BaseAPI";
 import { User, UserSearcheableAttribute } from "./user";
 import { BrowserException } from "library/exceptions";
-import BaseAPI from "./BaseAPI";
 
 /** Contains methods for accessing the Carta User API module. */
 class UserAPI extends BaseAPI {

@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Edge, Property } from "library/api/data/types/graph";
+import { Edge, Property } from "library/api/data";
 import { GraphData } from "library/api/data";
 import { DataNode } from "library/api/data/types";
 import { Options } from "vis-network/standalone";

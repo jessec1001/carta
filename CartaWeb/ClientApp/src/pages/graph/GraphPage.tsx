@@ -6,7 +6,7 @@ import { HeightScroll } from "components/ui/layout/scroll/HeightScroll";
 import { PropertyList } from "components/visualizations/graph/PropertyList";
 import { GraphVisualizer } from "components/visualizations";
 import { GraphToolbar } from "./graph/GraphToolbar";
-import { Property } from "library/api/data/types/graph";
+import { Property } from "library/api/data";
 import { SplitPane, Tab, TabPane } from "components/common/panes";
 import GraphOpenForm from "./graph/GraphOpenForm";
 import { GraphData } from "library/api/data/types";

@@ -1,8 +1,8 @@
-import { PageLayout } from "components/layout";
-import { DatasetListView } from "components/views";
-import { Workspace, WorkspaceAPI } from "library/api";
 import { FunctionComponent, useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router";
+import { Workspace, WorkspaceAPI } from "library/api";
+import { PageLayout } from "components/layout";
+import { DatasetAddView } from "components/views";
 
 const tips: string[] = [
   "Every operation in Carta does not mutate input data.",
@@ -16,7 +16,8 @@ const tips: string[] = [
 // TODO: There should be preset layouts available for this page.
 
 const WorkspacePage: FunctionComponent = () => {
-  const tipInterval = 5000;
+  // TODO: Revert to 5000
+  const tipInterval = 0;
 
   const workspaceApiRef = useRef(new WorkspaceAPI());
   const workspaceApi = workspaceApiRef.current;
@@ -127,9 +128,7 @@ const WorkspacePage: FunctionComponent = () => {
           </div>
         </div>
       )}
-      {!loading && workspace?.datasets && (
-        <DatasetListView datasets={workspace.datasets} />
-      )}
+      {!loading && workspace?.datasets && <DatasetAddView />}
     </PageLayout>
   );
 };
