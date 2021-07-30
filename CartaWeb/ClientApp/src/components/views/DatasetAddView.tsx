@@ -3,8 +3,9 @@ import { useAPI } from "hooks";
 import { ApiException } from "library/exceptions";
 import { DatabaseIcon } from "components/icons";
 import { ErrorText, Heading, Paragraph } from "components/text";
-import { CheckboxInput } from "components/input";
+import { CheckboxInput, TextFieldInput } from "components/input";
 import { BlockButton } from "components/buttons";
+import { FormGroup } from "components/form";
 
 const DatasetAddView: FunctionComponent = ({ children }) => {
   const { dataAPI } = useAPI();
@@ -109,6 +110,9 @@ const DatasetAddView: FunctionComponent = ({ children }) => {
           </div>
         );
       })}
+      <FormGroup title="Name" density="dense">
+        <TextFieldInput placeholder="(source/resource)" />
+      </FormGroup>
       <div className="form-spaced-group">
         <BlockButton color="primary" type="submit">
           Add

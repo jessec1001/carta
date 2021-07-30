@@ -19,7 +19,6 @@ import {
   faBolt,
 } from "@fortawesome/free-solid-svg-icons";
 
-import "./GraphPage.css";
 import WorkflowCreateForm from "./workflow/WorkflowCreateForm";
 import WorkflowApplyForm from "./workflow/WorkflowApplyForm";
 import SchemaForm, { SchemaFormProps } from "components/form/schema/SchemaForm";

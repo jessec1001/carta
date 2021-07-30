@@ -1,8 +1,10 @@
-import { FunctionComponent, useEffect, useRef, useState } from "react";
+import React, { FunctionComponent, useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router";
 import { Workspace, WorkspaceAPI } from "library/api";
 import { PageLayout } from "components/layout";
 import { DatasetAddView } from "components/views";
+import { Tab, TabContainer } from "components/tabs";
+import { DatabaseIcon } from "components/icons";
 
 const tips: string[] = [
   "Every operation in Carta does not mutate input data.",
@@ -128,7 +130,23 @@ const WorkspacePage: FunctionComponent = () => {
           </div>
         </div>
       )}
-      {!loading && workspace?.datasets && <DatasetAddView />}
+      {!loading && workspace?.datasets && (
+        <TabContainer>
+          <Tab
+            title={
+              <React.Fragment>
+                <DatabaseIcon /> Datasets
+              </React.Fragment>
+            }
+            status="none"
+            closeable
+            onClose={() => console.log("CLOSE TAB")}
+            onFocus={() => console.log("FOCUS TAB")}
+          >
+            <DatasetAddView />
+          </Tab>
+        </TabContainer>
+      )}
     </PageLayout>
   );
 };

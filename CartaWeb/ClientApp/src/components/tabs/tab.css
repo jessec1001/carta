@@ -1,0 +1,26 @@
+.tab-container {
+  display: flex;
+  flex-direction: column;
+}
+.tab-bar {
+  width: 100%;
+  height: 2em;
+  background-color: var(--color-fill-element);
+  color: var(--color-stroke-lowlight);
+}
+.tab-bar-button {
+  padding: 0.5em;
+  border-bottom: 2px solid transparent;
+}
+.tab-bar-button.status-none {
+  border-bottom: none;
+}
+.tab-bar-button.status-modified {
+  border-color: #e0b72e;
+}
+.tab-bar-button.status-unmodified {
+  border-color: #838382;
+}
+.tab-bar-button.status-error {
+  border-color: #fa4949;
+}
