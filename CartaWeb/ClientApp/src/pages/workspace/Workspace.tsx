@@ -140,8 +140,6 @@ const WorkspacePage: FunctionComponent = () => {
             }
             status="none"
             closeable
-            onClose={() => console.log("CLOSE TAB")}
-            onFocus={() => console.log("FOCUS TAB")}
           >
             <DatasetAddView />
           </Tab>

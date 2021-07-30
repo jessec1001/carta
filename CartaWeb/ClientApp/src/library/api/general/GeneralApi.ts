@@ -153,12 +153,12 @@ class GeneralApi {
       redirect: "manual",
     });
     if (response.type === "opaqueredirect") {
-      throw new ApiException(response);
+      throw await ApiException.create(response);
     }
     if (response.ok) {
       return response.json();
     } else {
-      throw new ApiException(response);
+      throw await ApiException.create(response);
     }
   }
   static requestUnknownAsync(

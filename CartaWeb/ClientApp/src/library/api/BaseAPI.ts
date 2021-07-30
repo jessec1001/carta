@@ -14,9 +14,9 @@ class BaseAPI {
    * @param response The response to check.
    * @param errorMessage The error message that should be passed to the exception.
    */
-  protected ensureSuccess(response: Response, errorMessage: string) {
+  protected async ensureSuccess(response: Response, errorMessage: string) {
     if (!response.ok) {
-      throw new ApiException(response, errorMessage);
+      throw await ApiException.create(response, errorMessage);
     }
   }
   /**
@@ -29,12 +29,12 @@ class BaseAPI {
   protected async readJSON<T>(response: Response): Promise<T> {
     // Check that response body is set.
     if (response.body === null)
-      throw new ApiException(response, "No response body to be read.");
+      throw await ApiException.create(response, "No response body to be read.");
 
     // Check if the response body is empty.
     const text = await response.text();
     if (text.length === 0)
-      throw new ApiException(response, "Response body was empty.");
+      throw await ApiException.create(response, "Response body was empty.");
 
     // Return the correctly-typed JSON version.
     return JSON.parse(text) as T;

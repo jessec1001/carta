@@ -64,7 +64,7 @@ class DataAPI extends BaseAPI {
     });
     const response = await fetch(url, { method: "GET" });
 
-    this.ensureSuccess(
+    await this.ensureSuccess(
       response,
       "Error occurred while trying to fetch data sources."
     );
@@ -83,7 +83,7 @@ class DataAPI extends BaseAPI {
     });
     const response = await fetch(url, { method: "GET" });
 
-    this.ensureSuccess(
+    await this.ensureSuccess(
       response,
       "Error occurred while trying to fetch data resources."
     );

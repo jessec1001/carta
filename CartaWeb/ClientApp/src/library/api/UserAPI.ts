@@ -32,7 +32,7 @@ class UserAPI extends BaseAPI {
     const url = `${this.getApiUrl()}/authenticated`;
     const response = await fetch(url, { method: "GET" });
 
-    this.ensureSuccess(
+    await this.ensureSuccess(
       response,
       "Error occurred while trying to check authentication."
     );
@@ -47,7 +47,7 @@ class UserAPI extends BaseAPI {
     const url = `${this.getApiUrl()}`;
     const response = await fetch(url, { method: "GET" });
 
-    this.ensureSuccess(
+    await this.ensureSuccess(
       response,
       "Error occurred while trying to fetch user information."
     );
@@ -91,7 +91,7 @@ class UserAPI extends BaseAPI {
       response = await fetch(url, { method: "GET" });
     }
 
-    this.ensureSuccess(
+    await this.ensureSuccess(
       response,
       "Error occurred while trying to fetch users information."
     );
@@ -106,7 +106,7 @@ class UserAPI extends BaseAPI {
     const url = `${this.getApiUrl()}/group/${encodeURIComponent(groupId)}`;
     const response = await fetch(url, { method: "GET" });
 
-    this.ensureSuccess(
+    await this.ensureSuccess(
       response,
       "Error occurred while trying to fetch user information."
     );
@@ -164,7 +164,10 @@ class UserAPI extends BaseAPI {
     }
 
     // Check if sign in succeeded silently, so we can just return.
-    this.ensureSuccess(response, "Error occurred while trying to sign in.");
+    await this.ensureSuccess(
+      response,
+      "Error occurred while trying to sign in."
+    );
   }
   /**
    * Signs the user out of the application.
@@ -173,7 +176,10 @@ class UserAPI extends BaseAPI {
     const url = `${this.getApiUrl()}/signout`;
     const response = await fetch(url, { method: "GET" });
 
-    this.ensureSuccess(response, "Error occurred while trying to sign out.");
+    await this.ensureSuccess(
+      response,
+      "Error occurred while trying to sign out."
+    );
   }
 }
 

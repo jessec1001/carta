@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import React, { useMemo, useRef } from "react";
 import { DataAPI, UserAPI, WorkspaceAPI } from "library/api";
 import useStoredState from "./useStoredState";
 
@@ -7,31 +7,32 @@ import useStoredState from "./useStoredState";
  * @returns References to APIs.
  */
 const useAPI = () => {
+  // Define the API references.
+  let dataAPIRef: React.MutableRefObject<DataAPI>;
+  let userAPIRef: React.MutableRefObject<UserAPI>;
+  let workspaceAPIRef: React.MutableRefObject<WorkspaceAPI>;
+
   // Specificially for the data API, we need to incorporate the integration keys.
   const [hyperthoughtKey] = useStoredState("", "hyperthoughtKey");
   const hyperthoughtResource = useMemo(
     () => ({
       source: "HyperThought",
-      resource: undefined,
       parameters: new Map([["api", hyperthoughtKey]]),
     }),
     [hyperthoughtKey]
   );
 
-  const dataResourceIdentifiers = useMemo(
-    () => [hyperthoughtResource],
-    [hyperthoughtResource]
-  );
-
-  // Create the API references.
-  const dataAPIRef = useRef(new DataAPI(dataResourceIdentifiers));
-  const userAPIRef = useRef(new UserAPI());
-  const workspaceAPIRef = useRef(new WorkspaceAPI());
-
+  // Create the dynamic API references.
   // Make sure to update the data API when its resource identifiers change.
-  useEffect(() => {
-    dataAPIRef.current = new DataAPI(dataResourceIdentifiers);
-  }, [dataResourceIdentifiers]);
+  dataAPIRef = useRef(new DataAPI());
+  dataAPIRef.current = useMemo(() => {
+    const dataResourceIdentifiers = [hyperthoughtResource];
+    return new DataAPI(dataResourceIdentifiers);
+  }, [hyperthoughtResource]);
+
+  // Create the static API references.
+  userAPIRef = useRef(new UserAPI());
+  workspaceAPIRef = useRef(new WorkspaceAPI());
 
   // Return their current value.
   return {

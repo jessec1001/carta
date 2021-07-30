@@ -6,8 +6,50 @@ import { ErrorText, Heading, Paragraph } from "components/text";
 import { CheckboxInput, TextFieldInput } from "components/input";
 import { BlockButton } from "components/buttons";
 import { FormGroup } from "components/form";
+import { Link } from "components/common";
+
+/**
+ * Renders an error that has been raised while loading resources.
+ * - Handles special cases such as lack of HyperThought authentication.
+ * @param error The error that has been raised.
+ * @returns An element to render describing the error.
+ */
+const renderError = (error: ApiException) => {
+  // Authentication related error.
+  if (error.status === 401 || error.status === 403) {
+    if (error.data) {
+      // We render specific text if HyperThought authentication failed.
+      if (
+        typeof error.data.source === "string" &&
+        error.data.source.toLowerCase() === "HyperThought".toLowerCase()
+      )
+        return (
+          <Paragraph>
+            You need to be authenticated with HyperThought&trade; to load these
+            datasets. To access this data, add your HyperThought&trade; API key
+            to the integration section on your{" "}
+            <Link
+              to="/profile#profile-integration-hyperthought"
+              target="_blank"
+            >
+              profile
+            </Link>
+            .
+          </Paragraph>
+        );
+    }
+  }
+
+  // Default error handling text.
+  return (
+    <ErrorText>
+      Error occurred ({error.status}): {error.message}
+    </ErrorText>
+  );
+};
 
 const DatasetAddView: FunctionComponent = ({ children }) => {
+  // We need the data API to make calls to get the data resources.
   const { dataAPI } = useAPI();
 
   // These resources are stored in a dictionary:
@@ -17,6 +59,7 @@ const DatasetAddView: FunctionComponent = ({ children }) => {
     Record<string, string[] | ApiException | null>
   >({});
 
+  // This effect loads the data resources asynchronously.
   useEffect(() => {
     // We use these methods to load in the data resources.
     const loadDataResources = async (source: string) => {
@@ -40,7 +83,7 @@ const DatasetAddView: FunctionComponent = ({ children }) => {
       sources.forEach((source) => {
         // Set the loading state if we do not have resources cached already.
         setGroupedResources((groupedResources) =>
-          groupedResources[source] === undefined
+          !Array.isArray(groupedResources[source])
             ? { ...groupedResources, [source]: null }
             : groupedResources
         );
@@ -69,16 +112,14 @@ const DatasetAddView: FunctionComponent = ({ children }) => {
       </Paragraph>
       {Object.entries(groupedResources).map(([source, resources]) => {
         return (
-          <div>
+          <div key={source}>
             <Heading>
               <DatabaseIcon /> {source}
             </Heading>
             {resources === null && "Loading"}
             {resources instanceof ApiException && (
               <span style={{ display: "block", padding: "0.5em" }}>
-                <ErrorText>
-                  Error occurred ({resources.status}): {resources.message}
-                </ErrorText>
+                {renderError(resources)}
               </span>
             )}
             {Array.isArray(resources) &&
@@ -90,6 +131,7 @@ const DatasetAddView: FunctionComponent = ({ children }) => {
                 >
                   {resources.map((resource) => (
                     <li
+                      key={resource}
                       style={{
                         display: "flex",
                         alignItems: "flex-start",

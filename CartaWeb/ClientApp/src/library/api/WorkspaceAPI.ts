@@ -30,7 +30,7 @@ class WorkspaceAPI extends BaseAPI {
     const url = `${this.getApiUrl()}?archived=${archived ?? false}`;
     const response = await fetch(url, { method: "GET" });
 
-    this.ensureSuccess(
+    await this.ensureSuccess(
       response,
       "Error occurred while trying to fetch workspaces."
     );
@@ -75,7 +75,7 @@ class WorkspaceAPI extends BaseAPI {
     const url = this.getWorkspaceUrl(workspaceId);
     const response = await fetch(url, { method: "GET" });
 
-    this.ensureSuccess(
+    await this.ensureSuccess(
       response,
       "Error occurred while trying to fetch a workspace."
     );
@@ -111,7 +111,7 @@ class WorkspaceAPI extends BaseAPI {
     const url = `${this.getApiUrl()}/${encodeURIComponent(workspaceName)}`;
     const response = await fetch(url, { method: "POST" });
 
-    this.ensureSuccess(
+    await this.ensureSuccess(
       response,
       "Error occurred while trying to create workspace."
     );
@@ -145,7 +145,7 @@ class WorkspaceAPI extends BaseAPI {
     const url = `${this.getWorkspaceUrl(workspaceId)}?archived=true`;
     const response = await fetch(url, { method: "PATCH" });
 
-    this.ensureSuccess(
+    await this.ensureSuccess(
       response,
       "Error occurred while trying to archive workspace."
     );
@@ -161,7 +161,7 @@ class WorkspaceAPI extends BaseAPI {
     const url = `${this.getWorkspaceUrl(workspaceId)}?archived=false`;
     const response = await fetch(url, { method: "PATCH" });
 
-    this.ensureSuccess(
+    await this.ensureSuccess(
       response,
       "Error occurred while trying to unarchive workspace."
     );
@@ -182,7 +182,7 @@ class WorkspaceAPI extends BaseAPI {
     const url = `${this.getWorkspaceUrl(workspaceId)}/users`;
     const response = await fetch(url, { method: "GET" });
 
-    this.ensureSuccess(
+    await this.ensureSuccess(
       response,
       "Error occurred while trying to fetch workspace users."
     );
@@ -207,7 +207,7 @@ class WorkspaceAPI extends BaseAPI {
       body: this.writeJSON(users),
     });
 
-    this.ensureSuccess(
+    await this.ensureSuccess(
       response,
       "Error occurred while trying to add users to workspace."
     );
@@ -230,7 +230,7 @@ class WorkspaceAPI extends BaseAPI {
       .join("&")}`;
     const response = await fetch(url, { method: "DELETE" });
 
-    this.ensureSuccess(
+    await this.ensureSuccess(
       response,
       "Error occurred while trying to remove users from workspace."
     );
@@ -249,7 +249,7 @@ class WorkspaceAPI extends BaseAPI {
     const url = `${this.getWorkspaceUrl(workspaceId)}/data`;
     const response = await fetch(url, { method: "GET" });
 
-    this.ensureSuccess(
+    await this.ensureSuccess(
       response,
       "Error occurred while trying to fetch workspace datasets."
     );
@@ -273,7 +273,7 @@ class WorkspaceAPI extends BaseAPI {
     )}`;
     const response = await fetch(url, { method: "GET" });
 
-    this.ensureSuccess(
+    await this.ensureSuccess(
       response,
       "Error occurred while trying to fetch workspace dataset."
     );
@@ -300,7 +300,7 @@ class WorkspaceAPI extends BaseAPI {
     const url = `${this.getWorkspaceUrl(workspaceId)}/data/${dataUrlPart}`;
     const response = await fetch(url, { method: "POST" });
 
-    this.ensureSuccess(
+    await this.ensureSuccess(
       response,
       "Error occurred while trying to add dataset to workspace."
     );
@@ -323,7 +323,7 @@ class WorkspaceAPI extends BaseAPI {
     )}`;
     const response = await fetch(url, { method: "DELETE" });
 
-    this.ensureSuccess(
+    await this.ensureSuccess(
       response,
       "Error occurred while trying to remove dataset from workspace."
     );
@@ -350,7 +350,7 @@ class WorkspaceAPI extends BaseAPI {
       .join("&")}`;
     const response = await fetch(url, { method: "PATCH" });
 
-    this.ensureSuccess(
+    await this.ensureSuccess(
       response,
       "Error occurred while trying to update workspace dataset."
     );

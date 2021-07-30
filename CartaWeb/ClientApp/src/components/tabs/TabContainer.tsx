@@ -32,6 +32,7 @@ const TabContainer: FunctionComponent = ({ children }) => {
           const { onClose, onFocus, ...props } = tab.props;
           return (
             <TabBarButton
+              key={tab.key}
               {...props}
               onClose={() => {
                 if (onClose) onClose();
