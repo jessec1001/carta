@@ -2,13 +2,12 @@ import React, { Component } from "react";
 import queryString from "query-string";
 
 import { RouteComponentProps } from "react-router-dom";
-import { HeightScroll } from "components/ui/layout/scroll/HeightScroll";
+import { VerticalScroll } from "components/scroll";
 import { PropertyList } from "components/visualizations/graph/PropertyList";
 import { GraphVisualizer } from "components/visualizations";
 import { GraphToolbar } from "./graph/GraphToolbar";
 import { Property } from "library/api/data";
 import { SplitPane, Tab, TabPane } from "components/common/panes";
-import GraphOpenForm from "./graph/GraphOpenForm";
 import { GraphData } from "library/api/data/types";
 import { GraphWorkflow } from "library/api/workflow/types";
 
@@ -316,27 +315,13 @@ export default class GraphPage extends Component<
                 />
               </Tab>
             ))}
-            {this.state.openingGraph && (
-              <Tab
-                key={-1}
-                icon={<FontAwesomeIcon icon={faCogs} />}
-                label="Open Graph"
-                closable
-                selected={this.state.selectedGraph === -1}
-              >
-                <GraphOpenForm
-                  parameters={this.parameters}
-                  onOpenGraph={this.handleOpenGraph}
-                />
-              </Tab>
-            )}
           </TabPane>
         </div>
         <TabPane className="side-tabs">
           <Tab icon={<FontAwesomeIcon icon={faCogs} />} label="Properties">
-            <HeightScroll className="sidepane h-100">
+            <VerticalScroll>
               <PropertyList properties={this.state.properties} />
-            </HeightScroll>
+            </VerticalScroll>
           </Tab>
           {this.state.formOpen && (
             <Tab
@@ -345,7 +330,7 @@ export default class GraphPage extends Component<
               selected
             >
               {this.state.formProps && (
-                <HeightScroll className="sidepane h-100">
+                <VerticalScroll>
                   <SchemaForm
                     {...(this.state.formProps as any)}
                     value={this.state.formValue}
@@ -355,7 +340,7 @@ export default class GraphPage extends Component<
                     cancelText={"Cancel"}
                     cancelable
                   />
-                </HeightScroll>
+                </VerticalScroll>
               )}
             </Tab>
           )}

@@ -1,0 +1,27 @@
+.scroll-container {
+  /* Scroll containers should fill their parent container. */
+  /* We use positioning to create a non-changing width/height effect. */
+  position: relative;
+  min-width: 0;
+  width: 100%;
+  min-height: 0;
+  height: 100%;
+  flex: 1;
+}
+
+.scroll {
+  /* The scroll element should be positioned with a fixed size. */
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+.scroll.horizontal {
+  /* Horizontal scroll and vertical hidden. */
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+.scroll.vertical {
+  /* Vertical scroll and horizontal hidden. */
+  overflow-x: hidden;
+  overflow-y: auto;
+}

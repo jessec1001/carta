@@ -11,8 +11,9 @@
   --color-stroke-faint: #808080;
   --color-stroke-error: #e63e38;
 
-  --color-fill-body: #f6f6f6;
+  --color-fill-body: #f0f0f0;
   --color-fill-element: #ffffff;
+  --color-fill-view: #f4f4f4;
   --color-fill-overlay: #ffffff80;
 }
 .theme-dark {
@@ -27,8 +28,9 @@
   --color-stroke-faint: #606060;
   --color-stroke-error: #e63e38;
 
-  --color-fill-body: #141414;
+  --color-fill-body: #181818;
   --color-fill-element: #101010;
+  --color-fill-view: #141414;
   --color-fill-overlay: #000000a0;
 }
 /* #endregion */
