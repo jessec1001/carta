@@ -1,4 +1,5 @@
 ﻿using System;
+using CartaWeb.Models.Data;
 
 namespace CartaWeb.Models.DocumentItem
 {
@@ -8,38 +9,21 @@ namespace CartaWeb.Models.DocumentItem
     public class UserItem
     {
         /// <summary>
-        /// The user ID
+        /// The user information
         /// </summary>
-        public string Id { get; set; }
+        public UserInformation UserInformation { get; set; }
         /// <summary>
-        /// The user name
+        /// History of the user item
         /// </summary>
-        public string Name { get; set; }
-        /// <summary>
-        /// Timestamp of the date the user was added
-        /// </summary>
-        public DateTime DateAdded { get; set; }
-        /// <summary>
-        /// Timestamp of the date the user was deleted
-        /// </summary>
-        public DateTime? DateDeleted { get; set; }
-        /// <summary>
-        /// ID of user that added a user
-        /// </summary>
-        public string AddedBy { get; set; }
-        /// <summary>
-        /// ID of user that deleted a user
-        /// </summary>
-        public string DeletedBy { get; set; }
+        public DocumentHistory DocumentHistory { get; set; }
 
         /// <summary>
         /// Creates a new instance of the <see cref="UserItem"/> class
         /// </summary>
-        public UserItem (string id, string name)
+        public UserItem (UserInformation userInformation)
         {
-            Id = id;
-            Name = name;
-            DateAdded = DateTime.Now;
+            UserInformation = userInformation;
+            DocumentHistory = new DocumentHistory(userInformation);
         }
 
     }

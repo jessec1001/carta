@@ -33,19 +33,19 @@ namespace CartaCore.Persistence
         /// Gets or sets the DynamoDb client through which calls are made
         /// </summary>
         /// <value>The DynamoDb client</value>
-        protected AmazonDynamoDBClient Client { get; set; }
+        public AmazonDynamoDBClient Client { get; set; }
 
         /// <summary>
         /// Gets or sets the DynamoDb table name
         /// </summary>
         /// <value>The DynamoDb table</value>
-        protected string TableName { get; set; }
+        public string TableName { get; set; }
 
         /// <summary>
         /// Gets or sets the DynamoDb table
         /// </summary>
         /// <value>The DynamoDb table</value>
-        protected Table DbTable { get; set; }
+        public Table DbTable { get; set; }
 
         /// <summary>
         /// Constructor for local instance
@@ -95,7 +95,7 @@ namespace CartaCore.Persistence
             Document item = Document.FromJson(docString);
             item.Add(PRIMARY_KEY, partitionKey);
             item.Add(SORT_KEY, sortKeyPrefix + docId);
-            item.Add(ID_FIELD, docId);
+            if (!item.ContainsKey(ID_FIELD)) item.Add(ID_FIELD, docId);
 
             // Define an expression to ensure that the item does not get overwritten
             Expression expression = new Expression();
