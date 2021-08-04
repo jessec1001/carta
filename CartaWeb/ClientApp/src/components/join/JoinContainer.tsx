@@ -44,7 +44,11 @@ const JoinContainer: FunctionComponent<JoinContainerProps> = ({
             if (index > 0) directionsHorizontal.push("left");
             if (index + 1 < childCount) directionsHorizontal.push("right");
             return (
-              <JoinHorizontal directions={directionsHorizontal} grow={subgrow}>
+              <JoinHorizontal
+                key={index}
+                directions={directionsHorizontal}
+                grow={subgrow}
+              >
                 {child}
               </JoinHorizontal>
             );
@@ -54,7 +58,11 @@ const JoinContainer: FunctionComponent<JoinContainerProps> = ({
             if (index > 0) directionsVertical.push("top");
             if (index + 1 < childCount) directionsVertical.push("bottom");
             return (
-              <JoinVertical directions={directionsVertical} grow={subgrow}>
+              <JoinVertical
+                key={index}
+                directions={directionsVertical}
+                grow={subgrow}
+              >
                 {child}
               </JoinVertical>
             );

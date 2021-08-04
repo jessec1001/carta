@@ -1,26 +1,16 @@
-import React, { Component } from "react";
+import { Component } from "react";
 import queryString from "query-string";
 
 import { RouteComponentProps } from "react-router-dom";
-import { VerticalScroll } from "components/scroll";
-import { PropertyList } from "components/visualizations/graph/PropertyList";
-import { GraphVisualizer } from "components/visualizations";
 import { GraphToolbar } from "./graph/GraphToolbar";
 import { Property } from "library/api/data";
-import { SplitPane, Tab, TabPane } from "components/common/panes";
+import { SplitPane } from "components/common/panes";
 import { GraphData } from "library/api/data/types";
 import { GraphWorkflow } from "library/api/workflow/types";
 
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faProjectDiagram,
-  faCogs,
-  faBolt,
-} from "@fortawesome/free-solid-svg-icons";
-
 import WorkflowCreateForm from "./workflow/WorkflowCreateForm";
 import WorkflowApplyForm from "./workflow/WorkflowApplyForm";
-import SchemaForm, { SchemaFormProps } from "components/form/schema/SchemaForm";
+import { SchemaFormProps } from "components/form/schema/SchemaForm";
 
 export interface GraphPageProps extends RouteComponentProps {}
 export interface GraphPageState {
@@ -297,54 +287,7 @@ export default class GraphPage extends Component<
             onApplyWorkflow={this.handleApplyWorkflow}
             onCreateForm={this.handleCreateForm}
           />
-          <TabPane
-            onClose={this.handleCloseGraph}
-            onSelect={this.handleSelectGraph}
-          >
-            {this.state.graphs.map((graph, index) => (
-              <Tab
-                key={graph.index}
-                icon={<FontAwesomeIcon icon={faProjectDiagram} />}
-                label={`${graph.data._source} - ${graph.data._resource}`}
-                closable
-                selected={this.state.selectedGraph === index}
-              >
-                <GraphVisualizer
-                  graph={graph.data}
-                  onPropertiesChanged={this.handlePropertiesChanges}
-                />
-              </Tab>
-            ))}
-          </TabPane>
         </div>
-        <TabPane className="side-tabs">
-          <Tab icon={<FontAwesomeIcon icon={faCogs} />} label="Properties">
-            <VerticalScroll>
-              <PropertyList properties={this.state.properties} />
-            </VerticalScroll>
-          </Tab>
-          {this.state.formOpen && (
-            <Tab
-              icon={<FontAwesomeIcon icon={faBolt} />}
-              label={this.state.formType}
-              selected
-            >
-              {this.state.formProps && (
-                <VerticalScroll>
-                  <SchemaForm
-                    {...(this.state.formProps as any)}
-                    value={this.state.formValue}
-                    onChange={(value) => this.setState({ formValue: value })}
-                    onCancel={() => this.setState({ formOpen: false })}
-                    submitText={"Apply"}
-                    cancelText={"Cancel"}
-                    cancelable
-                  />
-                </VerticalScroll>
-              )}
-            </Tab>
-          )}
-        </TabPane>
       </SplitPane>
     );
   }

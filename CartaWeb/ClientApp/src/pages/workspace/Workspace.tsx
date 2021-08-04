@@ -1,10 +1,11 @@
-import React, { FunctionComponent, useEffect, useRef, useState } from "react";
+import { FunctionComponent, useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router";
 import { Workspace, WorkspaceAPI } from "library/api";
 import { PageLayout } from "components/layout";
-import { DatasetAddView } from "components/views";
-import { Tab, TabContainer } from "components/tabs";
-import { DatabaseIcon } from "components/icons";
+import { ViewContainer, ViewRenderer } from "components/views";
+import { DatasetAddView, DatasetGraphView } from "components/workspace/views";
+import { ViewActions } from "context";
+import { TabContainer } from "components/tabs";
 
 const tips: string[] = [
   "Every operation in Carta does not mutate input data.",
@@ -16,16 +17,17 @@ const tips: string[] = [
 ];
 
 // TODO: There should be preset layouts available for this page.
-
 const WorkspacePage: FunctionComponent = () => {
   // TODO: Revert to 5000
-  const tipInterval = 0;
+  const tipInterval = 5000;
 
   const workspaceApiRef = useRef(new WorkspaceAPI());
   const workspaceApi = workspaceApiRef.current;
 
   const id = new URLSearchParams(useLocation().search).get("id") as string;
   // const { id } =  useQuery<{ id: string }>();
+
+  const [viewActions, setViewActions] = useState<ViewActions | null>(null);
 
   const [tip, setTip] = useState("");
   const [loading, setLoading] = useState(true);
@@ -64,11 +66,27 @@ const WorkspacePage: FunctionComponent = () => {
     }
   }, [loading]);
 
+  useEffect(() => {
+    if (viewActions && !viewActions.has(1)) {
+      const tabContainer = viewActions.add(TabContainer);
+
+      if (tabContainer) {
+        viewActions.add(DatasetAddView, tabContainer);
+        viewActions.add(DatasetGraphView, tabContainer);
+      }
+    }
+  }, [viewActions]);
+
   return (
     <PageLayout header>
       {loading && (
         <div
           style={{
+            position: "absolute",
+            top: "0",
+            left: "0",
+            width: "100%",
+            height: "100%",
             display: "flex",
             flexDirection: "column",
             flexGrow: 1,
@@ -130,21 +148,9 @@ const WorkspacePage: FunctionComponent = () => {
           </div>
         </div>
       )}
-      {!loading && workspace?.datasets && (
-        <TabContainer>
-          <Tab
-            title={
-              <React.Fragment>
-                <DatabaseIcon /> Datasets
-              </React.Fragment>
-            }
-            status="none"
-            closeable
-          >
-            <DatasetAddView />
-          </Tab>
-        </TabContainer>
-      )}
+      <ViewContainer actionRef={setViewActions}>
+        <ViewRenderer />
+      </ViewContainer>
     </PageLayout>
   );
 };

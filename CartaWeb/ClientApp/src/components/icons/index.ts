@@ -4,6 +4,7 @@ import CaretIcon from "./CaretIcon";
 import DatasetIcon from "./DatasetIcon";
 import UserIcon from "./UserIcon";
 import DatabaseIcon from "./DatabaseIcon";
+import GraphIcon from "./GraphIcon";
 
 export {
   CartaIcon,
@@ -11,5 +12,6 @@ export {
   CaretIcon,
   DatabaseIcon,
   DatasetIcon,
+  GraphIcon,
   UserIcon,
 };

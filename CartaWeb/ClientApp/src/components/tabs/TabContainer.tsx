@@ -1,46 +1,87 @@
-import React, { FunctionComponent, useEffect, useState } from "react";
-import Tab, { TabProps } from "./Tab";
+import {
+  FunctionComponent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { TabContext, TabId, TabProps } from "./Tab";
 import TabBar from "./TabBar";
 import TabBarButton from "./TabBarButton";
-import TabContent from "./TabContent";
 
 import "./tab.css";
 
-/** A component that  */
+/** A component that renders tabs in a tab bar and into a container.  */
 const TabContainer: FunctionComponent = ({ children }) => {
-  // The key is used to refer to the active tab.
-  const [key, setKey] = useState<React.Key | null>(null);
-
-  // We are only going to render the tab-component children elements.
-  const tabChildren = React.Children.toArray(children).filter(
-    (child) => React.isValidElement<TabProps>(child) && child.type === Tab
-  ) as React.ReactElement<TabProps>[];
+  // This identifier refers to the next identifier to be automatically assigned to a tab.
+  const id = useRef<number | null>(0);
+  // This identifier is used to refer to the active tab.
+  const [active, setActive] = useState<TabId | null>(null);
+  // This stores all of the tabs that the container is aware of.
+  const [tabs, setTabs] = useState<Map<TabId, TabProps>>(new Map());
 
   // When the tab children are changed, we need to verify that key is still valid.
   useEffect(() => {
-    setKey((key) => {
-      const included = tabChildren.some((tab) => tab.key === key);
-      return included ? key : null;
+    setActive((active) => {
+      if (active === null) return null;
+      const included = tabs.has(active);
+      return included ? active : null;
     });
-  }, [tabChildren]);
+  }, [tabs]);
+
+  // We create the methods used to update the tab container.
+  const setTab = useCallback((tab: TabProps, tabId?: TabId): TabId => {
+    // Set the identifier if not already set.
+    const newTabId = tabId ?? id.current!++;
+
+    // Set the tab on the tabs mapping.
+    setTabs((tabs) => {
+      const newTabs = new Map(tabs);
+      newTabs.set(newTabId, tab);
+      return newTabs;
+    });
+
+    return newTabId;
+  }, []);
+  const unsetTab = useCallback((tabId: TabId): void => {
+    // Unset the tab on the tabs mapping.
+    setTabs((tabs) => {
+      const newTabs = new Map(tabs);
+      newTabs.delete(tabId);
+      return newTabs;
+    });
+  }, []);
+
+  // We memoize the context value.
+  const context = useMemo(
+    () => ({
+      set: setTab,
+      unset: unsetTab,
+      active,
+    }),
+    [active, setTab, unsetTab]
+  );
 
   return (
     <div className="tab-container">
       {/* Render the tab bar with buttons for each tab child. */}
+      {/* We modify some of the event handlers to also satisfy our needs. */}
       <TabBar>
-        {tabChildren.map((tab) => {
-          const { onClose, onFocus, ...props } = tab.props;
+        {Array.from(tabs.entries()).map(([id, tab]) => {
+          const { onClose, onFocus, ...props } = tab;
           return (
             <TabBarButton
-              key={tab.key}
+              key={id}
               {...props}
+              active={id === active}
               onClose={() => {
                 if (onClose) onClose();
-                if (tab.key === key) setKey(null);
+                if (id === active) setActive(null);
               }}
               onFocus={() => {
                 if (onFocus) onFocus();
-                setKey(tab.key);
+                setActive(id);
               }}
             />
           );
@@ -48,40 +89,10 @@ const TabContainer: FunctionComponent = ({ children }) => {
       </TabBar>
 
       {/* Only render the tab content for the tab that is active. */}
-      {/* TODO: Make non-selected tabs display:none rather than not render at all. */}
-      <TabContent>
-        {tabChildren.map((tab) => (tab.key === key ? tab : null))}
-      </TabContent>
+      {/* Note that this check is performed in the tabs themselves in order to allow for more complex structures. */}
+      <TabContext.Provider value={context}>{children}</TabContext.Provider>
     </div>
   );
 };
 
 export default TabContainer;
-
-/** How will this component be used?
- *  <TabContainer>
- *    <Tab title={
- *        <span>
- *          <DatabaseIcon />
- *          Datasets
- *        </span>
- *      }
- *      status="modified"
- *      closeable
- *    >
- *      Some stuff
- *      <VisNetworkRenderer />
- *    </Tab>
- *    <Tab title={
- *        <span>
- *          <GraphIcon />
- *          Graph #1
- *        </span>
- *      }
- *      status="none"
- *      closeable
- *    >
- *      Some graph stuff
- *    </Tab>
- *  </TabContainer>
- */

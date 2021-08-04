@@ -1,15 +1,4 @@
-import DatasetAddView from "./DatasetAddView";
-import DatasetGraphView from "./DatasetGraphView";
-import DatasetListView from "./DatasetListView";
-import DocumentationView from "./DocumentationView";
-import WorkspaceSettingsView from "./WorkspaceSettingsView";
-import WorkspaceToolboxView from "./WorkspaceToolboxView";
+import ViewContainer from "./ViewContainer";
+import ViewRenderer from "./ViewRenderer";
 
-export {
-  DatasetAddView,
-  DatasetGraphView,
-  DatasetListView,
-  DocumentationView,
-  WorkspaceSettingsView,
-  WorkspaceToolboxView,
-};
+export { ViewContainer, ViewRenderer };

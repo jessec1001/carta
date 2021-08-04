@@ -1,6 +1,10 @@
 import NotificationContext from "./NotificationContext";
-import ThemeContext, { Theme } from "./ThemeContext";
+import ThemeContext from "./ThemeContext";
+import ViewContext from "./ViewContext";
 import UserContext from "./UserContext";
 
-export { ThemeContext, UserContext, NotificationContext };
-export { Theme };
+export { UserContext, ThemeContext, ViewContext, NotificationContext };
+export * from "./NotificationContext";
+export * from "./ThemeContext";
+export * from "./ViewContext";
+export * from "./UserContext";

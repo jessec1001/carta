@@ -1,4 +1,11 @@
-import React, { FunctionComponent } from "react";
+import React, {
+  createContext,
+  FunctionComponent,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
+import TabContent from "./TabContent";
 
 /**
  * The props used for the {@link Tab} component.
@@ -19,11 +26,61 @@ interface TabProps {
   onFocus?: () => void;
 }
 
-const Tab: FunctionComponent<TabProps> = ({ children }) => {
-  // We just re-render the children here.
+/** Represents the type of identifier for a tab. */
+type TabId = string | number;
+/** The type of value of the {@link TabContext} context. */
+interface TabContextValue {
+  set: (props: TabProps, id?: TabId) => TabId;
+  unset: (id: TabId) => void;
+
+  active: TabId | null;
+}
+
+/** A context that allows tabs to be registered with tab containers and displayed appropriately. */
+const TabContext = createContext<TabContextValue>({
+  set: () => 0,
+  unset: () => {},
+
+  active: null,
+});
+
+/** A component that renders a tab within a tab container with specified properties on the tab button. */
+const Tab: FunctionComponent<TabProps> = ({ children, ...props }) => {
+  const { active, set, unset } = useContext(TabContext);
+  const [id, setId] = useState<TabId | undefined>(undefined);
+
+  // We extract all of the props individually here so we may compare individually.
+  const { title, status, closeable, onClose, onFocus } = props;
+
+  // This effect updates the tab whenever the component is mounted or changed.
+  useEffect(() => {
+    setId((id) =>
+      set(
+        {
+          title,
+          status,
+          closeable,
+          onClose,
+          onFocus,
+        },
+        id
+      )
+    );
+  }, [set, title, status, closeable, onClose, onFocus]);
+
+  // This effect tears down the tab when the component is unmounted.
+  useEffect(() => {
+    return () => {
+      if (id !== undefined) unset(id);
+    };
+  }, [unset, id]);
+
+  // We just re-render the children here if the tab is active.
   // The remaining properties are handled by the tab container.
-  return <React.Fragment>{children}</React.Fragment>;
+  return <TabContent active={id === active}>{children}</TabContent>;
 };
 
 export default Tab;
-export type { TabProps };
+export type { TabProps, TabId };
+export { TabContext };
+export type { TabContextValue };

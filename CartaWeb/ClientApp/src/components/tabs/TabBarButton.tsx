@@ -4,7 +4,8 @@ import { TabProps } from "./Tab";
 
 import "./tab.css";
 
-const TabBarButton: FunctionComponent<TabProps> = ({
+const TabBarButton: FunctionComponent<TabProps & { active?: boolean }> = ({
+  active,
   title = "(Untitled)",
   status = "none",
   closeable = false,
@@ -12,10 +13,20 @@ const TabBarButton: FunctionComponent<TabProps> = ({
   onFocus,
 }) => {
   return (
-    <div className={classNames("tab-bar-button", `status-${status}`)}>
+    <div
+      className={classNames("tab-bar-button", `status-${status}`, { active })}
+    >
       <span className="normal-text">
-        {title && <span onClick={onFocus}>{title}</span>}
-        {closeable && <span onClick={onClose}>×</span>}
+        {title && (
+          <span onClick={onFocus} className="normal-text">
+            {title}
+          </span>
+        )}
+        {closeable && (
+          <span onClick={onClose} className="tab-close normal-text">
+            ×
+          </span>
+        )}
       </span>
     </div>
   );
