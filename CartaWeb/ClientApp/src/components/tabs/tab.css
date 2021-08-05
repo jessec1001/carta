@@ -35,7 +35,7 @@
   cursor: pointer;
 }
 .tab-bar-button.status-none {
-  border-top: none;
+  border-color: transparent;
 }
 .tab-bar-button.status-modified {
   border-color: #e0b72e;
