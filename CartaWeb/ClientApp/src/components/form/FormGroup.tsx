@@ -6,7 +6,7 @@ import "./form.css";
 
 /** The props used for the {@link FormGroup} component. */
 interface FormGroupProps {
-  density?: "dense" | "sparse";
+  density?: "dense" | "sparse" | "flow";
 
   error?: Error;
 
@@ -34,6 +34,22 @@ const FormGroup: FunctionComponent<FormGroupProps> = ({
           {/* <Tooltip className="form-group-tooltip" anchor="top left">
             {description}
           </Tooltip> */}
+          {title && <span className="form-group-label">{title}</span>}
+          <span className="form-group-content">
+            {children}
+            {error !== undefined && (
+              <small className="form-group-error">{error.message}</small>
+            )}
+          </span>
+        </label>
+      );
+    case "flow":
+      return (
+        <label className={classNames("form-group", actualDensity)} {...props}>
+          {/* TODO: Add tooltip functionality. */}
+          {/* <Tooltip className="form-group-tooltip" anchor="top left">
+              {description}
+            </Tooltip> */}
           {title && <span className="form-group-label">{title}</span>}
           <span className="form-group-content">
             {children}

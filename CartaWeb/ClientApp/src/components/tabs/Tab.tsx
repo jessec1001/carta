@@ -7,6 +7,8 @@ import React, {
 } from "react";
 import TabContent from "./TabContent";
 
+import "./tab.css";
+
 /**
  * The props used for the {@link Tab} component.
  * These props will be used by the {@link TabContainer} component.

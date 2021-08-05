@@ -1,5 +1,5 @@
 import { FunctionComponent } from "react";
-import { Paragraph, Title } from "components/text";
+import { SeparatedText, Title } from "components/text";
 import { PageLayout, Wrapper } from "components/layout";
 import { AnimatedJumbotron } from "components/jumbotron";
 import { WorkspaceCarousel } from "components/workspace";
@@ -11,11 +11,11 @@ const HomePage: FunctionComponent = () => {
       {/* Jumbotron goes here with nice animation. */}
       <AnimatedJumbotron>
         <Title>Welcome to Carta!</Title>
-        <Paragraph>
+        <SeparatedText>
           Carta is a web-based API and application that provides graph-based
           tools for accessing, exploring, and transforming existing datasets and
           models.
-        </Paragraph>
+        </SeparatedText>
       </AnimatedJumbotron>
 
       {/* Carousel of workspaces for easy access. */}

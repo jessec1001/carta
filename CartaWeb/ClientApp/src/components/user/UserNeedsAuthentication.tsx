@@ -1,12 +1,12 @@
 import { Link } from "components/common";
-import { Paragraph } from "components/text";
+import { SeparatedText } from "components/text";
 import { FunctionComponent } from "react";
 import { UserSignIn } from ".";
 
 /** A component that displays a message that indicates that the user should be authenticated. */
 const UserNeedsAuthentication: FunctionComponent = () => {
   return (
-    <Paragraph>
+    <SeparatedText>
       You must{" "}
       <Link to="#">
         <UserSignIn>sign in</UserSignIn>
@@ -16,7 +16,7 @@ const UserNeedsAuthentication: FunctionComponent = () => {
         <UserSignIn>sign up</UserSignIn>
       </Link>{" "}
       to use this functionality.
-    </Paragraph>
+    </SeparatedText>
   );
 };
 

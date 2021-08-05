@@ -1,8 +1,11 @@
-import React from "react";
+import React, { FunctionComponent } from "react";
 import { GraphIcon } from "components/icons";
 import { Tab } from "components/tabs";
 
-const DatasetGraphView = () => {
+interface DatasetGraphViewProps {
+  id: string;
+}
+const DatasetGraphView: FunctionComponent<DatasetGraphViewProps> = ({ id }) => {
   const datasetName = "(source/resource)";
   const modified = false;
 

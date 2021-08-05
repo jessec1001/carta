@@ -118,6 +118,11 @@ class WorkspaceAPI extends BaseAPI {
 
     return parseWorkspace(await this.readJSON<WorkspaceDTO>(response));
   }
+  /**
+   * Creates a new workspace with the specified name and existing users and datasets.
+   * @param workspace The workspace object to create.
+   * @returns The newly created workspace.
+   */
   public async createCompleteWorkspace(
     workspace: Workspace
   ): Promise<Workspace> {
@@ -310,6 +315,29 @@ class WorkspaceAPI extends BaseAPI {
     );
   }
   /**
+   * Adds a dataset with the specified name and workflow to a specific workspace.
+   * @param workspaceId The unique identifier of the workspace.
+   * @param dataset The dataset to add.
+   * @returns The newly added dataset in the workspace.
+   */
+  public async addCompleteWorkspaceDataset(
+    workspaceId: string,
+    dataset: WorkspaceDataset
+  ): Promise<WorkspaceDataset> {
+    let newDataset: WorkspaceDataset;
+    newDataset = await this.addWorkspaceDataset(
+      workspaceId,
+      dataset.source,
+      dataset.resource
+    );
+    newDataset = await this.updateWorkspaceDataset(workspaceId, {
+      ...newDataset,
+      name: dataset.name,
+      workflow: dataset.workflow,
+    });
+    return newDataset;
+  }
+  /**
    * Removes a dataset from a specific workspace.
    * @param workspaceId The unique identifier of the workspace.
    * @param datasetId The unique identifier of the dataset.
@@ -340,7 +368,7 @@ class WorkspaceAPI extends BaseAPI {
   ): Promise<WorkspaceDataset> {
     const params = {
       name: dataset.name,
-      workflow: dataset.workflowId,
+      workflow: dataset.workflow,
     };
     const url = `${this.getWorkspaceUrl(workspaceId)}/data/${encodeURIComponent(
       dataset.id

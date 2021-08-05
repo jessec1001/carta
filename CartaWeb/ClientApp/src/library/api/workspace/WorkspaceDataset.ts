@@ -11,10 +11,12 @@ interface WorkspaceDataset {
   /** The dataset resource. */
   resource: string;
   /** The workflow applied to this dataset. */
-  workflowId?: string;
+  workflow?: string;
 
   /** The date that the dataset was added to the workspace. */
   dateAdded?: Date;
+  /** The date that the dataset was deleted from the workspace. */
+  dateDeleted?: Date;
 
   /** Whom the dataset was added to the workspace by. */
   addedBy?: string;
@@ -23,6 +25,9 @@ interface WorkspaceDataset {
 type WorkspaceDatasetDTO = Modify<
   WorkspaceDataset,
   {
+    workflow: never;
+    workflowId?: string;
+
     dateAdded?: string;
     dateDeleted?: string;
   }
@@ -34,11 +39,13 @@ type WorkspaceDatasetDTO = Modify<
  * @returns The converted literal object.
  */
 const parseWorkspaceDataset = (dto: WorkspaceDatasetDTO): WorkspaceDataset => {
-  const { dateAdded, ...rest } = dto;
+  const { dateAdded, dateDeleted, workflowId, ...rest } = dto;
 
   return {
     ...rest,
     dateAdded: dateAdded ? new Date(dateAdded) : undefined,
+    dateDeleted: dateDeleted ? new Date(dateDeleted) : undefined,
+    workflow: workflowId,
   };
 };
 

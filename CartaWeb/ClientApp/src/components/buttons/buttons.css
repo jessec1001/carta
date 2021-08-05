@@ -37,8 +37,16 @@
   background-color: var(--color-primary);
   color: var(--color-primary-stroke);
 }
+.block-button.primary:disabled {
+  background-color: var(--color-primary-disabled);
+  cursor: not-allowed;
+}
 .block-button.secondary {
   background-color: var(--color-secondary);
   color: var(--color-secondary-stroke);
+}
+.block-button.secondary:disabled {
+  background-color: var(--color-secondary-disabled);
+  cursor: not-allowed;
 }
 /* #endregion */

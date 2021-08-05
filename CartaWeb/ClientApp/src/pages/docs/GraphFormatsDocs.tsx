@@ -1,6 +1,6 @@
 import { Component } from "react";
 import { ColumnTable } from "components/ui/layout/ColumnTable.js";
-import { Paragraph, Subsection } from "components/text";
+import { SeparatedText, Subsection } from "components/text";
 
 export class GraphFormatDocs extends Component {
   static displayName = GraphFormatDocs.name;
@@ -8,20 +8,20 @@ export class GraphFormatDocs extends Component {
   render() {
     return (
       <Subsection title="Graph Formats">
-        <Paragraph>
+        <SeparatedText>
           Carta supports a large set of native graph formats to load data into
           its tools. They range across a range of standardized or widely-used
           formats that can be obtained from the <em>Data</em> API and its
           endpoints by setting the appropriate <code>Accept</code> header in API
           calls. By default, the Carta <em>Data</em> API returns a JSON response
           in the "Vis Dataset" format to be easily used by the graphing view.
-        </Paragraph>
+        </SeparatedText>
 
         <h5>JSON-based Formats</h5>
-        <Paragraph>
+        <SeparatedText>
           The following formats are JSON-based formats that are useful for being
           loaded directly into JavaScript applications.
-        </Paragraph>
+        </SeparatedText>
         <ColumnTable
           headers={["Name", "Site", "MIME"]}
           values={[
@@ -47,11 +47,11 @@ export class GraphFormatDocs extends Component {
         />
 
         <h5>XML-based Formats</h5>
-        <Paragraph>
+        <SeparatedText>
           The following formats are XML-based formats that are useful for
           applications or languages that natively support XML such as C# or for
           web display.
-        </Paragraph>
+        </SeparatedText>
         <ColumnTable
           headers={["Name", "Site", "MIME"]}
           values={[
@@ -77,11 +77,11 @@ export class GraphFormatDocs extends Component {
         />
 
         <h5>Alternative</h5>
-        <Paragraph>
+        <SeparatedText>
           The following formats are not represented by any schema for commonly
           used data transfer languages. Instead, they are commonly used formats
           within graph data communities.
-        </Paragraph>
+        </SeparatedText>
         <ColumnTable
           headers={["Name", "Site", "MIME"]}
           values={[

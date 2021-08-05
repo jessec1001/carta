@@ -10,7 +10,7 @@ const useControllableState = <T>(
   initialValue: T | (() => T),
   propValue?: T,
   handleChangeValue?: (nextValue: T) => void
-): [T, (newValue: T) => void] => {
+): [T, (newValue: T | ((prevValue: T) => T)) => void] => {
   // Find the value from the props, if specified, or the state otherwise.
   const [stateValue, setStateValue] = useState(initialValue);
   const actualValue = propValue === undefined ? stateValue : propValue;

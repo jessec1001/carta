@@ -5,20 +5,30 @@ import React, {
   useState,
 } from "react";
 import { useAPI } from "hooks";
-import { ViewContext } from "context";
-import { WorkspaceDataset } from "library/api";
+import { ViewContext, WorkspaceContext } from "context";
 import { BlockButton } from "components/buttons";
 import { Link } from "components/common";
 import { ApiException } from "library/exceptions";
 import { FormGroup } from "components/form";
 import { DatabaseIcon } from "components/icons";
-import { CheckboxInput, TextFieldInput } from "components/input";
+import {
+  CheckboxInput,
+  SearchboxInput,
+  TextFieldInput,
+} from "components/input";
 import { VerticalScroll } from "components/scroll";
 import { Tab } from "components/tabs";
-import { ErrorText, Heading, Paragraph } from "components/text";
+import { ErrorText, Heading, SeparatedText } from "components/text";
 import DatasetGraphView from "./DatasetGraphView";
 
 import "./view.css";
+import { Column, Row } from "components/structure";
+import {
+  Accordian,
+  AccordianContent,
+  AccordianHeader,
+  AccordianToggle,
+} from "components/accordian";
 
 /**
  * Renders a loading status.
@@ -43,7 +53,7 @@ const renderError = (error: ApiException) => {
         error.data.source.toLowerCase() === "HyperThought".toLowerCase()
       )
         return (
-          <Paragraph>
+          <SeparatedText>
             You need to be authenticated with HyperThought&trade; to load these
             datasets. To access this data, add your HyperThought&trade; API key
             to the integration section on your{" "}
@@ -54,7 +64,7 @@ const renderError = (error: ApiException) => {
               profile
             </Link>
             .
-          </Paragraph>
+          </SeparatedText>
         );
     }
   }
@@ -91,6 +101,19 @@ const renderResource = (
 const DatasetAddView: FunctionComponent = ({ children }) => {
   // We need the data API to make calls to get the data resources.
   const { dataAPI } = useAPI();
+  const { container, view, actions } = useContext(ViewContext);
+  const { datasets } = useContext(WorkspaceContext);
+
+  // We store a reference to the selected source-resource pair.
+  // For now, only a single dataset should be able to be selected at a time.
+  const [selected, setSelected] = useState<{
+    source: string;
+    resource: string;
+  } | null>(null);
+  const [name, setName] = useState<string>("");
+
+  // We use a searchbox query to filter the names of resources.
+  const [query, setQuery] = useState<string>("");
 
   // These resources are stored in a dictionary:
   // Keys - Data source
@@ -132,36 +155,39 @@ const DatasetAddView: FunctionComponent = ({ children }) => {
       });
     };
 
+    // Start asynchronous data loading.
+    // TODO: Cancel this operation if the component has unmounted.
     loadDataSources();
   }, [dataAPI]);
 
-  // We store a reference to the selected source-resource pair.
-  // For now, only a single dataset should be able to be selected at a time.
-  const [selected, setSelected] = useState<{
-    source: string;
-    resource: string;
-  } | null>(null);
-  const [name, setName] = useState<string>("");
-  // When a dataset item is clicked, its selected state is toggled.
-  // Since we currently only allow a single dataset, this will also move the selection around.
   const handleSelect = (source: string, resource: string) => {
+    // When a dataset item is clicked, its selected state is toggled.
+    // Since we currently only allow a single dataset, this will also move the selection around.
     if (selected?.source === source && selected.resource === resource)
       setSelected(null);
     else setSelected({ source, resource });
   };
-
-  const { container, view, actions } = useContext(ViewContext);
-  // TODO: Add a new dataset to the workspace, remove the current element from the container, and open the added dataset in a new container item on add.
   const handleAdd = () => {
     (async () => {
-      // TODO: Add the new dataset to the workspace.
-      const newDataset: WorkspaceDataset = null as any;
+      // Add the new dataset to the workspace.
+      if (selected === null || datasets === null) return;
+      const newDataset = await datasets.CRUD.add({
+        id: undefined!,
+        source: selected.source,
+        resource: selected.resource,
+        name: name.length === 0 ? undefined : name,
+      });
 
       // Remove the current element from the container.
       if (view) actions?.remove(view.id);
 
       // Open the added dataset in a new view.
-      if (container) actions?.add(DatasetGraphView, container.id);
+      if (container) {
+        actions?.add(
+          () => <DatasetGraphView id={newDataset.id} />,
+          container.id
+        );
+      }
     })();
   };
   const handleCancel = () => {
@@ -184,11 +210,20 @@ const DatasetAddView: FunctionComponent = ({ children }) => {
       <VerticalScroll>
         <div className="view">
           {/* Render some information on how to use this view. */}
-          <Paragraph>
+          <SeparatedText>
             Select a dataset to add to the workspace by clicking on the checkbox
             beside its name. You can optionally provide a more descriptive name
             for the dataset that will be displayed within the workspace.
-          </Paragraph>
+          </SeparatedText>
+
+          {/* Display a searchbox for filtering the datasets. */}
+          <Row>
+            <Column>
+              <FormGroup density="flow">
+                <SearchboxInput value={query} onChange={setQuery} clearable />
+              </FormGroup>
+            </Column>
+          </Row>
 
           {/* Depending on the state of each group of resources, execute a corresponding rendering function. */}
           {Object.entries(groupedResources).map(([source, resources]) => {
@@ -198,9 +233,13 @@ const DatasetAddView: FunctionComponent = ({ children }) => {
             } else if (resources instanceof ApiException) {
               contents = renderError(resources);
             } else {
+              // Filter on the query in the search bar.
+              resources = resources.filter((resource) =>
+                resource.toLowerCase().includes(query.toLowerCase())
+              );
               contents =
                 resources.length > 0 ? (
-                  <span className="paragraph">
+                  <SeparatedText>
                     <ul role="presentation">
                       {resources.map((resource) => (
                         <li
@@ -216,25 +255,29 @@ const DatasetAddView: FunctionComponent = ({ children }) => {
                         </li>
                       ))}
                     </ul>
-                  </span>
+                  </SeparatedText>
                 ) : (
-                  <Paragraph>No data resources available.</Paragraph>
+                  <SeparatedText>No data resources found.</SeparatedText>
                 );
             }
 
             return (
               <div key={source}>
-                {/* TODO: Make into accordian component. */}
-                <Heading>
-                  <DatabaseIcon /> {source}
-                </Heading>
-                <div>{contents}</div>
+                <Accordian>
+                  <AccordianHeader>
+                    <Heading>
+                      <DatabaseIcon /> {source}
+                    </Heading>
+                    <AccordianToggle caret />
+                  </AccordianHeader>
+                  <AccordianContent>{contents}</AccordianContent>
+                </Accordian>
               </div>
             );
           })}
 
           {/* Render an input for the optional display name of the selected dataset. */}
-          <FormGroup title="Name" density="dense">
+          <FormGroup title="Name" density="flow">
             <TextFieldInput
               placeholder={
                 selected

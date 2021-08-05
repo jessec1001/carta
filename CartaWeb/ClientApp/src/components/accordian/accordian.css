@@ -1,0 +1,23 @@
+.accordian-content {
+  display: none;
+}
+.accordian-content.toggled {
+  display: block;
+}
+.accordian-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+.accordian-toggle {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  color: var(--color-stroke-lowlight);
+  cursor: pointer;
+}
+.accordian-toggle:hover {
+  color: var(--color-stroke);
+}

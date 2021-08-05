@@ -4,6 +4,7 @@ import { TabProps } from "./Tab";
 
 import "./tab.css";
 
+/** A component that is a button located on the tab bar that allows for tab navigation. */
 const TabBarButton: FunctionComponent<TabProps & { active?: boolean }> = ({
   active,
   title = "(Untitled)",

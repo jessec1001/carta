@@ -1,11 +1,12 @@
-import { SVGStyle } from "./icons";
+import { FunctionComponent } from "react";
+import { IconProps, SVGStyle } from "./icons";
 
-const UserIcon = () => (
+const UserIcon: FunctionComponent<IconProps> = ({ children, ...props }) => (
   <svg
     version="1.1"
     viewBox="0 0 33.867 33.867"
     xmlns="http://www.w3.org/2000/svg"
-    style={SVGStyle}
+    style={SVGStyle(props)}
   >
     <path
       transform="scale(.26459)"

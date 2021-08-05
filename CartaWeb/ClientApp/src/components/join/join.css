@@ -44,7 +44,7 @@
 
   /* There should be no extra spacing for joined input elements. */
   margin: 0;
-  padding: 0;
+  padding: 0 0.25rem;
 
   /* Items inside the joined input element should be perfectly centered. */
   align-items: center;

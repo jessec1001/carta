@@ -3,9 +3,10 @@ import { useLocation } from "react-router";
 import { Workspace, WorkspaceAPI } from "library/api";
 import { PageLayout } from "components/layout";
 import { ViewContainer, ViewRenderer } from "components/views";
-import { DatasetAddView, DatasetGraphView } from "components/workspace/views";
+import { DatasetListView } from "components/workspace/views";
 import { ViewActions } from "context";
 import { TabContainer } from "components/tabs";
+import WorkspaceWrapper from "components/workspace/WorkspaceWrapper";
 
 const tips: string[] = [
   "Every operation in Carta does not mutate input data.",
@@ -28,6 +29,7 @@ const WorkspacePage: FunctionComponent = () => {
   // const { id } =  useQuery<{ id: string }>();
 
   const [viewActions, setViewActions] = useState<ViewActions | null>(null);
+  const [layoutInitialized, setLayoutInitialized] = useState<boolean>(false);
 
   const [tip, setTip] = useState("");
   const [loading, setLoading] = useState(true);
@@ -67,15 +69,16 @@ const WorkspacePage: FunctionComponent = () => {
   }, [loading]);
 
   useEffect(() => {
-    if (viewActions && !viewActions.has(1)) {
+    if (viewActions && !layoutInitialized) {
       const tabContainer = viewActions.add(TabContainer);
 
       if (tabContainer) {
-        viewActions.add(DatasetAddView, tabContainer);
-        viewActions.add(DatasetGraphView, tabContainer);
+        viewActions.add(() => <DatasetListView />, tabContainer);
       }
+
+      setLayoutInitialized(true);
     }
-  }, [viewActions]);
+  }, [layoutInitialized, viewActions]);
 
   return (
     <PageLayout header>
@@ -148,9 +151,11 @@ const WorkspacePage: FunctionComponent = () => {
           </div>
         </div>
       )}
-      <ViewContainer actionRef={setViewActions}>
-        <ViewRenderer />
-      </ViewContainer>
+      <WorkspaceWrapper id={id}>
+        <ViewContainer actionRef={setViewActions}>
+          <ViewRenderer />
+        </ViewContainer>
+      </WorkspaceWrapper>
     </PageLayout>
   );
 };

@@ -33,6 +33,9 @@
   /* The border color should become emphasized when focused. */
   border-color: var(--color-primary);
 }
+.form-control:disabled {
+  background-color: var(--color-fill-element-lowlight);
+}
 .form-control.error {
   /* Errored form controls should use an error color for its border. */
   border-color: var(--color-stroke-error);
@@ -63,7 +66,8 @@ textarea.form-control {
   width: 100%;
   margin: 0.5rem 0rem;
 }
-.form-group.dense {
+.form-group.dense,
+.form-group.flow {
   display: flex;
   align-items: flex-start;
 }
@@ -74,6 +78,13 @@ textarea.form-control {
 }
 .form-group.dense .form-group-content {
   flex-basis: 80%;
+  flex-grow: 1;
+}
+.form-group.flow .form-group-label {
+  flex-shrink: 0;
+  margin-right: 0.5rem;
+}
+.form-group.flow .form-group-content {
   flex-grow: 1;
 }
 
