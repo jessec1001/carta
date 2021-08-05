@@ -13,7 +13,7 @@ const DatasetGraphView: FunctionComponent<DatasetGraphViewProps> = ({ id }) => {
     <Tab
       title={
         <React.Fragment>
-          <GraphIcon /> {datasetName}
+          <GraphIcon padded /> {datasetName}
         </React.Fragment>
       }
       closeable

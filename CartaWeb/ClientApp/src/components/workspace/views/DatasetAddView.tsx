@@ -200,7 +200,7 @@ const DatasetAddView: FunctionComponent = ({ children }) => {
     <Tab
       title={
         <React.Fragment>
-          <DatabaseIcon /> Add Dataset
+          <DatabaseIcon padded /> Add Dataset
         </React.Fragment>
       }
       status="none"

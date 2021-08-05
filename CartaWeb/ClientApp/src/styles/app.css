@@ -14,10 +14,10 @@ hr {
 
 /* Selections should be based on the primary color. */
 ::selection {
-  background-color: var(--color-primary-hover);
+  background-color: var(--color-primary-select);
 }
 ::-moz-selection {
-  background-color: var(--color-primary-hover);
+  background-color: var(--color-primary-select);
 }
 
 /* Vertically normalizes text environments. */

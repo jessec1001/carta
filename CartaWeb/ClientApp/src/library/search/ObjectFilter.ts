@@ -4,10 +4,12 @@ import { Filter } from "types";
 interface ObjectFilterOptions {
   /** The default property name to check when no property name is specified. Defaults to "name". */
   defaultProperty: string;
-  /** */
+  /** A mapping of properties into other properties to check for when filtering. */
   mappedProperties: Map<string, string>;
   /** Whether to automatically try to convert a property name to plural by adding 's' or similar. */
   pluralAutomatic: boolean;
+  /** Whether the check on string values should be case insensitive. */
+  caseInsensitive: boolean;
 }
 
 /** A filter capable of filtering through objects using a simple search language. */
@@ -15,6 +17,7 @@ class ObjectFilter implements ObjectFilterOptions {
   defaultProperty: string;
   mappedProperties: Map<string, string>;
   pluralAutomatic: boolean;
+  caseInsensitive: boolean;
 
   /** The function that is used to filter elements. */
   private filterFunction: Filter<any>;
@@ -25,12 +28,14 @@ class ObjectFilter implements ObjectFilterOptions {
       defaultProperty = "name",
       mappedProperties = new Map(),
       pluralAutomatic = true,
-    }: ObjectFilterOptions
+      caseInsensitive = true,
+    }: Partial<ObjectFilterOptions>
   ) {
     // Set the parameters.
     this.defaultProperty = defaultProperty;
     this.mappedProperties = mappedProperties;
     this.pluralAutomatic = pluralAutomatic;
+    this.caseInsensitive = caseInsensitive;
 
     // Compile a filter function to filter objects more efficiently.
     this.filterFunction = this.compilePluralPattern(pattern);
@@ -117,7 +122,9 @@ class ObjectFilter implements ObjectFilterOptions {
 
         if (typeof subvalue === "string") {
           // Strings are checked for inclusion only.
-          result = subvalue.includes(matcher);
+          if (this.caseInsensitive)
+            result = subvalue.toLowerCase().includes(matcher.toLowerCase());
+          else result = subvalue.includes(matcher);
         }
         if (typeof subvalue === "bigint" || typeof subvalue === "number") {
           // Numbers are checked for equality.

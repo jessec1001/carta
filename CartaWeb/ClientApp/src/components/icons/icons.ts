@@ -4,7 +4,7 @@ const SVGStyle = ({ padded }: IconProps): React.CSSProperties => {
     width: "1em",
     height: "1em",
     padding: "0rem",
-    margin: padded ? "0rem" : "0rem 0.25rem",
+    margin: padded ? "0rem 0.25rem" : "0rem",
   };
 };
 
