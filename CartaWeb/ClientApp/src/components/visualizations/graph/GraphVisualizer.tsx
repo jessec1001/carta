@@ -4,6 +4,7 @@ import { GraphData } from "library/api/data";
 import { DataNode } from "library/api/data/types";
 import { Options } from "vis-network/standalone";
 import { VisWrapper } from "components/wrappers";
+import { Theme } from "context";
 
 export interface GraphVisualizerProps {
   graph: GraphData;
@@ -123,6 +124,7 @@ export default class GraphVisualizer extends Component<
   }
   getNodeRenderer() {
     const that = this;
+    const theme = JSON.parse(localStorage.getItem("theme") ?? "light") as Theme;
     return (args: {
       ctx: CanvasRenderingContext2D;
       id: string;
@@ -217,7 +219,7 @@ export default class GraphVisualizer extends Component<
         },
         drawExternalLabel: () => {
           // Draw the label for the node beneath the node itself.
-          ctx.fillStyle = "black";
+          ctx.fillStyle = theme === Theme.Light ? "black" : "white";
           ctx.font = `${fontSize} sans-serif`;
           ctx.textAlign = "center";
           ctx.textBaseline = "hanging";

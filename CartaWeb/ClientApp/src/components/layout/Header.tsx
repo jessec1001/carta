@@ -34,7 +34,7 @@ const Header: FunctionComponent = () => {
 
       {/* Render navigation links to common pages. */}
       <NavigationLinkList>
-        <NavigationLink to="/workspace">Workspaces</NavigationLink>
+        {/* <NavigationLink to="/workspace">Workspaces</NavigationLink> */}
         <NavigationLink to="/documentation">Documentation</NavigationLink>
       </NavigationLinkList>
 
