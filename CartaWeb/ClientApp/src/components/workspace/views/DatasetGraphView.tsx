@@ -49,7 +49,6 @@ const DatasetGraphView: FunctionComponent<DatasetGraphViewProps> = ({ id }) => {
       : dataset.name ?? `(${dataset.source}/${dataset.resource})`;
   const modified = false;
 
-  console.log(graphDataRef.current);
   return (
     <Tab
       title={

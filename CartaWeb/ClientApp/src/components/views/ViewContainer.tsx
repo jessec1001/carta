@@ -9,6 +9,26 @@ import React, {
 } from "react";
 import { View, ViewActions, ViewContext, ViewId } from "context";
 
+/** The inner component of the {@link ViewContainer} component. */
+const ViewContainerWithRef = forwardRef<ViewActions, { actions: ViewActions }>(
+  ({ children, actions }, ref) => {
+    // We use some magic to construct the component itself to allow for a reference to be kept to the internal view data.
+    // This allows for a component to reference the view within the component that renders it.
+    // If a reference is specified on this container, we make sure to set it to the current view.
+    useEffect(() => {
+      if (ref !== null) {
+        if (typeof ref === "function") ref(actions);
+        else ref.current = actions;
+      }
+    }, [ref, actions]);
+
+    // We wrap a view context with a reference to this view around the children of this element.
+    // We do not explicitly render anything in this component so that the rendering logic may be specified elsewhere.
+    // This also helps to separate the concerns of rendering logic and container logic.
+    return <React.Fragment>{children}</React.Fragment>;
+  }
+);
+
 /** A component that stores views within a flexible container. */
 const ViewContainer: FunctionComponent<{
   actionRef: React.Ref<ViewActions>;
@@ -137,26 +157,6 @@ const ViewContainer: FunctionComponent<{
     },
     [findView, view]
   );
-
-  const ViewContainerWithRef = forwardRef<
-    ViewActions,
-    { actions: ViewActions }
-  >(({ children, actions }, ref) => {
-    // We use some magic to construct the component itself to allow for a reference to be kept to the internal view data.
-    // This allows for a component to reference the view within the component that renders it.
-    // If a reference is specified on this container, we make sure to set it to the current view.
-    useEffect(() => {
-      if (ref !== null) {
-        if (typeof ref === "function") ref(actions);
-        else ref.current = actions;
-      }
-    }, [ref, actions]);
-
-    // We wrap a view context with a reference to this view around the children of this element.
-    // We do not explicitly render anything in this component so that the rendering logic may be specified elsewhere.
-    // This also helps to separate the concerns of rendering logic and container logic.
-    return <React.Fragment>{children}</React.Fragment>;
-  });
 
   const actions = useMemo(
     () => ({
