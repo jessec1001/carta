@@ -1,12 +1,19 @@
-import { FunctionComponent, useEffect, useRef, useState } from "react";
+import {
+  FunctionComponent,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { useLocation } from "react-router";
 import { Workspace, WorkspaceAPI } from "library/api";
 import { PageLayout } from "components/layout";
-import { ViewContainer, ViewRenderer } from "components/views";
 import { DatasetListView } from "components/workspace/views";
-import { ViewActions } from "context";
 import { TabContainer } from "components/tabs";
 import WorkspaceWrapper from "components/workspace/WorkspaceWrapper";
+import ViewContext from "components/views/ViewContext";
+import ViewContainer from "components/views/_ViewContainer";
+import ViewRenderer from "components/views/_ViewRenderer";
 
 const tips: string[] = [
   "Every operation in Carta does not mutate input data.",
@@ -16,6 +23,21 @@ const tips: string[] = [
   "You can view multiple datasets simultaneously by dragging tabs to other portions of the screen.",
   "Opening the same workspace in multiple tabs or windows automatically synchronizes operations between them.",
 ];
+
+const WorkspacePageDefaultLayout: FunctionComponent = () => {
+  const { viewId, actions } = useContext(ViewContext);
+  const initializedRef = useRef<boolean>(false);
+
+  useEffect(() => {
+    if (!initializedRef.current) {
+      console.log(viewId, actions, "HERE 1");
+      initializedRef.current = true;
+      actions.addChildElement(viewId, <DatasetListView />);
+    }
+  }, [viewId, actions]);
+
+  return null;
+};
 
 // TODO: There should be preset layouts available for this page.
 const WorkspacePage: FunctionComponent = () => {
@@ -27,9 +49,6 @@ const WorkspacePage: FunctionComponent = () => {
 
   const id = new URLSearchParams(useLocation().search).get("id") as string;
   // const { id } =  useQuery<{ id: string }>();
-
-  const [viewActions, setViewActions] = useState<ViewActions | null>(null);
-  const [layoutInitialized, setLayoutInitialized] = useState<boolean>(false);
 
   const [tip, setTip] = useState("");
   const [loading, setLoading] = useState(true);
@@ -67,18 +86,6 @@ const WorkspacePage: FunctionComponent = () => {
       return () => clearInterval(changeTipIntervalId);
     }
   }, [loading]);
-
-  useEffect(() => {
-    if (viewActions && !layoutInitialized) {
-      const tabContainer = viewActions.add(TabContainer);
-
-      if (tabContainer) {
-        viewActions.add(() => <DatasetListView />, tabContainer);
-      }
-
-      setLayoutInitialized(true);
-    }
-  }, [layoutInitialized, viewActions]);
 
   return (
     <PageLayout header>
@@ -152,7 +159,8 @@ const WorkspacePage: FunctionComponent = () => {
         </div>
       )}
       <WorkspaceWrapper id={id}>
-        <ViewContainer actionRef={setViewActions}>
+        <ViewContainer>
+          <WorkspacePageDefaultLayout />
           <ViewRenderer />
         </ViewContainer>
       </WorkspaceWrapper>

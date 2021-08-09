@@ -1,4 +1,4 @@
-import WorkspacePage from "./Workspace";
+import WorkspacePage from "./WorkspaceView";
 import WorkspaceCreatePage from "./WorkspaceCreate";
 
 export { WorkspacePage, WorkspaceCreatePage };

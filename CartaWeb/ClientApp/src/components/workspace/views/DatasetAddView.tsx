@@ -5,7 +5,7 @@ import React, {
   useState,
 } from "react";
 import { useAPI } from "hooks";
-import { ViewContext, WorkspaceContext } from "context";
+import { WorkspaceContext } from "context";
 import { BlockButton } from "components/buttons";
 import { Link } from "components/common";
 import { ApiException } from "library/exceptions";
@@ -17,11 +17,9 @@ import {
   TextFieldInput,
 } from "components/input";
 import { VerticalScroll } from "components/scroll";
-import { Tab } from "components/tabs";
+import { Tab, TabContainer } from "components/tabs";
 import { ErrorText, Heading, SeparatedText } from "components/text";
 import DatasetGraphView from "./DatasetGraphView";
-
-import "./view.css";
 import { Column, Row } from "components/structure";
 import {
   Accordian,
@@ -29,6 +27,9 @@ import {
   AccordianHeader,
   AccordianToggle,
 } from "components/accordian";
+import ViewContext from "components/views/ViewContext";
+
+import "./view.css";
 
 /**
  * Renders a loading status.
@@ -101,7 +102,8 @@ const renderResource = (
 const DatasetAddView: FunctionComponent = ({ children }) => {
   // We need the data API to make calls to get the data resources.
   const { dataAPI } = useAPI();
-  const { container, view, actions } = useContext(ViewContext);
+  const { viewId, actions } = useContext(ViewContext);
+  const parent = actions.getParentView(viewId);
   const { datasets } = useContext(WorkspaceContext);
 
   // We store a reference to the selected source-resource pair.
@@ -179,134 +181,141 @@ const DatasetAddView: FunctionComponent = ({ children }) => {
       });
 
       // Remove the current element from the container.
-      if (view) actions?.remove(view.id);
+      actions.removeChildElement(viewId);
 
       // Open the added dataset in a new view.
-      if (container) {
-        actions?.add(
-          () => <DatasetGraphView id={newDataset.id} />,
-          container.id
+      if (parent !== null) {
+        actions.addChildElement(
+          parent.currentId,
+          <DatasetGraphView id={newDataset.id} />
         );
       }
     })();
   };
   const handleCancel = () => {
     // Remove the current element from the container on cancel.
-    if (view) actions?.remove(view.id);
+    actions.removeChildElement(viewId);
   };
 
   return (
     // Render the view itself within a tab so it can be easily added to container views.
-    <Tab
-      title={
-        <React.Fragment>
-          <DatabaseIcon padded /> Add Dataset
-        </React.Fragment>
-      }
-      status="none"
-      closeable
-      onClose={handleCancel}
-    >
-      <VerticalScroll>
-        <div className="view">
-          {/* Render some information on how to use this view. */}
-          <SeparatedText>
-            Select a dataset to add to the workspace by clicking on the checkbox
-            beside its name. You can optionally provide a more descriptive name
-            for the dataset that will be displayed within the workspace.
-          </SeparatedText>
+    <TabContainer>
+      <Tab
+        title={
+          <React.Fragment>
+            <DatabaseIcon padded /> Add Dataset
+          </React.Fragment>
+        }
+        status="none"
+        closeable
+        onClose={handleCancel}
+      >
+        <VerticalScroll>
+          <div className="view">
+            {/* Render some information on how to use this view. */}
+            <SeparatedText>
+              Select a dataset to add to the workspace by clicking on the
+              checkbox beside its name. You can optionally provide a more
+              descriptive name for the dataset that will be displayed within the
+              workspace.
+            </SeparatedText>
 
-          {/* Display a searchbox for filtering the datasets. */}
-          <Row>
-            <Column>
-              <FormGroup density="flow">
-                <SearchboxInput value={query} onChange={setQuery} clearable />
-              </FormGroup>
-            </Column>
-          </Row>
+            {/* Display a searchbox for filtering the datasets. */}
+            <Row>
+              <Column>
+                <FormGroup density="flow">
+                  <SearchboxInput value={query} onChange={setQuery} clearable />
+                </FormGroup>
+              </Column>
+            </Row>
 
-          {/* Depending on the state of each group of resources, execute a corresponding rendering function. */}
-          {Object.entries(groupedResources).map(([source, resources]) => {
-            let contents;
-            if (resources === null) {
-              contents = renderLoading();
-            } else if (resources instanceof ApiException) {
-              contents = renderError(resources);
-            } else {
-              // Filter on the query in the search bar.
-              resources = resources.filter((resource) =>
-                resource.toLowerCase().includes(query.toLowerCase())
-              );
-              contents =
-                resources.length > 0 ? (
-                  <SeparatedText>
-                    <ul role="presentation">
-                      {resources.map((resource) => (
-                        <li
-                          key={resource}
-                          onClick={() => handleSelect(source, resource)}
-                        >
-                          {renderResource(
-                            source,
-                            resource,
-                            source === selected?.source &&
-                              resource === selected.resource
-                          )}
-                        </li>
-                      ))}
-                    </ul>
-                  </SeparatedText>
-                ) : (
-                  <SeparatedText>No data resources found.</SeparatedText>
+            {/* Depending on the state of each group of resources, execute a corresponding rendering function. */}
+            {Object.entries(groupedResources).map(([source, resources]) => {
+              let contents;
+              if (resources === null) {
+                contents = renderLoading();
+              } else if (resources instanceof ApiException) {
+                contents = renderError(resources);
+              } else {
+                // Filter on the query in the search bar.
+                resources = resources.filter((resource) =>
+                  resource.toLowerCase().includes(query.toLowerCase())
                 );
-            }
-
-            return (
-              <div key={source}>
-                <Accordian>
-                  <AccordianHeader>
-                    <Heading>
-                      <DatabaseIcon /> {source}
-                    </Heading>
-                    <AccordianToggle caret />
-                  </AccordianHeader>
-                  <AccordianContent>{contents}</AccordianContent>
-                </Accordian>
-              </div>
-            );
-          })}
-
-          {/* Render an input for the optional display name of the selected dataset. */}
-          <FormGroup title="Name" density="flow">
-            <TextFieldInput
-              placeholder={
-                selected
-                  ? `(${selected.source}/${selected.resource})`
-                  : undefined
+                contents =
+                  resources.length > 0 ? (
+                    <SeparatedText>
+                      <ul role="presentation">
+                        {resources.map((resource) => (
+                          <li
+                            key={resource}
+                            onClick={() => handleSelect(source, resource)}
+                          >
+                            {renderResource(
+                              source,
+                              resource,
+                              source === selected?.source &&
+                                resource === selected.resource
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    </SeparatedText>
+                  ) : (
+                    <SeparatedText>No data resources found.</SeparatedText>
+                  );
               }
-              disabled={selected === null}
-              value={name}
-              onChange={setName}
-            />
-          </FormGroup>
 
-          {/* Render a set of buttons to perform or cancel the add dataset operation. */}
-          <div className="form-spaced-group">
-            <BlockButton
-              color="primary"
-              type="submit"
-              onClick={handleAdd}
-              disabled={selected === null}
-            >
-              Add
-            </BlockButton>
-            <BlockButton color="secondary" type="button" onClick={handleCancel}>
-              Cancel
-            </BlockButton>
+              return (
+                <div key={source}>
+                  <Accordian>
+                    <AccordianHeader>
+                      <Heading>
+                        <DatabaseIcon /> {source}
+                      </Heading>
+                      <AccordianToggle caret />
+                    </AccordianHeader>
+                    <AccordianContent>{contents}</AccordianContent>
+                  </Accordian>
+                </div>
+              );
+            })}
+
+            {/* Render an input for the optional display name of the selected dataset. */}
+            <FormGroup title="Name" density="flow">
+              <TextFieldInput
+                placeholder={
+                  selected
+                    ? `(${selected.source}/${selected.resource})`
+                    : undefined
+                }
+                disabled={selected === null}
+                value={name}
+                onChange={setName}
+              />
+            </FormGroup>
+
+            {/* Render a set of buttons to perform or cancel the add dataset operation. */}
+            <div className="form-spaced-group">
+              <BlockButton
+                color="primary"
+                type="submit"
+                onClick={handleAdd}
+                disabled={selected === null}
+              >
+                Add
+              </BlockButton>
+              <BlockButton
+                color="secondary"
+                type="button"
+                onClick={handleCancel}
+              >
+                Cancel
+              </BlockButton>
+            </div>
           </div>
-        </div>
-      </VerticalScroll>
-    </Tab>
+        </VerticalScroll>
+      </Tab>
+    </TabContainer>
   );
 };
 

@@ -97,6 +97,37 @@ const ViewContainer: FunctionComponent = ({ children }) => {
         // Return the identifier for the new view.
         return view.currentId;
       },
+      // To remove a child, we remove both that child and all of its children.
+      // Additionally, we make sure to remove the reference to the child from its parent.
+      removeChildElement(childId: number): void {
+        // Update the view hierarchy semi-recursively by removing all nested children elements.
+        setViews((views) => {
+          // Check that the specified child view exists and is an element view.
+          const childView = views.get(childId);
+          if (!childView || childView.type !== "element") return views;
+
+          // Copy the existing views into a new views mapping since we will be modifying it.
+          const newViews = new Map(views);
+
+          // Check if there is a parent that this element can be removed from.
+          if (childView.parentId !== null) {
+            const parentView = views.get(childView.parentId);
+            if (parentView && parentView.type === "split") {
+              newViews.set(parentView.currentId, {
+                ...parentView,
+                childIds: parentView.childIds.filter(
+                  (comparisonChildId) => comparisonChildId !== childId
+                ),
+              });
+            }
+          }
+
+          // Remove the child element view.
+          newViews.delete(childId);
+
+          return newViews;
+        });
+      },
     };
   }, [views]);
 

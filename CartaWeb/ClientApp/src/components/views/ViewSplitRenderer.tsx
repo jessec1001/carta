@@ -10,6 +10,7 @@ const ViewSplitRenderer: FunctionComponent = () => {
   const view = actions.getView(viewId) as SplitView;
   const children = actions.getChildViews(viewId);
 
+  console.log(view, children);
   if (children === null) return null;
 
   return (

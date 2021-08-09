@@ -40,6 +40,7 @@ interface ViewActions {
     parentId: number,
     element: React.ReactElement
   ) => number | null;
+  removeChildElement: (childId: number) => void;
 }
 
 /** The type that a view is allowed to be. */

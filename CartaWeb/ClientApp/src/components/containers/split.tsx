@@ -149,11 +149,11 @@ const SplitArea: FunctionComponent<SplitAreaProps> = ({
     gutterRefs.current.forEach((gutterRef, gutterIndex) => {
       if (gutterRef?.isSameNode(event.target as Node)) {
         setDraggedGutter(gutterIndex);
+
+        // We prevent default mouse event which may select text or perform some other undesireable action.
+        event.preventDefault();
       }
     });
-
-    // We prevent default mouse event which may select text or perform some other undesireable action.
-    event.preventDefault();
   };
   const handleMouseUp = (event: React.MouseEvent) => {
     setDraggedGutter(null);
@@ -246,6 +246,7 @@ const SplitArea: FunctionComponent<SplitAreaProps> = ({
 
             {/* Render the pane itself with the size determined by the component. */}
             {/* If the size is absolutely zero, we render the collapsed version. */}
+            {/* TODO: Fix panes being collapsed lose their state because they are no longer rendered. */}
             {actualSizes[index] <= 0 && collapseable ? (
               <SplitCollapsedPane
                 collapsePoint={collapsePoint}
