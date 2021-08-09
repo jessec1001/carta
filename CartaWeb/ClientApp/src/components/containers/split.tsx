@@ -133,7 +133,7 @@ const SplitArea: FunctionComponent<SplitAreaProps> = ({
   // We also use references to the children elements to grab their sizes in relation to their parent.
   // Note that for N children, there are N - 1 gutters dividing them.
   const gutterRefs = useRef<(HTMLDivElement | null)[]>(
-    Array<null>(childCount - 1).fill(null)
+    Array<null>(Math.max(0, childCount - 1)).fill(null)
   );
   const paneRefs = useRef<(HTMLDivElement | null)[]>(
     Array<null>(childCount).fill(null)

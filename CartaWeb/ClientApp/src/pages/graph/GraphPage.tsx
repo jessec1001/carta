@@ -4,7 +4,6 @@ import queryString from "query-string";
 import { RouteComponentProps } from "react-router-dom";
 import { GraphToolbar } from "./graph/GraphToolbar";
 import { Property } from "library/api/data";
-import { SplitPane } from "components/common/panes";
 import { GraphData } from "library/api/data/types";
 import { GraphWorkflow } from "library/api/workflow/types";
 
@@ -250,45 +249,43 @@ export default class GraphPage extends Component<
       graph = this.state.graphs[this.state.selectedGraph].data;
 
     return (
-      <SplitPane direction="horizontal" initialSizes={[3, 1]}>
-        <div className="d-flex flex-column h-100">
-          {this.state.workflowCreator && (
-            <WorkflowCreateForm
-              open
-              onContinue={this.state.workflowCreator}
-              onCancel={this.state.workflowCreator}
-            />
-          )}
-          {this.state.workflowApplying && (
-            <WorkflowApplyForm
-              open
-              onApply={(workflowId: string) => {
-                if (graph) {
-                  const workflow = new GraphWorkflow(
-                    workflowId,
-                    this.handleCreateWorkflow
-                  );
-                  graph.setWorkflow(workflow);
-                }
-                this.setState({ workflowApplying: false });
-              }}
-              onCancel={() => {
-                this.setState({ workflowApplying: false });
-              }}
-            />
-          )}
-          <GraphToolbar
-            className="toolbar"
-            graph={graph}
-            onOpenGraph={this.handleRequestOpenGraph}
-            onCloseGraph={this.handleRequestCloseGraph}
-            onDuplicateGraph={this.handleRequestDuplicateGraph}
-            onCreateWorkflow={this.handleCreateWorkflow}
-            onApplyWorkflow={this.handleApplyWorkflow}
-            onCreateForm={this.handleCreateForm}
+      <div className="d-flex flex-column h-100">
+        {this.state.workflowCreator && (
+          <WorkflowCreateForm
+            open
+            onContinue={this.state.workflowCreator}
+            onCancel={this.state.workflowCreator}
           />
-        </div>
-      </SplitPane>
+        )}
+        {this.state.workflowApplying && (
+          <WorkflowApplyForm
+            open
+            onApply={(workflowId: string) => {
+              if (graph) {
+                const workflow = new GraphWorkflow(
+                  workflowId,
+                  this.handleCreateWorkflow
+                );
+                graph.setWorkflow(workflow);
+              }
+              this.setState({ workflowApplying: false });
+            }}
+            onCancel={() => {
+              this.setState({ workflowApplying: false });
+            }}
+          />
+        )}
+        <GraphToolbar
+          className="toolbar"
+          graph={graph}
+          onOpenGraph={this.handleRequestOpenGraph}
+          onCloseGraph={this.handleRequestCloseGraph}
+          onDuplicateGraph={this.handleRequestDuplicateGraph}
+          onCreateWorkflow={this.handleCreateWorkflow}
+          onApplyWorkflow={this.handleApplyWorkflow}
+          onCreateForm={this.handleCreateForm}
+        />
+      </div>
     );
   }
 }
