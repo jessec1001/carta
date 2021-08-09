@@ -1,0 +1,113 @@
+/* #region Area */
+.split-area {
+  /* The split area uses flexbox to stretch panes in. */
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
+.split-area.vertical {
+  flex-direction: column;
+}
+.split-area.horizontal {
+  flex-direction: row;
+}
+/* #endregion */
+
+/* #region Pane */
+.split-pane.uncollapsed {
+  overflow: hidden;
+}
+.split-pane.collapsed {
+  --collapse-point: 24px;
+  display: flex;
+  flex-shrink: 0;
+  background-color: var(--color-fill-element);
+  box-shadow: var(--shadow);
+}
+.split-area.horizontal > .split-pane.collapsed {
+  flex-direction: column;
+  width: var(--collapse-point);
+  height: 100%;
+  padding: 0.25rem 0rem;
+}
+.split-area.vertical > .split-pane.collapsed {
+  flex-direction: row-reverse;
+  width: 100%;
+  height: var(--collapse-point);
+  padding: 0rem 0.25rem;
+}
+/* #endregion */
+
+/* #region Pane Button */
+.split-pane-button {
+  color: var(--color-stroke-lowlight);
+  cursor: pointer;
+}
+.split-pane-button:hover {
+  color: var(--color-stroke);
+}
+.split-pane-button {
+  display: inline-flex;
+}
+.split-pane-button.vertical {
+  flex-direction: row;
+}
+.split-pane-button.horizontal {
+  flex-direction: column;
+}
+.split-area.horizontal > .split-pane > .split-pane-button.vertical {
+  display: none;
+}
+.split-area.vertical > .split-pane > .split-pane-button.horizontal {
+  display: none;
+}
+/* #endregion */
+
+/* #region Gutter */
+.split-gutter {
+  /* We specify some gutter size constants to make this flexible to modify later. */
+  --gutter-thickness: 1px;
+  --gutter-handle: 7px;
+  --gutter-margins: calc((var(--gutter-handle) - var(--gutter-thickness)) / 2);
+
+  /* This sets up thhe style of border that forms the main graphical display of the gutter. */
+  background-color: var(--color-stroke-faint);
+  border-color: transparent;
+  border-style: solid;
+  background-clip: padding-box;
+  -webkit-background-clip: padding-box;
+  z-index: 5;
+
+  /* We wait a small delay before showing the gutter color so that */
+  transition-property: background-color, border-color;
+  transition-delay: 0.1s;
+  transition-duration: 0.1s;
+  transition-timing-function: ease-in;
+}
+.split-gutter:hover {
+  /* When the gutter is hovered over, we display another color to indicate it. */
+  background-color: var(--color-primary);
+  border-color: var(--color-primary-select);
+}
+.split-area.horizontal > .split-gutter {
+  /* We make vertical gutters stretch vertically. */
+  width: var(--gutter-handle);
+  height: 100%;
+
+  margin: 0 calc(-1 * var(--gutter-margins));
+  border-width: 0 var(--gutter-margins);
+
+  cursor: col-resize;
+}
+.split-area.vertical > .split-gutter {
+  /* We make horizontal gutters stretch horizontally. */
+  width: 100%;
+  height: var(--gutter-handle);
+
+  margin: calc(-1 * var(--gutter-margins)) 0;
+  border-width: var(--gutter-margins) 0;
+
+  cursor: row-resize;
+}
+/* #endregion */

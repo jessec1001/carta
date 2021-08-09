@@ -40,7 +40,7 @@ interface TabContextValue {
 
 /** A context that allows tabs to be registered with tab containers and displayed appropriately. */
 const TabContext = createContext<TabContextValue>({
-  set: () => 0,
+  set: () => -1,
   unset: () => {},
 
   active: null,

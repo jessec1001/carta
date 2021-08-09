@@ -1,10 +1,11 @@
 import CartaIcon from "./CartaIcon";
 import SearchIcon from "./SearchIcon";
 import CaretIcon from "./CaretIcon";
-import DatasetIcon from "./DatasetIcon";
-import UserIcon from "./UserIcon";
 import DatabaseIcon from "./DatabaseIcon";
+import DatasetIcon from "./DatasetIcon";
 import GraphIcon from "./GraphIcon";
+import PushIcon from "./PushIcon";
+import UserIcon from "./UserIcon";
 
 export {
   CartaIcon,
@@ -13,5 +14,6 @@ export {
   DatabaseIcon,
   DatasetIcon,
   GraphIcon,
+  PushIcon,
   UserIcon,
 };

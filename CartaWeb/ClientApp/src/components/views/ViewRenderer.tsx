@@ -26,3 +26,22 @@ const ViewRenderer: FunctionComponent = () => {
 };
 
 export default ViewRenderer;
+
+// TODO: How to utilize the compound view component.
+/**
+ * 1. Elements of the hierarchy are either split containers or leaf-node elements.
+ * 2. Split containers can be specified as:
+ * {
+ *  type: "split",
+ *  id: 0,
+ *  direction: "horizontal" | "vertical",
+ *  children: [...],
+ *  sizes: [...],
+ * }
+ * 3. Elements can be specified as:
+ * {
+ *  type: "element"
+ *  id: 1,
+ *  element: <... />
+ * }
+ */

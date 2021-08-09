@@ -268,6 +268,7 @@ class ObjectFilter implements ObjectFilterOptions {
 
         subpatterns.push(subpatternCurrent);
         subpatternCurrent = "";
+        continue;
       }
 
       // Any other character is treated normally.
