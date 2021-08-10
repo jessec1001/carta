@@ -9,10 +9,17 @@ import "./dropdown.css";
 interface DropdownProps {
   /** The side that the dropdown area should be displayed on. */
   side: "top-left" | "top-right" | "bottom-left" | "bottom-right";
+
+  /** Whether to ignore the hover effect on elements. */
+  ignoreHover?: boolean;
 }
 
 /** A component that displays a dropdown menu mostly for navigation purposes and not for form purposes. */
-const Dropdown: FunctionComponent<DropdownProps> = ({ side, children }) => {
+const Dropdown: FunctionComponent<DropdownProps> = ({
+  side,
+  ignoreHover,
+  children,
+}) => {
   // We will assume that there is only a single toggler element that we assign a reference to.
   const [toggled, setToggled] = useState(false);
   const togglerRef = useRef<HTMLDivElement>(null);
@@ -35,9 +42,12 @@ const Dropdown: FunctionComponent<DropdownProps> = ({ side, children }) => {
     return () => window.removeEventListener("click", handleClick);
   }, []);
 
+  console.log(!ignoreHover);
   return (
     // We do some compound component logic here to interpret dropdown parts.
-    <div className={classNames("dropdown", side, { toggled })}>
+    <div
+      className={classNames("dropdown", side, { toggled, hover: !ignoreHover })}
+    >
       {React.Children.map(children, (child, index) => {
         if (React.isValidElement(child)) {
           switch (child.type) {

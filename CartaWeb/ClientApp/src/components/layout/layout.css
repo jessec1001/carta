@@ -46,8 +46,11 @@
   /* Links should have a special color and look to them. */
   margin: 0rem 0.5rem;
   color: var(--color-stroke-lowlight);
-  text-transform: lowercase;
   text-decoration: none;
+}
+.nav-link.lower {
+  /* Specific types of navigation links should be styled lowercase. */
+  text-transform: lowercase;
 }
 .nav-link:hover {
   /* Links change color when hovered over. */

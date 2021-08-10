@@ -35,12 +35,14 @@ const Header: FunctionComponent = () => {
       {/* Render navigation links to common pages. */}
       <NavigationLinkList>
         {/* <NavigationLink to="/workspace">Workspaces</NavigationLink> */}
-        <NavigationLink to="/documentation">Documentation</NavigationLink>
+        <NavigationLink lower to="/documentation">
+          Documentation
+        </NavigationLink>
       </NavigationLinkList>
 
       {/* This link is used to sign in when the user is unauthenticated. */}
       <UserIsNotAuthenticated>
-        <NavigationLink to="#">
+        <NavigationLink lower to="#">
           <UserSignIn>Sign In</UserSignIn>
         </NavigationLink>
       </UserIsNotAuthenticated>
@@ -49,15 +51,18 @@ const Header: FunctionComponent = () => {
       <UserIsAuthenticated>
         <Dropdown side="bottom-left">
           <DropdownToggler caret>
-            <NavigationLink to="/profile">{username}</NavigationLink>
+            <NavigationLink lower to="/profile">
+              {username}
+            </NavigationLink>
           </DropdownToggler>
           <DropdownArea>
             <DropdownItem>
-              <NavigationLink to="/profile">Profile</NavigationLink>
+              <NavigationLink lower to="/profile">
+                Profile
+              </NavigationLink>
             </DropdownItem>
-            <hr />
             <DropdownItem>
-              <NavigationLink to="#">
+              <NavigationLink lower to="#">
                 <UserSignOut>Sign Out</UserSignOut>
               </NavigationLink>
             </DropdownItem>

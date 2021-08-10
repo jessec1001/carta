@@ -218,14 +218,12 @@ const DatasetListView: FunctionComponent = () => {
                 padding: "1rem",
               }}
             >
-              <Heading>
-                <Row>
-                  <Column>
-                    <SearchboxInput onChange={setQuery} clearable />
-                  </Column>
-                  <IconAddButton onClick={handleAdd} />
-                </Row>
-              </Heading>
+              <Row>
+                <Column>
+                  <SearchboxInput onChange={setQuery} clearable />
+                </Column>
+                <IconAddButton onClick={handleAdd} />
+              </Row>
             </div>
             {!datasets.value && <span>Loading</span>}
             {datasets.value && (

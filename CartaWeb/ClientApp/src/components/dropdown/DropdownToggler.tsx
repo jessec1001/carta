@@ -17,7 +17,7 @@ const DropdownToggler: FunctionComponent<DropdownTogglerProps> = ({
   return (
     <span className="normal-text">
       {children}
-      {caret && <CaretIcon />}
+      {caret && <CaretIcon padded />}
     </span>
   );
 };

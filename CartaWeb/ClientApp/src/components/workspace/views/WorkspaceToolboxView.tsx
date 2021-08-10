@@ -1,11 +1,16 @@
+import { IconAddButton } from "components/buttons";
 import { WorkflowIcon } from "components/icons";
+import { SearchboxInput } from "components/input";
 import { VerticalScroll } from "components/scroll";
+import { Column, Row } from "components/structure";
 import { Tab, TabContainer } from "components/tabs";
 import ViewContext from "components/views/ViewContext";
 import { WorkspaceContext } from "context";
 import { useAPI } from "hooks";
 import { WorkspaceWorkflow } from "library/api";
+import { ObjectFilter } from "library/search";
 import React, { useContext, useEffect, useState } from "react";
+import WorkflowCreateView from "./WorkflowCreateView";
 
 const renderWorkflow = (workflow: WorkspaceWorkflow) => {
   return (
@@ -56,6 +61,7 @@ const WorkspaceToolboxView = () => {
   const { workspace } = useContext(WorkspaceContext);
 
   const [workflows, setWorkflows] = useState<WorkspaceWorkflow[] | null>(null);
+  const [query, setQuery] = useState<string>("");
 
   useEffect(() => {
     if (workspace !== null) {
@@ -71,8 +77,15 @@ const WorkspaceToolboxView = () => {
   const handleClose = () => {
     actions.removeChildElement(viewId);
   };
+  const handleAdd = () => {
+    const parentView = actions.getParentView(viewId);
+    if (parentView) {
+      actions.addChildElement(parentView.currentId, <WorkflowCreateView />);
+    }
+  };
 
-  console.log(workflows);
+  const workflowFilter = new ObjectFilter(query, {});
+
   return (
     <TabContainer>
       <Tab
@@ -90,20 +103,34 @@ const WorkspaceToolboxView = () => {
               padding: "1rem",
             }}
           >
-            {!workflows && <span>Loading</span>}
-            {workflows && (
-              <ul
-                role="presentation"
-                style={{
-                  display: "flex",
-                  flexDirection: "row",
-                  flexWrap: "wrap",
-                  gap: "1rem",
-                }}
-              >
-                {workflows.map((workflow) => renderWorkflow(workflow))}
-              </ul>
-            )}
+            <Row>
+              <Column>
+                <SearchboxInput value={query} onChange={setQuery} clearable />
+              </Column>
+              <IconAddButton onClick={handleAdd} />
+            </Row>
+            <div
+              style={{
+                marginTop: "1rem",
+              }}
+            >
+              {!workflows && <span>Loading</span>}
+              {workflows && (
+                <ul
+                  role="presentation"
+                  style={{
+                    display: "flex",
+                    flexDirection: "row",
+                    flexWrap: "wrap",
+                    gap: "1rem",
+                  }}
+                >
+                  {workflowFilter
+                    .filter(workflows)
+                    .map((workflow) => renderWorkflow(workflow))}
+                </ul>
+              )}
+            </div>
           </div>
         </VerticalScroll>
       </Tab>

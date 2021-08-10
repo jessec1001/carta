@@ -17,6 +17,7 @@ import WorkspaceWrapper from "components/workspace/WorkspaceWrapper";
 import ViewContext from "components/views/ViewContext";
 import ViewContainer from "components/views/_ViewContainer";
 import ViewRenderer from "components/views/_ViewRenderer";
+import WorkspaceToolbar from "components/workspace/WorkspaceToolbar";
 
 const tips: string[] = [
   "Every operation in Carta does not mutate input data.",
@@ -110,15 +111,6 @@ const WorkspacePage: FunctionComponent = () => {
         >
           <div
             style={{
-              width: "100%",
-              height: "4px",
-              background: `linear-gradient(to right, var(--color-primary) ${
-                loadingProgress * 100
-              }%, var(--color-secondary) ${loadingProgress * 100}%)`,
-            }}
-          ></div>
-          <div
-            style={{
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
@@ -161,10 +153,36 @@ const WorkspacePage: FunctionComponent = () => {
           </div>
         </div>
       )}
+
       <WorkspaceWrapper id={id}>
         <ViewContainer>
-          <WorkspacePageDefaultLayout />
-          <ViewRenderer />
+          <div
+            style={{
+              width: "100%",
+              height: "100%",
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            <WorkspaceToolbar />
+            <div
+              style={{
+                flexGrow: 1,
+              }}
+            >
+              <WorkspacePageDefaultLayout />
+              <ViewRenderer />
+            </div>
+            <div
+              style={{
+                width: "100%",
+                height: "4px",
+                background: `linear-gradient(to right, var(--color-primary) ${
+                  loadingProgress * 100
+                }%, var(--color-secondary) ${loadingProgress * 100}%)`,
+              }}
+            ></div>
+          </div>
         </ViewContainer>
       </WorkspaceWrapper>
     </PageLayout>

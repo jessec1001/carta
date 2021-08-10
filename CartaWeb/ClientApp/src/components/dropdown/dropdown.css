@@ -20,10 +20,12 @@
   /* The corners of the dropdown should be slightly rounded to pop out. */
   border-radius: var(--border-radius);
   cursor: pointer;
+  overflow: hidden;
 }
 .dropdown.toggled .dropdown-toggler {
   /* The toggler should match the style of the area when toggled. */
   background-color: var(--color-fill-body);
+  z-index: 15;
 }
 .dropdown.toggled .dropdown-toggler::after {
   content: "";
@@ -37,7 +39,7 @@
   left: 0;
 
   /* Hide the dropdown toggler shadow beneath the dropdown area. */
-  z-index: -2;
+  z-index: 0;
   box-shadow: var(--shadow);
 }
 
@@ -62,14 +64,14 @@
     specified side.
   */
   position: absolute;
-  z-index: -1;
+  z-index: 10;
 
   /*
     The dropdown area should match dropdown toggler width and items should be
     kept to single lines instead of wrapping.
   */
-  /* min-width: 100%; */
-  min-width: calc(100% + max(var(--border-radius), 1rem));
+  min-width: 100%;
+  /* min-width: calc(100% + var(--border-radius)); */
   white-space: nowrap;
   overflow: hidden;
 
@@ -82,6 +84,7 @@
   /* Position above and facing left. */
   bottom: 100%;
   right: 0%;
+  border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
 }
 .dropdown.top-right .dropdown-area {
@@ -89,11 +92,13 @@
   bottom: 100%;
   left: 0%;
   border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
 }
 .dropdown.bottom-left .dropdown-area {
   /* Position below and facing left. */
   top: 100%;
   right: 0%;
+  border-top-left-radius: 0;
   border-top-right-radius: 0;
 }
 .dropdown.bottom-right .dropdown-area {
@@ -101,6 +106,7 @@
   top: 100%;
   left: 0%;
   border-top-left-radius: 0;
+  border-top-right-radius: 0;
 }
 /* #endregion */
 
@@ -108,6 +114,10 @@
 .dropdown-item {
   /* Dropdown items should have some padding around them to give spacing. */
   display: block;
-  padding: 0.5rem;
+  padding: 0.25rem 0.5rem;
+}
+.dropdown.hover .dropdown-item:hover {
+  background-color: var(--color-primary-hover);
+  cursor: pointer;
 }
 /* #endregion */
