@@ -3,7 +3,7 @@ interface Identifiable {
   /** The unique identifier of the object. */
   id: string;
   /** The user-friendly name of the object. */
-  name: string;
+  name?: string;
 }
 
 export type { Identifiable };

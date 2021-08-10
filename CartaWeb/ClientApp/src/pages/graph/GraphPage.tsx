@@ -7,8 +7,6 @@ import { Property } from "library/api/data";
 import { GraphData } from "library/api/data/types";
 import { GraphWorkflow } from "library/api/workflow/types";
 
-import WorkflowCreateForm from "./workflow/WorkflowCreateForm";
-import WorkflowApplyForm from "./workflow/WorkflowApplyForm";
 import { SchemaFormProps } from "components/form/schema/SchemaForm";
 
 export interface GraphPageProps extends RouteComponentProps {}
@@ -250,31 +248,6 @@ export default class GraphPage extends Component<
 
     return (
       <div className="d-flex flex-column h-100">
-        {this.state.workflowCreator && (
-          <WorkflowCreateForm
-            open
-            onContinue={this.state.workflowCreator}
-            onCancel={this.state.workflowCreator}
-          />
-        )}
-        {this.state.workflowApplying && (
-          <WorkflowApplyForm
-            open
-            onApply={(workflowId: string) => {
-              if (graph) {
-                const workflow = new GraphWorkflow(
-                  workflowId,
-                  this.handleCreateWorkflow
-                );
-                graph.setWorkflow(workflow);
-              }
-              this.setState({ workflowApplying: false });
-            }}
-            onCancel={() => {
-              this.setState({ workflowApplying: false });
-            }}
-          />
-        )}
         <GraphToolbar
           className="toolbar"
           graph={graph}

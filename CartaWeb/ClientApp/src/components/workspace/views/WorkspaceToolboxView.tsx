@@ -27,6 +27,7 @@ const renderWorkflow = (workflow: WorkspaceWorkflow) => {
         boxShadow: "var(--shadow)",
         padding: "1rem",
         overflow: "hidden",
+        flexShrink: 0,
       }}
     >
       <span

@@ -1,12 +1,8 @@
 import { Modify } from "types";
+import { Document, DocumentDTO, Identifiable, parseDocument } from "../base";
 
 /** Represents a workspace dataset object. */
-interface WorkspaceDataset {
-  /** The unique identifier of the workspace dataset. */
-  id: string;
-  /** The user-friendly name of the workspace. */
-  name?: string;
-
+interface WorkspaceDataset extends Identifiable, Document {
   /** The dataset source. */
   source: string;
   /** The dataset resource. */
@@ -14,28 +10,11 @@ interface WorkspaceDataset {
 
   /** The workflow applied to this dataset. */
   workflow?: string;
+  /** The version of the workflow applied to this dataset. */
   workflowVersion?: number;
-
-  documentHistory?: {
-    dateAdded?: Date;
-
-    addedBy?: {
-      id: string;
-      name: string;
-    };
-  };
 }
 /** Represents a workspace dataset object as returned by the API server. */
-type WorkspaceDatasetDTO = Modify<
-  WorkspaceDataset,
-  {
-    workflow: never;
-    workflowId?: string;
-
-    dateAdded?: string;
-    dateDeleted?: string;
-  }
->;
+type WorkspaceDatasetDTO = Modify<WorkspaceDataset, DocumentDTO>;
 
 /**
  * Converts a workspace dataset data transfer object into a more useable literal object.
@@ -43,13 +22,11 @@ type WorkspaceDatasetDTO = Modify<
  * @returns The converted literal object.
  */
 const parseWorkspaceDataset = (dto: WorkspaceDatasetDTO): WorkspaceDataset => {
-  const { dateAdded, dateDeleted, workflowId, ...rest } = dto;
+  const document = parseDocument(dto);
 
   return {
-    ...rest,
-    dateAdded: dateAdded ? new Date(dateAdded) : undefined,
-    dateDeleted: dateDeleted ? new Date(dateDeleted) : undefined,
-    workflow: workflowId,
+    ...dto,
+    ...document,
   };
 };
 

@@ -10,6 +10,25 @@ class BaseAPI {
   }
 
   /**
+   * Retrieves the default parameters for an API request.
+   * @param method The HTTP method verb to use.
+   * @param body An optional body to include in the request.
+   * @returns The parameters to the fetcher.
+   */
+  protected defaultFetcher(method: string = "GET", body?: any): RequestInit {
+    let parameters: RequestInit = { method };
+
+    if (body !== undefined) {
+      parameters.body = JSON.stringify(body);
+      parameters.headers = {
+        "Content-Type": "application/json",
+      };
+    }
+
+    return parameters;
+  }
+
+  /**
    * Ensures that an HTTP response has a successful status code (200-299). If not, raises an {@link ApiException}.
    * @param response The response to check.
    * @param errorMessage The error message that should be passed to the exception.
@@ -39,6 +58,11 @@ class BaseAPI {
     // Return the correctly-typed JSON version.
     return JSON.parse(text) as T;
   }
+  /**
+   * Writes a JSON value to a string.
+   * @param object The object to write to a string.
+   * @returns The stringified JSON object.
+   */
   protected writeJSON<T>(object: T): string {
     // Simply convert using standard JSON stringify.
     return JSON.stringify(object);

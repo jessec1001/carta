@@ -9,15 +9,21 @@ import {
 const UserJsonSchema: JsonSchema = {
   type: "object",
   properties: {
-    id: {
-      type: "string",
-      minLength: 1,
-    } as JsonStringSchema,
-    name: {
-      type: "string",
-    } as JsonStringSchema,
+    userInformation: {
+      type: "object",
+      properties: {
+        id: {
+          type: "string",
+          minLength: 1,
+        } as JsonStringSchema,
+        name: {
+          type: "string",
+        } as JsonStringSchema,
+      },
+    },
+    required: ["id", "name"],
   },
-  required: ["id", "name"],
+  required: ["userInformation"],
   "ui:widget": JsonObjectSchemaWidgets.User,
 } as JsonObjectSchema;
 

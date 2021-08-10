@@ -1,6 +1,11 @@
 import { FunctionComponent, useEffect, useState } from "react";
 import { useAPI, useControllableState, useSequentialRequest } from "hooks";
-import { UserAPI, User, UserSearcheableAttribute } from "library/api";
+import {
+  UserAPI,
+  User,
+  WorkspaceUser,
+  UserSearcheableAttribute,
+} from "library/api";
 import { UserIcon } from "components/icons";
 import { JoinContainer, JoinInputLabel } from "components/join";
 import ComboboxInput from "../general/ComboboxInput";
@@ -62,10 +67,10 @@ const constructUserRequest = async (
 /** The props used for the {@link UserInput} component. */
 interface UserInputProps {
   /** The value that this option component takes on. Set to `null` if no value is selected. */
-  value?: User | null;
+  value?: WorkspaceUser | null;
 
   /** The event handler for when the choice of user has changed. */
-  onChange?: (value: User | null) => void;
+  onChange?: (value: WorkspaceUser | null) => void;
 }
 
 /**
@@ -115,14 +120,24 @@ const UserInput: FunctionComponent<UserInputProps> = ({
         {users.length === 0 && <OptionInput>No users found</OptionInput>}
 
         {/* Each combobox option displays as `{firstName} {lastName} (@{userName})`. */}
-        {users.map((user) => (
-          <OptionInput key={user.id} value={user} alias={`@${user.name}`}>
-            {user.firstName} {user.lastName}{" "}
-            <span style={{ color: "var(--color-stroke-lowlight)" }}>
-              (@{user.name})
-            </span>
-          </OptionInput>
-        ))}
+        {users.map((user) => {
+          // We need to convert the user format the from User API into the format for the Workspace API.
+          const value: WorkspaceUser = {
+            userInformation: {
+              id: user.id,
+              name: user.name,
+            },
+          };
+
+          return (
+            <OptionInput key={user.id} value={value} alias={`@${user.name}`}>
+              {user.firstName} {user.lastName}{" "}
+              <span style={{ color: "var(--color-stroke-lowlight)" }}>
+                (@{user.name})
+              </span>
+            </OptionInput>
+          );
+        })}
       </ComboboxInput>
     </JoinContainer>
   );

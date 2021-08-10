@@ -25,7 +25,7 @@ class WorkflowAPI extends BaseAPI {
    */
   public async getWorkflows(): Promise<Workflow[]> {
     const url = this.getApiUrl();
-    const response = await fetch(url, { method: "GET" });
+    const response = await fetch(url, this.defaultFetcher());
 
     await this.ensureSuccess(
       response,
@@ -49,7 +49,7 @@ class WorkflowAPI extends BaseAPI {
     let url = this.getWorkflowUrl(workflowId);
     if (versionNumber !== undefined)
       url = `${url}?workflowVersion=${versionNumber}`;
-    const response = await fetch(url, { method: "GET" });
+    const response = await fetch(url, this.defaultFetcher());
 
     await this.ensureSuccess(
       response,
@@ -67,7 +67,7 @@ class WorkflowAPI extends BaseAPI {
     workflow: Omit<Workflow, "id" | "versionNumber">
   ): Promise<Workflow> {
     const url = this.getApiUrl();
-    const response = await fetch(url, { method: "POST" });
+    const response = await fetch(url, this.defaultFetcher("POST", workflow));
 
     await this.ensureSuccess(
       response,
@@ -82,7 +82,7 @@ class WorkflowAPI extends BaseAPI {
    */
   public async deleteWorkflow(workflowId: string): Promise<void> {
     const url = this.getWorkflowUrl(workflowId);
-    const response = await fetch(url, { method: "DELETE" });
+    const response = await fetch(url, this.defaultFetcher("DELETE"));
 
     await this.ensureSuccess(
       response,
@@ -107,7 +107,7 @@ class WorkflowAPI extends BaseAPI {
     let url = `${this.getWorkflowUrl(workflowId)}/operations`;
     if (versionNumber !== undefined)
       url = `${url}?workflowVersion=${versionNumber}`;
-    const response = await fetch(url, { method: "GET" });
+    const response = await fetch(url, this.defaultFetcher());
 
     await this.ensureSuccess(
       response,
@@ -133,7 +133,7 @@ class WorkflowAPI extends BaseAPI {
     let url = `${this.getWorkflowUrl(workflowId)}/operations/${operationIndex}`;
     if (versionNumber !== undefined)
       url = `${url}?workflowVersion=${versionNumber}`;
-    const response = await fetch(url, { method: "GET" });
+    const response = await fetch(url, this.defaultFetcher());
 
     await this.ensureSuccess(
       response,
@@ -157,10 +157,7 @@ class WorkflowAPI extends BaseAPI {
   ): Promise<WorkflowOperation> {
     let url = `${this.getWorkflowUrl(workflowId)}/operations`;
     if (index !== undefined) url = `${url}/${index}`;
-    const response = await fetch(url, {
-      method: "POST",
-      body: JSON.stringify(operation),
-    });
+    const response = await fetch(url, this.defaultFetcher("POST", operation));
 
     await this.ensureSuccess(
       response,
@@ -181,7 +178,7 @@ class WorkflowAPI extends BaseAPI {
   ): Promise<void> {
     let url = `${this.getWorkflowUrl(workflowId)}/operations`;
     if (index !== undefined) url = `${url}/${index}`;
-    const response = await fetch(url, { method: "DELETE" });
+    const response = await fetch(url, this.defaultFetcher("DELETE"));
 
     await this.ensureSuccess(
       response,
@@ -201,10 +198,7 @@ class WorkflowAPI extends BaseAPI {
     index: number
   ): Promise<WorkflowOperation> {
     const url = `${this.getWorkflowUrl(workflowId)}/operations/${index}`;
-    const response = await fetch(url, {
-      method: "PATCH",
-      body: JSON.stringify(operation),
-    });
+    const response = await fetch(url, this.defaultFetcher("PATCH", operation));
 
     await this.ensureSuccess(
       response,
@@ -225,7 +219,7 @@ class WorkflowAPI extends BaseAPI {
     workflowId: string
   ): Promise<WorkflowVersion[]> {
     const url = `${this.getWorkflowUrl(workflowId)}/versions`;
-    const response = await fetch(url, { method: "GET" });
+    const response = await fetch(url, this.defaultFetcher());
 
     await this.ensureSuccess(
       response,
@@ -250,10 +244,10 @@ class WorkflowAPI extends BaseAPI {
     versionDescription: string
   ): Promise<WorkflowVersion> {
     const url = `${this.getWorkflowUrl(workflowId)}/versions`;
-    const response = await fetch(url, {
-      method: "POST",
-      body: JSON.stringify(versionDescription),
-    });
+    const response = await fetch(
+      url,
+      this.defaultFetcher("POST", versionDescription)
+    );
 
     await this.ensureSuccess(
       response,
@@ -277,7 +271,7 @@ class WorkflowAPI extends BaseAPI {
     const url = `${this.getWorkflowUrl(
       workflowId
     )}/versions?workflowVersion=${versionNumber}`;
-    const response = await fetch(url, { method: "PATCH" });
+    const response = await fetch(url, this.defaultFetcher("PATCH"));
 
     await this.ensureSuccess(
       response,

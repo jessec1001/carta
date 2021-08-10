@@ -62,7 +62,7 @@ class DataAPI extends BaseAPI {
       url: `${this.getApiUrl()}`,
       query: Object.fromEntries(this.getParameters()),
     });
-    const response = await fetch(url, { method: "GET" });
+    const response = await fetch(url, this.defaultFetcher());
 
     await this.ensureSuccess(
       response,
@@ -81,7 +81,7 @@ class DataAPI extends BaseAPI {
       url: `${this.getApiUrl()}/${encodeURIComponent(source)}`,
       query: Object.fromEntries(this.getParameters(source)),
     });
-    const response = await fetch(url, { method: "GET" });
+    const response = await fetch(url, this.defaultFetcher());
 
     await this.ensureSuccess(
       response,

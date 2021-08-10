@@ -30,7 +30,7 @@ class UserAPI extends BaseAPI {
    */
   public async isAuthenticated(): Promise<boolean> {
     const url = `${this.getApiUrl()}/authenticated`;
-    const response = await fetch(url, { method: "GET" });
+    const response = await fetch(url, this.defaultFetcher());
 
     await this.ensureSuccess(
       response,
@@ -45,7 +45,7 @@ class UserAPI extends BaseAPI {
    */
   public async getUserInfo(): Promise<User> {
     const url = `${this.getApiUrl()}`;
-    const response = await fetch(url, { method: "GET" });
+    const response = await fetch(url, this.defaultFetcher());
 
     await this.ensureSuccess(
       response,
@@ -72,7 +72,7 @@ class UserAPI extends BaseAPI {
     let response: Response;
     if (matchAttribute === null) {
       // We are not filtering the users so we make a more basic request.
-      response = await fetch(baseUrl, { method: "GET" });
+      response = await fetch(baseUrl, this.defaultFetcher());
     } else {
       // We are filtering so we need to format and add the advanced request parameters.
       const attributeName = matchAttribute as string;
@@ -88,7 +88,7 @@ class UserAPI extends BaseAPI {
       }
 
       const url = `${baseUrl}?attributeName=${attributeName}&attributeValue=${attributeValue}&attributeFilter=${attributeFilter}`;
-      response = await fetch(url, { method: "GET" });
+      response = await fetch(url, this.defaultFetcher());
     }
 
     await this.ensureSuccess(
@@ -104,7 +104,7 @@ class UserAPI extends BaseAPI {
    */
   public async getGroupUsersInfo(groupId: string): Promise<User[]> {
     const url = `${this.getApiUrl()}/group/${encodeURIComponent(groupId)}`;
-    const response = await fetch(url, { method: "GET" });
+    const response = await fetch(url, this.defaultFetcher());
 
     await this.ensureSuccess(
       response,
@@ -174,7 +174,7 @@ class UserAPI extends BaseAPI {
    */
   public async signOut(): Promise<void> {
     const url = `${this.getApiUrl()}/signout`;
-    const response = await fetch(url, { method: "GET" });
+    const response = await fetch(url, this.defaultFetcher());
 
     await this.ensureSuccess(
       response,

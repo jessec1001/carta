@@ -39,7 +39,7 @@ class WorkspaceAPI extends BaseAPI {
       url: this.getApiUrl(),
       query: { archived: archived },
     });
-    const response = await fetch(url, { method: "GET" });
+    const response = await fetch(url, this.defaultFetcher());
 
     await this.ensureSuccess(
       response,
@@ -84,7 +84,7 @@ class WorkspaceAPI extends BaseAPI {
    */
   public async getWorkspace(workspaceId: string): Promise<Workspace> {
     const url = this.getWorkspaceUrl(workspaceId);
-    const response = await fetch(url, { method: "GET" });
+    const response = await fetch(url, this.defaultFetcher());
 
     await this.ensureSuccess(
       response,
@@ -120,7 +120,7 @@ class WorkspaceAPI extends BaseAPI {
    */
   public async createWorkspace(workspaceName: string): Promise<Workspace> {
     const url = `${this.getApiUrl()}/${encodeURIComponent(workspaceName)}`;
-    const response = await fetch(url, { method: "POST" });
+    const response = await fetch(url, this.defaultFetcher("POST"));
 
     await this.ensureSuccess(
       response,
@@ -137,7 +137,7 @@ class WorkspaceAPI extends BaseAPI {
   public async createCompleteWorkspace(
     workspace: Workspace
   ): Promise<Workspace> {
-    const newWorkspace = await this.createWorkspace(workspace.name);
+    const newWorkspace = await this.createWorkspace(workspace.name!);
 
     // TODO: Add support for posting datasets.
     // TODO: Add support for posting workflows.
@@ -163,7 +163,7 @@ class WorkspaceAPI extends BaseAPI {
       url: this.getWorkspaceUrl(workspaceId),
       query: { archived: true },
     });
-    const response = await fetch(url, { method: "PATCH" });
+    const response = await fetch(url, this.defaultFetcher("PATCH"));
 
     await this.ensureSuccess(
       response,
@@ -182,7 +182,7 @@ class WorkspaceAPI extends BaseAPI {
       url: this.getWorkspaceUrl(workspaceId),
       query: { archived: false },
     });
-    const response = await fetch(url, { method: "PATCH" });
+    const response = await fetch(url, this.defaultFetcher("PATCH"));
 
     await this.ensureSuccess(
       response,
@@ -219,7 +219,7 @@ class WorkspaceAPI extends BaseAPI {
         dateTo: dateTo && dateTo.toISOString(),
       },
     });
-    const response = await fetch(url, { method: "GET" });
+    const response = await fetch(url, this.defaultFetcher());
 
     this.ensureSuccess(
       response,
@@ -242,7 +242,7 @@ class WorkspaceAPI extends BaseAPI {
     workspaceId: string
   ): Promise<WorkspaceUser[]> {
     const url = `${this.getWorkspaceUrl(workspaceId)}/users`;
-    const response = await fetch(url, { method: "GET" });
+    const response = await fetch(url, this.defaultFetcher());
 
     await this.ensureSuccess(
       response,
@@ -264,10 +264,7 @@ class WorkspaceAPI extends BaseAPI {
     users: WorkspaceUser[]
   ): Promise<WorkspaceUser[]> {
     const url = `${this.getWorkspaceUrl(workspaceId)}/users`;
-    const response = await fetch(url, {
-      method: "PATCH",
-      body: this.writeJSON(users),
-    });
+    const response = await fetch(url, this.defaultFetcher("PATCH", users));
 
     await this.ensureSuccess(
       response,
@@ -293,7 +290,7 @@ class WorkspaceAPI extends BaseAPI {
         users: users.map((user) => user.userInformation.id),
       },
     });
-    const response = await fetch(url, { method: "DELETE" });
+    const response = await fetch(url, this.defaultFetcher("DELETE"));
 
     await this.ensureSuccess(
       response,
@@ -312,7 +309,7 @@ class WorkspaceAPI extends BaseAPI {
     workspaceId: string
   ): Promise<WorkspaceDataset[]> {
     const url = `${this.getWorkspaceUrl(workspaceId)}/data`;
-    const response = await fetch(url, { method: "GET" });
+    const response = await fetch(url, this.defaultFetcher());
 
     await this.ensureSuccess(
       response,
@@ -336,7 +333,7 @@ class WorkspaceAPI extends BaseAPI {
     const url = `${this.getWorkspaceUrl(workspaceId)}/data/${encodeURIComponent(
       datasetId
     )}`;
-    const response = await fetch(url, { method: "GET" });
+    const response = await fetch(url, this.defaultFetcher());
 
     await this.ensureSuccess(
       response,
@@ -363,7 +360,7 @@ class WorkspaceAPI extends BaseAPI {
       resource
     )}`;
     const url = `${this.getWorkspaceUrl(workspaceId)}/data/${dataUrlPart}`;
-    const response = await fetch(url, { method: "POST" });
+    const response = await fetch(url, this.defaultFetcher("POST"));
 
     await this.ensureSuccess(
       response,
@@ -409,7 +406,7 @@ class WorkspaceAPI extends BaseAPI {
     const url = `${this.getWorkspaceUrl(workspaceId)}/data/${encodeURIComponent(
       datasetId
     )}`;
-    const response = await fetch(url, { method: "DELETE" });
+    const response = await fetch(url, this.defaultFetcher("DELETE"));
 
     await this.ensureSuccess(
       response,
@@ -437,7 +434,7 @@ class WorkspaceAPI extends BaseAPI {
       )}`,
       query: params,
     });
-    const response = await fetch(url, { method: "PATCH" });
+    const response = await fetch(url, this.defaultFetcher("PATCH"));
 
     await this.ensureSuccess(
       response,
@@ -465,7 +462,7 @@ class WorkspaceAPI extends BaseAPI {
       url: `${this.getWorkspaceUrl(workspaceId)}/workflows`,
       query: { archived: archived },
     });
-    const response = await fetch(url, { method: "GET" });
+    const response = await fetch(url, this.defaultFetcher());
 
     await this.ensureSuccess(
       response,
@@ -487,7 +484,7 @@ class WorkspaceAPI extends BaseAPI {
     workflowId: string
   ): Promise<WorkspaceWorkflow> {
     const url = `${this.getWorkspaceUrl(workspaceId)}/workflows/${workflowId}`;
-    const response = await fetch(url, { method: "GET" });
+    const response = await fetch(url, this.defaultFetcher());
 
     await this.ensureSuccess(
       response,
@@ -509,7 +506,7 @@ class WorkspaceAPI extends BaseAPI {
     workflowId: string
   ): Promise<WorkspaceWorkflow> {
     const url = `${this.getWorkspaceUrl(workspaceId)}/workflows/${workflowId}`;
-    const response = await fetch(url, { method: "POST" });
+    const response = await fetch(url, this.defaultFetcher("POST"));
 
     await this.ensureSuccess(
       response,
@@ -534,7 +531,7 @@ class WorkspaceAPI extends BaseAPI {
       url: `${this.getWorkspaceUrl(workspaceId)}/workflows/${workflowId}`,
       query: { archived: true },
     });
-    const response = await fetch(url, { method: "PATCH" });
+    const response = await fetch(url, this.defaultFetcher("PATCH"));
 
     await this.ensureSuccess(
       response,
@@ -559,7 +556,7 @@ class WorkspaceAPI extends BaseAPI {
       url: `${this.getWorkspaceUrl(workspaceId)}/workflows/${workflowId}`,
       query: { archived: true },
     });
-    const response = await fetch(url, { method: "PATCH" });
+    const response = await fetch(url, this.defaultFetcher("PATCH"));
 
     await this.ensureSuccess(
       response,
@@ -580,7 +577,7 @@ class WorkspaceAPI extends BaseAPI {
     workflowId: string
   ): Promise<void> {
     const url = `${this.getWorkspaceUrl(workspaceId)}/workflows/${workflowId}`;
-    const response = await fetch(url, { method: "DELETE" });
+    const response = await fetch(url, this.defaultFetcher("DELETE"));
 
     await this.ensureSuccess(
       response,
@@ -603,7 +600,7 @@ class WorkspaceAPI extends BaseAPI {
       url: `${this.getWorkspaceUrl(workspaceId)}/workflows/${workflowId}`,
       query: { workflowVersion },
     });
-    const response = await fetch(url, { method: "PATCH" });
+    const response = await fetch(url, this.defaultFetcher("PATCH"));
 
     await this.ensureSuccess(
       response,
