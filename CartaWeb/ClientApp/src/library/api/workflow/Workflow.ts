@@ -1,9 +1,9 @@
 import { Modify } from "types";
-import { Identifiable } from "../base";
+import { Document, Identifiable, parseDocument } from "../base";
 import { WorkflowOperation } from "./WorkflowOperation";
 
 /** Represents a workflow object. */
-interface Workflow extends Identifiable {
+interface Workflow extends Identifiable, Document {
   /** The current version number of the workflow. */
   versionNumber: number;
 
@@ -19,9 +19,13 @@ type WorkflowDTO = Modify<Workflow, {}>;
  * @returns The converted literal object.
  */
 const parseWorkflow = (dto: WorkflowDTO): Workflow => {
+  const document = parseDocument(dto);
   const { ...rest } = dto;
 
-  return { ...rest };
+  return {
+    ...rest,
+    ...document,
+  };
 };
 
 export { parseWorkflow };

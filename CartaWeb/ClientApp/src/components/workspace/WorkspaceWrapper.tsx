@@ -1,6 +1,6 @@
-import { FunctionComponent, useMemo } from "react";
+import { FunctionComponent, useEffect, useMemo, useState } from "react";
 import { DataCRUD, useAPI, useCRUD } from "hooks";
-import { WorkspaceDataset } from "library/api";
+import { Workspace, WorkspaceDataset } from "library/api";
 import { WorkspaceContext } from "context";
 
 /** The props used for the {@link WorkspaceWrapper} component. */
@@ -16,6 +16,15 @@ const WorkspaceWrapper: FunctionComponent<WorkspaceWrapperProps> = ({
 }) => {
   // We need the workspace API to access workspace objects.
   const { workspaceAPI } = useAPI();
+
+  // We store the original workspace object itself.
+  const [workspace, setWorkspace] = useState<Workspace | null>(null);
+  useEffect(() => {
+    (async () => {
+      const workspace = await workspaceAPI.getWorkspace(id);
+      setWorkspace(workspace);
+    })();
+  }, [id, workspaceAPI]);
 
   // This defines how workspace datasets should be maintained.
   // We automatically refresh the workspace datasets every 30 seconds.
@@ -45,7 +54,9 @@ const WorkspaceWrapper: FunctionComponent<WorkspaceWrapperProps> = ({
   );
 
   return (
-    <WorkspaceContext.Provider value={{ datasets: datasetsContext }}>
+    <WorkspaceContext.Provider
+      value={{ workspace: workspace, datasets: datasetsContext }}
+    >
       {children}
     </WorkspaceContext.Provider>
   );
