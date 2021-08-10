@@ -6,6 +6,7 @@ import DatasetIcon from "./DatasetIcon";
 import GraphIcon from "./GraphIcon";
 import PushIcon from "./PushIcon";
 import UserIcon from "./UserIcon";
+import WorkflowIcon from "./WorkflowIcon";
 
 export {
   CartaIcon,
@@ -16,4 +17,5 @@ export {
   GraphIcon,
   PushIcon,
   UserIcon,
+  WorkflowIcon,
 };

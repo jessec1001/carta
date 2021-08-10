@@ -8,7 +8,10 @@ import {
 import { useLocation } from "react-router";
 import { Workspace, WorkspaceAPI } from "library/api";
 import { PageLayout } from "components/layout";
-import { DatasetListView } from "components/workspace/views";
+import {
+  DatasetListView,
+  WorkspaceToolboxView,
+} from "components/workspace/views";
 import { TabContainer } from "components/tabs";
 import WorkspaceWrapper from "components/workspace/WorkspaceWrapper";
 import ViewContext from "components/views/ViewContext";
@@ -30,9 +33,9 @@ const WorkspacePageDefaultLayout: FunctionComponent = () => {
 
   useEffect(() => {
     if (!initializedRef.current) {
-      console.log(viewId, actions, "HERE 1");
       initializedRef.current = true;
       actions.addChildElement(viewId, <DatasetListView />);
+      actions.addChildElement(viewId, <WorkspaceToolboxView />);
     }
   }, [viewId, actions]);
 

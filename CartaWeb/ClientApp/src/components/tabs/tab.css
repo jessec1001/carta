@@ -33,6 +33,7 @@
   padding: 0.25rem 0.5rem;
   border-top: 2px solid transparent;
   cursor: pointer;
+  white-space: nowrap;
 }
 .tab-bar-button.status-none {
   border-color: transparent;

@@ -1,30 +1,13 @@
 import { Modify } from "types";
+import { Document, DocumentDTO, Identifiable, parseDocument } from "../base";
 
 /** Represents a workspace user object. */
-interface WorkspaceUser {
-  /** The unique identifier of the workspace user. */
-  id: string;
-  /** The username of the workspace user. */
-  name: string;
-
-  /** The date that the user was added to the workspace. */
-  dateAdded?: Date;
-  /** The date that the user was delete from the workspace. */
-  dateDeleted?: Date;
-
-  /** Whom the user was added to the workspace by. */
-  addedBy?: string;
-  /** Whom the user was deleted from the workspace by. */
-  deletedBy?: string;
+interface WorkspaceUser extends Document {
+  /** The identifying information about the user. */
+  userInformation: Identifiable;
 }
 /** Represents a workspace user object as returned by the API server. */
-type WorkspaceUserDTO = Modify<
-  WorkspaceUser,
-  {
-    dateAdded?: string;
-    dateDeleted?: string;
-  }
->;
+type WorkspaceUserDTO = Modify<WorkspaceUser, DocumentDTO>;
 
 /**
  * Converts a workspace user data transfer object into a more useable literal object.
@@ -32,12 +15,11 @@ type WorkspaceUserDTO = Modify<
  * @returns The converted literal object.
  */
 const parseWorkspaceUser = (dto: WorkspaceUserDTO): WorkspaceUser => {
-  const { dateAdded, dateDeleted, ...rest } = dto;
+  const document = parseDocument(dto);
 
   return {
-    ...rest,
-    dateAdded: dateAdded ? new Date(dateAdded) : undefined,
-    dateDeleted: dateDeleted ? new Date(dateDeleted) : undefined,
+    ...dto,
+    ...document,
   };
 };
 
@@ -47,7 +29,10 @@ const parseWorkspaceUser = (dto: WorkspaceUserDTO): WorkspaceUser => {
  * @returns `true` if the workspace user is active; otherwise, `false`.`
  */
 const isWorkspaceUserActive = (user: WorkspaceUser): boolean => {
-  const { dateAdded, dateDeleted } = user;
+  const documentHistory = user.documentHistory;
+  if (!documentHistory) return true;
+
+  const { dateAdded, dateDeleted } = documentHistory;
 
   if (dateAdded === undefined) return false;
   if (dateDeleted === undefined) return true;

@@ -1,3 +1,4 @@
+import queryString from "query-string";
 import BaseAPI from "./BaseAPI";
 import {
   parseWorkspace,
@@ -9,6 +10,13 @@ import {
   WorkspaceDatasetDTO,
   WorkspaceUser,
   WorkspaceUserDTO,
+  parseWorkspaceChange,
+  WorkspaceChangeDTO,
+  WorkspaceChange,
+  WorkspaceChangeType,
+  WorkspaceWorkflowDTO,
+  parseWorkspaceWorkflow,
+  WorkspaceWorkflow,
 } from "./workspace";
 
 /** Contains methods for accessing the Carta Workspace API module. */
@@ -27,7 +35,10 @@ class WorkspaceAPI extends BaseAPI {
    * @returns A list of workspaces.
    */
   public async getWorkspaces(archived?: boolean): Promise<Workspace[]> {
-    const url = `${this.getApiUrl()}?archived=${archived ?? false}`;
+    const url = queryString.stringifyUrl({
+      url: this.getApiUrl(),
+      query: { archived: archived },
+    });
     const response = await fetch(url, { method: "GET" });
 
     await this.ensureSuccess(
@@ -129,6 +140,7 @@ class WorkspaceAPI extends BaseAPI {
     const newWorkspace = await this.createWorkspace(workspace.name);
 
     // TODO: Add support for posting datasets.
+    // TODO: Add support for posting workflows.
     // We add the users and datasets to the new workspace if included.
     const [users] = await Promise.all([
       workspace.users === undefined || workspace.users.length === 0
@@ -147,7 +159,10 @@ class WorkspaceAPI extends BaseAPI {
    * @returns The specified workspace after being archived.
    */
   public async archiveWorkspace(workspaceId: string): Promise<Workspace> {
-    const url = `${this.getWorkspaceUrl(workspaceId)}?archived=true`;
+    const url = queryString.stringifyUrl({
+      url: this.getWorkspaceUrl(workspaceId),
+      query: { archived: true },
+    });
     const response = await fetch(url, { method: "PATCH" });
 
     await this.ensureSuccess(
@@ -163,7 +178,10 @@ class WorkspaceAPI extends BaseAPI {
    * @returns The specified workspace after being unarchived.
    */
   public async unarchiveWorkspace(workspaceId: string): Promise<Workspace> {
-    const url = `${this.getWorkspaceUrl(workspaceId)}?archived=false`;
+    const url = queryString.stringifyUrl({
+      url: this.getWorkspaceUrl(workspaceId),
+      query: { archived: false },
+    });
     const response = await fetch(url, { method: "PATCH" });
 
     await this.ensureSuccess(
@@ -172,6 +190,45 @@ class WorkspaceAPI extends BaseAPI {
     );
 
     return parseWorkspace(await this.readJSON<WorkspaceDTO>(response));
+  }
+  // #endregion
+
+  // #region Workspace Changes
+  /**
+   * Retrieves a list of ordered changes that have occurred within a specific workspace.
+   * @param workspaceId The unique identifier of the workspace.
+   * @param type Optional type specifying the type of changes to include. If not specified, all types of changes will be
+   * included.
+   * @param dateFrom Optional starting date for changes to include. If not specified, changes from the indefinite past
+   * will be included.
+   * @param dateTo Optional ending date for changes to include. If not specified, changes to the present will be
+   * included.
+   * @returns A list of workspace changes.
+   */
+  public async getWorkspaceChanges(
+    workspaceId: string,
+    type?: WorkspaceChangeType,
+    dateFrom?: Date,
+    dateTo?: Date
+  ): Promise<WorkspaceChange[]> {
+    const url = queryString.stringifyUrl({
+      url: this.getWorkspaceUrl(workspaceId),
+      query: {
+        type: type,
+        dateFrom: dateFrom && dateFrom.toISOString(),
+        dateTo: dateTo && dateTo.toISOString(),
+      },
+    });
+    const response = await fetch(url, { method: "GET" });
+
+    this.ensureSuccess(
+      response,
+      "Error occurred while trying to fetch workspace changes."
+    );
+
+    return (await this.readJSON<WorkspaceChangeDTO[]>(response)).map(
+      parseWorkspaceChange
+    );
   }
   // #endregion
 
@@ -230,9 +287,12 @@ class WorkspaceAPI extends BaseAPI {
     workspaceId: string,
     users: WorkspaceUser[]
   ): Promise<void> {
-    const url = `${this.getWorkspaceUrl(workspaceId)}/users?${users
-      .map((user) => `users=${user.id}`)
-      .join("&")}`;
+    const url = queryString.stringifyUrl({
+      url: `${this.getWorkspaceUrl(workspaceId)}/users`,
+      query: {
+        users: users.map((user) => user.userInformation.id),
+      },
+    });
     const response = await fetch(url, { method: "DELETE" });
 
     await this.ensureSuccess(
@@ -369,13 +429,14 @@ class WorkspaceAPI extends BaseAPI {
     const params = {
       name: dataset.name,
       workflow: dataset.workflow,
+      workflowVersion: dataset.workflowVersion,
     };
-    const url = `${this.getWorkspaceUrl(workspaceId)}/data/${encodeURIComponent(
-      dataset.id
-    )}?${Object.entries(params)
-      .filter(([key, value]) => value !== undefined)
-      .map(([key, value]) => `${key}=${value}`)
-      .join("&")}`;
+    const url = queryString.stringifyUrl({
+      url: `${this.getWorkspaceUrl(workspaceId)}/data/${encodeURIComponent(
+        dataset.id
+      )}`,
+      query: params,
+    });
     const response = await fetch(url, { method: "PATCH" });
 
     await this.ensureSuccess(
@@ -385,6 +446,172 @@ class WorkspaceAPI extends BaseAPI {
 
     return parseWorkspaceDataset(
       await this.readJSON<WorkspaceDatasetDTO>(response)
+    );
+  }
+  // #endregion
+
+  // #region Workspace Workflows
+  /**
+   * Retrieves the workflows that are stored in a specific workspace.
+   * @param workspaceId The unique identifier of the workspace.
+   * @param archived Whether we should search through archived or unarchived workspaces.
+   * @returns A list of workflows in the workspace.
+   */
+  public async getWorkspaceWorkflows(
+    workspaceId: string,
+    archived?: boolean
+  ): Promise<WorkspaceWorkflow[]> {
+    const url = queryString.stringifyUrl({
+      url: `${this.getWorkspaceUrl(workspaceId)}/workflows`,
+      query: { archived: archived },
+    });
+    const response = await fetch(url, { method: "GET" });
+
+    await this.ensureSuccess(
+      response,
+      "Error occurred while trying to fetch workspace workflows."
+    );
+
+    return (await this.readJSON<WorkspaceWorkflowDTO[]>(response)).map(
+      parseWorkspaceWorkflow
+    );
+  }
+  /**
+   * Retrieves a specific workflow that is stored in a specific workspace.
+   * @param workspaceId The unique identifier of the workspace.
+   * @param workflowId The unique identifier of the workflow.
+   * @returns The specified workflow in the workspace.
+   */
+  public async getWorkspaceWorkflow(
+    workspaceId: string,
+    workflowId: string
+  ): Promise<WorkspaceWorkflow> {
+    const url = `${this.getWorkspaceUrl(workspaceId)}/workflows/${workflowId}`;
+    const response = await fetch(url, { method: "GET" });
+
+    await this.ensureSuccess(
+      response,
+      "Error occurred while trying to fetch workspace workflow."
+    );
+
+    return parseWorkspaceWorkflow(
+      await this.readJSON<WorkspaceWorkflowDTO>(response)
+    );
+  }
+  /**
+   * Adds a workflow to a specific workspace.
+   * @param workspaceId The unique identifier of the workspace.
+   * @param workflowId The unique identifier of the workflow.
+   * @returns The newly added workflow in the workspace.
+   */
+  public async addWorkspaceWorkflow(
+    workspaceId: string,
+    workflowId: string
+  ): Promise<WorkspaceWorkflow> {
+    const url = `${this.getWorkspaceUrl(workspaceId)}/workflows/${workflowId}`;
+    const response = await fetch(url, { method: "POST" });
+
+    await this.ensureSuccess(
+      response,
+      "Error occurred while trying to add workflow to workspace."
+    );
+
+    return parseWorkspaceWorkflow(
+      await this.readJSON<WorkspaceWorkflowDTO>(response)
+    );
+  }
+  /**
+   * Archives a specific workflow that is stored in a specific workspace.
+   * @param workspaceId The unique identifier of the workspace.
+   * @param workflowId The unique identifier of the workflow.
+   * @returns The archived workflow in the workspace.
+   */
+  public async archiveWorkspaceWorkflow(
+    workspaceId: string,
+    workflowId: string
+  ): Promise<WorkspaceWorkflow> {
+    const url = queryString.stringifyUrl({
+      url: `${this.getWorkspaceUrl(workspaceId)}/workflows/${workflowId}`,
+      query: { archived: true },
+    });
+    const response = await fetch(url, { method: "PATCH" });
+
+    await this.ensureSuccess(
+      response,
+      "Error occurred while trying to archive workflow in workspace."
+    );
+
+    return parseWorkspaceWorkflow(
+      await this.readJSON<WorkspaceWorkflowDTO>(response)
+    );
+  }
+  /**
+   * Unarchives a specific workflow that is stored in a specific workspace.
+   * @param workspaceId The unique identifier of the workspace.
+   * @param workflowId The unique identifier of the workflow.
+   * @returns The unarchived workflow in the workspace.
+   */
+  public async unarchiveWorkspaceWorkflow(
+    workspaceId: string,
+    workflowId: string
+  ): Promise<WorkspaceWorkflow> {
+    const url = queryString.stringifyUrl({
+      url: `${this.getWorkspaceUrl(workspaceId)}/workflows/${workflowId}`,
+      query: { archived: true },
+    });
+    const response = await fetch(url, { method: "PATCH" });
+
+    await this.ensureSuccess(
+      response,
+      "Error occurred while trying to unarchive workflow in workspace."
+    );
+
+    return parseWorkspaceWorkflow(
+      await this.readJSON<WorkspaceWorkflowDTO>(response)
+    );
+  }
+  /**
+   * Removes a workflow from a specific workspace.
+   * @param workspaceId The unique identifier of the workspace.
+   * @param workflowId The unique identifier of the workflow.
+   */
+  public async removeWorkspaceWorkflow(
+    workspaceId: string,
+    workflowId: string
+  ): Promise<void> {
+    const url = `${this.getWorkspaceUrl(workspaceId)}/workflows/${workflowId}`;
+    const response = await fetch(url, { method: "DELETE" });
+
+    await this.ensureSuccess(
+      response,
+      "Error occurred while trying to delete workflow from workspace."
+    );
+  }
+  /**
+   * Changes the version number of a workflow in a workspace.
+   * @param workspaceId The unique identifier of the workspace.
+   * @param workflowId The unique identifier of the workflow.
+   * @param workflowVersion The version number to change the workflow to.
+   * @returns The reverted workflow in the workspace.
+   */
+  public async revertWorkspaceWorkflowVersion(
+    workspaceId: string,
+    workflowId: string,
+    workflowVersion: number
+  ): Promise<WorkspaceWorkflow> {
+    const url = queryString.stringifyUrl({
+      url: `${this.getWorkspaceUrl(workspaceId)}/workflows/${workflowId}`,
+      query: { workflowVersion },
+    });
+    const response = await fetch(url, { method: "PATCH" });
+
+    await this.ensureSuccess(
+      response,
+      "Error occurred while trying to change workflow version in workspace."
+    );
+
+    return parseWorkspaceWorkflow(
+      await this.readJSON<WorkspaceWorkflowDTO>(response)
     );
   }
   // #endregion

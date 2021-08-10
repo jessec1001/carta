@@ -82,15 +82,20 @@ const ViewContainer: FunctionComponent = ({ children }) => {
 
         // Update the view hierarchy.
         setViews((views) => {
+          const parentView = views.get(parentId);
+          if (!parentView || parentView.type !== "split") return views;
+
           const newViews = new Map(views);
 
           // Update the parent view and add the child view.
+          console.log(parentView.childIds, [...parentView.childIds, currentId]);
           newViews.set(parentId, {
             ...parentView,
             childIds: [...parentView.childIds, currentId],
           });
           newViews.set(currentId, view);
 
+          console.log(views, newViews);
           return newViews;
         });
 

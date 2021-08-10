@@ -97,6 +97,14 @@ const DatasetListView: FunctionComponent = () => {
       });
     }
   }, [datasets, name, selected]);
+  // This handles the logic of deleting a dataset.
+  const handleDelete = useCallback(() => {
+    const dataset = datasets.value?.find((dataset) => dataset.id === selected);
+    if (dataset) {
+      datasets.CRUD.remove(dataset);
+      setSelected(null);
+    }
+  }, [datasets, selected]);
 
   // This handles the logic of selecting a particular dataset item.
   const handleSelect = useCallback(
@@ -164,12 +172,18 @@ const DatasetListView: FunctionComponent = () => {
         // We simply cancel the rename request here.
         setRenaming(false);
       }
+      if (event.code === "Delete") {
+        // We delete the focussed element if not renaming.
+        if (!renaming) {
+          handleDelete();
+        }
+      }
     };
 
     // Setup and teardown.
     window.addEventListener("keydown", handlePotentialKey);
     return () => window.removeEventListener("keydown", handlePotentialKey);
-  }, [handleRename, renaming]);
+  }, [handleRename, handleDelete, renaming]);
 
   return (
     <TabContainer>

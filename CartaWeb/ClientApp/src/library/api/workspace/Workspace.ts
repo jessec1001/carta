@@ -1,26 +1,12 @@
 import { Modify } from "types";
+import { Document, DocumentDTO, Identifiable, parseDocument } from "../base";
 import { WorkspaceDataset } from "./WorkspaceDataset";
 import { WorkspaceUser } from "./WorkspaceUser";
 
 /** Represents a workspace object. */
-interface Workspace {
-  /** The unique identifier of the workspace. */
-  id: string;
-  /** The user-friendly name of the workspace. */
-  name: string;
-
+interface Workspace extends Document, Identifiable {
   /** Whether the workspace has been archived or not. */
   archived: boolean;
-
-  /** The date that the workspace was created on. */
-  dateCreated?: Date;
-  /** The date that the workspace was archived on. */
-  dateArchived?: Date;
-  /** The date that the workspace was unarchived on. */
-  dateUnarchived?: Date;
-
-  /** Whom the workspace was created by. */
-  createdBy?: string;
 
   /** The users that have been given access to the workspace. */
   users?: WorkspaceUser[];
@@ -29,14 +15,7 @@ interface Workspace {
   datasets?: WorkspaceDataset[];
 }
 /** Represents a workspace object as returned by the API server. */
-type WorkspaceDTO = Modify<
-  Workspace,
-  {
-    dateCreated?: string;
-    dateArchived?: string;
-    dateUnarchived?: string;
-  }
->;
+type WorkspaceDTO = Modify<Workspace, DocumentDTO>;
 
 /**
  * Converts a workspace data transfer object into a more useable literal object.
@@ -44,13 +23,11 @@ type WorkspaceDTO = Modify<
  * @returns The converted literal object.
  */
 const parseWorkspace = (dto: WorkspaceDTO): Workspace => {
-  const { dateCreated, dateArchived, dateUnarchived, ...rest } = dto;
+  const document = parseDocument(dto);
 
   return {
-    ...rest,
-    dateCreated: dateCreated ? new Date(dateCreated) : undefined,
-    dateArchived: dateArchived ? new Date(dateArchived) : undefined,
-    dateUnarchived: dateUnarchived ? new Date(dateUnarchived) : undefined,
+    ...dto,
+    ...document,
   };
 };
 

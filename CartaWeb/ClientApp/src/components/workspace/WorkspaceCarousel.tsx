@@ -55,6 +55,12 @@ const WorkspaceCarousel: FunctionComponent<WorkspaceCarouselProps> = ({
       pathname: "/workspace/new",
     });
   };
+  const handleExistingWorkspace = (workspaceId: string) => {
+    history.push({
+      pathname: `/workspace`,
+      search: `?id=${workspaceId}`,
+    });
+  };
 
   return (
     <section>
@@ -110,16 +116,16 @@ const WorkspaceCarousel: FunctionComponent<WorkspaceCarouselProps> = ({
                 backgroundColor: "var(--color-fill-element)",
                 boxShadow: "var(--shadow-offset)",
                 borderRadius: "var(--border-radius)",
+                cursor: "pointer",
               }}
+              onClick={() => handleExistingWorkspace(workspace.id)}
             >
               <h3
                 style={{
                   fontSize: "1.2rem",
                 }}
               >
-                <Link to={`/workspace?id=${workspace.id}`}>
-                  {workspace.name}
-                </Link>
+                {workspace.name}
               </h3>
             </li>
           ))}

@@ -6,20 +6,24 @@ interface WorkspaceDataset {
   id: string;
   /** The user-friendly name of the workspace. */
   name?: string;
+
   /** The dataset source. */
   source: string;
   /** The dataset resource. */
   resource: string;
+
   /** The workflow applied to this dataset. */
   workflow?: string;
+  workflowVersion?: number;
 
-  /** The date that the dataset was added to the workspace. */
-  dateAdded?: Date;
-  /** The date that the dataset was deleted from the workspace. */
-  dateDeleted?: Date;
+  documentHistory?: {
+    dateAdded?: Date;
 
-  /** Whom the dataset was added to the workspace by. */
-  addedBy?: string;
+    addedBy?: {
+      id: string;
+      name: string;
+    };
+  };
 }
 /** Represents a workspace dataset object as returned by the API server. */
 type WorkspaceDatasetDTO = Modify<

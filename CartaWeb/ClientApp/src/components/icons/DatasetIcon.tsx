@@ -10,13 +10,9 @@ const DatasetIcon: FunctionComponent<IconProps> = ({ children, ...props }) => (
     style={SVGStyle(props)}
   >
     <path
-      d="m2.1164 16.933 14.817-8.4667 14.817 8.4667-14.817 8.4668z"
+      d="m16.934 8.4668-14.816 8.4668 14.816 8.4668 0.78711-0.45117 14.029-8.0156zm0 3.6563 8.418 4.8105-8.418 4.8105-8.418-4.8105z"
       style={{
-        fill: "none",
-        strokeLinecap: "round",
-        strokeLinejoin: "round",
-        strokeWidth: 4.2334,
-        stroke: "currentcolor",
+        fill: "currentcolor",
       }}
     />
   </svg>
