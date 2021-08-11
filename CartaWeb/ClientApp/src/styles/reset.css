@@ -32,6 +32,10 @@ hr {
   font-weight: 500;
 }
 
+ul:not([role]) > li {
+  margin-left: 1rem;
+}
+
 /* Some elements need to inherit colors so they don't get browser defaults. */
 button {
   color: inherit;

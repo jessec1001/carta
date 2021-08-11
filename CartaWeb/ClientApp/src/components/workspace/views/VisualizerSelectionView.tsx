@@ -186,7 +186,11 @@ const VisualizerSelectionView: FunctionComponent = () => {
     }
     if (graph) {
       graph.on("selectionChanged", handleSelection);
-      return () => graph.off("selectionChanged", handleSelection);
+      graph.on("dataChanged", handleSelection);
+      return () => {
+        graph.off("selectionChanged", handleSelection);
+        graph.off("dataChanged", handleSelection);
+      };
     }
   }, [graph]);
 

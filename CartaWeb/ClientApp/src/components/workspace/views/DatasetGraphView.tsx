@@ -34,14 +34,14 @@ const DatasetGraphView: FunctionComponent<DatasetGraphViewProps> = ({ id }) => {
   // Construct a reference to the graph data structure when the dataset has loaded correctly.
   // TODO: Replace usage of old graph data structure class with new data structure.
   const [graph, setGraph] = useState<GraphData | null>(null);
-  const { source, resource } = dataset ?? {};
+  const { source, resource, workflow } = dataset ?? {};
   useEffect(() => {
     // We only create the graph data when the source/resource exist and are different than previously.
     if (!source || !resource) return;
     setGraph((graph) => {
-      return new GraphData(source, resource, new GraphWorkflow(undefined));
+      return new GraphData(source, resource, new GraphWorkflow(workflow));
     });
-  }, [source, resource]);
+  }, [source, resource, workflow]);
 
   // TODO: Use modified value.
   // TODO: Use error value.
