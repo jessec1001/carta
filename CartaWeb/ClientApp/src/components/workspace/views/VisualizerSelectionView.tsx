@@ -119,7 +119,6 @@ const renderValue = (obs: any) => {
 };
 
 const renderPropertyTree = (properties: Property[] | undefined) => {
-  console.log(properties);
   if (!properties) return null;
   return (
     <ul

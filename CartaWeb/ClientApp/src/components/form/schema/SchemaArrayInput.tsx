@@ -8,7 +8,11 @@ import {
   schemaDefault,
   ValidationError,
 } from "library/schema";
-import { IconAddButton, IconRemoveButton } from "components/buttons";
+import {
+  ButtonGroup,
+  IconAddButton,
+  IconRemoveButton,
+} from "components/buttons";
 import { EmptySymbol } from "components/symbols";
 import FormGroup from "../FormGroup";
 import SchemaBaseInput, { SchemaTypedInputProps } from "./SchemaBaseInput";
@@ -174,15 +178,15 @@ const SchemaArrayItemInput: FunctionComponent<SchemaArrayItemInputProps> = ({
   onRemove,
 }) => {
   return (
-    <div className="form-spaced-group">
+    <ButtonGroup>
       <div>{children}</div>
       {(addable || removeable) && (
-        <div className="no-grow">
+        <div style={{ flexGrow: 0 }}>
           {addable && <IconAddButton onClick={onAdd} />}
           {removeable && <IconRemoveButton onClick={onRemove} />}
         </div>
       )}
-    </div>
+    </ButtonGroup>
   );
 };
 

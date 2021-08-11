@@ -8,6 +8,7 @@ import "./input.css";
 
 /** The props used for the {@link ComboboxInput} component. */
 interface ComboboxInputProps {
+  comparer?: (value1: any, value2: any) => boolean;
   /** The text search that this combobox currently has input. */
   text?: string;
   /** The value that this combobox currently has selected. */
@@ -21,6 +22,7 @@ interface ComboboxInputProps {
 
 /** A component that defines a combobox search and dropdown combination input. */
 const ComboboxInput: FunctionComponent<ComboboxInputProps> = ({
+  comparer,
   text,
   value,
   onTextChanged,
@@ -36,7 +38,9 @@ const ComboboxInput: FunctionComponent<ComboboxInputProps> = ({
       (child) =>
         React.isValidElement(child) &&
         child.type === OptionInput &&
-        (child.props as OptionInputProps).value === value
+        (comparer
+          ? comparer((child.props as OptionInputProps).value, value)
+          : (child.props as OptionInputProps).value === value)
     )
     .map((child) => ((child as any).props as OptionInputProps).alias);
   const valueString = valueStrings[0] ?? "";

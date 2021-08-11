@@ -14,7 +14,13 @@ interface WorkspaceDataset extends Identifiable, Document {
   workflowVersion?: number;
 }
 /** Represents a workspace dataset object as returned by the API server. */
-type WorkspaceDatasetDTO = Modify<WorkspaceDataset, DocumentDTO>;
+type WorkspaceDatasetDTO = Modify<
+  WorkspaceDataset,
+  DocumentDTO & {
+    workflow?: never;
+    workflowId?: string;
+  }
+>;
 
 /**
  * Converts a workspace dataset data transfer object into a more useable literal object.
@@ -22,11 +28,13 @@ type WorkspaceDatasetDTO = Modify<WorkspaceDataset, DocumentDTO>;
  * @returns The converted literal object.
  */
 const parseWorkspaceDataset = (dto: WorkspaceDatasetDTO): WorkspaceDataset => {
-  const document = parseDocument(dto);
+  const { workflowId, ...rest } = dto;
+  const document = parseDocument(rest);
 
   return {
-    ...dto,
+    ...rest,
     ...document,
+    workflow: workflowId,
   };
 };
 

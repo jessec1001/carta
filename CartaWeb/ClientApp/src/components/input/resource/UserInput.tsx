@@ -86,7 +86,9 @@ const UserInput: FunctionComponent<UserInputProps> = ({
   children,
 }) => {
   // We need to allow this component to be optionally controllable because we are not using a native UI element.
-  const [actualValue, setValue] = useControllableState(null, value, onChange);
+  let [actualValue, setValue] = useControllableState(null, value, onChange);
+  if (actualValue && actualValue?.userInformation.id.length === 0)
+    actualValue = null;
 
   // We need access to the workspace API to handle requests.
   const { userAPI } = useAPI();
@@ -111,6 +113,10 @@ const UserInput: FunctionComponent<UserInputProps> = ({
         <UserIcon />
       </JoinInputLabel>
       <ComboboxInput
+        comparer={(user1?: WorkspaceUser, user2?: WorkspaceUser) => {
+          if (!user1 || !user2) return false;
+          return user1.userInformation.id === user2.userInformation.id;
+        }}
         text={query}
         value={actualValue}
         onTextChanged={setQuery}

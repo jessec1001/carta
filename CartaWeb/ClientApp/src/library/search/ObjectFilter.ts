@@ -288,7 +288,7 @@ class ObjectFilter implements ObjectFilterOptions {
    * @param values The values to filter.
    * @returns The filtered values with values that failed to pass through the filter removed.
    */
-  public filter(values: any[]): any[] {
+  public filter<T>(values: T[]): T[] {
     return values.filter(this.filterFunction);
   }
 }

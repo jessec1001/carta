@@ -25,6 +25,6 @@ const UserJsonSchema: JsonSchema = {
   },
   required: ["userInformation"],
   "ui:widget": JsonObjectSchemaWidgets.User,
-} as JsonObjectSchema;
+} as JsonSchema;
 
 export default UserJsonSchema;

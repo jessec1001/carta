@@ -3,15 +3,22 @@
  * 1. Display the workflow (and allow for changing) applied to the dataset.
  */
 
+import { FormGroup } from "components/form";
 import { DatasetIcon } from "components/icons";
+import WorkflowInput from "components/input/resource/WorkflowInput";
 import { VerticalScroll } from "components/scroll";
 import { Tab } from "components/tabs";
+import { LoadingText } from "components/text";
 import { ViewContext } from "components/views";
 import { WorkspaceContext } from "context";
-import React, { useContext } from "react";
+import { useAPI } from "hooks";
+import { WorkspaceWorkflow } from "library/api";
+import React, { useContext, useEffect, useState } from "react";
 
 /** A view that displays the properties of an active dataset in another view. */
 const DatasetPropertiesView = () => {
+  const { workspaceAPI } = useAPI();
+  const { workspace } = useContext(WorkspaceContext);
   const { viewId, activeId, actions } = useContext(ViewContext);
   const activeView = activeId === null ? null : actions.getView(activeId);
 
@@ -25,8 +32,51 @@ const DatasetPropertiesView = () => {
   const datasetName =
     dataset && (dataset.name ?? `(${dataset.source}/${dataset.resource})`);
 
+  const [workflows, setWorkflows] = useState<WorkspaceWorkflow[]>([]);
+  const [workflow, setWorkflow] = useState<WorkspaceWorkflow | null>(null);
+  const [loaded, setLoaded] = useState<boolean>(false);
+  useEffect(() => {
+    if (dataset && workspace) {
+      (async () => {
+        if (!dataset.workflow) {
+          setWorkflow(null);
+        } else {
+          const workflow = await workspaceAPI.getWorkspaceWorkflow(
+            workspace.id,
+            dataset.workflow
+          );
+          setWorkflow(workflow);
+        }
+
+        const workflows = await workspaceAPI.getWorkspaceWorkflows(
+          workspace.id
+        );
+        setWorkflows(workflows);
+        setLoaded(true);
+      })();
+    }
+  }, [workspaceAPI, dataset, workspace]);
+
   const handleClose = () => {
     actions.removeElement(viewId);
+  };
+  const handleSelectWorkflow = (workflow: WorkspaceWorkflow | null) => {
+    if (workspace && dataset) {
+      if (workflow === null) {
+        datasets.CRUD.update({
+          ...dataset,
+          workflow: undefined,
+          workflowVersion: undefined,
+        });
+      } else {
+        datasets.CRUD.update({
+          ...dataset,
+          workflow: workflow.id,
+          workflowVersion: workflow.versionInformation.number,
+        });
+      }
+    }
+    setWorkflow(workflow);
   };
 
   return (
@@ -60,9 +110,54 @@ const DatasetPropertiesView = () => {
               padding: "1rem",
             }}
           >
-            <p>Source: {dataset.source}</p>
-            <p>Resource: {dataset.resource}</p>
+            <p style={{ display: "flex" }}>
+              Source
+              <span
+                style={{
+                  flexGrow: 1,
+                  textAlign: "right",
+                  color: "var(--color-stroke-lowlight)",
+                }}
+              >
+                {dataset.source}
+              </span>
+            </p>
+            <p style={{ display: "flex" }}>
+              Resource
+              <span
+                style={{
+                  flexGrow: 1,
+                  textAlign: "right",
+                  color: "var(--color-stroke-lowlight)",
+                }}
+              >
+                {dataset.resource}
+              </span>
+            </p>
             {/* TODO: Add workflow selector. */}
+            {loaded && (
+              <FormGroup title="Workflow" density="flow">
+                <WorkflowInput
+                  value={workflow}
+                  onChange={handleSelectWorkflow}
+                  workflows={workflows}
+                />
+              </FormGroup>
+            )}
+            {!loaded && (
+              <p style={{ display: "flex" }}>
+                Workflow
+                <span
+                  style={{
+                    flexGrow: 1,
+                    textAlign: "right",
+                    color: "var(--color-stroke-lowlight)",
+                  }}
+                >
+                  <LoadingText />
+                </span>
+              </p>
+            )}
           </div>
         )}
       </VerticalScroll>
