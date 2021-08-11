@@ -33,9 +33,7 @@ const VisualizerOperationView: FunctionComponent<VisualizerOperationViewProps> =
       actions.removeElement(viewId);
     };
     const handleSubmit = () => {
-      console.log(graph);
       if (graph) {
-        console.log(graph.workflow);
         if (!graph.workflow._id) {
           setError(
             new Error("Dataset does not have a workflow applied to it.")

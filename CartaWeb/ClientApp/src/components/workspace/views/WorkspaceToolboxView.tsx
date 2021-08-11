@@ -11,8 +11,9 @@ import { WorkspaceWorkflow } from "library/api";
 import { ObjectFilter } from "library/search";
 import React, { useContext, useEffect, useState } from "react";
 import WorkflowCreateView from "./WorkflowCreateView";
+import WorkflowVersionsView from "./WorkflowVersionsView";
 
-const renderWorkflow = (workflow: WorkspaceWorkflow) => {
+const renderWorkflow = (workflow: WorkspaceWorkflow, onClick?: () => void) => {
   return (
     <div
       key={workflow.id}
@@ -29,7 +30,9 @@ const renderWorkflow = (workflow: WorkspaceWorkflow) => {
         padding: "1rem",
         overflow: "hidden",
         flexShrink: 0,
+        cursor: "pointer",
       }}
+      onClick={onClick}
     >
       <span
         style={{
@@ -59,7 +62,7 @@ const renderWorkflow = (workflow: WorkspaceWorkflow) => {
 
 const WorkspaceToolboxView = () => {
   const { workspaceAPI } = useAPI();
-  const { viewId, actions } = useContext(ViewContext);
+  const { viewId, rootId, actions } = useContext(ViewContext);
   const { workspace } = useContext(WorkspaceContext);
 
   const [workflows, setWorkflows] = useState<WorkspaceWorkflow[] | null>(null);
@@ -129,9 +132,14 @@ const WorkspaceToolboxView = () => {
                   gap: "1rem",
                 }}
               >
-                {workflowFilter
-                  .filter(workflows)
-                  .map((workflow) => renderWorkflow(workflow))}
+                {workflowFilter.filter(workflows).map((workflow) =>
+                  renderWorkflow(workflow, () => {
+                    actions.addElementToContainer(
+                      rootId,
+                      <WorkflowVersionsView id={workflow.id} />
+                    );
+                  })
+                )}
               </ul>
             )}
           </div>
