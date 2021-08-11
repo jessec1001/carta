@@ -11,7 +11,7 @@ import { WorkspaceToolboxView } from "./views";
 import DatasetPropertiesView from "./views/DatasetPropertiesView";
 
 const WorkspaceToolbar: FunctionComponent = () => {
-  const { viewId, actions } = useContext(ViewContext);
+  const { rootId, actions } = useContext(ViewContext);
 
   return (
     <div
@@ -28,21 +28,21 @@ const WorkspaceToolbar: FunctionComponent = () => {
         <DropdownArea>
           <DropdownItem
             onClick={() => {
-              actions.addChildElement(viewId, <DatasetListView />);
+              actions.addElementToContainer(rootId, <DatasetListView />);
             }}
           >
             Dataset List
           </DropdownItem>
           <DropdownItem
             onClick={() => {
-              actions.addChildElement(viewId, <DatasetAddView />);
+              actions.addElementToContainer(rootId, <DatasetAddView />);
             }}
           >
             Dataset Import{" "}
           </DropdownItem>
           <DropdownItem
             onClick={() => {
-              actions.addChildElement(viewId, <DatasetPropertiesView />);
+              actions.addElementToContainer(rootId, <DatasetPropertiesView />);
             }}
           >
             Dataset Properties
@@ -50,7 +50,7 @@ const WorkspaceToolbar: FunctionComponent = () => {
           <hr />
           <DropdownItem
             onClick={() => {
-              actions.addChildElement(viewId, <WorkspaceToolboxView />);
+              actions.addElementToContainer(rootId, <WorkspaceToolboxView />);
             }}
           >
             Toolbox

@@ -54,26 +54,22 @@ const DatasetGraphView: FunctionComponent<DatasetGraphViewProps> = ({ id }) => {
   const modified = false;
 
   const handleClose = () => {
-    actions.removeChildElement(viewId);
+    actions.removeElement(viewId);
   };
 
   return (
-    <TabContainer>
-      <Tab
-        title={
-          <React.Fragment>
-            <GraphIcon padded /> {datasetName}
-          </React.Fragment>
-        }
-        closeable
-        onClose={handleClose}
-        status={modified ? "modified" : "unmodified"}
-      >
-        {graphDataRef.current && (
-          <GraphVisualizer graph={graphDataRef.current} />
-        )}
-      </Tab>
-    </TabContainer>
+    <Tab
+      title={
+        <React.Fragment>
+          <GraphIcon padded /> {datasetName}
+        </React.Fragment>
+      }
+      closeable
+      onClose={handleClose}
+      status={modified ? "modified" : "unmodified"}
+    >
+      {graphDataRef.current && <GraphVisualizer graph={graphDataRef.current} />}
+    </Tab>
   );
 };
 

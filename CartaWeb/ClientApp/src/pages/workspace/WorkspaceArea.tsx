@@ -12,11 +12,10 @@ import {
   DatasetListView,
   WorkspaceToolboxView,
 } from "components/workspace/views";
-import { TabContainer } from "components/tabs";
 import WorkspaceWrapper from "components/workspace/WorkspaceWrapper";
 import ViewContext from "components/views/ViewContext";
-import ViewContainer from "components/views/_ViewContainer";
-import ViewRenderer from "components/views/_ViewRenderer";
+import ViewContainer from "components/views/ViewContainer";
+import ViewRenderer from "components/views/ViewRenderer";
 import WorkspaceToolbar from "components/workspace/WorkspaceToolbar";
 
 const tips: string[] = [
@@ -29,16 +28,16 @@ const tips: string[] = [
 ];
 
 const WorkspacePageDefaultLayout: FunctionComponent = () => {
-  const { viewId, actions } = useContext(ViewContext);
+  const { rootId, actions } = useContext(ViewContext);
   const initializedRef = useRef<boolean>(false);
 
   useEffect(() => {
     if (!initializedRef.current) {
       initializedRef.current = true;
-      actions.addChildElement(viewId, <DatasetListView />);
-      actions.addChildElement(viewId, <WorkspaceToolboxView />);
+      actions.addElementToContainer(rootId, <DatasetListView />);
+      actions.addElementToContainer(rootId, <WorkspaceToolboxView />);
     }
-  }, [viewId, actions]);
+  }, [rootId, actions]);
 
   return null;
 };
@@ -93,6 +92,37 @@ const WorkspacePage: FunctionComponent = () => {
 
   return (
     <PageLayout header>
+      <WorkspaceWrapper id={id}>
+        <ViewContainer>
+          <div
+            style={{
+              width: "100%",
+              height: "100%",
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            <WorkspaceToolbar />
+            <div
+              style={{
+                flexGrow: 1,
+              }}
+            >
+              <WorkspacePageDefaultLayout />
+              <ViewRenderer />
+            </div>
+            <div
+              style={{
+                width: "100%",
+                height: "4px",
+                background: `linear-gradient(to right, var(--color-primary) ${
+                  loadingProgress * 100
+                }%, var(--color-secondary) ${loadingProgress * 100}%)`,
+              }}
+            ></div>
+          </div>
+        </ViewContainer>
+      </WorkspaceWrapper>
       {loading && (
         <div
           style={{
@@ -107,6 +137,7 @@ const WorkspacePage: FunctionComponent = () => {
             alignItems: "center",
             backgroundColor: "var(--color-fill-overlay)",
             color: "var(--color-stroke-lowlight)",
+            zIndex: 100,
           }}
         >
           <div
@@ -153,38 +184,6 @@ const WorkspacePage: FunctionComponent = () => {
           </div>
         </div>
       )}
-
-      <WorkspaceWrapper id={id}>
-        <ViewContainer>
-          <div
-            style={{
-              width: "100%",
-              height: "100%",
-              display: "flex",
-              flexDirection: "column",
-            }}
-          >
-            <WorkspaceToolbar />
-            <div
-              style={{
-                flexGrow: 1,
-              }}
-            >
-              <WorkspacePageDefaultLayout />
-              <ViewRenderer />
-            </div>
-            <div
-              style={{
-                width: "100%",
-                height: "4px",
-                background: `linear-gradient(to right, var(--color-primary) ${
-                  loadingProgress * 100
-                }%, var(--color-secondary) ${loadingProgress * 100}%)`,
-              }}
-            ></div>
-          </div>
-        </ViewContainer>
-      </WorkspaceWrapper>
     </PageLayout>
   );
 };

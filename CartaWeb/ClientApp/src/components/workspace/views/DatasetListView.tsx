@@ -14,8 +14,7 @@ import { DatabaseIcon, DatasetIcon } from "components/icons";
 import { SearchboxInput, TextFieldInput } from "components/input";
 import { VerticalScroll } from "components/scroll";
 import { Column, Row } from "components/structure";
-import { Tab, TabContainer } from "components/tabs";
-import { Heading } from "components/text";
+import { Tab } from "components/tabs";
 import DatasetAddView from "./DatasetAddView";
 import DatasetGraphView from "./DatasetGraphView";
 import ViewContext from "components/views/ViewContext";
@@ -23,9 +22,10 @@ import ViewContext from "components/views/ViewContext";
 /** A component that renders a list of datasets that can be searched and sorted. */
 const DatasetListView: FunctionComponent = () => {
   // We use these contexts to handle opening and closing views and managing data.
-  const { viewId, actions } = useContext(ViewContext);
+  const { viewId, rootId, actions } = useContext(ViewContext);
   const parentView = actions.getParentView(viewId);
   const { datasets } = useContext(WorkspaceContext);
+  const elementRef = useRef<HTMLDivElement>(null);
 
   // TODO: Open the dataset properties view when a dataset is selected and close it otherwise.
   // We use a state variable to indicate which item of the dataset list is currently selected.
@@ -50,20 +50,19 @@ const DatasetListView: FunctionComponent = () => {
   // Executing a dataset item should open the graph dataset view to that dataset.
   const handleAdd = useCallback(() => {
     if (parentView)
-      actions.addChildElement(parentView.currentId, <DatasetAddView />);
+      actions.addElementToContainer(parentView.currentId, <DatasetAddView />);
   }, [actions, parentView]);
   const handleOpen = useCallback(
     (datasetId: string) => {
-      if (parentView)
-        actions.addChildElement(
-          parentView.currentId,
-          <DatasetGraphView id={datasetId} />
-        );
+      actions.addElementToContainer(
+        rootId,
+        <DatasetGraphView id={datasetId} />
+      );
     },
-    [actions, parentView]
+    [actions, rootId]
   );
   const handleClose = useCallback(() => {
-    actions.removeChildElement(viewId);
+    actions.removeElement(viewId);
   }, [actions, viewId]);
 
   /**
@@ -152,9 +151,13 @@ const DatasetListView: FunctionComponent = () => {
       };
 
       // Setup and teardown.
-      window.addEventListener("click", handlePotentialOutsideClick);
-      return () =>
-        window.removeEventListener("click", handlePotentialOutsideClick);
+      if (elementRef.current) {
+        const element = elementRef.current;
+        element.addEventListener("click", handlePotentialOutsideClick);
+        return () => {
+          element.removeEventListener("click", handlePotentialOutsideClick);
+        };
+      }
     }
   }, [handleRename, renaming]);
 
@@ -185,20 +188,24 @@ const DatasetListView: FunctionComponent = () => {
     return () => window.removeEventListener("keydown", handlePotentialKey);
   }, [handleRename, handleDelete, renaming]);
 
+  useEffect(() => {
+    if (selected) actions.setTag(viewId, "dataset", selected);
+    else actions.unsetTag(viewId, "dataset");
+  }, [selected, viewId, actions]);
+
   return (
-    <TabContainer>
-      <Tab
-        title={
-          <React.Fragment>
-            <DatabaseIcon padded /> Datasets
-          </React.Fragment>
-        }
-        onClose={handleClose}
-        closeable
-      >
-        <VerticalScroll>
-          <style>
-            {`
+    <Tab
+      title={
+        <React.Fragment>
+          <DatabaseIcon padded /> Datasets
+        </React.Fragment>
+      }
+      onClose={handleClose}
+      closeable
+    >
+      <VerticalScroll>
+        <style>
+          {`
           .dataset-item:hover {
             background-color: var(--color-primary-hover);
           }
@@ -206,79 +213,82 @@ const DatasetListView: FunctionComponent = () => {
             background-color: var(--color-primary-select);
           }
           `}
-          </style>
+        </style>
+        <div
+          className="view"
+          style={{
+            padding: "0rem",
+          }}
+          onClick={() => {
+            actions.setActiveView(viewId);
+          }}
+          ref={elementRef}
+        >
           <div
-            className="view"
             style={{
-              padding: "0rem",
+              padding: "1rem",
             }}
           >
-            <div
-              style={{
-                padding: "1rem",
-              }}
-            >
-              <Row>
-                <Column>
-                  <SearchboxInput onChange={setQuery} clearable />
-                </Column>
-                <IconAddButton onClick={handleAdd} />
-              </Row>
-            </div>
-            {!datasets.value && <span>Loading</span>}
-            {datasets.value && (
-              <ul role="presentation" ref={datasetListRef}>
-                {datasetFilter.filter(datasets.value).map((dataset) => {
-                  const displayName =
-                    dataset.name ?? `(${dataset.source}/${dataset.resource})`;
-                  const datasetSelected = selected === dataset.id;
+            <Row>
+              <Column>
+                <SearchboxInput onChange={setQuery} clearable />
+              </Column>
+              <IconAddButton onClick={handleAdd} />
+            </Row>
+          </div>
+          {!datasets.value && <span>Loading</span>}
+          {datasets.value && (
+            <ul role="presentation" ref={datasetListRef}>
+              {datasetFilter.filter(datasets.value).map((dataset) => {
+                const displayName =
+                  dataset.name ?? `(${dataset.source}/${dataset.resource})`;
+                const datasetSelected = selected === dataset.id;
 
-                  return (
-                    <li
-                      className={`dataset-item ${
-                        datasetSelected ? "selected" : ""
-                      }`}
-                      key={dataset.id}
+                return (
+                  <li
+                    className={`dataset-item ${
+                      datasetSelected ? "selected" : ""
+                    }`}
+                    key={dataset.id}
+                    style={{
+                      padding: "0rem 1rem",
+                      cursor: "pointer",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                    }}
+                    onClick={(event) => handleSelect(dataset, event)}
+                  >
+                    {/* TODO: Fix overflow not becoming ellipses correctly. */}
+                    <span
+                      className="normal-text"
                       style={{
-                        padding: "0rem 1rem",
-                        cursor: "pointer",
+                        // display: "inline-flex",
+                        flexShrink: 0,
                         textOverflow: "ellipsis",
                         whiteSpace: "nowrap",
                         overflow: "hidden",
                       }}
-                      onClick={(event) => handleSelect(dataset, event)}
                     >
-                      {/* TODO: Fix overflow not becoming ellipses correctly. */}
-                      <span
-                        className="normal-text"
-                        style={{
-                          // display: "inline-flex",
-                          flexShrink: 0,
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                        }}
-                      >
-                        <DatasetIcon padded />
-                        {renaming && datasetSelected ? (
-                          <TextFieldInput
-                            value={name}
-                            onChange={setName}
-                            placeholder={displayName}
-                          />
-                        ) : (
-                          displayName
-                        )}
-                      </span>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </div>
-        </VerticalScroll>
-      </Tab>
-    </TabContainer>
+                      <DatasetIcon padded />
+                      {renaming && datasetSelected ? (
+                        <TextFieldInput
+                          value={name}
+                          onChange={setName}
+                          placeholder={displayName}
+                        />
+                      ) : (
+                        displayName
+                      )}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+      </VerticalScroll>
+    </Tab>
   );
 };
 

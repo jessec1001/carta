@@ -2,7 +2,9 @@ import { createContext } from "react";
 import { ViewActions } from "./View";
 
 type ViewContextValue = {
+  rootId: number;
   viewId: number;
+  activeId: number | null;
   actions: ViewActions;
 };
 

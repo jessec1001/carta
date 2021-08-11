@@ -2,6 +2,7 @@ import React, {
   forwardRef,
   FunctionComponent,
   PropsWithChildren,
+  useEffect,
   useRef,
   useState,
 } from "react";
@@ -128,6 +129,20 @@ const SplitArea: FunctionComponent<SplitAreaProps> = ({
   // TODO: Handle children changing.
   // We can perform a clever computation to check when the children are changed over an iteration.
   // We can use the inserted or deleted children to determine how to adjust the pane sizes.
+  useEffect(() => {
+    if (actualSizes.length < childCount) {
+      setSizes((sizes) => {
+        const newSizes = [];
+        for (let k = 0; k < childCount; k++) {
+          if (k < sizes.length)
+            newSizes[k] = sizes[k] * (actualSizes.length / childCount);
+          else newSizes[k] = 1.0 / childCount;
+        }
+        return newSizes;
+      });
+    } else if (actualSizes.length > childCount) {
+    }
+  }, [setSizes, actualSizes, childCount]);
 
   // We use references to the gutters to determine split pane sizes when the gutters are moved.
   // We also use references to the children elements to grab their sizes in relation to their parent.

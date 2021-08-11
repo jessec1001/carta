@@ -20,6 +20,23 @@ hr {
   background-color: var(--color-primary-select);
 }
 
+/* Scrollbars should be consistent and prettier. */
+*::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+*::-webkit-scrollbar-track {
+  background-color: var(--color-fill-element-lowlight);
+}
+*::-webkit-scrollbar-thumb {
+  background-color: var(--color-primary-disabled);
+  border-radius: 4px;
+}
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-fill-element-lowlight) var(--color-primary);
+}
+
 /* Vertically normalizes text environments. */
 .normal-text {
   display: inline-flex;

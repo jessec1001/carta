@@ -1,9 +1,8 @@
 import { BlockButton } from "components/buttons";
-import { SplitArea } from "components/containers";
 import { PageLayout } from "components/layout";
 import ViewContext from "components/views/ViewContext";
-import ViewContainer from "components/views/_ViewContainer";
-import ViewRenderer from "components/views/_ViewRenderer";
+import ViewContainer from "components/views/ViewContainer";
+import ViewRenderer from "components/views/ViewRenderer";
 import {
   FunctionComponent,
   useContext,
@@ -31,7 +30,7 @@ const TestTreeElement: FunctionComponent<{ count: number }> = ({ count }) => {
       <BlockButton
         onClick={() => {
           if (parentView !== null) {
-            actions.addChildElement(
+            actions.addElementToContainer(
               parentView.currentId,
               <TestTreeElement count={count + 1} />
             );
@@ -42,24 +41,19 @@ const TestTreeElement: FunctionComponent<{ count: number }> = ({ count }) => {
       </BlockButton>
     </div>
   );
-
-  // Question.
-  // 1. Do the actions apply to the current view?
-  // 2. Do the actions apply to the parent view?
-  // 3. How can we get the actions available for both?
 };
 
 const TestTreeLayout: Function = () => {
   const initializedRef = useRef<boolean>(false);
-  const { viewId, actions } = useContext(ViewContext);
+  const { rootId, actions } = useContext(ViewContext);
 
   useEffect(() => {
     if (!initializedRef.current) {
       initializedRef.current = true;
 
-      actions.addChildElement(viewId, <TestTreeElement count={0} />);
+      actions.addElementToContainer(rootId, <TestTreeElement count={0} />);
     }
-  }, [viewId, actions]);
+  }, [rootId, actions]);
 
   return null;
 };

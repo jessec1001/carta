@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction, useCallback, useState } from "react";
 
 /**
  * Returns an optionally controlled stateful value, and a function to update it.
@@ -15,25 +15,27 @@ const useControllableState = <T>(
   const [stateValue, setStateValue] = useState(initialValue);
   const actualValue = propValue === undefined ? stateValue : propValue;
 
+  // TODO: Make this dispatch method always the same (little or no dependencies).
   // Wrap the set state dispatch function so that it calls the change handler
   // and only sets a new state if uncontrolled to avoid re-rendering unecessarily.
-  const handleValue: Dispatch<SetStateAction<T>> = (
-    value: T | ((prevValue: T) => T)
-  ) => {
-    // Compute the next value depending on whether we are using a callback function or a simple value.
-    const nextValue =
-      typeof value === "function"
-        ? (value as (prevValue: T) => T)(actualValue)
-        : value;
+  const handleValue: Dispatch<SetStateAction<T>> = useCallback(
+    (value: T | ((prevValue: T) => T)) => {
+      // Compute the next value depending on whether we are using a callback function or a simple value.
+      const nextValue =
+        typeof value === "function"
+          ? (value as (prevValue: T) => T)(actualValue)
+          : value;
 
-    // Notify the change handler.
-    if (handleChangeValue) handleChangeValue(nextValue);
+      // Notify the change handler.
+      if (handleChangeValue) handleChangeValue(nextValue);
 
-    // If uncontrolled, we change this component state.
-    if (propValue === undefined) {
-      setStateValue(nextValue);
-    }
-  };
+      // If uncontrolled, we change this component state.
+      if (propValue === undefined) {
+        setStateValue(nextValue);
+      }
+    },
+    [actualValue, handleChangeValue, propValue]
+  );
 
   // Return the same signature as the use state React hook.
   return [actualValue, handleValue];

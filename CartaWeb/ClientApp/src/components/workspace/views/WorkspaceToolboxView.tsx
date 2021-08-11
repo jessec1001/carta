@@ -15,6 +15,7 @@ import WorkflowCreateView from "./WorkflowCreateView";
 const renderWorkflow = (workflow: WorkspaceWorkflow) => {
   return (
     <div
+      key={workflow.id}
       className="workflow-card"
       style={{
         fontSize: "0.8em",
@@ -76,66 +77,67 @@ const WorkspaceToolboxView = () => {
   }, [workspace, workspaceAPI]);
 
   const handleClose = () => {
-    actions.removeChildElement(viewId);
+    actions.removeElement(viewId);
   };
   const handleAdd = () => {
     const parentView = actions.getParentView(viewId);
     if (parentView) {
-      actions.addChildElement(parentView.currentId, <WorkflowCreateView />);
+      actions.addElementToContainer(
+        parentView.currentId,
+        <WorkflowCreateView />
+      );
     }
   };
 
   const workflowFilter = new ObjectFilter(query, {});
 
   return (
-    <TabContainer>
-      <Tab
-        title={
-          <React.Fragment>
-            <WorkflowIcon padded /> Toolbox
-          </React.Fragment>
-        }
-        onClose={handleClose}
-        closeable
-      >
-        <VerticalScroll>
+    <Tab
+      title={
+        <React.Fragment>
+          <WorkflowIcon padded /> Toolbox
+        </React.Fragment>
+      }
+      onClose={handleClose}
+      closeable
+    >
+      <VerticalScroll>
+        <div
+          style={{
+            padding: "1rem",
+          }}
+        >
+          <Row>
+            <Column>
+              <SearchboxInput value={query} onChange={setQuery} clearable />
+            </Column>
+            <IconAddButton onClick={handleAdd} />
+          </Row>
           <div
             style={{
-              padding: "1rem",
+              marginTop: "1rem",
             }}
           >
-            <Row>
-              <Column>
-                <SearchboxInput value={query} onChange={setQuery} clearable />
-              </Column>
-              <IconAddButton onClick={handleAdd} />
-            </Row>
-            <div
-              style={{
-                marginTop: "1rem",
-              }}
-            >
-              {!workflows && <span>Loading</span>}
-              {workflows && (
-                <ul
-                  role="presentation"
-                  style={{
-                    display: "flex",
-                    flexDirection: "row",
-                    flexWrap: "wrap",
-                    gap: "1rem",
-                  }}
-                >
-                  {workflowFilter
-                    .filter(workflows)
-                    .map((workflow) => renderWorkflow(workflow))}
-                </ul>
-              )}
-            </div>
+            {!workflows && <span>Loading</span>}
+            {workflows && (
+              <ul
+                role="presentation"
+                style={{
+                  display: "flex",
+                  flexDirection: "row",
+                  flexWrap: "wrap",
+                  gap: "1rem",
+                }}
+              >
+                {workflowFilter
+                  .filter(workflows)
+                  .map((workflow) => renderWorkflow(workflow))}
+              </ul>
+            )}
           </div>
-        </VerticalScroll>
-      </Tab>
-    </TabContainer>
+        </div>
+      </VerticalScroll>
+    </Tab>
   );
 };
 

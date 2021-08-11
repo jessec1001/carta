@@ -42,7 +42,6 @@ const Dropdown: FunctionComponent<DropdownProps> = ({
     return () => window.removeEventListener("click", handleClick);
   }, []);
 
-  console.log(!ignoreHover);
   return (
     // We do some compound component logic here to interpret dropdown parts.
     <div
