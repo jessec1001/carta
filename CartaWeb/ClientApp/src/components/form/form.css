@@ -99,22 +99,6 @@ textarea.form-control {
 }
 /* ------ */
 
-/* --- Form spaced group related styles --- */
-.form-spaced-group {
-  display: flex;
-}
-.form-spaced-group > * {
-  flex-grow: 1;
-  margin: 0rem 0.5rem 0rem 0rem;
-}
-.form-spaced-group > *:last-child {
-  margin-right: 0;
-}
-.form-spaced-group > *.no-grow {
-  flex-grow: 0;
-}
-/* ------ */
-
 /* --- Checkbox related styles --- */
 .form-checkbox {
   /* We want the checkbox to display almost identically to most form elements. */

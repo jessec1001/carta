@@ -17,6 +17,7 @@ import ViewContext from "components/views/ViewContext";
 import ViewContainer from "components/views/ViewContainer";
 import ViewRenderer from "components/views/ViewRenderer";
 import WorkspaceToolbar from "components/workspace/WorkspaceToolbar";
+import { LoadingText } from "components/text";
 
 const tips: string[] = [
   "Every operation in Carta does not mutate input data.",
@@ -167,7 +168,7 @@ const WorkspacePage: FunctionComponent = () => {
                   color: "var(--color-stroke-faint)",
                 }}
               >
-                {loadingStep}
+                <LoadingText text={loadingStep} />
               </p>
             </div>
           </div>

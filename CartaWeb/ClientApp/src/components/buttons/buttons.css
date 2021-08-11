@@ -50,3 +50,32 @@
   cursor: not-allowed;
 }
 /* #endregion */
+
+/* #region Button Group */
+/* --- Form spaced group related styles --- */
+.button-group {
+  display: flex;
+  flex-direction: row;
+}
+
+.button-group > * {
+  flex-grow: 1;
+  margin: 0rem;
+}
+.button-group > *:last-child {
+  margin-right: 0;
+}
+
+.button-group:not(.connected) > * {
+  margin: 0rem 0.5rem 0rem 0rem;
+}
+.button-group.connected > *:not(:first-child) {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+.button-group.connected > *:not(:last-child) {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+/* ------ */
+/* #endregion */

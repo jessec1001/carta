@@ -2,16 +2,16 @@ import React, {
   FunctionComponent,
   useContext,
   useEffect,
-  useRef,
   useState,
 } from "react";
 import { GraphIcon } from "components/icons";
-import { Tab, TabContainer } from "components/tabs";
+import { Tab } from "components/tabs";
 import { WorkspaceContext } from "context";
-import { GraphData, WorkspaceDataset } from "library/api";
+import { GraphData } from "library/api";
 import { GraphVisualizer } from "components/visualizations";
 import { GraphWorkflow } from "library/api/workflow";
 import ViewContext from "components/views/ViewContext";
+import { LoadingText } from "components/text";
 
 /** The props used for the {@link DatasetGraphView} component. */
 interface DatasetGraphViewProps {
@@ -21,54 +21,82 @@ interface DatasetGraphViewProps {
 
 /** A component that renders a graph of a particular dataset. */
 const DatasetGraphView: FunctionComponent<DatasetGraphViewProps> = ({ id }) => {
+  // Retrieve the specified dataset and its relevant information.
   const { datasets } = useContext(WorkspaceContext);
-  const { viewId, actions } = useContext(ViewContext);
-
-  // TODO: Simplify retrieving a dataset especially if it already exists.
-  const [dataset, setDataset] = useState<WorkspaceDataset | null>(null);
-
-  // TODO: Replace usage of old graph data structure class with new data structure.
-  const graphDataRef = useRef<GraphData | null>(null);
-
-  // TODO: Make renaming of dataset change name reflected here.
-  // TODO: Ultimately, this should be solved by only creating the graph once but allowing the dataset structure to change over time.
-  useEffect(() => {
-    if (dataset === null && datasets.value !== null) {
-      const dataset = datasets.value.find((dataset) => dataset.id === id);
-      if (dataset) {
-        setDataset(dataset);
-        graphDataRef.current = new GraphData(
-          dataset.source,
-          dataset.resource,
-          new GraphWorkflow(undefined)
-        );
-      }
-    }
-  }, [id, dataset, datasets]);
-
-  // TODO: Simplify getting default display name for datasets.
+  const datasetId = id;
+  // TODO: Better way to find dataset.
+  const dataset =
+    datasets.value?.find((dataset) => dataset.id === datasetId) ?? null;
+  // TODO: Better way to get dataset name.
   const datasetName =
-    dataset === null
-      ? "Loading"
-      : dataset.name ?? `(${dataset.source}/${dataset.resource})`;
-  const modified = false;
+    dataset && (dataset.name ?? `(${dataset.source}/${dataset.resource})`);
 
+  // Construct a reference to the graph data structure when the dataset has loaded correctly.
+  // TODO: Replace usage of old graph data structure class with new data structure.
+  const [graph, setGraph] = useState<GraphData | null>(null);
+  const { source, resource } = dataset ?? {};
+  useEffect(() => {
+    // We only create the graph data when the source/resource exist and are different than previously.
+    if (!source || !resource) return;
+    setGraph((graph) => {
+      return new GraphData(source, resource, new GraphWorkflow(undefined));
+    });
+  }, [source, resource]);
+
+  // TODO: Use modified value.
+  // TODO: Use error value.
+  const modified = false;
+  const error = false;
+  const status = error ? "error" : modified ? "modified" : "unmodified";
+
+  // We use the view context to create or remove views from the view container.
+  const { viewId, actions } = useContext(ViewContext);
   const handleClose = () => {
+    // Destroy this view.
     actions.removeElement(viewId);
   };
+  useEffect(() => {
+    actions.setTag(viewId, "dataset", datasetId);
+  }, [datasetId, viewId, actions]);
+  useEffect(() => {
+    if (graph) actions.setTag(viewId, "graph", graph);
+    else actions.unsetTag(viewId, "graph");
+  }, [graph, viewId, actions]);
 
   return (
+    // Render the view itself within a tab so it can be easily added to container views.
     <Tab
       title={
         <React.Fragment>
-          <GraphIcon padded /> {datasetName}
+          <GraphIcon padded />
+          {datasetName ?? <LoadingText />}
+          &nbsp;
+          <span
+            style={{
+              color: "var(--color-stroke-faint)",
+              fontSize: "var(--font-small)",
+            }}
+          >
+            [Visualizer]
+          </span>
         </React.Fragment>
       }
+      status={status}
       closeable
       onClose={handleClose}
-      status={modified ? "modified" : "unmodified"}
     >
-      {graphDataRef.current && <GraphVisualizer graph={graphDataRef.current} />}
+      <div
+        style={{
+          width: "100%",
+          height: "100%",
+        }}
+        onClick={() => {
+          actions.setActiveView(viewId);
+        }}
+      >
+        {/* Only render the graph if we have created the data structure. */}
+        {graph && <GraphVisualizer graph={graph} />}
+      </div>
     </Tab>
   );
 };

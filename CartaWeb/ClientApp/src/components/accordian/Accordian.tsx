@@ -9,6 +9,8 @@ import "./accordian.css";
 interface AccordianProps {
   /** Whether the accordian is toggled. If not specified, the component is uncontrolled. */
   toggled?: boolean;
+  /** Whether the accordian is toggled initially. Used for uncontrolled components and their initial state. */
+  initialToggled?: boolean;
   /** The event handler that is called whenever the toggle state of the accordian changes. */
   onToggle?: (toggled: boolean) => void;
 }
@@ -34,12 +36,13 @@ interface AccordianProps {
  */
 const Accordian: FunctionComponent<AccordianProps> = ({
   toggled,
+  initialToggled = true,
   onToggle,
   children,
 }) => {
   // We use an optionally controlled toggled state.
   const [actualToggled, setToggled] = useControllableState(
-    true,
+    initialToggled,
     toggled,
     onToggle
   );

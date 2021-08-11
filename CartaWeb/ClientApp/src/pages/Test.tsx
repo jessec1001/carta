@@ -10,6 +10,7 @@ import {
   useRef,
   useState,
 } from "react";
+import LoadingIcon from "components/icons/LoadingIcon";
 
 const TestTreeElement: FunctionComponent<{ count: number }> = ({ count }) => {
   const { viewId, actions } = useContext(ViewContext);
@@ -25,6 +26,9 @@ const TestTreeElement: FunctionComponent<{ count: number }> = ({ count }) => {
 
   return (
     <div>
+      <p className="normal-text">
+        Loading <LoadingIcon animated padded />
+      </p>
       <p>Count: {count}</p>
       <p>Timer: {timerCount}</p>
       <BlockButton

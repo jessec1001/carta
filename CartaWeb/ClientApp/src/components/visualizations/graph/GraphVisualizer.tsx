@@ -124,7 +124,18 @@ export default class GraphVisualizer extends Component<
   }
   getNodeRenderer() {
     const that = this;
-    const theme = JSON.parse(localStorage.getItem("theme") ?? "light") as Theme;
+    const initialTheme = JSON.parse(
+      localStorage.getItem("theme") ?? "light"
+    ) as Theme;
+    const theme: [Theme] = [initialTheme];
+    setInterval(() => {
+      const newTheme = JSON.parse(
+        localStorage.getItem("theme") ?? "light"
+      ) as Theme;
+      if (theme[0] !== newTheme) {
+        theme[0] = newTheme;
+      }
+    }, 1000);
     return (args: {
       ctx: CanvasRenderingContext2D;
       id: string;
@@ -219,7 +230,7 @@ export default class GraphVisualizer extends Component<
         },
         drawExternalLabel: () => {
           // Draw the label for the node beneath the node itself.
-          ctx.fillStyle = theme === Theme.Light ? "black" : "white";
+          ctx.fillStyle = theme[0] === Theme.Light ? "black" : "white";
           ctx.font = `${fontSize} sans-serif`;
           ctx.textAlign = "center";
           ctx.textBaseline = "hanging";

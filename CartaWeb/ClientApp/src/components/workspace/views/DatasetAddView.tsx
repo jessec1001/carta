@@ -4,9 +4,15 @@ import React, {
   useEffect,
   useState,
 } from "react";
-import { useAPI } from "hooks";
+import { useAPI, useMounted } from "hooks";
 import { WorkspaceContext } from "context";
-import { BlockButton } from "components/buttons";
+import {
+  Accordian,
+  AccordianContent,
+  AccordianHeader,
+  AccordianToggle,
+} from "components/accordian";
+import { BlockButton, ButtonGroup } from "components/buttons";
 import { Link } from "components/common";
 import { ApiException } from "library/exceptions";
 import { FormGroup } from "components/form";
@@ -17,27 +23,19 @@ import {
   TextFieldInput,
 } from "components/input";
 import { VerticalScroll } from "components/scroll";
-import { Tab, TabContainer } from "components/tabs";
-import { ErrorText, Heading, SeparatedText } from "components/text";
-import DatasetGraphView from "./DatasetGraphView";
-import { Column, Row } from "components/structure";
+import { Tab } from "components/tabs";
 import {
-  Accordian,
-  AccordianContent,
-  AccordianHeader,
-  AccordianToggle,
-} from "components/accordian";
-import ViewContext from "components/views/ViewContext";
+  ErrorText,
+  Heading,
+  LoadingText,
+  SeparatedText,
+} from "components/text";
+import { Column, Row } from "components/structure";
+import { ViewContext } from "components/views";
+import DatasetGraphView from "./DatasetGraphView";
 
 import "./view.css";
 
-/**
- * Renders a loading status.
- * @returns  An element to render describing a loading status.
- */
-const renderLoading = () => {
-  return <span>Loading</span>;
-};
 /**
  * Renders an error that has been raised while loading resources.
  * - Handles special cases such as lack of HyperThought authentication.
@@ -92,7 +90,7 @@ const renderResource = (
 ) => {
   return (
     <label style={{ display: "flex" }}>
-      <CheckboxInput value={selected} />{" "}
+      <CheckboxInput style={{ flexShrink: 0 }} value={selected} />{" "}
       <span style={{ padding: "0rem 0.5rem" }}>{resource}</span>
     </label>
   );
@@ -102,7 +100,6 @@ const renderResource = (
 const DatasetAddView: FunctionComponent = ({ children }) => {
   // We need the data API to make calls to get the data resources.
   const { dataAPI } = useAPI();
-  const { viewId, rootId, actions } = useContext(ViewContext);
   const { datasets } = useContext(WorkspaceContext);
 
   // We store a reference to the selected source-resource pair.
@@ -119,32 +116,37 @@ const DatasetAddView: FunctionComponent = ({ children }) => {
   // These resources are stored in a dictionary:
   // Keys - Data source
   // Values - Data resources per source (or null if loading)
+  const mountedRef = useMounted();
   const [groupedResources, setGroupedResources] = useState<
     Record<string, string[] | ApiException | null>
   >({});
+
   // This effect loads the data resources asynchronously.
   useEffect(() => {
     // We use these methods to load in the data resources.
     const loadDataResources = async (source: string) => {
       try {
         const resources = await dataAPI.getResources(source);
+        if (!mountedRef.current) return;
         setGroupedResources((groupedResources) => ({
           ...groupedResources,
           [source]: resources,
         }));
       } catch (error) {
-        if (error instanceof ApiException)
+        if (error instanceof ApiException) {
+          if (!mountedRef.current) return;
           setGroupedResources((groupedResources) => ({
             ...groupedResources,
             [source]: error,
           }));
-        else throw error;
+        } else throw error;
       }
     };
     const loadDataSources = async () => {
       const sources = await dataAPI.getSources();
       sources.forEach((source) => {
         // Set the loading state if we do not have resources cached already.
+        if (!mountedRef.current) return;
         setGroupedResources((groupedResources) =>
           !Array.isArray(groupedResources[source])
             ? { ...groupedResources, [source]: null }
@@ -157,10 +159,11 @@ const DatasetAddView: FunctionComponent = ({ children }) => {
     };
 
     // Start asynchronous data loading.
-    // TODO: Cancel this operation if the component has unmounted.
     loadDataSources();
-  }, [dataAPI]);
+  }, [mountedRef, dataAPI]);
 
+  // We use the view context to create or remove views from the view container.
+  const { viewId, rootId, actions } = useContext(ViewContext);
   const handleSelect = (source: string, resource: string) => {
     // When a dataset item is clicked, its selected state is toggled.
     // Since we currently only allow a single dataset, this will also move the selection around.
@@ -179,18 +182,16 @@ const DatasetAddView: FunctionComponent = ({ children }) => {
         name: name.length === 0 ? undefined : name,
       });
 
-      // Remove the current element from the container.
+      // Destroy this view and open the added dataset in a visualizer view.
       actions.removeElement(viewId);
-
-      // Open the added dataset in a new view.
       actions.addElementToContainer(
         rootId,
         <DatasetGraphView id={newDataset.id} />
       );
     })();
   };
-  const handleCancel = () => {
-    // Remove the current element from the container on cancel.
+  const handleClose = () => {
+    // Destroy this view.
     actions.removeElement(viewId);
   };
 
@@ -204,7 +205,7 @@ const DatasetAddView: FunctionComponent = ({ children }) => {
       }
       status="none"
       closeable
-      onClose={handleCancel}
+      onClose={handleClose}
     >
       <VerticalScroll>
         <div className="view">
@@ -228,7 +229,7 @@ const DatasetAddView: FunctionComponent = ({ children }) => {
           {Object.entries(groupedResources).map(([source, resources]) => {
             let contents;
             if (resources === null) {
-              contents = renderLoading();
+              contents = <LoadingText />;
             } else if (resources instanceof ApiException) {
               contents = renderError(resources);
             } else {
@@ -248,7 +249,8 @@ const DatasetAddView: FunctionComponent = ({ children }) => {
                           {renderResource(
                             source,
                             resource,
-                            source === selected?.source &&
+                            selected !== null &&
+                              source === selected.source &&
                               resource === selected.resource
                           )}
                         </li>
@@ -260,6 +262,7 @@ const DatasetAddView: FunctionComponent = ({ children }) => {
                 );
             }
 
+            // Each source is rendered inside of an accordian that can be collapsed.
             return (
               <div key={source}>
                 <Accordian>
@@ -290,7 +293,7 @@ const DatasetAddView: FunctionComponent = ({ children }) => {
           </FormGroup>
 
           {/* Render a set of buttons to perform or cancel the add dataset operation. */}
-          <div className="form-spaced-group">
+          <ButtonGroup>
             <BlockButton
               color="primary"
               type="submit"
@@ -299,10 +302,13 @@ const DatasetAddView: FunctionComponent = ({ children }) => {
             >
               Add
             </BlockButton>
-            <BlockButton color="secondary" type="button" onClick={handleCancel}>
+            <BlockButton color="secondary" type="button" onClick={handleClose}>
               Cancel
             </BlockButton>
-          </div>
+          </ButtonGroup>
+
+          {/* TODO: Fix vertical scroll so that this is not necessary. */}
+          <div style={{ paddingBottom: "1rem" }} />
         </div>
       </VerticalScroll>
     </Tab>
