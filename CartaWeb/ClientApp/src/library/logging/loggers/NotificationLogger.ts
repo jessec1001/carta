@@ -78,7 +78,7 @@ class NotificationLogger extends Logger<NotificationLoggerEvents> {
       if (!notification.sticky) {
         setTimeout(() => this.closeNotification(index), this.maxTimeout);
       }
-      this.emit("notificationOpened", notification, index);
+      this.notify("notificationOpened", notification, index);
     }
   }
   public closeNotification(index: number) {
@@ -88,7 +88,7 @@ class NotificationLogger extends Logger<NotificationLoggerEvents> {
         (visibleIndex) => visibleIndex !== index
       );
       delete this.notifications[index];
-      this.emit("notificationClosed", notification, index);
+      this.notify("notificationClosed", notification, index);
     }
 
     if (this.visible.length < this.maxEntries) this.nextNotification();

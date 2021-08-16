@@ -1,11 +1,11 @@
+import { EventDriver } from "library/events";
 import { LogEntry, LogSeverity } from "./LogTypes";
-import { EventEmitter } from "ee-ts";
 
 interface LoggerOptions {
   logLevel: LogSeverity;
 }
 
-abstract class Logger<T = {}> extends EventEmitter<T> {
+abstract class Logger<T = {}> extends EventDriver<T> {
   public logLevel: LogSeverity;
 
   public constructor(options: LoggerOptions) {
