@@ -1,4 +1,7 @@
+import { BlockButton, ButtonGroup } from "components/buttons";
+import { FormGroup } from "components/form";
 import { WorkflowIcon } from "components/icons";
+import { TextAreaInput } from "components/input";
 import { VerticalScroll } from "components/scroll";
 import { Tab } from "components/tabs";
 import { Heading, LoadingText } from "components/text";
@@ -22,25 +25,36 @@ const WorkflowVersionsView: FunctionComponent<WorkflowVersionsViewProps> = ({
 }) => {
   const { workspaceAPI, workflowAPI } = useAPI();
   const { viewId, actions } = useContext(ViewContext);
-  const { workspace } = useContext(WorkspaceContext);
+  const { workspace, workflows } = useContext(WorkspaceContext);
 
   const [versions, setVersions] = useState<WorkflowVersion[] | null>(null);
   const [workflow, setWorkflow] = useState<WorkspaceWorkflow | null>(null);
   useEffect(() => {
     if (workspace !== null) {
       (async () => {
-        console.log(id, workspace);
         const workflow = await workspaceAPI.getWorkspaceWorkflow(
           workspace.id,
           id
         );
-        const versions = await workflowAPI.getWorkflowVersions(workflow.id);
-
         setWorkflow(workflow);
+
+        const versions = await workflowAPI.getWorkflowVersions(workflow.id);
         setVersions(versions);
       })();
     }
   }, [workspace, workspaceAPI, workflowAPI, id]);
+
+  // TODO: Use schema form to ensure that the description is non-empty.
+  const [description, setDescription] = useState<string>("");
+  const handleSubmit = (event: React.FormEvent) => {
+    if (workflow) {
+      workflowAPI.commitWorkflowVersion(workflow.id, description);
+      workflows.CRUD.update(workflow).then(setWorkflow);
+      workflowAPI.getWorkflowVersions(workflow.id).then(setVersions);
+    }
+
+    event.preventDefault();
+  };
 
   const handleClose = () => {
     actions.removeElement(viewId);
@@ -74,41 +88,66 @@ const WorkflowVersionsView: FunctionComponent<WorkflowVersionsViewProps> = ({
           }}
         >
           {!versions && <LoadingText />}
+          <form onSubmit={handleSubmit}>
+            <Heading>New Version</Heading>
+            <FormGroup title="Description" density="sparse">
+              <TextAreaInput value={description} onChange={setDescription} />
+            </FormGroup>
+            <ButtonGroup>
+              <BlockButton type="submit" color="primary">
+                Commit
+              </BlockButton>
+            </ButtonGroup>
+          </form>
+
+          <div style={{ height: "1rem" }} />
+
           {versions && (
-            <ul role="presentation">
-              {versions.map((version, index) => {
-                return (
-                  <li key={version.number}>
-                    <div>
-                      <p
-                        style={{
-                          fontSize: "var(--font-medium)",
-                        }}
-                      >
-                        Version {version.number}
-                      </p>
-                      <p
-                        style={{
-                          color: "var(--color-stroke-lowlight)",
-                        }}
-                      >
-                        {version.description}
-                      </p>
-                      <p
-                        style={{
-                          fontSize: "var(--font-small)",
-                          color: "var(--color-stroke-faint)",
-                        }}
-                      >
-                        Created by @{version.createdBy.name} on{" "}
-                        <time>{version.dateCreated.toLocaleDateString()}</time>.
-                      </p>
-                    </div>
-                    {index > 0 && <br />}
-                  </li>
-                );
-              })}
-            </ul>
+            <React.Fragment>
+              <Heading>Versions</Heading>
+              <ul>
+                {versions.map((version, index) => {
+                  return (
+                    <li
+                      key={version.number}
+                      style={{
+                        marginBottom: "0.5rem",
+                      }}
+                    >
+                      <div>
+                        <p
+                          style={{
+                            fontSize: "1.2em",
+                          }}
+                        >
+                          Version {version.number}
+                        </p>
+                        <p
+                          style={{
+                            color: "var(--color-stroke-lowlight)",
+                          }}
+                        >
+                          {version.description}
+                        </p>
+                        <p
+                          style={{
+                            fontSize: "var(--font-small)",
+                            color: "var(--color-stroke-faint)",
+                          }}
+                        >
+                          Created by @{version.createdBy.name} on{" "}
+                          <time>
+                            {version.dateCreated.toLocaleDateString()}
+                          </time>
+                          .
+                        </p>
+                      </div>
+                      {index > 0 && <br />}
+                    </li>
+                  );
+                })}
+              </ul>
+            </React.Fragment>
           )}
         </div>
       </VerticalScroll>

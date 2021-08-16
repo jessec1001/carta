@@ -1,6 +1,6 @@
 import { FunctionComponent, useEffect, useMemo, useState } from "react";
 import { DataCRUD, useAPI, useCRUD } from "hooks";
-import { Workspace, WorkspaceDataset } from "library/api";
+import { Workspace, WorkspaceDataset, WorkspaceWorkflow } from "library/api";
 import { WorkspaceContext } from "context";
 
 /** The props used for the {@link WorkspaceWrapper} component. */
@@ -15,9 +15,10 @@ const WorkspaceWrapper: FunctionComponent<WorkspaceWrapperProps> = ({
   children,
 }) => {
   // We need the workspace API to access workspace objects.
-  const { workspaceAPI } = useAPI();
+  const { workspaceAPI, workflowAPI } = useAPI();
 
   // We store the original workspace object itself.
+  // TODO: Some hook that combines useMounted and useEffect for async loading functions. Perhaps periodic as well.
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
   useEffect(() => {
     (async () => {
@@ -53,9 +54,52 @@ const WorkspaceWrapper: FunctionComponent<WorkspaceWrapperProps> = ({
     [datasets, datasetsCRUD]
   );
 
+  // This defines how workspace workflows should be maintained.
+  // We automatically refresh the workspace workflows every 30 seconds.
+  // Modifying workflows is a singular operation because other workflows are not affected.
+  const workflowsRefresh = 30 * 1000;
+  const workflowsFetcher: DataCRUD<WorkspaceWorkflow> = useMemo(
+    () => ({
+      fetch: () => workspaceAPI.getWorkspaceWorkflows(id),
+      add: async (workflow: WorkspaceWorkflow) => {
+        const workflowNew = await workflowAPI.createWorkflow(workflow);
+        await workflowAPI.commitWorkflowVersion(
+          workflowNew.id,
+          "Initial verison"
+        );
+        const workspaceWorkflow = await workspaceAPI.addWorkspaceWorkflow(
+          id,
+          workflowNew.id
+        );
+        return workspaceWorkflow;
+      },
+      remove: (workflow: WorkspaceWorkflow) =>
+        workspaceAPI.removeWorkspaceWorkflow(id, workflow.id),
+      // TODO: We use the GET method here for updates because updates are actually in reference to versions
+      // which are a subcollection of objects.
+      update: (workflow: WorkspaceWorkflow) =>
+        workspaceAPI.getWorkspaceWorkflow(id, workflow.id),
+    }),
+    [workspaceAPI, workflowAPI, id]
+  );
+  const [workflows, workflowsCRUD] = useCRUD(
+    workflowsFetcher,
+    "id",
+    false,
+    workflowsRefresh
+  );
+  const workflowsContext = useMemo(
+    () => ({ value: workflows, CRUD: workflowsCRUD }),
+    [workflows, workflowsCRUD]
+  );
+
   return (
     <WorkspaceContext.Provider
-      value={{ workspace: workspace, datasets: datasetsContext }}
+      value={{
+        workspace: workspace,
+        datasets: datasetsContext,
+        workflows: workflowsContext,
+      }}
     >
       {children}
     </WorkspaceContext.Provider>

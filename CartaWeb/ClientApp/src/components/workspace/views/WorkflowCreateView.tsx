@@ -2,30 +2,21 @@ import { BlockButton } from "components/buttons";
 import { FormGroup } from "components/form";
 import { WorkflowIcon } from "components/icons";
 import { TextFieldInput } from "components/input";
-import { Tab, TabContainer } from "components/tabs";
+import { Tab } from "components/tabs";
 import { SeparatedText } from "components/text";
 import ViewContext from "components/views/ViewContext";
 import { WorkspaceContext } from "context";
-import { useAPI } from "hooks";
+import { WorkspaceWorkflow } from "library/api";
 import React, { FunctionComponent, useContext, useState } from "react";
 
 const WorkspaceCreateView: FunctionComponent = () => {
   const { viewId, actions } = useContext(ViewContext);
-  const { workspace } = useContext(WorkspaceContext);
-  const { workflowAPI, workspaceAPI } = useAPI();
+  const { workflows } = useContext(WorkspaceContext);
 
   const [name, setName] = useState<string>("");
 
   const handleCreate = () => {
-    (async () => {
-      if (!workspace) return;
-
-      const workflow = await workflowAPI.createWorkflow({
-        name: name,
-      });
-      await workflowAPI.commitWorkflowVersion(workflow.id, "Initial version");
-      await workspaceAPI.addWorkspaceWorkflow(workspace.id, workflow.id);
-    })();
+    workflows.CRUD.add({ name: name } as WorkspaceWorkflow);
     actions.removeElement(viewId);
   };
   const handleClose = () => {
