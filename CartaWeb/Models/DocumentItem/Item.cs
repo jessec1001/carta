@@ -77,13 +77,14 @@ namespace CartaWeb.Models.DocumentItem
         /// Codifies the partition key prefix to use for the document.
         /// </summary>
         /// <returns>The partition key prefix.</returns>
-        public abstract string GetPartitionKeyPrefix();
+        public abstract string PartitionKeyPrefix { get; }
 
         /// <summary>
         /// Codifies the sort key prefix to use for the document.
         /// </summary>
         /// <returns>The sort key prefix.</returns>
-        public abstract string GetSortKeyPrefix();
+        public abstract string SortKeyPrefix { get; }
+
 
         /// <summary>
         /// Returns the partition key of the document.
@@ -91,7 +92,7 @@ namespace CartaWeb.Models.DocumentItem
         /// <returns>The partition key.</returns>
         public virtual string GetPartitionKey()
         {
-            return GetPartitionKeyPrefix() + PartitionKeyId;
+            return PartitionKeyPrefix + PartitionKeyId;
         }
 
         /// <summary>
@@ -100,7 +101,7 @@ namespace CartaWeb.Models.DocumentItem
         /// <returns>The sort key.</returns>
         public virtual string GetSortKey()
         {
-            return GetSortKeyPrefix() + Id;
+            return SortKeyPrefix + Id;
         }
 
         /// <summary>
@@ -110,7 +111,7 @@ namespace CartaWeb.Models.DocumentItem
         public virtual DbDocument CreateDbDocument()
         {
             string docId = Ulid.NewUlid().ToString();
-            string sortKey = GetSortKeyPrefix() + docId;
+            string sortKey = SortKeyPrefix + docId;
             if (Id is null) Id = docId;
             DbDocument dbDocument = new DbDocument
             (

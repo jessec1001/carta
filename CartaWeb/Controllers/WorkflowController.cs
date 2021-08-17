@@ -72,7 +72,7 @@ namespace CartaWeb.Controllers
 
             // Retrieve temporary working versions of workflows
             WorkflowItem readWorkflowItem = new WorkflowItem(true, userId);
-            List<Item> workflowItems = await _persistence.LoadItemsAsync(readWorkflowItem);
+            IEnumerable<Item> workflowItems = await _persistence.LoadItemsAsync(readWorkflowItem);
             foreach (WorkflowItem workflowItem in workflowItems)
             {
                 workflowItem.Workflow.VersionNumber = workflowItem.VersionInformation.Number;
@@ -81,7 +81,7 @@ namespace CartaWeb.Controllers
 
             // Retrieve persisted workflows
             WorkflowAccessItem readWorkflowAccessItem = new WorkflowAccessItem(true, userId);
-            List<Item> WorkflowAccessItems =
+            IEnumerable<Item> WorkflowAccessItems =
                 await _persistence.LoadItemsAsync(readWorkflowAccessItem);
             foreach (WorkflowAccessItem workflowAccessItem in WorkflowAccessItems)
             {
@@ -195,7 +195,7 @@ namespace CartaWeb.Controllers
 
             // Retrieve version information
             WorkflowItem readWorkflowItem = new WorkflowItem(false, id);
-            List<Item> workflowItems = await _persistence.LoadItemsAsync(readWorkflowItem);
+            IEnumerable<Item> workflowItems = await _persistence.LoadItemsAsync(readWorkflowItem);
             foreach (WorkflowItem workflowItem in workflowItems)
             {
                 list.Add(workflowItem.VersionInformation);

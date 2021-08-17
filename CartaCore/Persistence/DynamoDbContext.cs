@@ -113,7 +113,7 @@ namespace CartaCore.Persistence
         }
 
         /// <inheritdoc />
-        public async ITask<List<DbDocument>> ReadDocumentsAsync(string partitionKey, string sortKeyPrefix)
+        public async ITask<IEnumerable<DbDocument>> ReadDocumentsAsync(string partitionKey, string sortKeyPrefix)
         {
             // Define query request
             QueryRequest request = new QueryRequest
@@ -191,7 +191,7 @@ namespace CartaCore.Persistence
         }
 
         /// <inheritdoc />
-        public async ITask<bool> WriteDocumentsAsync(List<DbDocument> dbDocuments)
+        public async ITask<bool> WriteDocumentsAsync(IEnumerable<DbDocument> dbDocuments)
         {
             // Build the list of transaction items
             List<TransactWriteItem> transactWriteItems = new() { };

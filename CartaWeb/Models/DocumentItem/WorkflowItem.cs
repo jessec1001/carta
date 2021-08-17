@@ -94,20 +94,26 @@ namespace CartaWeb.Models.DocumentItem
         /// Codifies the partition key prefix to use for the document.
         /// </summary>
         /// <returns>The partition key prefix.</returns>
-        public override string GetPartitionKeyPrefix()
+        public override string PartitionKeyPrefix
         {
-            if (IsTempWorkflow) return "USER#";
-            else return "WORKFLOW#";
+            get
+            {
+                if (IsTempWorkflow) return "USER#";
+                else return "WORKFLOW#";
+            }
         }
 
         /// <summary>
         /// Codifies the sort key prefix to use for the document.
         /// </summary>
         /// <returns>The sort key prefix.</returns>
-        public override string GetSortKeyPrefix()
+        public override string SortKeyPrefix
         {
-            if (IsTempWorkflow) return "WORKFLOW#";
-            else return "VERSION#";
+            get
+            {
+                if (IsTempWorkflow) return "WORKFLOW#";
+                else return "VERSION#";
+            }
         }
 
         /// <summary>
@@ -116,8 +122,8 @@ namespace CartaWeb.Models.DocumentItem
         /// <returns>The sort key.</returns>
         public override string GetSortKey()
         {
-            if (IsTempWorkflow) return GetSortKeyPrefix() + Id;
-            else return GetSortKeyPrefix() + VersionInformation.Number;
+            if (IsTempWorkflow) return SortKeyPrefix + Id;
+            else return SortKeyPrefix + VersionInformation.Number;
         }
 
         /// <summary>
@@ -127,7 +133,7 @@ namespace CartaWeb.Models.DocumentItem
         public override DbDocument CreateDbDocument()
         {
             string docId = Ulid.NewUlid().ToString();
-            string sortKey = GetSortKeyPrefix() + docId;
+            string sortKey = SortKeyPrefix + docId;
             Id = docId;
             Workflow.Id = Id;
             DbDocument dbDocument = new DbDocument

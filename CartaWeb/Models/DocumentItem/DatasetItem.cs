@@ -71,18 +71,12 @@ namespace CartaWeb.Models.DocumentItem
         /// Codifies the partition key prefix to use for the document.
         /// </summary>
         /// <returns>The partition key prefix.</returns>
-        public override string GetPartitionKeyPrefix()
-        {
-            return "WORKSPACE#";
-        }
+        public override string PartitionKeyPrefix { get { return "WORKSPACE#"; } }
 
         /// <summary>
         /// Codifies the sort key prefix to use for the document.
         /// </summary>
         /// <returns>The sort key prefix.</returns>
-        public override string GetSortKeyPrefix()
-        {
-            return "DATASET#";
-        }
+        public override string SortKeyPrefix { get { return "DATASET#"; } }
     }
 }

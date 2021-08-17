@@ -92,19 +92,20 @@ namespace CartaWeb.Models.DocumentItem
         /// Codifies the partition key prefix to use for the document.
         /// </summary>
         /// <returns>The partition key prefix.</returns>
-        public override string GetPartitionKeyPrefix()
+        public override string PartitionKeyPrefix
         {
-            if (_isUserWorkflow) return "USER#";
-            else return "WORKSPACE#";
+            get
+            {
+                if (_isUserWorkflow) return "USER#";
+                else return "WORKSPACE#";
+            }
         }
 
         /// <summary>
         /// Codifies the sort key prefix to use for the document.
         /// </summary>
         /// <returns>The sort key prefix.</returns>
-        public override string GetSortKeyPrefix()
-        {
-            return "WORKFLOWACCESS#";
-        }
+        public override string SortKeyPrefix { get { return "WORKFLOWACCESS#"; } }
+
     }
 }

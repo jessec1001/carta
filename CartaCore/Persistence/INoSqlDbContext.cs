@@ -22,7 +22,7 @@ namespace CartaCore.Persistence
         /// <param name="partitionKey">The partition key of the documents</param>
         /// <param name="sortKeyPrefix">The sort key prefix of the documents</param>
         /// <returns>A list of database document objects</returns>
-        ITask<List<DbDocument>> ReadDocumentsAsync(string partitionKey, string sortKeyPrefix);
+        ITask<IEnumerable<DbDocument>> ReadDocumentsAsync(string partitionKey, string sortKeyPrefix);
 
         /// <summary>
         /// Performs a database write operation.
@@ -39,7 +39,7 @@ namespace CartaCore.Persistence
         /// sort key, JSON document string, and type of write operation (Create, Save, Update or Delete) to
         /// perform.</param>
         /// <returns>true if the write operations all completed successfully, else false.</returns>
-        ITask<bool> WriteDocumentsAsync(List<DbDocument> dbDocuments);
+        ITask<bool> WriteDocumentsAsync(IEnumerable<DbDocument> dbDocuments);
 
     }
 }

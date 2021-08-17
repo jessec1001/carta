@@ -8,7 +8,7 @@ namespace CartaWeb.Models.DocumentItem
     /// </summary>
     public class WorkspaceChangeItem : Item
     {
-        private string SortKeyPrefix;
+        private string _sortKeyPrefix;
 
         /// <summary>
         /// Describes the type of object that changed
@@ -56,36 +56,31 @@ namespace CartaWeb.Models.DocumentItem
             WorkspaceAction.UserName = userName;
             WorkspaceAction.DateTime = DateTime.Now;
 
-            if (item.GetType() == typeof(WorkspaceItem))
+            switch (item)
             {
-                ChangeType = WorkspaceChangeEnumeration.Workspace;
-                WorkspaceItem workspaceItem = (WorkspaceItem)item;
-                Id = workspaceItem.Id;
-                Name = workspaceItem.Name;
-            }
-            if (item.GetType() == typeof(UserItem))
-            {
-                ChangeType = WorkspaceChangeEnumeration.User;
-                UserItem userItem = (UserItem)item;
-                Id = userItem.UserInformation.Id;
-                Name = userItem.UserInformation.Name;
-            }
-            if (item.GetType() == typeof(WorkflowAccessItem))
-            {
-                ChangeType = WorkspaceChangeEnumeration.Workflow;
-                WorkflowAccessItem workflowAccessItem = (WorkflowAccessItem)item;
-                Id = workflowAccessItem.Id;
-                Name = workflowAccessItem.Name;
-            }
-            if (item.GetType() == typeof(DatasetItem))
-            {
-                ChangeType = WorkspaceChangeEnumeration.Dataset;
-                DatasetItem datasetItem = (DatasetItem)item;
-                Id = datasetItem.Id;
-                Name = datasetItem.Name;
+                case WorkspaceItem workspaceItem:
+                    ChangeType = WorkspaceChangeEnumeration.Workspace;
+                    Id = workspaceItem.Id;
+                    Name = workspaceItem.Name;
+                    break;
+                case UserItem userItem:
+                    ChangeType = WorkspaceChangeEnumeration.User;
+                    Id = userItem.UserInformation.Id;
+                    Name = userItem.UserInformation.Name;
+                    break;
+                case WorkflowAccessItem workflowAccessItem:
+                    ChangeType = WorkspaceChangeEnumeration.Workflow;
+                    Id = workflowAccessItem.Id;
+                    Name = workflowAccessItem.Name;
+                    break;
+                case DatasetItem datasetItem:
+                    ChangeType = WorkspaceChangeEnumeration.Dataset;
+                    Id = datasetItem.Id;
+                    Name = datasetItem.Name;
+                    break;
             }
 
-            SortKeyPrefix = "CHANGE#" + ChangeType + "#";
+            _sortKeyPrefix = "CHANGE#" + ChangeType + "#";
         }
 
         /// <summary>
@@ -96,7 +91,7 @@ namespace CartaWeb.Models.DocumentItem
         public WorkspaceChangeItem(string partitionKeyId, WorkspaceChangeEnumeration changeType)
         {
             PartitionKeyId = partitionKeyId;
-            SortKeyPrefix = "CHANGE#" + changeType + "#";
+            _sortKeyPrefix = "CHANGE#" + changeType + "#";
         }
 
         /// <summary>
@@ -106,26 +101,21 @@ namespace CartaWeb.Models.DocumentItem
         public WorkspaceChangeItem(string partitionKeyId)
         {
             PartitionKeyId = partitionKeyId;
-            SortKeyPrefix = "CHANGE#";
+            _sortKeyPrefix = "CHANGE#";
         }
 
         /// <summary>
         /// Codifies the partition key prefix to use for the document.
         /// </summary>
         /// <returns>The partition key prefix.</returns>
-        public override string GetPartitionKeyPrefix()
-        {
-            return "WORKSPACE#";
-        }
+        public override string PartitionKeyPrefix { get { return "WORKSPACE#"; } }
 
         /// <summary>
         /// Codifies the sort key prefix to use for the document.
         /// </summary>
         /// <returns>The sort key prefix.</returns>
-        public override string GetSortKeyPrefix()
-        {
-            return SortKeyPrefix;
-        }
+        public override string SortKeyPrefix { get { return _sortKeyPrefix; } }
+
     }
 
 }

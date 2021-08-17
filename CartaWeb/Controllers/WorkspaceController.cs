@@ -237,7 +237,7 @@ namespace CartaWeb.Controllers
 
             // Load the items and filter items according to archived flag
             WorkspaceItem workspaceItem = new WorkspaceItem(new UserInformation(User).Id);
-            List<Item> allWorkspaceItems = await _persistence.LoadItemsAsync(workspaceItem);
+            IEnumerable<Item> allWorkspaceItems = await _persistence.LoadItemsAsync(workspaceItem);
             if (allWorkspaceItems is null) return NotFound();
             else
             {
@@ -270,7 +270,7 @@ namespace CartaWeb.Controllers
         )
         {
             UserItem userItem = new UserItem(id);
-            List<Item> readUserItems = await _persistence.LoadItemsAsync(userItem);
+            IEnumerable<Item> readUserItems = await _persistence.LoadItemsAsync(userItem);
             List<UserItem> userItems = new List<UserItem>() { };
             if (readUserItems is null) return NotFound();
             else
@@ -673,7 +673,7 @@ namespace CartaWeb.Controllers
         )
         {
             DatasetItem datasetItem = new DatasetItem(id);
-            List<Item> readDatasetItems = await _persistence.LoadItemsAsync(datasetItem);
+            IEnumerable<Item> readDatasetItems = await _persistence.LoadItemsAsync(datasetItem);
             List<DatasetItem> datasetItems = new List<DatasetItem>() { };
             foreach (DatasetItem item in readDatasetItems) datasetItems.Add(item);
             return Ok(datasetItems);
@@ -863,7 +863,7 @@ namespace CartaWeb.Controllers
             // Retrieve the workflow access items
             List<WorkflowAccessItem> workflowAccessItems = new() { };
             WorkflowAccessItem readWorkflowAccessItem = new WorkflowAccessItem(false, id);
-            List<Item> readWorkflowAccesItems = await _persistence.LoadItemsAsync(readWorkflowAccessItem);
+            IEnumerable<Item> readWorkflowAccesItems = await _persistence.LoadItemsAsync(readWorkflowAccessItem);
             foreach (WorkflowAccessItem workflowAccessItem in readWorkflowAccesItems)
             {
                 if (workflowAccessItem.Archived == isArchived) workflowAccessItems.Add(workflowAccessItem);
@@ -1142,7 +1142,7 @@ namespace CartaWeb.Controllers
             WorkspaceChangeItem readWorkspaceChangeItem = null;
             if (type.HasValue) readWorkspaceChangeItem = new WorkspaceChangeItem(id, type.Value);
             else readWorkspaceChangeItem = new WorkspaceChangeItem(id);
-            List<Item> readWorkspaceChangeItems = await _persistence.LoadItemsAsync(readWorkspaceChangeItem);
+            IEnumerable<Item> readWorkspaceChangeItems = await _persistence.LoadItemsAsync(readWorkspaceChangeItem);
 
             // Filter changes by date
             List<WorkspaceChangeItem> workspaceChangeItems = new() { };

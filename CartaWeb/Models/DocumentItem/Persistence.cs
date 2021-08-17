@@ -43,10 +43,10 @@ namespace CartaWeb.Models.DocumentItem
         /// </summary>
         /// <param name="item">The document item, with partition key identifier set.</param>
         /// <returns>A list of document items read from the database.</returns>
-        public async Task<List<Item>> LoadItemsAsync(Item item)
+        public async Task<IEnumerable<Item>> LoadItemsAsync(Item item)
         {
-            List<DbDocument> dbDocuments =
-                await _noSqlDbContext.ReadDocumentsAsync(item.GetPartitionKey(), item.GetSortKeyPrefix());
+            IEnumerable<DbDocument> dbDocuments =
+                await _noSqlDbContext.ReadDocumentsAsync(item.GetPartitionKey(), item.SortKeyPrefix);
             List<Item> items = new() { };
             foreach (DbDocument dbDocument in dbDocuments)
             {
@@ -70,7 +70,7 @@ namespace CartaWeb.Models.DocumentItem
         /// </summary>
         /// <param name="dbDocuments">The database documents.</param>
         /// <returns>true if the write operations all completed successfully, else false.</returns>
-        public async Task<bool> WriteDbDocumentsAsync(List<DbDocument> dbDocuments)
+        public async Task<bool> WriteDbDocumentsAsync(IEnumerable<DbDocument> dbDocuments)
         {
             return await _noSqlDbContext.WriteDocumentsAsync(dbDocuments);
         }
