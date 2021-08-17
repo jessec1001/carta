@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Threading;
+using System.Linq;
 
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
@@ -156,8 +157,8 @@ namespace CartaTest
         public async Task TestLoadDocumentStringsAsync()
         {
             // Test that no records are returned if records do not exist
-            List<DbDocument> readDocs = await NoSqlDbContext.ReadDocumentsAsync("pk#1", "sk#");
-            Assert.AreEqual(0, readDocs.Count);
+            IEnumerable<DbDocument> readDocs = await NoSqlDbContext.ReadDocumentsAsync("pk#1", "sk#");
+            Assert.AreEqual(0, readDocs.Count());
 
             // Save 2 document strings under the same primary key but different sort keys
             string inJsonString = "{\"field1\":\"value1\"}";
@@ -168,7 +169,7 @@ namespace CartaTest
 
             // Test that 2 document strings are returned
             readDocs = await NoSqlDbContext.ReadDocumentsAsync("pk#1", "sk#");
-            Assert.AreEqual(2, readDocs.Count);
+            Assert.AreEqual(2, readDocs.Count());
 
             // Cleanup
             await NoSqlDbContext.WriteDocumentAsync(new DbDocument("pk#1", "sk#1", DbOperationEnumeration.Delete));
@@ -186,8 +187,8 @@ namespace CartaTest
             DbDocument dbDocument = new DbDocument("pk#1", "skcreate1#", inJsonString, DbOperationEnumeration.Create);
             bool isCreated = await NoSqlDbContext.WriteDocumentAsync(dbDocument);
             Assert.IsTrue(isCreated);
-            List<DbDocument> dbDocuments = await NoSqlDbContext.ReadDocumentsAsync("pk#1", "skcreate1#");
-            DbDocument dbDocumentRead = dbDocuments[0];
+            IEnumerable<DbDocument> dbDocuments = await NoSqlDbContext.ReadDocumentsAsync("pk#1", "skcreate1#"); 
+            DbDocument dbDocumentRead = dbDocuments.ElementAt(0);
             Assert.AreEqual(inJsonString, dbDocumentRead.JsonString);
         }
 
@@ -259,8 +260,8 @@ namespace CartaTest
             DbDocument dbDocument = new DbDocument("pk#1", "skcreate2#", inJsonString, DbOperationEnumeration.Create);
             bool isCreated = await NoSqlDbContext.WriteDocumentsAsync(new List<DbDocument>() { dbDocument });
             Assert.IsTrue(isCreated);
-            List<DbDocument> dbDocuments = await NoSqlDbContext.ReadDocumentsAsync("pk#1", "skcreate2#");
-            DbDocument dbDocumentRead = dbDocuments[0];
+            IEnumerable<DbDocument> dbDocuments = await NoSqlDbContext.ReadDocumentsAsync("pk#1", "skcreate2#");
+            DbDocument dbDocumentRead = dbDocuments.ElementAt(0); 
             Assert.AreEqual(inJsonString, dbDocumentRead.JsonString);
 
             // Test save of new item - should succeed
@@ -297,15 +298,15 @@ namespace CartaTest
             dbDocument = new DbDocument("pk#1", "sk#not-exist", DbOperationEnumeration.Delete);
             bool isDeleted = await NoSqlDbContext.WriteDocumentsAsync(new List<DbDocument>() { dbDocument });
             Assert.IsFalse(isDeleted);
-            List<DbDocument> readDocs = await NoSqlDbContext.ReadDocumentsAsync("pk#1", "sk#");
-            Assert.AreEqual(1, readDocs.Count);
+            IEnumerable<DbDocument> readDocs = await NoSqlDbContext.ReadDocumentsAsync("pk#1", "sk#");
+            Assert.AreEqual(1, readDocs.Count());
 
             // Test delete of existing item - should succeed
             dbDocument = new DbDocument("pk#1", "sk#2", DbOperationEnumeration.Delete);
             isDeleted = await NoSqlDbContext.WriteDocumentsAsync(new List<DbDocument>() { dbDocument });
             Assert.IsTrue(isDeleted);
             readDocs = await NoSqlDbContext.ReadDocumentsAsync("pk#1", "sk#");
-            Assert.AreEqual(0, readDocs.Count);
+            Assert.AreEqual(0, readDocs.Count());
         }
 
         /// <summary>
