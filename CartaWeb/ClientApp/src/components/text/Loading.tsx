@@ -1,21 +1,20 @@
 import { FunctionComponent } from "react";
 import { LoadingIcon } from "components/icons";
+import Text from "./Text";
 
-/** The props used for the {@link LoadingText} component. */
-interface LoadingTextProps {
+/** The props used for the {@link Loading} component. */
+interface LoadingProps {
   /** The text used to indicate that a resource is loading. */
   text?: string;
 }
 
 /** A component that renders some loading text accompanied by an animated loading symbol. */
-const LoadingText: FunctionComponent<LoadingTextProps> = ({
-  text = "Loading",
-}) => {
+const Loading: FunctionComponent<LoadingProps> = ({ text = "Loading" }) => {
   return (
-    <span className="normal-text">
+    <Text>
       {text} <LoadingIcon animated padded />
-    </span>
+    </Text>
   );
 };
 
-export default LoadingText;
+export default Loading;

@@ -1,7 +1,9 @@
 import { Modify } from "types";
 import { Document, DocumentDTO, Identifiable, parseDocument } from "../base";
+import { WorkspaceChange } from "./WorkspaceChange";
 import { WorkspaceDataset } from "./WorkspaceDataset";
 import { WorkspaceUser } from "./WorkspaceUser";
+import { WorkspaceWorkflow } from "./WorkspaceWorkflow";
 
 /** Represents a workspace object. */
 interface Workspace extends Document, Identifiable {
@@ -13,6 +15,11 @@ interface Workspace extends Document, Identifiable {
 
   /** The datasets contained in the workspace. */
   datasets?: WorkspaceDataset[];
+  /** The workflows contained in the workspace. */
+  workflows?: WorkspaceWorkflow[];
+
+  /** The changes that have been made to the workspace. */
+  changes?: WorkspaceChange[];
 }
 /** Represents a workspace object as returned by the API server. */
 type WorkspaceDTO = Modify<Workspace, DocumentDTO>;

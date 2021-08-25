@@ -62,9 +62,11 @@ class WorkspaceAPI extends BaseAPI {
       workspaces.map((workspace) => {
         return (async () => {
           // We retrieve the additional information that we are missing for a particular workspace.
-          const [users, datasets] = await Promise.all([
+          const [users, datasets, workflows, changes] = await Promise.all([
             this.getWorkspaceUsers(workspace.id),
             this.getWorkspaceDatasets(workspace.id),
+            this.getWorkspaceWorkflows(workspace.id),
+            this.getWorkspaceChanges(workspace.id),
           ]);
 
           // We combine after all has been retrieved for a particular workspace.
@@ -72,6 +74,8 @@ class WorkspaceAPI extends BaseAPI {
             ...workspace,
             users,
             datasets,
+            workflows,
+            changes,
           };
         })();
       })
@@ -100,10 +104,12 @@ class WorkspaceAPI extends BaseAPI {
    */
   public async getCompleteWorkspace(workspaceId: string): Promise<Workspace> {
     // We retrieve each of the parts of a complete workspace at the same time.
-    const [workspace, users, datasets] = await Promise.all([
+    const [workspace, users, datasets, workflows, changes] = await Promise.all([
       this.getWorkspace(workspaceId),
       this.getWorkspaceUsers(workspaceId),
       this.getWorkspaceDatasets(workspaceId),
+      this.getWorkspaceWorkflows(workspaceId),
+      this.getWorkspaceChanges(workspaceId),
     ]);
 
     // We combine after all has been retrieved.
@@ -111,6 +117,8 @@ class WorkspaceAPI extends BaseAPI {
       ...workspace,
       users,
       datasets,
+      workflows,
+      changes,
     };
   }
   /**
@@ -212,7 +220,7 @@ class WorkspaceAPI extends BaseAPI {
     dateTo?: Date
   ): Promise<WorkspaceChange[]> {
     const url = queryString.stringifyUrl({
-      url: this.getWorkspaceUrl(workspaceId),
+      url: `${this.getWorkspaceUrl(workspaceId)}/changes`,
       query: {
         type: type,
         dateFrom: dateFrom && dateFrom.toISOString(),
@@ -303,10 +311,12 @@ class WorkspaceAPI extends BaseAPI {
   /**
    * Retrieves the datasets that are stored in a specific workspace.
    * @param workspaceId The unique identifier of the workspace.
+   * @param defaultNames Whether to add a default name to the datasets if it does not exist. Defaults to `true`.
    * @returns The list of datasets in the workspace.
    */
   public async getWorkspaceDatasets(
-    workspaceId: string
+    workspaceId: string,
+    defaultNames: boolean = true
   ): Promise<WorkspaceDataset[]> {
     const url = `${this.getWorkspaceUrl(workspaceId)}/data`;
     const response = await fetch(url, this.defaultFetcher());
@@ -317,18 +327,20 @@ class WorkspaceAPI extends BaseAPI {
     );
 
     return (await this.readJSON<WorkspaceDatasetDTO[]>(response)).map(
-      parseWorkspaceDataset
+      (dataset) => parseWorkspaceDataset(dataset, defaultNames)
     );
   }
   /**
    * Retrieves a specific dataset that is stored in a specific workspace.
    * @param workspaceId The unique identifier of the workspace.
    * @param datasetId The unique identifier of the dataset.
+   * @param defaultName Whether to add a default name to the dataset if it does not exist. Defaults to `true`.
    * @returns The specified dataset in the workspace.
    */
   public async getWorkspaceDataset(
     workspaceId: string,
-    datasetId: string
+    datasetId: string,
+    defaultName: boolean = true
   ): Promise<WorkspaceDataset> {
     const url = `${this.getWorkspaceUrl(workspaceId)}/data/${encodeURIComponent(
       datasetId
@@ -341,7 +353,8 @@ class WorkspaceAPI extends BaseAPI {
     );
 
     return parseWorkspaceDataset(
-      await this.readJSON<WorkspaceDatasetDTO>(response)
+      await this.readJSON<WorkspaceDatasetDTO>(response),
+      defaultName
     );
   }
   /**
@@ -349,12 +362,14 @@ class WorkspaceAPI extends BaseAPI {
    * @param workspaceId The unique identifier of the workspace.
    * @param source The dataset source.
    * @param resource The dataset resource.
+   * @param defaultName Whether to add a default name to the dataset if it does not exist. Defaults to `true`.
    * @returns The newly added dataset in the workspace.
    */
   public async addWorkspaceDataset(
     workspaceId: string,
     source: string,
-    resource: string
+    resource: string,
+    defaultName: boolean = true
   ): Promise<WorkspaceDataset> {
     const dataUrlPart = `${encodeURIComponent(source)}/${encodeURIComponent(
       resource
@@ -368,30 +383,38 @@ class WorkspaceAPI extends BaseAPI {
     );
 
     return parseWorkspaceDataset(
-      await this.readJSON<WorkspaceDatasetDTO>(response)
+      await this.readJSON<WorkspaceDatasetDTO>(response),
+      defaultName
     );
   }
   /**
    * Adds a dataset with the specified name and workflow to a specific workspace.
    * @param workspaceId The unique identifier of the workspace.
    * @param dataset The dataset to add.
+   * @param defaultName Whether to add a default name to the dataset if it does not exist. Defaults to `true`.
    * @returns The newly added dataset in the workspace.
    */
   public async addCompleteWorkspaceDataset(
     workspaceId: string,
-    dataset: WorkspaceDataset
+    dataset: WorkspaceDataset,
+    defaultName: boolean = true
   ): Promise<WorkspaceDataset> {
     let newDataset: WorkspaceDataset;
     newDataset = await this.addWorkspaceDataset(
       workspaceId,
       dataset.source,
-      dataset.resource
+      dataset.resource,
+      defaultName
     );
-    newDataset = await this.updateWorkspaceDataset(workspaceId, {
-      ...newDataset,
-      name: dataset.name,
-      workflow: dataset.workflow,
-    });
+    newDataset = await this.updateWorkspaceDataset(
+      workspaceId,
+      {
+        ...newDataset,
+        name: dataset.name,
+        workflow: dataset.workflow,
+      },
+      defaultName
+    );
     return newDataset;
   }
   /**
@@ -417,11 +440,13 @@ class WorkspaceAPI extends BaseAPI {
    * Updates a dataset in a specific workspace with a name and/or applied workflow.
    * @param workspaceId The unique identifier of the workspace.
    * @param dataset The dataset to update in the workspace. Must contain an identifier, and the fields to update.
+   * @param defaultName Whether to add a default name to the dataset if it does not exist. Defaults to `true`.
    * @returns The updated dataset in the workspace.
    */
   public async updateWorkspaceDataset(
     workspaceId: string,
-    dataset: WorkspaceDataset
+    dataset: WorkspaceDataset,
+    defaultName: boolean = true
   ): Promise<WorkspaceDataset> {
     const params = {
       name: dataset.name,
@@ -442,7 +467,8 @@ class WorkspaceAPI extends BaseAPI {
     );
 
     return parseWorkspaceDataset(
-      await this.readJSON<WorkspaceDatasetDTO>(response)
+      await this.readJSON<WorkspaceDatasetDTO>(response),
+      defaultName
     );
   }
   // #endregion

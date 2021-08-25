@@ -1,36 +1,56 @@
 /* #region Theme Definitions */
+/* This is the default theme for colors that do not change. */
+body {
+  --color-stroke-normal: #000000;
+  --color-stroke-muted: #999999;
+  --color-stroke-info: #0064c2;
+  --color-stroke-warning: #ffbb00;
+  --color-stroke-error: #e63e38;
+
+  /* TODO: Standardize this. */
+  --color-fill-elevated: var(--color-fill-element);
+}
+
 .theme-light {
+  /* Stroke colors */
+  --color-stroke-normal: #222222;
+  --color-stroke-muted: #808080;
+  --color-stroke-hairline: #f6f6f6;
+  --color-stroke-hairline: #22222244;
+
+  /* TODO: Is this stroke color necessary and what should it be named? */
+  --color-stroke-lowlight: #404040;
+
   --color-primary: #53b853;
   --color-primary-stroke: #141414;
-  --color-primary-hover: #53b85320;
+  --color-primary-hover: #f0f0f0;
   --color-primary-select: #53b85360;
   --color-primary-disabled: #a0d6a0;
   --color-secondary: #c1c7c1;
   --color-secondary-stroke: #141414;
 
-  --color-stroke: #222222;
-  --color-stroke-lowlight: #404040;
-  --color-stroke-faint: #808080;
-  --color-stroke-error: #e63e38;
-
-  --color-fill-body: #f0f0f0;
+  --color-fill-body: #fafafa;
   --color-fill-element: #ffffff;
   --color-fill-element-lowlight: #e8e8e8;
   --color-fill-overlay: #ffffff80;
 }
 .theme-dark {
+  /* Stroke colors */
+  --color-stroke-normal: #dddddd;
+  --color-stroke-muted: #606060;
+  --color-stroke-hairline: #3b3b3b;
+  --color-stroke-hairline: #dddddd44;
+
+  /* TODO: Is this stroke color necessary and what should it be named? */
+  --color-stroke-lowlight: #a4a4a4;
+
   --color-primary: #53b853;
   --color-primary-stroke: #141414;
-  --color-primary-hover: #53b85320;
+  --color-primary-hover: #121212;
   --color-primary-select: #53b85360;
   --color-primary-disabled: #347f34;
   --color-secondary: #c1c7c1;
   --color-secondary-stroke: #141414;
-
-  --color-stroke: #dddddd;
-  --color-stroke-lowlight: #a4a4a4;
-  --color-stroke-faint: #606060;
-  --color-stroke-error: #e63e38;
 
   --color-fill-body: #181818;
   --color-fill-element: #101010;

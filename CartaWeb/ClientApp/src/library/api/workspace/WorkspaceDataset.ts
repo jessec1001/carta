@@ -23,20 +23,42 @@ type WorkspaceDatasetDTO = Modify<
 >;
 
 /**
+ * Constructs the default name for a workspace dataset from its source and resource.
+ * @param dataset The workspace dataset to use.
+ * @returns The default name.
+ */
+const defaultWorkspaceDatasetName = <
+  TWorkspace extends { source: string; resource: string }
+>({
+  source,
+  resource,
+}: TWorkspace) => {
+  return `(${source}/${resource})`;
+};
+/**
  * Converts a workspace dataset data transfer object into a more useable literal object.
  * @param dto The data transfer object.
+ * @param defaultName Whether to add a default name to the dataset if it does not exist. Defaults to `true`.
  * @returns The converted literal object.
  */
-const parseWorkspaceDataset = (dto: WorkspaceDatasetDTO): WorkspaceDataset => {
-  const { workflowId, ...rest } = dto;
+const parseWorkspaceDataset = (
+  dto: WorkspaceDatasetDTO,
+  defaultName: boolean = true
+): WorkspaceDataset => {
+  const { name, source, resource, workflowId, ...rest } = dto;
   const document = parseDocument(rest);
 
   return {
     ...rest,
     ...document,
+    name: defaultName
+      ? name ?? defaultWorkspaceDatasetName({ source, resource })
+      : name,
+    source: source,
+    resource: resource,
     workflow: workflowId,
   };
 };
 
-export { parseWorkspaceDataset };
+export { defaultWorkspaceDatasetName, parseWorkspaceDataset };
 export type { WorkspaceDataset, WorkspaceDatasetDTO };

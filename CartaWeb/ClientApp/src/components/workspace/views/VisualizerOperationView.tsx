@@ -2,10 +2,10 @@ import { SchemaForm } from "components/form/schema";
 import { WorkflowIcon } from "components/icons";
 import { VerticalScroll } from "components/scroll";
 import { Tab } from "components/tabs";
-import { ErrorText, LoadingText } from "components/text";
+import { Text, Loading } from "components/text";
 import { ViewContext } from "components/views";
 import { GraphData } from "library/api";
-import MetaApi, { MetaTypeEntry } from "library/api/meta";
+import MetaApi from "library/api/meta";
 import { JsonSchema } from "library/schema";
 import React, {
   FunctionComponent,
@@ -97,7 +97,7 @@ const VisualizerOperationView: FunctionComponent<VisualizerOperationViewProps> =
       >
         <VerticalScroll>
           <div style={{ padding: "1rem" }}>
-            {!loaded && <LoadingText />}
+            {!loaded && <Loading />}
             {graph && schema && value && (
               <SchemaForm
                 schema={schema}
@@ -106,7 +106,7 @@ const VisualizerOperationView: FunctionComponent<VisualizerOperationViewProps> =
                 onSubmit={handleSubmit}
               />
             )}
-            <ErrorText>{error?.message}</ErrorText>
+            <Text color="error">{error?.message}</Text>
           </div>
         </VerticalScroll>
       </Tab>

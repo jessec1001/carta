@@ -17,7 +17,8 @@ import ViewContext from "components/views/ViewContext";
 import ViewContainer from "components/views/ViewContainer";
 import ViewRenderer from "components/views/ViewRenderer";
 import WorkspaceToolbar from "components/workspace/WorkspaceToolbar";
-import { LoadingText } from "components/text";
+import { Loading } from "components/text";
+import { useStoredState } from "hooks";
 
 const tips: string[] = [
   "Every operation in Carta does not mutate input data.",
@@ -61,6 +62,14 @@ const WorkspacePage: FunctionComponent = () => {
 
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
 
+  const [accessions, setAccessions] = useStoredState<Record<string, number>>(
+    {},
+    "workspaceAccessions"
+  );
+  useEffect(() => {
+    setAccessions({ ...accessions, [id]: Date.now() });
+  }, []);
+
   useEffect(() => {
     (async () => {
       const timeBefore = Date.now();
@@ -97,8 +106,8 @@ const WorkspacePage: FunctionComponent = () => {
         <ViewContainer>
           <div
             style={{
+              flex: 1,
               width: "100%",
-              height: "100%",
               display: "flex",
               flexDirection: "column",
             }}
@@ -165,10 +174,10 @@ const WorkspacePage: FunctionComponent = () => {
               </p>
               <p
                 style={{
-                  color: "var(--color-stroke-faint)",
+                  color: "var(--color-stroke-muted)",
                 }}
               >
-                <LoadingText text={loadingStep} />
+                <Loading text={loadingStep} />
               </p>
             </div>
           </div>

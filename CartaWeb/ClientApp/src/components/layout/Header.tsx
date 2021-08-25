@@ -1,4 +1,5 @@
 import { FunctionComponent, useContext } from "react";
+import { UserContext } from "context";
 import { CartaIcon } from "components/icons";
 import { ThemeButton } from "components/theme";
 import {
@@ -14,7 +15,6 @@ import {
   DropdownItem,
 } from "components/dropdown";
 import { NavigationLink, NavigationLinkList } from "components/navigation";
-import { UserContext } from "context";
 
 /**
  * A component that represents the header navigation that allows for easy
@@ -34,7 +34,14 @@ const Header: FunctionComponent = () => {
 
       {/* Render navigation links to common pages. */}
       <NavigationLinkList>
-        {/* <NavigationLink to="/workspace">Workspaces</NavigationLink> */}
+        <NavigationLink lower to="/">
+          Home
+        </NavigationLink>
+        <UserIsAuthenticated>
+          <NavigationLink lower to="/workspace/list">
+            Workspaces
+          </NavigationLink>
+        </UserIsAuthenticated>
         <NavigationLink lower to="/documentation">
           Documentation
         </NavigationLink>

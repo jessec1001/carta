@@ -4,7 +4,7 @@ import { WorkflowIcon } from "components/icons";
 import { TextAreaInput } from "components/input";
 import { VerticalScroll } from "components/scroll";
 import { Tab } from "components/tabs";
-import { Heading, LoadingText } from "components/text";
+import { Loading } from "components/text";
 import { ViewContext } from "components/views";
 import { WorkspaceContext } from "context";
 import { useAPI } from "hooks";
@@ -66,11 +66,11 @@ const WorkflowVersionsView: FunctionComponent<WorkflowVersionsViewProps> = ({
         <React.Fragment>
           <WorkflowIcon padded />
           {workflow && workflow.name}
-          {!workflow && <LoadingText />}
+          {!workflow && <Loading />}
           &nbsp;
           <span
             style={{
-              color: "var(--color-stroke-faint)",
+              color: "var(--color-stroke-muted)",
               fontSize: "var(--font-small)",
             }}
           >
@@ -87,9 +87,9 @@ const WorkflowVersionsView: FunctionComponent<WorkflowVersionsViewProps> = ({
             padding: "1rem",
           }}
         >
-          {!versions && <LoadingText />}
+          {!versions && <Loading />}
           <form onSubmit={handleSubmit}>
-            <Heading>New Version</Heading>
+            New Version
             <FormGroup title="Description" density="sparse">
               <TextAreaInput value={description} onChange={setDescription} />
             </FormGroup>
@@ -104,7 +104,7 @@ const WorkflowVersionsView: FunctionComponent<WorkflowVersionsViewProps> = ({
 
           {versions && (
             <React.Fragment>
-              <Heading>Versions</Heading>
+              Versions
               <ul>
                 {versions.map((version, index) => {
                   return (
@@ -132,7 +132,7 @@ const WorkflowVersionsView: FunctionComponent<WorkflowVersionsViewProps> = ({
                         <p
                           style={{
                             fontSize: "var(--font-small)",
-                            color: "var(--color-stroke-faint)",
+                            color: "var(--color-stroke-muted)",
                           }}
                         >
                           Created by @{version.createdBy.name} on{" "}

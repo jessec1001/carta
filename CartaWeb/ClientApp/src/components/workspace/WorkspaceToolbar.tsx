@@ -21,6 +21,8 @@ import VisualizerOperationView from "./views/VisualizerOperationView";
 import VisualizerSelectionView from "./views/VisualizerSelectionView";
 import WorkflowCreateView from "./views/WorkflowCreateView";
 
+// TODO: Load actors and selectors along with the workspace (in workspace wrapper/context).
+// TODO: Use <kbd /> tag to specify keyboard shortcuts.
 const renderGroupedMenu = (
   groups: Record<string, Record<string, MetaTypeEntry>>,
   type: "actor" | "selector",
@@ -104,8 +106,6 @@ const WorkspaceToolbar: FunctionComponent = () => {
         selectorsByGroup[group][key] = entry;
       });
 
-      console.log(actorsByGroup);
-      console.log(selectorsByGroup);
       setActors(actorsByGroup);
       setSelectors(selectorsByGroup);
 

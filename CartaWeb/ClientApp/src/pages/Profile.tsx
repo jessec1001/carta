@@ -3,7 +3,7 @@ import { useStoredState } from "hooks";
 import { UserContext } from "context";
 import { PageLayout } from "components/layout";
 import { Link } from "components/common";
-import { SeparatedText, Section, Subsection, Title } from "components/text";
+import { Text, Section, Subsection, Title } from "components/text";
 import { FormGroup } from "components/form";
 import { DropdownInput, TextFieldInput, OptionInput } from "components/input";
 import { Mainbar, Sidebar, SidebarLayout } from "components/ui/layout";
@@ -41,12 +41,12 @@ const ProfilePage: FunctionComponent = () => {
         <Mainbar>
           <div>
             <Title>Profile</Title>
-            <SeparatedText>
+            <Text>
               Here, you will find a collection of information about your account
               along with some adjustable settings that affect your experience on
               Carta. All modifiable settings on this page are automatically
               saved when changed.
-            </SeparatedText>
+            </Text>
           </div>
           {user !== null && (
             <Section title="General" {...({ id: "profile-general" } as any)}>

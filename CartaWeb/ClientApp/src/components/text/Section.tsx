@@ -4,6 +4,7 @@ import "./text.css";
 
 /** The props used for the {@link Section} component. */
 interface SectionProps {
+  /** The title of the section. */
   title: string;
 }
 
@@ -13,6 +14,8 @@ const Section: FunctionComponent<SectionProps> = ({
   children,
   ...props
 }) => {
+  // TODO: Refactor section into a component with a context that adjusts headings based on depth
+  // and automatically generates anchor identifiers that can be used to create a navigation.
   return (
     <section className="section" {...props}>
       <h2 className="section-heading">{title}</h2>

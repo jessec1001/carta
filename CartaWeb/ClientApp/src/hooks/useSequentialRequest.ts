@@ -8,24 +8,17 @@ import { useCallback, useRef } from "react";
  */
 const useSequentialRequest = <T>(callback: (value: T) => void) => {
   // This tracks current requests to make sure that the previous request is executed fully before the next.
-  const promise = useRef<Promise<T> | null>(null);
+  const promise = useRef<Promise<void>>(Promise.resolve());
 
   const makeRequest = useCallback(
     (request: Promise<T>) => {
       // If there is an existing request, we tack on a new request to the end.
       // This ensures that the callbacks are called sequentially.
-      if (promise.current) {
-        promise.current = promise.current.then(async () => {
-          const value = await request;
-          callback(value);
-          return value;
-        });
-      } else {
-        promise.current = request.then((value: T) => {
-          callback(value);
-          return value;
-        });
-      }
+      promise.current = promise.current.then(async () => {
+        const value = await request;
+        callback(value);
+        return;
+      });
     },
     [callback]
   );

@@ -4,8 +4,11 @@ import { Filter } from "types";
 interface ObjectFilterOptions {
   /** The default property name to check when no property name is specified. Defaults to "name". */
   defaultProperty: string;
-  /** A mapping of properties into other properties to check for when filtering. */
-  mappedProperties: Map<string, string>;
+  /**
+   * A mapping of namespaces into other namespaces to check for when filtering. Used for aliasing commonly used
+   * namespaces on nested objects..
+   */
+  mappedProperties: Map<string[], string[]>;
   /** Whether to automatically try to convert a property name to plural by adding 's' or similar. */
   pluralAutomatic: boolean;
   /** Whether the check on string values should be case insensitive. */
@@ -15,7 +18,7 @@ interface ObjectFilterOptions {
 /** A filter capable of filtering through objects using a simple search language. */
 class ObjectFilter implements ObjectFilterOptions {
   defaultProperty: string;
-  mappedProperties: Map<string, string>;
+  mappedProperties: Map<string[], string[]>;
   pluralAutomatic: boolean;
   caseInsensitive: boolean;
 
@@ -75,8 +78,6 @@ class ObjectFilter implements ObjectFilterOptions {
 
         // We try to determine a matching name by using predefined property mappings.
         let name = namespaces[k];
-        while (this.mappedProperties.has(name))
-          name = this.mappedProperties.get(name)!;
 
         // Check the singular form of the name.
         if (name in subvalue) {
@@ -85,7 +86,7 @@ class ObjectFilter implements ObjectFilterOptions {
         }
 
         // Check the plural form of the name;
-        if (this.pluralAutomatic) {
+        else if (this.pluralAutomatic) {
           name = this.makePlural(name);
           if (name in subvalue) {
             subvalue = subvalue[name];
@@ -109,38 +110,43 @@ class ObjectFilter implements ObjectFilterOptions {
       // The nested value has been obtained. We now check it against the pattern value.
       if (Array.isArray(subvalue)) {
         // Non-singular array values are checked for inclusion.
-        return subvalue
-          .map((arrayValue) => arrayValue.toString())
-          .includes(matcher);
+        const arrayFilter = this.compileNamespaceMatcherPattern([], matcher);
+        return subvalue.some((arrayValue: any) => arrayFilter(arrayValue));
       } else if (typeof subvalue === "object") {
-        // Non-singular object values are checked against truthy values.
-        subvalue = subvalue[matcher];
-        return !!subvalue;
-      } else {
-        // Singular values are handled simply.
-        let result: boolean = false;
-
-        if (typeof subvalue === "string") {
-          // Strings are checked for inclusion only.
-          if (this.caseInsensitive)
-            result = subvalue.toLowerCase().includes(matcher.toLowerCase());
-          else result = subvalue.includes(matcher);
-        }
-        if (typeof subvalue === "bigint" || typeof subvalue === "number") {
-          // Numbers are checked for equality.
-          result = subvalue === parseFloat(matcher);
-        }
-        if (typeof subvalue === "boolean") {
-          // Booleans are checked for true/false-ness corresponding to the text.
-          result = subvalue.toString() === matcher.toLowerCase();
-        }
-        if (typeof subvalue === "function") {
-          // Functions are checked after calling.
-          result = !!subvalue(matcher);
-        }
-
-        return result;
+        // Non-singular object values are checked against their default property.
+        subvalue = subvalue[this.defaultProperty];
       }
+
+      // We handle non-complex values against basic comparisons.
+      // Singular values are handled simply.
+      let result: boolean = false;
+
+      if (typeof subvalue === "string") {
+        // Strings are checked for inclusion only.
+        if (this.caseInsensitive)
+          result = subvalue.toLowerCase().includes(matcher.toLowerCase());
+        else result = subvalue.includes(matcher);
+      }
+      if (typeof subvalue === "bigint" || typeof subvalue === "number") {
+        // Numbers are checked for equality.
+        // TODO: Check for comparison symbols (<. >, <=, >=, ==, !=).
+        result = subvalue === parseFloat(matcher);
+      }
+      if (typeof subvalue === "boolean") {
+        // Booleans are checked for true/false-ness corresponding to the text.
+        const truthy = ["1", "true", "t", "yes", "y"];
+        const falsey = ["0", "false", "f", "no", "n"];
+        let matcherBoolean: boolean | undefined = undefined;
+        if (truthy.includes(matcher.toLowerCase())) matcherBoolean = true;
+        if (falsey.includes(matcher.toLowerCase())) matcherBoolean = false;
+        result = subvalue === matcherBoolean;
+      }
+      if (typeof subvalue === "function") {
+        // Functions are checked after calling.
+        result = !!subvalue(matcher);
+      }
+
+      return result;
     };
     return filter;
   }
@@ -167,7 +173,7 @@ class ObjectFilter implements ObjectFilterOptions {
     }
 
     // Determine all namespaces in the string along with the final value.
-    const namespaces: string[] = [];
+    let namespaces: string[] = [];
     let matcher: string = "";
 
     // Quotes and parentheses get special treatment.
@@ -198,15 +204,39 @@ class ObjectFilter implements ObjectFilterOptions {
       if (pattern[k] === ":" && !quotes && parentheses === 0) {
         namespaces.push(matcher);
         matcher = "";
+
+        // Whenever the namespaces are modified, we check against mapped patterns and apply them if they match.
+        // eslint-disable-next-line no-loop-func
+        this.mappedProperties.forEach((targetNamespace, sourceNamespace) => {
+          // Check if the source namespace matches.
+          let matched: boolean = true;
+          if (sourceNamespace.length > namespaces.length) {
+            matched = false;
+          } else {
+            for (let k = 1; k <= sourceNamespace.length; k++) {
+              if (
+                namespaces[namespaces.length - k] !==
+                sourceNamespace[sourceNamespace.length - k]
+              ) {
+                matched = false;
+                break;
+              }
+            }
+          }
+
+          // If the source namespace matched, replace it with the target.
+          if (matched) {
+            namespaces.splice(namespaces.length - sourceNamespace.length);
+            namespaces = [...namespaces, ...targetNamespace];
+          }
+        });
+
         continue;
       }
 
       // Add any other character to the matcher string.
       matcher += pattern[k];
     }
-
-    // A lack of namespaces implies that we should be matching against the default property.
-    if (namespaces.length === 0) namespaces.push(this.defaultProperty);
 
     // Return the filter (negated if necessary) compiled from the namespaces and matcher.
     const filter = this.compileNamespaceMatcherPattern(namespaces, matcher);

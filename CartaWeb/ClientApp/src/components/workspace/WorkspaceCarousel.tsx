@@ -1,61 +1,23 @@
-import {
-  FunctionComponent,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { FunctionComponent } from "react";
 import { useHistory } from "react-router";
-import { UserContext } from "context";
-import { Workspace, WorkspaceAPI } from "library/api";
-import { Column, Row } from "components/structure";
-import { Heading } from "components/text";
-import { IconAddButton } from "components/buttons";
-import { SearchboxInput } from "components/input";
-import { UserIsAuthenticated, UserNeedsAuthentication } from "components/user";
-import { Link } from "components/common";
+import { Workspace } from "library/api";
+import { Carousel } from "components/carousel";
+import WorkspaceCard from "./WorkspaceCard";
 
 /** The props used for the {@link WorkspaceCarousel} component. */
 interface WorkspaceCarouselProps {
-  /**
-   * An optionally specifiable list of workspaces that can be used for the carousel.
-   * If not specified, all workspaces available to the user will be used.
-   */
-  workspaces?: Workspace[];
+  /** A list of workspaces that can be used for the carousel. */
+  workspaces: Workspace[];
 }
 
+/** Renders a carousel of workspace cards that are either specified by the user */
 const WorkspaceCarousel: FunctionComponent<WorkspaceCarouselProps> = ({
   workspaces,
 }) => {
-  // We need a reference to the workspace API to execute calls.
-  const workspaceApiRef = useRef(new WorkspaceAPI());
-  const workspaceApi = workspaceApiRef.current;
-
-  // We cannot retrieve workspaces if we are not authenticated.
-  const { authenticated } = useContext(UserContext);
-
-  const [actualWorkspaces, setWorkspaces] = useState<Workspace[] | null>(null);
-
-  useEffect(() => {
-    if (authenticated) {
-      (async () => {
-        setWorkspaces(await workspaceApi.getCompleteWorkspaces());
-      })();
-    }
-  }, [authenticated, workspaceApi]);
-
-  // The component is only renderable if the user is authenticated or a list of workspaces were specified.
-  const needsAuthentication = !authenticated && workspaces === undefined;
-
   // We need to use this history object to move to a different URL.
-  // Specifically, when the add workspace button is clicked, we navigate to the new workspace page.
+  // When a workspace card is clicked, we navigate to the corresponding workspace page.
   const history = useHistory();
-  const handleNewWorkspace = () => {
-    history.push({
-      pathname: "/workspace/new",
-    });
-  };
-  const handleExistingWorkspace = (workspaceId: string) => {
+  const navigateExistingWorkspace = (workspaceId: string) => {
     history.push({
       pathname: `/workspace`,
       search: `?id=${workspaceId}`,
@@ -63,75 +25,17 @@ const WorkspaceCarousel: FunctionComponent<WorkspaceCarouselProps> = ({
   };
 
   return (
-    <section>
-      {/*
-        Display a header that indicates that the carousel is for workspaces.
-        We do not display the search or add buttons unless we are authenticated. 
-      */}
-      <Row>
-        <Column>
-          <Heading>
-            Workspaces
-            <UserIsAuthenticated>
-              <IconAddButton onClick={handleNewWorkspace} />
-            </UserIsAuthenticated>
-          </Heading>
-        </Column>
-        <Column>
-          <UserIsAuthenticated>
-            <SearchboxInput clearable />
-          </UserIsAuthenticated>
-        </Column>
-      </Row>
-
-      {/* Display a message indicating that the user should sign in. */}
-      {needsAuthentication && <UserNeedsAuthentication />}
-
-      {/* Display a carousel of workspace cards. */}
-      {/* {actualWorkspaces && (
-        <Carousel>
-          {actualWorkspaces.map((workspace) => (
-            <WorkspaceCard key={workspace.id} workspace={workspace} />
-          ))}
-        </Carousel>
-      */}
-      {actualWorkspaces && (
-        <ul
-          style={{
-            marginTop: "1rem",
-            display: "grid",
-            gridTemplateColumns: "repeat(4, 1fr)",
-            columnGap: "1rem",
-            listStyle: "none",
-          }}
-        >
-          {actualWorkspaces.map((workspace) => (
-            <li
-              key={workspace.id}
-              style={{
-                display: "block",
-                padding: "1rem",
-                width: "100%",
-                minHeight: "8rem",
-                backgroundColor: "var(--color-fill-element)",
-                boxShadow: "var(--shadow-offset)",
-                borderRadius: "var(--border-radius)",
-                cursor: "pointer",
-              }}
-              onClick={() => handleExistingWorkspace(workspace.id)}
-            >
-              <h3
-                style={{
-                  fontSize: "1.2rem",
-                }}
-              >
-                {workspace.name}
-              </h3>
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
+    <Carousel sizing="outer">
+      {workspaces.map((workspace) => (
+        <Carousel.Item key={workspace.id}>
+          {/* We render each element of the carousel as a card. */}
+          <WorkspaceCard
+            workspace={workspace}
+            onClick={() => navigateExistingWorkspace(workspace.id)}
+          />
+        </Carousel.Item>
+      ))}
+    </Carousel>
   );
 };
 

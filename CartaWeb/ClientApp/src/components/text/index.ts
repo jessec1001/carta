@@ -1,17 +1,10 @@
-import Heading from "./Heading";
-import SeparatedText from "./SeparatedText";
+import Text from "./Text";
+import Title from "./Title";
+import Paragraph from "./Paragraph";
+
 import Section from "./Section";
 import Subsection from "./Subsection";
-import Title from "./Title";
-import ErrorText from "./ErrorText";
-import LoadingText from "./LoadingText";
 
-export {
-  Title,
-  Section,
-  Subsection,
-  Heading,
-  SeparatedText,
-  ErrorText,
-  LoadingText,
-};
+import Loading from "./Loading";
+
+export { Text, Title, Paragraph, Section, Subsection, Loading };

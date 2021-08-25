@@ -1,4 +1,5 @@
-import WorkspacePage from "./WorkspaceArea";
-import WorkspaceCreatePage from "./WorkspaceCreate";
+import WorkspaceAreaPage from "./WorkspaceArea";
+import WorkspaceNewPage from "./WorkspaceNew";
+import WorkspaceListPage from "./WorkspaceList";
 
-export { WorkspacePage, WorkspaceCreatePage };
+export { WorkspaceAreaPage, WorkspaceNewPage, WorkspaceListPage };

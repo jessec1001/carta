@@ -1,5 +1,6 @@
 import { FunctionComponent } from "react";
 import { Column, Row } from "components/structure";
+import { Text } from "components/text";
 import { version } from "../../../package.json";
 
 /** A component that displays a footer at the bottom of a page. */
@@ -8,12 +9,14 @@ const Footer: FunctionComponent = ({ children, ...props }) => {
     <footer className="footer" {...props}>
       <Row>
         <Column>
-          <span style={{ textAlign: "left" }}>
+          <Text color="muted" align="left">
             &copy; 2021 Contextualize, LLC
-          </span>
+          </Text>
         </Column>
         <Column>
-          <span style={{ textAlign: "right" }}>Carta v{version}</span>
+          <Text color="muted" align="right">
+            Carta v{version}
+          </Text>
         </Column>
       </Row>
     </footer>

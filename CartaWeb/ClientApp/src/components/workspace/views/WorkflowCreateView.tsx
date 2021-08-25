@@ -3,7 +3,7 @@ import { FormGroup } from "components/form";
 import { WorkflowIcon } from "components/icons";
 import { TextFieldInput } from "components/input";
 import { Tab } from "components/tabs";
-import { SeparatedText } from "components/text";
+import { Text } from "components/text";
 import ViewContext from "components/views/ViewContext";
 import { WorkspaceContext } from "context";
 import { WorkspaceWorkflow } from "library/api";
@@ -40,10 +40,10 @@ const WorkspaceCreateView: FunctionComponent = () => {
           padding: "1rem",
         }}
       >
-        <SeparatedText>
+        <Text>
           Enter a name for your new workflow below. Your workflow will be
           automatically added to this workspace.
-        </SeparatedText>
+        </Text>
         <FormGroup density="flow" title="Name">
           <TextFieldInput value={name} onChange={setName} />
         </FormGroup>

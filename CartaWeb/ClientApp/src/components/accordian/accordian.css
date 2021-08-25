@@ -19,5 +19,5 @@
   cursor: pointer;
 }
 .accordian-toggle:hover {
-  color: var(--color-stroke);
+  color: var(--color-stroke-normal);
 }

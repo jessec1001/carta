@@ -3,7 +3,7 @@ import { Container } from "reactstrap";
 import { GraphingDocs } from "./GraphingDocs";
 import { DataFormatsDocs } from "./DataFormatsDocs";
 import { ApiDocs } from "./ApiDocs";
-import { SeparatedText, Title } from "components/text";
+import { Text, Title } from "components/text";
 import { useParams } from "react-router-dom";
 import { Mainbar, Sidebar, SidebarLayout } from "components/ui/layout";
 import { Link } from "components/common";
@@ -33,9 +33,7 @@ const DocsPage: FunctionComponent = ({ children }) => {
       contents = <ApiDocs />;
       break;
     default:
-      contents = (
-        <SeparatedText>Please select a documentation topic.</SeparatedText>
-      );
+      contents = <Text>Please select a documentation topic.</Text>;
       break;
   }
 

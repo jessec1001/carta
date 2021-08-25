@@ -14,7 +14,9 @@ const UserWrapper: FunctionComponent = ({ children }) => {
   // We use this state to store information about whether the user is authenticated and their relevant information.
   const [user, setUser] = useState<User | null>(null);
   const [authTimestamp, setAuthTimestamp] = useStoredState(0, "authTimestamp");
-  const [authenticated, setAuthenticated] = useState<boolean>(false);
+  const [authenticated, setAuthenticated] = useState<boolean>(
+    Date.now() - authTimestamp < maxAuthTimespan
+  );
 
   // Get the user information if they appear to be authenticated.
   useEffect(() => {

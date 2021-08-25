@@ -24,12 +24,7 @@ import {
 } from "components/input";
 import { VerticalScroll } from "components/scroll";
 import { Tab } from "components/tabs";
-import {
-  ErrorText,
-  Heading,
-  LoadingText,
-  SeparatedText,
-} from "components/text";
+import { Text, Loading } from "components/text";
 import { Column, Row } from "components/structure";
 import { ViewContext } from "components/views";
 import DatasetGraphView from "./DatasetGraphView";
@@ -52,7 +47,7 @@ const renderError = (error: ApiException) => {
         error.data.source.toLowerCase() === "HyperThought".toLowerCase()
       )
         return (
-          <SeparatedText>
+          <Text>
             You need to be authenticated with HyperThought&trade; to load these
             datasets. To access this data, add your HyperThought&trade; API key
             to the integration section on your{" "}
@@ -63,16 +58,16 @@ const renderError = (error: ApiException) => {
               profile
             </Link>
             .
-          </SeparatedText>
+          </Text>
         );
     }
   }
 
   // Default error handling text.
   return (
-    <ErrorText>
+    <Text color="error">
       Error occurred ({error.status}): {error.message}
-    </ErrorText>
+    </Text>
   );
 };
 
@@ -210,11 +205,11 @@ const DatasetAddView: FunctionComponent = ({ children }) => {
       <VerticalScroll>
         <div className="view">
           {/* Render some information on how to use this view. */}
-          <SeparatedText>
+          <Text>
             Select a dataset to add to the workspace by clicking on the checkbox
             beside its name. You can optionally provide a more descriptive name
             for the dataset that will be displayed within the workspace.
-          </SeparatedText>
+          </Text>
 
           {/* Display a searchbox for filtering the datasets. */}
           <Row>
@@ -229,7 +224,7 @@ const DatasetAddView: FunctionComponent = ({ children }) => {
           {Object.entries(groupedResources).map(([source, resources]) => {
             let contents;
             if (resources === null) {
-              contents = <LoadingText />;
+              contents = <Loading />;
             } else if (resources instanceof ApiException) {
               contents = renderError(resources);
             } else {
@@ -239,7 +234,7 @@ const DatasetAddView: FunctionComponent = ({ children }) => {
               );
               contents =
                 resources.length > 0 ? (
-                  <SeparatedText>
+                  <Text>
                     <ul role="presentation">
                       {resources.map((resource) => (
                         <li
@@ -256,9 +251,9 @@ const DatasetAddView: FunctionComponent = ({ children }) => {
                         </li>
                       ))}
                     </ul>
-                  </SeparatedText>
+                  </Text>
                 ) : (
-                  <SeparatedText>No data resources found.</SeparatedText>
+                  <Text>No data resources found.</Text>
                 );
             }
 
@@ -267,9 +262,7 @@ const DatasetAddView: FunctionComponent = ({ children }) => {
               <div key={source}>
                 <Accordian>
                   <AccordianHeader>
-                    <Heading>
-                      <DatabaseIcon /> {source}
-                    </Heading>
+                    <DatabaseIcon /> {source}
                     <AccordianToggle caret />
                   </AccordianHeader>
                   <AccordianContent>{contents}</AccordianContent>

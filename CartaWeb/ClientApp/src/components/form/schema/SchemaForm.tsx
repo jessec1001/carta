@@ -77,19 +77,15 @@ const SchemaForm: FunctionComponent<
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     // Try validating the submitted value against the schema.
     // The validation error variable will be set if the validation fails.
-    console.log("HERE 1", actualSchema, actualValue);
     let validationError: ValidationError | undefined = undefined;
     try {
       validateSchema(actualSchema, actualValue);
-      console.log("HERE 2");
     } catch (err) {
       if (err instanceof ValidationError) {
         validationError = err;
       } else throw err;
-      console.log("HERE 3", err);
     }
     setError(validationError);
-    console.log("HERE 4");
 
     // Try submitting if we validated successfully.
     // Try erroring if we validated unsuccessfully.

@@ -8,7 +8,7 @@ import {
 } from "library/schema";
 import { ApiException } from "library/exceptions";
 import { PageLayout, Wrapper } from "components/layout";
-import { ErrorText, Title } from "components/text";
+import { Text, Title } from "components/text";
 import {
   UserIsAuthenticated,
   UserIsNotAuthenticated,
@@ -16,7 +16,7 @@ import {
 } from "components/user";
 import { SchemaForm } from "components/form/schema";
 
-/** The schema used for the {@link WorkspaceCreatePage} page. */
+/** The schema used for the {@link WorkspaceNewPage} page. */
 const workspaceCreateSchema: JsonObjectSchema = {
   type: "object",
   description: `
@@ -46,7 +46,7 @@ later.
 };
 
 /** The page that allows users to create a new workspace. */
-const WorkspaceCreatePage: FunctionComponent = () => {
+const WorkspaceNewPage: FunctionComponent = () => {
   // We need access to the workspace API to handle requests.
   const workspaceAPIRef = useRef(new WorkspaceAPI());
   const workspaceAPI = workspaceAPIRef.current;
@@ -102,13 +102,13 @@ const WorkspaceCreatePage: FunctionComponent = () => {
 
         {/* If there is an error, render text that indicates what went wrong. */}
         {error && (
-          <ErrorText>
+          <Text color="error">
             {error.message} (Status code: {error.status})
-          </ErrorText>
+          </Text>
         )}
       </Wrapper>
     </PageLayout>
   );
 };
 
-export default WorkspaceCreatePage;
+export default WorkspaceNewPage;

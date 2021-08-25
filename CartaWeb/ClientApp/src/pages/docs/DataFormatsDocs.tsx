@@ -1,4 +1,4 @@
-import { SeparatedText, Section, Subsection } from "components/text";
+import { Text, Section, Subsection } from "components/text";
 import { Component } from "react";
 import { GraphFormatDocs } from "./GraphFormatsDocs";
 
@@ -8,23 +8,23 @@ export class DataFormatsDocs extends Component {
   render() {
     return (
       <Section title="Data Formats">
-        <SeparatedText>
+        <Text>
           Carta provides serialization and deserialization for a variety of
           commonly-used data formats in addition to integration with external
           data sources. This section details which formats are supported, and
           how to access them.
-        </SeparatedText>
+        </Text>
 
         <Subsection title="Internal">
-          <SeparatedText>
+          <Text>
             Carta uses an intermediary format to store graph data called the{" "}
             <em>Freeform Graph</em>. The data structure is simply and easily
             extensible. Any data that can described using the following
             attributes can be represented by the Carta infrastructure. A{" "}
             <em>Freeform Graph</em> has the following properties.
-          </SeparatedText>
+          </Text>
 
-          <SeparatedText>For vertices:</SeparatedText>
+          <Text>For vertices:</Text>
           <ul>
             <li>
               <code>id</code>: A required unique identifier for each vertex.
@@ -43,7 +43,7 @@ export class DataFormatsDocs extends Component {
             </li>
           </ul>
 
-          <SeparatedText>For edges:</SeparatedText>
+          <Text>For edges:</Text>
           <ul>
             <li>
               <code>source</code>: A required unique identifier for the source
@@ -54,11 +54,11 @@ export class DataFormatsDocs extends Component {
               vertex (pointed to).
             </li>
           </ul>
-          <SeparatedText>
+          <Text>
             Note that edges need not have a direction and can be bidirectional.
             Additionally, multiple edges can exist between the same pair of
             vertices.
-          </SeparatedText>
+          </Text>
         </Subsection>
 
         <GraphFormatDocs />

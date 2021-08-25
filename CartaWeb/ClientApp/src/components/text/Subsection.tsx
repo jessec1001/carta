@@ -13,6 +13,8 @@ const Subsection: FunctionComponent<SubsectionProps> = ({
   children,
   ...props
 }) => {
+  // TODO: Refactor subsection into a component with a context that adjusts headings based on depth
+  // and automatically generates anchor identifiers that can be used to create a navigation.
   return (
     <section className="subsection" {...props}>
       <h3 className="subsection-heading">{title}</h3>

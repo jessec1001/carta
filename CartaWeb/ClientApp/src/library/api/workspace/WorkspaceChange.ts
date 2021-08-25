@@ -39,7 +39,7 @@ interface WorkspaceChange {
     workflowVersion?: number;
   };
   /** Information about who performed what change. */
-  workspaceAction?: {
+  workspaceAction: {
     /** The type of change that was performed. */
     type: WorkspaceActionType;
 
@@ -80,4 +80,5 @@ const parseWorkspaceChange = (dto: WorkspaceChangeDTO): WorkspaceChange => {
 };
 
 export { parseWorkspaceChange };
-export type { WorkspaceChange, WorkspaceChangeDTO, WorkspaceChangeType };
+export { WorkspaceActionType, WorkspaceChangeType };
+export type { WorkspaceChange, WorkspaceChangeDTO };

@@ -8,7 +8,7 @@ import ApiReturnsView from "./ApiReturnsView";
 import ApiRequestCollectionView from "./ApiRequestCollectionView";
 
 import "./ApiEndpointView.css";
-import { SeparatedText } from "components/text";
+import { Text } from "components/text";
 
 export interface ApiEndpointViewProps {
   endpoint: MetaEndpoint;
@@ -26,7 +26,7 @@ export default class ApiEndpointView extends Component<ApiEndpointViewProps> {
           path={this.props.endpoint.path}
         />
         <div className="api-endpoint-content">
-          <SeparatedText>{this.props.endpoint.description}</SeparatedText>
+          <Text>{this.props.endpoint.description}</Text>
 
           {/* We don't need to display the parameters table if there are no parameters. */}
           {this.props.endpoint.parameters.length > 0 && (

@@ -1,0 +1,32 @@
+.card {
+  /* We make the card stretch to its parent container height and make the body stretch accordingly. */
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+
+  /* Add a styling that pops the card element out from the rest of the page. */
+  background-color: var(--color-fill-elevated);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-offset);
+}
+.card-header {
+  /* Give some spacing so that elements are not forced into the edges/corners of the card. */
+  padding: 1rem 1rem 0.5rem;
+
+  /* Put a border at the bottom separating the header from the rest of the card. */
+  border-bottom: 1px solid var(--color-stroke-hairline);
+}
+.card-footer {
+  /* Give some spacing so that elements are not forced into the edges/corners of the card. */
+  padding: 0.5rem 1rem 1rem;
+
+  /* Put a border at the top separating the footer from the rest of the card. */
+  border-top: 1px solid var(--color-stroke-hairline);
+}
+.card-body {
+  /* We make the body stretch to fill the height. */
+  flex-grow: 1;
+
+  /* Give some spacing so that elements are not forced into the edges/corners of the card. */
+  padding: 0.5rem 1rem;
+}

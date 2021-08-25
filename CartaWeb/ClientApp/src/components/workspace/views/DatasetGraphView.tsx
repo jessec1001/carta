@@ -11,7 +11,7 @@ import { GraphData } from "library/api";
 import { GraphVisualizer } from "components/visualizations";
 import { GraphWorkflow } from "library/api/workflow";
 import ViewContext from "components/views/ViewContext";
-import { LoadingText } from "components/text";
+import { Loading } from "components/text";
 
 /** The props used for the {@link DatasetGraphView} component. */
 interface DatasetGraphViewProps {
@@ -69,11 +69,11 @@ const DatasetGraphView: FunctionComponent<DatasetGraphViewProps> = ({ id }) => {
       title={
         <React.Fragment>
           <GraphIcon padded />
-          {datasetName ?? <LoadingText />}
+          {datasetName ?? <Loading />}
           &nbsp;
           <span
             style={{
-              color: "var(--color-stroke-faint)",
+              color: "var(--color-stroke-muted)",
               fontSize: "var(--font-small)",
             }}
           >

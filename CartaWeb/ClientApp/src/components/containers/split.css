@@ -45,7 +45,7 @@
   cursor: pointer;
 }
 .split-pane-button:hover {
-  color: var(--color-stroke);
+  color: var(--color-stroke-normal);
 }
 .split-pane-button {
   display: inline-flex;
@@ -72,7 +72,7 @@
   --gutter-margins: calc((var(--gutter-handle) - var(--gutter-thickness)) / 2);
 
   /* This sets up thhe style of border that forms the main graphical display of the gutter. */
-  background-color: var(--color-stroke-faint);
+  background-color: var(--color-stroke-muted);
   border-color: transparent;
   border-style: solid;
   background-clip: padding-box;

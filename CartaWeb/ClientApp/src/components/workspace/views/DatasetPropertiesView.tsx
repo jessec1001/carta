@@ -8,7 +8,7 @@ import { DatasetIcon } from "components/icons";
 import WorkflowInput from "components/input/resource/WorkflowInput";
 import { VerticalScroll } from "components/scroll";
 import { Tab } from "components/tabs";
-import { LoadingText } from "components/text";
+import { Loading } from "components/text";
 import { ViewContext } from "components/views";
 import { WorkspaceContext } from "context";
 import { useAPI } from "hooks";
@@ -60,6 +60,8 @@ const DatasetPropertiesView = () => {
   const handleClose = () => {
     actions.removeElement(viewId);
   };
+  // TODO: Check for extraneous changes to the workflow before updating on the server.
+  // TODO: Add a clear and intuitive option to select none in comboboxes.
   const handleSelectWorkflow = (workflow: WorkspaceWorkflow | null) => {
     if (workspace && dataset) {
       if (workflow === null) {
@@ -87,12 +89,12 @@ const DatasetPropertiesView = () => {
           {/* Display the name of the currently selected dataset. */}
           {/* If there is no dataset that is currently selected, we render "(None)" in faint text. */}
           {datasetName ?? (
-            <span style={{ color: "var(--color-stroke-faint)" }}>(None)</span>
+            <span style={{ color: "var(--color-stroke-muted)" }}>(None)</span>
           )}
           &nbsp;{" "}
           <span
             style={{
-              color: "var(--color-stroke-faint)",
+              color: "var(--color-stroke-muted)",
               fontSize: "var(--font-small)",
             }}
           >
@@ -154,7 +156,7 @@ const DatasetPropertiesView = () => {
                     color: "var(--color-stroke-lowlight)",
                   }}
                 >
-                  <LoadingText />
+                  <Loading />
                 </span>
               </p>
             )}

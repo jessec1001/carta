@@ -127,7 +127,7 @@ const renderPropertyTree = (properties: Property[] | undefined) => {
         marginLeft: "0.2em",
         // marginLeft: "0.7em",
         paddingLeft: "0.8em",
-        borderLeft: "1px solid var(--color-stroke-faint)",
+        borderLeft: "1px solid var(--color-stroke-muted)",
         color: "var(--color-stroke-lowlight)",
       }}
     >
@@ -214,12 +214,12 @@ const VisualizerSelectionView: FunctionComponent = () => {
         <React.Fragment>
           <VertexIcon padded selected />
           {(graph && datasetName) ?? (
-            <span style={{ color: "var(--color-stroke-faint)" }}>(None)</span>
+            <span style={{ color: "var(--color-stroke-muted)" }}>(None)</span>
           )}
           &nbsp;
           <span
             style={{
-              color: "var(--color-stroke-faint)",
+              color: "var(--color-stroke-muted)",
               fontSize: "var(--font-small)",
             }}
           >

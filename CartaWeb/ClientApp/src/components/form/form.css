@@ -19,7 +19,7 @@
   border-width: 1px;
   border-radius: var(--border-radius);
   border-style: solid;
-  border-color: var(--color-stroke-faint);
+  border-color: var(--color-stroke-muted);
 
   /* Set the colors for the insides of forms. */
   background-color: var(--color-fill-element);
@@ -52,7 +52,7 @@ textarea.form-control {
   padding: 0rem 0.5rem;
   border-width: 1px;
   border-style: solid;
-  border-color: var(--color-stroke-faint);
+  border-color: var(--color-stroke-muted);
   border-radius: var(--border-radius);
 }
 .form-container.error {
