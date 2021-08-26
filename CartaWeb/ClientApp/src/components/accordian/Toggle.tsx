@@ -1,28 +1,22 @@
 import { FunctionComponent } from "react";
 import { CaretIcon } from "components/icons";
+import { useAccordian } from "./Context";
 
 import "./accordian.css";
 
-/** The props used for the {@link AccordianToggle} component. */
-interface AccordianToggleProps {
+/** The props used for the {@link Toggle} component. */
+interface ToggleProps {
   /** Whether or not the toggler should include a standard caret icon. */
   caret?: boolean;
-  /** Whether or not the accordian toggler is currently toggled. */
-  toggled?: boolean;
-
-  /** The event handler that is called whenever the accordian toggler is clicked. */
-  onToggle?: () => void;
 }
 
 /** A component that toggles an accordian component and can optionally display as a caret icon. */
-const AccordianToggle: FunctionComponent<AccordianToggleProps> = ({
-  caret,
-  toggled,
-  onToggle,
-  children,
-}) => {
+const Toggle: FunctionComponent<ToggleProps> = ({ caret, children }) => {
+  // Get the state of the accordian and the actions to operate on it.
+  const { toggled, actions } = useAccordian();
+
   return (
-    <div className="accordian-toggle" onClick={onToggle}>
+    <div className="accordian-toggle" onClick={actions.toggle}>
       {/* Render the children of this component normally. */}
       {children}
 
@@ -32,5 +26,5 @@ const AccordianToggle: FunctionComponent<AccordianToggleProps> = ({
   );
 };
 
-export default AccordianToggle;
-export type { AccordianToggleProps };
+export default Toggle;
+export type { ToggleProps };

@@ -14,8 +14,10 @@ interface TextProps {
   size?: "small" | "normal" | "medium" | "large" | "title";
   /** The color of the text to render. If not specified, defaults to the inherited style. */
   color?: "normal" | "muted" | "info" | "warning" | "error";
-  /** The alignment of the text to render. If not specified, defaults to the inherited style. */
-  align?: "left" | "right" | "center";
+  /** The horizontal alignment of the text to render. If not specified, defaults to the inherited style. */
+  justify?: "left" | "right" | "center";
+  /** The vertical alignment of the text to render. If not specified, defaults to the inherited style. */
+  align?: "top" | "bottom" | "middle";
   /** The padding of the text to render. If not specified, defaults to the inerited style. */
   padding?: "top" | "bottom" | "center";
 }
@@ -31,6 +33,7 @@ const Text: FunctionComponent<TextProps> = ({
   component: element,
   size,
   color,
+  justify,
   align,
   padding,
   children,
@@ -41,7 +44,8 @@ const Text: FunctionComponent<TextProps> = ({
   const className = classNames("text", {
     [`size-${size}`]: size,
     [`color-${color}`]: color,
-    [`align-${align}`]: align,
+    [`halign-${justify}`]: justify,
+    [`valign-${align}`]: align,
     [`padded-${padding}`]: padding,
   });
 

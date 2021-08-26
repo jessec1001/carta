@@ -6,12 +6,7 @@ import React, {
 } from "react";
 import { useAPI, useMounted } from "hooks";
 import { WorkspaceContext } from "context";
-import {
-  Accordian,
-  AccordianContent,
-  AccordianHeader,
-  AccordianToggle,
-} from "components/accordian";
+import { Accordian } from "components/accordian";
 import { BlockButton, ButtonGroup } from "components/buttons";
 import { Link } from "components/common";
 import { ApiException } from "library/exceptions";
@@ -261,11 +256,13 @@ const DatasetAddView: FunctionComponent = ({ children }) => {
             return (
               <div key={source}>
                 <Accordian>
-                  <AccordianHeader>
-                    <DatabaseIcon /> {source}
-                    <AccordianToggle caret />
-                  </AccordianHeader>
-                  <AccordianContent>{contents}</AccordianContent>
+                  <Accordian.Header>
+                    <Text size="medium" align="middle">
+                      <DatabaseIcon /> {source}
+                    </Text>
+                    <Accordian.Toggle caret />
+                  </Accordian.Header>
+                  <Accordian.Content>{contents}</Accordian.Content>
                 </Accordian>
               </div>
             );

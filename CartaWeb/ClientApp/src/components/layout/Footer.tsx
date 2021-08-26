@@ -9,12 +9,12 @@ const Footer: FunctionComponent = ({ children, ...props }) => {
     <footer className="footer" {...props}>
       <Row>
         <Column>
-          <Text color="muted" align="left">
+          <Text color="muted" justify="left">
             &copy; 2021 Contextualize, LLC
           </Text>
         </Column>
         <Column>
-          <Text color="muted" align="right">
+          <Text color="muted" justify="right">
             Carta v{version}
           </Text>
         </Column>

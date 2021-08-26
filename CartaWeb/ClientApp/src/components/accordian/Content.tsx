@@ -1,17 +1,15 @@
 import { FunctionComponent } from "react";
 import classNames from "classnames";
+import { useAccordian } from "./Context";
 
-/** The props used for the {@link AccordianContent} component. */
-interface AccordianContentProps {
-  /** Whether the content should be toggled (visible). */
-  toggled?: boolean;
-}
+/** The props used for the {@link Content} component. */
+interface ContentProps {}
 
 /** A component that contains the content for an {@link Accordian} component. */
-const AccordianContent: FunctionComponent<AccordianContentProps> = ({
-  toggled,
-  children,
-}) => {
+const Content: FunctionComponent<ContentProps> = ({ children }) => {
+  // Get the state of the accordian and the actions to operate on it.
+  const { toggled } = useAccordian();
+
   // We return a component that should be rendered conditionally based on the toggled state.
   return (
     <div className={classNames("accordian-content", { toggled })}>
@@ -20,5 +18,5 @@ const AccordianContent: FunctionComponent<AccordianContentProps> = ({
   );
 };
 
-export default AccordianContent;
-export type { AccordianContentProps };
+export default Content;
+export type { ContentProps };

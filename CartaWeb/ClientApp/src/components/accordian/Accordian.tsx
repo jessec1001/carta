@@ -1,7 +1,9 @@
-import React, { FunctionComponent, PropsWithChildren } from "react";
+import { FunctionComponent } from "react";
 import { useControllableState } from "hooks";
-import AccordianContent, { AccordianContentProps } from "./AccordianContent";
-import AccordianHeader, { AccordianHeaderProps } from "./AccordianHeader";
+import Content from "./Content";
+import Header from "./Header";
+import Toggle from "./Toggle";
+import AccordianContext from "./Context";
 
 import "./accordian.css";
 
@@ -15,6 +17,16 @@ interface AccordianProps {
   onToggle?: (toggled: boolean) => void;
 }
 
+/** Defines the composition of the compound {@link Accordian} component. */
+interface AccordianComposition {
+  /** @borrows Header as Header */
+  Header: typeof Header;
+  /** @borrows Content as Content */
+  Content: typeof Content;
+  /** @borrows Toggle as Toggle */
+  Toggle: typeof Toggle;
+}
+
 /**
  * A component that renders a toggleable accordian element. The header of this element is always visible while the
  * content of the element is visible only if the accordian is toggled. The toggle element should always be contained in
@@ -23,18 +35,18 @@ interface AccordianProps {
  * This component has an optionally controlled toggle state that controls whether the accordian content is visible.
  * @example
  * ```jsx
- * <AccordianContainer>
- *  <AccordianHeader>
+ * <Accordian>
+ *  <Accordian.Header>
  *   My Accordian <!-- This text is always visible. -->
- *   <AccordianToggle caret />
- *  </AccordianHeader>
- *  <AccordianContent>
+ *   <Accordian.Toggle caret />
+ *  </Accordian.Header>
+ *  <Accordian.Content>
  *   My accordian has some content. <!-- This text is only visible when the accordian is toggled. -->
- *  </AccordianContent>
- * </AccordianContainer>
+ *  </Accordian.Content>
+ * </Accordian>
  * ```
  */
-const Accordian: FunctionComponent<AccordianProps> = ({
+const Accordian: FunctionComponent<AccordianProps> & AccordianComposition = ({
   toggled,
   initialToggled = true,
   onToggle,
@@ -47,45 +59,17 @@ const Accordian: FunctionComponent<AccordianProps> = ({
     onToggle
   );
 
-  // We separate out the children elements into header elements and content elements.
-  // We use this partioning to render the children specially.
-  const childArray = React.Children.toArray(children);
-  const headerChildArray = childArray.filter((child) => {
-    return (
-      React.isValidElement<AccordianHeaderProps>(child) &&
-      child.type === AccordianHeader
-    );
-  }) as React.ReactElement<PropsWithChildren<AccordianHeaderProps>>[];
-  const contentChildArray = childArray.filter((child) => {
-    return (
-      React.isValidElement<AccordianContentProps>(child) &&
-      child.type === AccordianContent
-    );
-  }) as React.ReactElement<PropsWithChildren<AccordianContentProps>>[];
-
+  // We wrap the child elements in an accordian context to provide the accordian functionality.
   return (
-    <div className="accordian">
-      {/* Render the header elements normally. */}
-      {headerChildArray.map((headerChild) => {
-        // We create a modified version of the on toggle component with a new on toggle method that changes this state.
-        const { onToggle } = headerChild.props;
-        const handleToggle = () => {
-          if (onToggle) onToggle();
-          setToggled((toggled: boolean) => !toggled);
-        };
-
-        return React.cloneElement(headerChild, {
-          toggled: actualToggled,
-          onToggle: handleToggle,
-        });
-      })}
-
-      {/* Render the content elements with the toggled state. */}
-      {contentChildArray.map((contentChild) =>
-        React.cloneElement(contentChild, { toggled: actualToggled })
-      )}
-    </div>
+    <AccordianContext.Provider
+      value={{ toggled: actualToggled, setToggled: setToggled }}
+    >
+      <div className="accordian">{children}</div>
+    </AccordianContext.Provider>
   );
 };
+Accordian.Content = Content;
+Accordian.Header = Header;
+Accordian.Toggle = Toggle;
 
 export default Accordian;

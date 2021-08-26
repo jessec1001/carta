@@ -1,6 +1,4 @@
 import Accordian from "./Accordian";
-import AccordianContent from "./AccordianContent";
-import AccordianHeader from "./AccordianHeader";
-import AccordianToggle from "./AccordianToggle";
+import AccordianContext from "./Context";
 
-export { Accordian, AccordianContent, AccordianHeader, AccordianToggle };
+export { Accordian, AccordianContext };

@@ -1,9 +1,4 @@
-import {
-  Accordian,
-  AccordianContent,
-  AccordianHeader,
-  AccordianToggle,
-} from "components/accordian";
+import { Accordian } from "components/accordian";
 import { ValueIcon, VertexIcon } from "components/icons";
 import { SearchboxInput } from "components/input";
 import { VerticalScroll } from "components/scroll";
@@ -137,14 +132,14 @@ const renderPropertyTree = (properties: Property[] | undefined) => {
         return (
           <li key={property.id}>
             <Accordian initialToggled={!hasSubproperties}>
-              <AccordianHeader>
+              <Accordian.Header>
                 {property.id}
-                {hasSubproperties && <AccordianToggle caret />}
-              </AccordianHeader>
-              <AccordianContent>
+                {hasSubproperties && <Accordian.Toggle caret />}
+              </Accordian.Header>
+              <Accordian.Content>
                 {hasSubproperties && renderPropertyTree(property.properties)}
                 {renderValues(property.values)}
-              </AccordianContent>
+              </Accordian.Content>
             </Accordian>
           </li>
         );
@@ -251,7 +246,7 @@ const VisualizerSelectionView: FunctionComponent = () => {
               return (
                 <li key={vertex.id}>
                   <Accordian initialToggled={false}>
-                    <AccordianHeader>
+                    <Accordian.Header>
                       <span
                         className="normal-text"
                         title={vertex.label}
@@ -267,11 +262,11 @@ const VisualizerSelectionView: FunctionComponent = () => {
                         />{" "}
                         {vertex.label}
                       </span>
-                      <AccordianToggle caret />
-                    </AccordianHeader>
-                    <AccordianContent>
+                      <Accordian.Toggle caret />
+                    </Accordian.Header>
+                    <Accordian.Content>
                       {renderPropertyTree(vertex.properties)}
-                    </AccordianContent>
+                    </Accordian.Content>
                   </Accordian>
                 </li>
               );

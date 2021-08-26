@@ -44,12 +44,27 @@
 }
 
 /* Text alignment */
-.text.align-left {
+.text.halign-left {
   text-align: left;
 }
-.text.align-right {
+.text.halign-right {
   text-align: right;
 }
-.text.align-center {
+.text.halign-center {
   text-align: center;
+}
+.text.valign-top {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+}
+.text.valign-bottom {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+}
+.text.valign-middle {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
 }
