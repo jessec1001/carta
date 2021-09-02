@@ -1,4 +1,4 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26124.0
@@ -8,6 +8,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CartaTest", "CartaTest\CartaTest.csproj", "{08FD055C-B9BF-4934-AEFD-3EB6C969BCF6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CartaWeb", "CartaWeb\CartaWeb.csproj", "{D05FF3FC-A2D2-451F-8CC3-BBB44CAA6D7C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CartaAwsDeploy", "CartaAwsDeploy\CartaAwsDeploy.csproj", "{F7BD1FBF-246B-4C87-B2D5-DD01735AAE8C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -58,5 +60,17 @@ Global
 		{D05FF3FC-A2D2-451F-8CC3-BBB44CAA6D7C}.Release|x64.Build.0 = Release|Any CPU
 		{D05FF3FC-A2D2-451F-8CC3-BBB44CAA6D7C}.Release|x86.ActiveCfg = Release|Any CPU
 		{D05FF3FC-A2D2-451F-8CC3-BBB44CAA6D7C}.Release|x86.Build.0 = Release|Any CPU
+		{F7BD1FBF-246B-4C87-B2D5-DD01735AAE8C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F7BD1FBF-246B-4C87-B2D5-DD01735AAE8C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F7BD1FBF-246B-4C87-B2D5-DD01735AAE8C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F7BD1FBF-246B-4C87-B2D5-DD01735AAE8C}.Debug|x64.Build.0 = Debug|Any CPU
+		{F7BD1FBF-246B-4C87-B2D5-DD01735AAE8C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F7BD1FBF-246B-4C87-B2D5-DD01735AAE8C}.Debug|x86.Build.0 = Debug|Any CPU
+		{F7BD1FBF-246B-4C87-B2D5-DD01735AAE8C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F7BD1FBF-246B-4C87-B2D5-DD01735AAE8C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F7BD1FBF-246B-4C87-B2D5-DD01735AAE8C}.Release|x64.ActiveCfg = Release|Any CPU
+		{F7BD1FBF-246B-4C87-B2D5-DD01735AAE8C}.Release|x64.Build.0 = Release|Any CPU
+		{F7BD1FBF-246B-4C87-B2D5-DD01735AAE8C}.Release|x86.ActiveCfg = Release|Any CPU
+		{F7BD1FBF-246B-4C87-B2D5-DD01735AAE8C}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

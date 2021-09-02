@@ -67,6 +67,8 @@ dotnet run --project CartaWeb --urls "http://*:8081;https://*:8082"
 ```
 exposes the application to the local network. From there, you could use [Port Forwarding](https://www.howtogeek.com/66214/how-to-forward-ports-on-your-router/) to allow remote connections from external networks from ports 8081 (HTTP) and 8082 (HTTPS).
 
+Through the AWS CDK, Carta can also be run locally with a sandboxed AWS environment. See [Running Carta with CDK](https://gitlab.com/contextualize/carta/-/wikis/Running-Carta-with-CDK) for more information.
+
 ## Standards
 We use standards of coding in order to stay consistent and allow our code to be easily understood.
 

@@ -63,6 +63,17 @@ namespace CartaWeb
             AwsCognitoOptions awsCognitoOptions = Configuration.
                 GetSection("Authentication:Cognito").
                 Get<AwsCognitoOptions>();
+            AwsCdkOptions awsCdkOptions = Configuration.
+                GetSection("CartaAwsDeployStack").
+                Get<AwsCdkOptions>();
+            if (awsCdkOptions is not null)
+            {
+                awsOptions.AccessKey = awsCdkOptions.AccessKey;
+                awsOptions.SecretKey = awsCdkOptions.SecretKey;
+                awsOptions.RegionEndpoint = awsCdkOptions.RegionEndpoint;
+                awsDynamoDbOptions.TableName = awsCdkOptions.DynamoDBTable;
+                awsCognitoOptions.UserPoolId = awsCdkOptions.UserPoolId;
+            }
             services.
                 AddSingleton<INoSqlDbContext>(
                     new DynamoDbContext
@@ -72,14 +83,22 @@ namespace CartaWeb
                         Amazon.RegionEndpoint.GetBySystemName(awsOptions.RegionEndpoint),
                         awsDynamoDbOptions.TableName
                     ));
-            services.
-                AddSingleton<IAmazonCognitoIdentityProvider>(
-                    new AmazonCognitoIdentityProviderClient
-                    (
-                        awsOptions.AccessKey,
-                        awsOptions.SecretKey,
-                        Amazon.RegionEndpoint.GetBySystemName(awsOptions.RegionEndpoint)
-                    ));
+            if (awsOptions.AccessKey is null)
+                services.
+                    AddSingleton<IAmazonCognitoIdentityProvider>(
+                        new AmazonCognitoIdentityProviderClient
+                        (
+                            Amazon.RegionEndpoint.GetBySystemName(awsOptions.RegionEndpoint)
+                        ));
+            else 
+                services.
+                    AddSingleton<IAmazonCognitoIdentityProvider>(
+                        new AmazonCognitoIdentityProviderClient
+                        (
+                            awsOptions.AccessKey,
+                            awsOptions.SecretKey,
+                            Amazon.RegionEndpoint.GetBySystemName(awsOptions.RegionEndpoint)
+                        ));
             if (awsDynamoDbOptions.MigrationSteps is not null)
             {
                 services.AddSingleton<INoSqlDbMigrationBuilder>((container) =>
@@ -142,7 +161,6 @@ namespace CartaWeb
                 options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
                 options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
                 options.DefaultSignOutScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-
                 options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
             })
             .AddCookie
@@ -153,9 +171,20 @@ namespace CartaWeb
             )
             .AddOpenIdConnect
             (
-                options => Configuration
-                    .GetSection("Authentication:OpenIdConnect")
-                    .Bind(options)
+                options =>
+                {
+                    Configuration
+                        .GetSection("Authentication:OpenIdConnect")
+                        .Bind(options);
+                    if (awsCdkOptions is not null)
+                    {
+                        options.ClientId = awsCdkOptions.UserPoolClientId;
+                        string serverUrl = $"https://cognito-idp.{awsOptions.RegionEndpoint}.amazonaws.com/" +
+                            $"{awsCognitoOptions.UserPoolId}";
+                        options.Authority = serverUrl;
+                        options.MetadataAddress = $"{serverUrl}/.well-known/openid-configuration";
+                    }
+                }
             );
 
             // In production, the React files will be served from this directory.
@@ -188,8 +217,12 @@ namespace CartaWeb
         /// </remarks>
         /// <param name="app">The application builder.</param>
         /// <param name="env">The web host environment.</param>
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
+            // Add AWS cloud watch logging for production
+            if (env.IsProduction())
+                loggerFactory.AddAWSProvider(Configuration.GetAWSLoggingConfigSection());
+
             // Perform database migrations
             // INoSqlDbMigrationBuilder noSqlDbMigrationBuilder =
             //     app.ApplicationServices.GetService<INoSqlDbMigrationBuilder>();
