@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <!-- Roll forward to future major versions of the netcoreapp as needed -->
+    <RollForward>Major</RollForward>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- CDK Construct Library dependencies -->
+    <PackageReference Include="Amazon.CDK" Version="1.121.0" />
+
+    <!-- jsii Roslyn analyzers (un-comment to obtain compile-time checks for missing required props
+    <PackageReference Include="Amazon.Jsii.Analyzers" Version="*" PrivateAssets="all" />
+    -->
+    <PackageReference Include="Amazon.CDK.AWS.DynamoDB" Version="1.121.0" />
+    <PackageReference Include="Amazon.CDK.AWS.IAM" Version="1.121.0" />
+    <PackageReference Include="Amazon.CDK.AWS.Cognito" Version="1.121.0" />
+    <PackageReference Include="AWSSDK.SecurityToken" Version="3.7.1.47" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Amazon.CDK.AWS.DynamoDB" />
+    <None Remove="Amazon.CDK.AWS.IAM" />
+    <None Remove="Amazon.CDK.AWS.Cognito" />
+    <None Remove="AWSSDK.SecurityToken" />
+  </ItemGroup>
+</Project>
