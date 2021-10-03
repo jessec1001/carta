@@ -1,4 +1,4 @@
-import { TabContainer } from "components/tabs";
+import { Tabs } from "components/tabs";
 import { FunctionComponent, useContext } from "react";
 import ViewContext from "./ViewContext";
 import ViewRenderer from "./ViewRenderer";
@@ -12,7 +12,7 @@ const ViewTabRenderer: FunctionComponent = () => {
 
   return (
     // TODO: Incorporate tab focus.
-    <TabContainer>
+    <Tabs>
       {children.map((child) => {
         return (
           <ViewContext.Provider
@@ -28,7 +28,7 @@ const ViewTabRenderer: FunctionComponent = () => {
           </ViewContext.Provider>
         );
       })}
-    </TabContainer>
+    </Tabs>
   );
 };
 

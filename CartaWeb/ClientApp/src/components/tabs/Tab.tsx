@@ -1,88 +1,63 @@
-import React, {
-  createContext,
-  FunctionComponent,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
-import TabContent from "./TabContent";
+import { FunctionComponent, HTMLAttributes } from "react";
+import classNames from "classnames";
+import { useTabs } from "./Context";
 
 import "./tab.css";
+import { Modify } from "types";
 
 /**
  * The props used for the {@link Tab} component.
- * These props will be used by the {@link TabContainer} component.
  */
 interface TabProps {
-  /** The title element to render in the tab navigation bar. */
-  title?: React.ReactNode;
+  /** The unique identifier of the tab that this component corresponds to. */
+  id: string | number;
+
   /** The status indicator used to decorate the tab navigation bar. */
-  status?: "none" | "modified" | "unmodified" | "error";
+  status?: "none" | "modified" | "unmodified" | "info" | "warning" | "error";
 
   /** Whether the tab is closeable by the user. */
   closeable?: boolean;
 
   /** The event handler for when the tab has requested to close. */
   onClose?: () => void;
-  /** The event handler for when the tab has been focussed. */
+  /** The event handler for when the tab has been focused. */
   onFocus?: () => void;
 }
 
-/** Represents the type of identifier for a tab. */
-type TabId = string | number;
-/** The type of value of the {@link TabContext} context. */
-interface TabContextValue {
-  set: (props: TabProps, id?: TabId) => TabId;
-  unset: (id: TabId) => void;
-
-  active: TabId | null;
-}
-
-/** A context that allows tabs to be registered with tab containers and displayed appropriately. */
-const TabContext = createContext<TabContextValue>({
-  set: () => -1,
-  unset: () => {},
-
-  active: null,
-});
-
 /** A component that renders a tab within a tab container with specified properties on the tab button. */
-const Tab: FunctionComponent<TabProps> = ({ children, ...props }) => {
-  const { active, set, unset } = useContext(TabContext);
-  const [id, setId] = useState<TabId | undefined>(undefined);
+const Tab: FunctionComponent<Modify<HTMLAttributes<HTMLDivElement>, TabProps>> =
+  ({ id, status, closeable, onClose, onFocus, children, ...props }) => {
+    // We use the state of the tabs environment to perform some rendering and functions of this component.
+    const { activeTab, actions } = useTabs();
 
-  // We extract all of the props individually here so we may compare individually.
-  const { title, status, closeable, onClose, onFocus } = props;
-
-  // This effect updates the tab whenever the component is mounted or changed.
-  useEffect(() => {
-    setId((id) =>
-      set(
-        {
-          title,
-          status,
-          closeable,
-          onClose,
-          onFocus,
-        },
-        id
-      )
-    );
-  }, [set, title, status, closeable, onClose, onFocus]);
-
-  // This effect tears down the tab when the component is unmounted.
-  useEffect(() => {
-    return () => {
-      if (id !== undefined) unset(id);
+    // These event handlers update the tab state while emitting relevant events.
+    const handleFocus = () => {
+      actions.set(id);
+      onFocus && onFocus();
     };
-  }, [unset, id]);
+    const handleClose = () => {
+      if (activeTab === id) actions.clear();
+      onClose && onClose();
+    };
 
-  // We just re-render the children here if the tab is active.
-  // The remaining properties are handled by the tab container.
-  return <TabContent active={id === active}>{children}</TabContent>;
-};
+    return (
+      <div
+        className={classNames("tab", `status-${status}`, {
+          active: activeTab === id,
+          closeable: closeable,
+        })}
+        onClick={handleFocus}
+        {...props}
+      >
+        {children}
+        {closeable && (
+          <span className="tab-close" onClick={handleClose}>
+            ×
+          </span>
+        )}
+      </div>
+    );
+  };
 
 export default Tab;
-export type { TabProps, TabId };
-export { TabContext };
-export type { TabContextValue };
+export type { TabProps };

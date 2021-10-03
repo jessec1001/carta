@@ -17,13 +17,15 @@ interface AccordianProps {
   onToggle?: (toggled: boolean) => void;
 }
 
-/** Defines the composition of the compound {@link Accordian} component. */
+/**
+ * Defines the composition of the compound {@link Accordian} component.
+ * @borrows Header as Header
+ * @borrows Content as Content
+ * @borrows Toggle as Toggle
+ */
 interface AccordianComposition {
-  /** @borrows Header as Header */
   Header: typeof Header;
-  /** @borrows Content as Content */
   Content: typeof Content;
-  /** @borrows Toggle as Toggle */
   Toggle: typeof Toggle;
 }
 
@@ -73,3 +75,4 @@ Accordian.Header = Header;
 Accordian.Toggle = Toggle;
 
 export default Accordian;
+export type { AccordianProps };

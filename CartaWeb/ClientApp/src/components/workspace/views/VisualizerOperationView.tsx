@@ -1,7 +1,7 @@
 import { SchemaForm } from "components/form/schema";
 import { WorkflowIcon } from "components/icons";
 import { VerticalScroll } from "components/scroll";
-import { Tab } from "components/tabs";
+import { Tabs } from "components/tabs";
 import { Text, Loading } from "components/text";
 import { ViewContext } from "components/views";
 import { GraphData } from "library/api";
@@ -86,30 +86,31 @@ const VisualizerOperationView: FunctionComponent<VisualizerOperationViewProps> =
     }, [operation, type]);
 
     return (
-      <Tab
-        title={
-          <React.Fragment>
-            <WorkflowIcon padded /> {name}
-          </React.Fragment>
-        }
-        closeable
-        onClose={handleClose}
-      >
-        <VerticalScroll>
-          <div style={{ padding: "1rem" }}>
-            {!loaded && <Loading />}
-            {graph && schema && value && (
-              <SchemaForm
-                schema={schema}
-                value={value}
-                onChange={setValue}
-                onSubmit={handleSubmit}
-              />
-            )}
-            <Text color="error">{error?.message}</Text>
-          </div>
-        </VerticalScroll>
-      </Tab>
+      // <Tabs.Tab
+      //   id={0}
+      //   title={
+      //     <React.Fragment>
+      //       <WorkflowIcon padded /> {name}
+      //     </React.Fragment>
+      //   }
+      //   closeable
+      //   onClose={handleClose}
+      // >
+      <VerticalScroll>
+        <div style={{ padding: "1rem" }}>
+          {!loaded && <Loading />}
+          {graph && schema && value && (
+            <SchemaForm
+              schema={schema}
+              value={value}
+              onChange={setValue}
+              onSubmit={handleSubmit}
+            />
+          )}
+          <Text color="error">{error?.message}</Text>
+        </div>
+      </VerticalScroll>
+      // </Tabs.Tab>
     );
   };
 

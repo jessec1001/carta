@@ -7,7 +7,7 @@ import { FormGroup } from "components/form";
 import { DatasetIcon } from "components/icons";
 import WorkflowInput from "components/input/resource/WorkflowInput";
 import { VerticalScroll } from "components/scroll";
-import { Tab } from "components/tabs";
+import { Tabs } from "components/tabs";
 import { Loading } from "components/text";
 import { ViewContext } from "components/views";
 import { WorkspaceContext } from "context";
@@ -82,38 +82,74 @@ const DatasetPropertiesView = () => {
   };
 
   return (
-    <Tab
-      title={
-        <React.Fragment>
-          <DatasetIcon padded />
-          {/* Display the name of the currently selected dataset. */}
-          {/* If there is no dataset that is currently selected, we render "(None)" in faint text. */}
-          {datasetName ?? (
-            <span style={{ color: "var(--color-stroke-muted)" }}>(None)</span>
+    // <Tabs.Tab
+    //   id={0}
+    //   title={
+    //     <React.Fragment>
+    //       <DatasetIcon padded />
+    //       {/* Display the name of the currently selected dataset. */}
+    //       {/* If there is no dataset that is currently selected, we render "(None)" in faint text. */}
+    //       {datasetName ?? (
+    //         <span style={{ color: "var(--color-stroke-muted)" }}>(None)</span>
+    //       )}
+    //       &nbsp;{" "}
+    //       <span
+    //         style={{
+    //           color: "var(--color-stroke-muted)",
+    //           fontSize: "var(--font-small)",
+    //         }}
+    //       >
+    //         [Properties]
+    //       </span>
+    //     </React.Fragment>
+    //   }
+    //   closeable
+    //   onClose={handleClose}
+    // >
+    <VerticalScroll>
+      {dataset && (
+        <div
+          style={{
+            padding: "1rem",
+          }}
+        >
+          <p style={{ display: "flex" }}>
+            Source
+            <span
+              style={{
+                flexGrow: 1,
+                textAlign: "right",
+                color: "var(--color-stroke-lowlight)",
+              }}
+            >
+              {dataset.source}
+            </span>
+          </p>
+          <p style={{ display: "flex" }}>
+            Resource
+            <span
+              style={{
+                flexGrow: 1,
+                textAlign: "right",
+                color: "var(--color-stroke-lowlight)",
+              }}
+            >
+              {dataset.resource}
+            </span>
+          </p>
+          {/* TODO: Add workflow selector. */}
+          {loaded && (
+            <FormGroup title="Workflow" density="flow">
+              <WorkflowInput
+                value={workflow}
+                onChange={handleSelectWorkflow}
+                workflows={workflows}
+              />
+            </FormGroup>
           )}
-          &nbsp;{" "}
-          <span
-            style={{
-              color: "var(--color-stroke-muted)",
-              fontSize: "var(--font-small)",
-            }}
-          >
-            [Properties]
-          </span>
-        </React.Fragment>
-      }
-      closeable
-      onClose={handleClose}
-    >
-      <VerticalScroll>
-        {dataset && (
-          <div
-            style={{
-              padding: "1rem",
-            }}
-          >
+          {!loaded && (
             <p style={{ display: "flex" }}>
-              Source
+              Workflow
               <span
                 style={{
                   flexGrow: 1,
@@ -121,49 +157,14 @@ const DatasetPropertiesView = () => {
                   color: "var(--color-stroke-lowlight)",
                 }}
               >
-                {dataset.source}
+                <Loading />
               </span>
             </p>
-            <p style={{ display: "flex" }}>
-              Resource
-              <span
-                style={{
-                  flexGrow: 1,
-                  textAlign: "right",
-                  color: "var(--color-stroke-lowlight)",
-                }}
-              >
-                {dataset.resource}
-              </span>
-            </p>
-            {/* TODO: Add workflow selector. */}
-            {loaded && (
-              <FormGroup title="Workflow" density="flow">
-                <WorkflowInput
-                  value={workflow}
-                  onChange={handleSelectWorkflow}
-                  workflows={workflows}
-                />
-              </FormGroup>
-            )}
-            {!loaded && (
-              <p style={{ display: "flex" }}>
-                Workflow
-                <span
-                  style={{
-                    flexGrow: 1,
-                    textAlign: "right",
-                    color: "var(--color-stroke-lowlight)",
-                  }}
-                >
-                  <Loading />
-                </span>
-              </p>
-            )}
-          </div>
-        )}
-      </VerticalScroll>
-    </Tab>
+          )}
+        </div>
+      )}
+    </VerticalScroll>
+    // </Tabs.Tab>
   );
 
   // TODO: SAMPLE CODE

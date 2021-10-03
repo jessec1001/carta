@@ -5,7 +5,7 @@ import React, {
   useState,
 } from "react";
 import { GraphIcon } from "components/icons";
-import { Tab } from "components/tabs";
+import { Tabs } from "components/tabs";
 import { WorkspaceContext } from "context";
 import { GraphData } from "library/api";
 import { GraphVisualizer } from "components/visualizations";
@@ -65,39 +65,40 @@ const DatasetGraphView: FunctionComponent<DatasetGraphViewProps> = ({ id }) => {
 
   return (
     // Render the view itself within a tab so it can be easily added to container views.
-    <Tab
-      title={
-        <React.Fragment>
-          <GraphIcon padded />
-          {datasetName ?? <Loading />}
-          &nbsp;
-          <span
-            style={{
-              color: "var(--color-stroke-muted)",
-              fontSize: "var(--font-small)",
-            }}
-          >
-            [Visualizer]
-          </span>
-        </React.Fragment>
-      }
-      status={status}
-      closeable
-      onClose={handleClose}
+    // <Tabs.Tab
+    //   id={0}
+    //   title={
+    //     <React.Fragment>
+    //       <GraphIcon padded />
+    //       {datasetName ?? <Loading />}
+    //       &nbsp;
+    //       <span
+    //         style={{
+    //           color: "var(--color-stroke-muted)",
+    //           fontSize: "var(--font-small)",
+    //         }}
+    //       >
+    //         [Visualizer]
+    //       </span>
+    //     </React.Fragment>
+    //   }
+    //   status={status}
+    //   closeable
+    //   onClose={handleClose}
+    // >
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+      }}
+      onClick={() => {
+        actions.setActiveView(viewId);
+      }}
     >
-      <div
-        style={{
-          width: "100%",
-          height: "100%",
-        }}
-        onClick={() => {
-          actions.setActiveView(viewId);
-        }}
-      >
-        {/* Only render the graph if we have created the data structure. */}
-        {graph && <GraphVisualizer graph={graph} />}
-      </div>
-    </Tab>
+      {/* Only render the graph if we have created the data structure. */}
+      {graph && <GraphVisualizer graph={graph} />}
+    </div>
+    // </Tabs.Tab>
   );
 };
 

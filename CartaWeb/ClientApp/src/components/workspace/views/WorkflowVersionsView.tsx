@@ -3,7 +3,7 @@ import { FormGroup } from "components/form";
 import { WorkflowIcon } from "components/icons";
 import { TextAreaInput } from "components/input";
 import { VerticalScroll } from "components/scroll";
-import { Tab } from "components/tabs";
+import { Tabs } from "components/tabs";
 import { Loading } from "components/text";
 import { ViewContext } from "components/views";
 import { WorkspaceContext } from "context";
@@ -61,97 +61,95 @@ const WorkflowVersionsView: FunctionComponent<WorkflowVersionsViewProps> = ({
   };
 
   return (
-    <Tab
-      title={
-        <React.Fragment>
-          <WorkflowIcon padded />
-          {workflow && workflow.name}
-          {!workflow && <Loading />}
-          &nbsp;
-          <span
-            style={{
-              color: "var(--color-stroke-muted)",
-              fontSize: "var(--font-small)",
-            }}
-          >
-            [Versions]
-          </span>
-        </React.Fragment>
-      }
-      closeable
-      onClose={handleClose}
-    >
-      <VerticalScroll>
-        <div
-          style={{
-            padding: "1rem",
-          }}
-        >
-          {!versions && <Loading />}
-          <form onSubmit={handleSubmit}>
-            New Version
-            <FormGroup title="Description" density="sparse">
-              <TextAreaInput value={description} onChange={setDescription} />
-            </FormGroup>
-            <ButtonGroup>
-              <BlockButton type="submit" color="primary">
-                Commit
-              </BlockButton>
-            </ButtonGroup>
-          </form>
+    // <Tabs.Tab
+    //   id={0}
+    //   title={
+    //     <React.Fragment>
+    //       <WorkflowIcon padded />
+    //       {workflow && workflow.name}
+    //       {!workflow && <Loading />}
+    //       &nbsp;
+    //       <span
+    //         style={{
+    //           color: "var(--color-stroke-muted)",
+    //           fontSize: "var(--font-small)",
+    //         }}
+    //       >
+    //         [Versions]
+    //       </span>
+    //     </React.Fragment>
+    //   }
+    //   closeable
+    //   onClose={handleClose}
+    // >
+    <VerticalScroll>
+      <div
+        style={{
+          padding: "1rem",
+        }}
+      >
+        {!versions && <Loading />}
+        <form onSubmit={handleSubmit}>
+          New Version
+          <FormGroup title="Description" density="sparse">
+            <TextAreaInput value={description} onChange={setDescription} />
+          </FormGroup>
+          <ButtonGroup>
+            <BlockButton type="submit" color="primary">
+              Commit
+            </BlockButton>
+          </ButtonGroup>
+        </form>
 
-          <div style={{ height: "1rem" }} />
+        <div style={{ height: "1rem" }} />
 
-          {versions && (
-            <React.Fragment>
-              Versions
-              <ul>
-                {versions.map((version, index) => {
-                  return (
-                    <li
-                      key={version.number}
-                      style={{
-                        marginBottom: "0.5rem",
-                      }}
-                    >
-                      <div>
-                        <p
-                          style={{
-                            fontSize: "1.2em",
-                          }}
-                        >
-                          Version {version.number}
-                        </p>
-                        <p
-                          style={{
-                            color: "var(--color-stroke-lowlight)",
-                          }}
-                        >
-                          {version.description}
-                        </p>
-                        <p
-                          style={{
-                            fontSize: "var(--font-small)",
-                            color: "var(--color-stroke-muted)",
-                          }}
-                        >
-                          Created by @{version.createdBy.name} on{" "}
-                          <time>
-                            {version.dateCreated.toLocaleDateString()}
-                          </time>
-                          .
-                        </p>
-                      </div>
-                      {index > 0 && <br />}
-                    </li>
-                  );
-                })}
-              </ul>
-            </React.Fragment>
-          )}
-        </div>
-      </VerticalScroll>
-    </Tab>
+        {versions && (
+          <React.Fragment>
+            Versions
+            <ul>
+              {versions.map((version, index) => {
+                return (
+                  <li
+                    key={version.number}
+                    style={{
+                      marginBottom: "0.5rem",
+                    }}
+                  >
+                    <div>
+                      <p
+                        style={{
+                          fontSize: "1.2em",
+                        }}
+                      >
+                        Version {version.number}
+                      </p>
+                      <p
+                        style={{
+                          color: "var(--color-stroke-lowlight)",
+                        }}
+                      >
+                        {version.description}
+                      </p>
+                      <p
+                        style={{
+                          fontSize: "var(--font-small)",
+                          color: "var(--color-stroke-muted)",
+                        }}
+                      >
+                        Created by @{version.createdBy.name} on{" "}
+                        <time>{version.dateCreated.toLocaleDateString()}</time>.
+                      </p>
+                    </div>
+                    {index > 0 && <br />}
+                  </li>
+                );
+              })}
+            </ul>
+          </React.Fragment>
+        )}
+      </div>
+    </VerticalScroll>
+    // </Tabs.Tab>
   );
 };
 

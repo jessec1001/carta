@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import queryString from "query-string";
 import { MetaParameter, MetaRequest } from "library/api/meta";
-import { TabContainer, Tab } from "components/tabs";
+import { Tabs } from "components/tabs";
 import { ApiExample } from "components/common/code";
 import "./ApiRequestCollectionView.css";
 
@@ -58,17 +58,17 @@ export default class ApiRequestCollectionView extends Component<ApiRequestCollec
 
   render() {
     return (
-      <TabContainer>
+      <Tabs>
         {this.props.requests.map((request: MetaRequest) => (
-          <Tab title={request.name} key={request.name}>
+          <Tabs.Tab id={0} key={request.name}>
             <ApiExample
               method={this.props.method}
               path={this.resolvePath(this.props.path, request)}
               body={request.body}
             />
-          </Tab>
+          </Tabs.Tab>
         ))}
-      </TabContainer>
+      </Tabs>
     );
   }
 }

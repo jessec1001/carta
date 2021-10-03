@@ -1,7 +1,5 @@
-import Tab from "./Tab";
+import TabsContext from "./Context";
 import TabBar from "./TabBar";
-import TabBarButton from "./TabBarButton";
-import TabContainer from "./TabContainer";
-import TabContent from "./TabContent";
+import Tabs from "./Tabs";
 
-export { TabContainer, TabBar, TabBarButton, TabContent, Tab };
+export { Tabs, TabsContext, TabBar };

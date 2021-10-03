@@ -191,9 +191,9 @@ namespace CartaWeb
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             // Perform database migrations
-            INoSqlDbMigrationBuilder noSqlDbMigrationBuilder =
-                app.ApplicationServices.GetService<INoSqlDbMigrationBuilder>();
-            if (noSqlDbMigrationBuilder is not null) noSqlDbMigrationBuilder.PerformMigrations();
+            // INoSqlDbMigrationBuilder noSqlDbMigrationBuilder =
+            //     app.ApplicationServices.GetService<INoSqlDbMigrationBuilder>();
+            // if (noSqlDbMigrationBuilder is not null) noSqlDbMigrationBuilder.PerformMigrations();
                 
             // Important: this solves a deployment-only issue.
             // Forwards headers from load balancers and proxy servers that terminate SSL.

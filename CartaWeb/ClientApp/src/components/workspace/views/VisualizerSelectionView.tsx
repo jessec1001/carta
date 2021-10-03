@@ -4,7 +4,7 @@ import { SearchboxInput } from "components/input";
 import { VerticalScroll } from "components/scroll";
 import { Column, Row } from "components/structure";
 import { EmptySymbol, NullSymbol } from "components/symbols";
-import { Tab } from "components/tabs";
+import { Tabs } from "components/tabs";
 import { ViewContext } from "components/views";
 import { WorkspaceContext } from "context";
 import { DataNode, GraphData, Property } from "library/api";
@@ -204,77 +204,78 @@ const VisualizerSelectionView: FunctionComponent = () => {
   }
 
   return (
-    <Tab
-      title={
-        <React.Fragment>
-          <VertexIcon padded selected />
-          {(graph && datasetName) ?? (
-            <span style={{ color: "var(--color-stroke-muted)" }}>(None)</span>
-          )}
-          &nbsp;
-          <span
-            style={{
-              color: "var(--color-stroke-muted)",
-              fontSize: "var(--font-small)",
-            }}
-          >
-            [Selection]
-          </span>
-        </React.Fragment>
-      }
-      closeable
-      onClose={handleClose}
-    >
-      <VerticalScroll>
-        <div
+    // <Tabs.Tab
+    //   id={0}
+    //   title={
+    //     <React.Fragment>
+    //       <VertexIcon padded selected />
+    //       {(graph && datasetName) ?? (
+    //         <span style={{ color: "var(--color-stroke-muted)" }}>(None)</span>
+    //       )}
+    //       &nbsp;
+    //       <span
+    //         style={{
+    //           color: "var(--color-stroke-muted)",
+    //           fontSize: "var(--font-small)",
+    //         }}
+    //       >
+    //         [Selection]
+    //       </span>
+    //     </React.Fragment>
+    //   }
+    //   closeable
+    //   onClose={handleClose}
+    // >
+    <VerticalScroll>
+      <div
+        style={{
+          padding: "1rem",
+        }}
+      >
+        <Row>
+          <Column>
+            <SearchboxInput value={query} onChange={setQuery} clearable />
+          </Column>
+        </Row>
+        <ul
+          role="presentation"
           style={{
-            padding: "1rem",
+            paddingTop: "1rem",
           }}
         >
-          <Row>
-            <Column>
-              <SearchboxInput value={query} onChange={setQuery} clearable />
-            </Column>
-          </Row>
-          <ul
-            role="presentation"
-            style={{
-              paddingTop: "1rem",
-            }}
-          >
-            {filter.filter(selection).map((vertex) => {
-              return (
-                <li key={vertex.id}>
-                  <Accordian initialToggled={false}>
-                    <Accordian.Header>
-                      <span
-                        className="normal-text"
-                        title={vertex.label}
-                        style={{
-                          marginLeft: "-0.5em",
-                        }}
-                      >
-                        {/* TODO: Allow these vertex icons to be clicked on to focus on the vertex in the graph. */}
-                        <VertexIcon
-                          padded
-                          selected
-                          color={vertex.color as string}
-                        />{" "}
-                        {vertex.label}
-                      </span>
-                      <Accordian.Toggle caret />
-                    </Accordian.Header>
-                    <Accordian.Content>
-                      {renderPropertyTree(vertex.properties)}
-                    </Accordian.Content>
-                  </Accordian>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      </VerticalScroll>
-    </Tab>
+          {filter.filter(selection).map((vertex) => {
+            return (
+              <li key={vertex.id}>
+                <Accordian initialToggled={false}>
+                  <Accordian.Header>
+                    <span
+                      className="normal-text"
+                      title={vertex.label}
+                      style={{
+                        marginLeft: "-0.5em",
+                      }}
+                    >
+                      {/* TODO: Allow these vertex icons to be clicked on to focus on the vertex in the graph. */}
+                      <VertexIcon
+                        padded
+                        selected
+                        color={vertex.color as string}
+                      />{" "}
+                      {vertex.label}
+                    </span>
+                    <Accordian.Toggle caret />
+                  </Accordian.Header>
+                  <Accordian.Content>
+                    {renderPropertyTree(vertex.properties)}
+                  </Accordian.Content>
+                </Accordian>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    </VerticalScroll>
+    // </Tabs.Tab>
   );
 };
 

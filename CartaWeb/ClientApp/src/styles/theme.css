@@ -3,6 +3,7 @@
 body {
   --color-stroke-normal: #000000;
   --color-stroke-muted: #999999;
+  --color-stroke-notify: #9ddb9d;
   --color-stroke-info: #0064c2;
   --color-stroke-warning: #ffbb00;
   --color-stroke-error: #e63e38;
