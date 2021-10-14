@@ -76,19 +76,19 @@ namespace CartaWeb.Models.Data
             // Get all of the workflow templates for all of the projects from the API.
             // Using the user's API key, this should only return resources accessible to the user.
             HyperthoughtApi api = new HyperthoughtApi(controller.Request.Query["api"].ToString());
-            IList<HyperthoughtProject> projects = await api.Projects.GetProjectsAsync();
-            IList<Task<IList<HyperthoughtWorkflowTemplate>>> templateTasks = projects
-                .Select(project => api.Workflow.GetWorkflowTemplatesAsync(project))
+            IList<HyperthoughtWorkspace> workspaces = await api.Workspaces.GetWorkspacesAsync();
+            IList<Task<IList<HyperthoughtWorkflowTemplate>>> templateTasks = workspaces
+                .Select(workspace => api.Workflow.GetWorkflowTemplatesAsync(workspace))
                 .ToList();
 
             // Construct the resources list.
             // Each resource should be of the form "Project.Template"
             List<string> resources = new List<string>();
-            for (int k = 0; k < projects.Count; k++)
+            for (int k = 0; k < workspaces.Count; k++)
             {
                 foreach (HyperthoughtWorkflowTemplate template in await templateTasks[k])
                 {
-                    resources.Add($"{projects[k].Content.Title}.{template.Title}");
+                    resources.Add($"{workspaces[k].Name}.{template.Title}");
                 }
             }
             return resources;

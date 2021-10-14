@@ -135,35 +135,21 @@ namespace CartaCore.Integration.Hyperthought
 
             #region permissions
             Property permissions = new Property(Identity.Create("Permissions"));
-            Property projects = new Property(Identity.Create("Projects"));
-            Property groups = new Property(Identity.Create("Groups"));
+            Property workspaces = new Property(Identity.Create("Workspaces"));
             Property users = new Property(Identity.Create("Users"));
-            List<Property> projectSubproperties = new();
-            foreach (string key in workflow.Permissions.Projects.Keys)
+            List<Property> workspaceSubproperties = new();
+            foreach (string key in workflow.Permissions.Workspaces.Keys)
             {
-                projectSubproperties.Add
+                workspaceSubproperties.Add
                 (
                     new Property
                     (
                         Identity.Create(key),
-                        new object[] { workflow.Permissions.Projects[key] }
+                        new object[] { workflow.Permissions.Workspaces[key] }
                     )
                 );
             }
-            projectSubproperties.TrimExcess();
-            List<Property> groupSubproperties = new();
-            foreach (string key in workflow.Permissions.Groups.Keys)
-            {
-                groupSubproperties.Add
-                (
-                    new Property
-                    (
-                        Identity.Create(key),
-                        new object[] { workflow.Permissions.Groups[key] }
-                    )
-                );
-            }
-            groupSubproperties.TrimExcess();
+            workspaceSubproperties.TrimExcess();
             List<Property> userSubproperties = new();
             foreach (string key in workflow.Permissions.Users.Keys)
             {
@@ -179,8 +165,7 @@ namespace CartaCore.Integration.Hyperthought
             userSubproperties.TrimExcess();
             permissions.Subproperties = new Property[]
             {
-                projects,
-                groups,
+                workspaces,
                 users
             };
             subproperties.Add(permissions);

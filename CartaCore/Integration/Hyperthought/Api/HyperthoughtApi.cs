@@ -74,6 +74,11 @@ namespace CartaCore.Integration.Hyperthought.Api
         /// </summary>
         /// <value>The HyperThought workflow API.</value>
         public HyperthoughtWorkflowApi Workflow { get; private init; }
+        /// <summary>
+        /// Gets the HyperThought workspace API.
+        /// </summary>
+        /// <value>The HyperThought workspace API.</value>
+        public HyperthoughtWorkspacesApi Workspaces { get; private init; }
 
         /// <summary>
         /// The base URL from which the HyperThought instance is running.
@@ -113,6 +118,7 @@ namespace CartaCore.Integration.Hyperthought.Api
             Groups = new HyperthoughtGroupsApi(this);
             Files = new HyperthoughtFilesApi(this);
             Workflow = new HyperthoughtWorkflowApi(this);
+            Workspaces = new HyperthoughtWorkspacesApi(this);
         }
         /// <summary>
         /// Constructs an instance of the HyperThought API with a given API access key.

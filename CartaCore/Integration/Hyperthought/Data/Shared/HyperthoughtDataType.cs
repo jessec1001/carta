@@ -12,6 +12,21 @@ namespace CartaCore.Integration.Hyperthought.Data
     public enum HyperthoughtDataType
     {
         /// <summary>
+        /// The data is of unknown type.
+        /// </summary>
+        [EnumMember(Value = "")]
+        Unknown,
+        /// <summary>
+        /// The data is of type integer.
+        /// </summary>
+        [EnumMember(Value = "integer")]
+        Integer,
+        /// <summary>
+        /// The data is of type floating decimal.
+        /// </summary>
+        [EnumMember(Value = "decimal")]
+        Decimal,
+        /// <summary>
         /// The data is of type string.
         /// </summary>
         [EnumMember(Value = "string")]

@@ -10,15 +10,10 @@ namespace CartaCore.Integration.Hyperthought.Data
     public class HyperthoughtPermissions
     {
         /// <summary>
-        /// The projects that have access to this data.
+        /// The workspaces that have access to this data.
         /// </summary>
-        [JsonPropertyName("projects")]
-        public Dictionary<string, string> Projects { get; set; }
-        /// <summary>
-        /// The groups that have access to this data.
-        /// </summary>
-        [JsonPropertyName("groups")]
-        public Dictionary<string, string> Groups { get; set; }
+        [JsonPropertyName("workspaces")]
+        public Dictionary<string, string> Workspaces { get; set; }
         /// <summary>
         /// The users that have access to this data.
         /// </summary>
@@ -26,30 +21,29 @@ namespace CartaCore.Integration.Hyperthought.Data
         public Dictionary<string, HyperthoughtUserPermissions> Users { get; set; }
 
         /// <summary>
-        /// Creates a permissions object to allow a process to be editted by a particular project. 
+        /// Creates a permissions object to allow a process to be editted by a particular workspace. 
         /// </summary>
-        /// <param name="projectId">The unique ID of the project to allow modifications from.</param>
+        /// <param name="workspaceId">The unique ID of the workspace to allow modifications from.</param>
         /// <returns>The constructed permissions.</returns>
-        public static HyperthoughtPermissions FromProject(Guid projectId)
+        public static HyperthoughtPermissions FromWorkspace(Guid workspaceId)
         {
             return new HyperthoughtPermissions
             {
                 Users = new Dictionary<string, HyperthoughtUserPermissions>(),
-                Groups = new Dictionary<string, string>(),
-                Projects = new Dictionary<string, string>()
+                Workspaces = new Dictionary<string, string>()
                 {
-                    [projectId.ToString()] = "edit"
+                    [workspaceId.ToString()] = "edit"
                 }
             };
         }
         /// <summary>
-        /// Creates a permissions object to allow a process to be editted by a particular project.
+        /// Creates a permissions object to allow a process to be editted by a particular workspace.
         /// </summary>
-        /// <param name="project">The project to allow modifications from.</param>
+        /// <param name="workspace">The workspace to allow modifications from.</param>
         /// <returns>The constructed permissions.</returns>
-        public static HyperthoughtPermissions FromProject(HyperthoughtProject project)
+        public static HyperthoughtPermissions FromWorkspace(HyperthoughtWorkspace workspace)
         {
-            return HyperthoughtPermissions.FromProject(project.Content.PrimaryKey);
+            return HyperthoughtPermissions.FromWorkspace(workspace.PrimaryKey);
         }
     }
 }

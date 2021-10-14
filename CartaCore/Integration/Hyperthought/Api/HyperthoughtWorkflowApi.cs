@@ -19,15 +19,15 @@ namespace CartaCore.Integration.Hyperthought.Api
         /// <summary>
         /// Gets the workflow API URI at the HyperThought instance.
         /// </summary>
-        protected Uri GetApiUri() => new Uri(Api.GetBaseUri(), "workflow/");
+        protected Uri GetApiUri() => new(Api.GetBaseUri(), "workflow/");
         /// <summary>
         /// Gets the workflow processes URI at the HyperThought instance.
         /// </summary>
-        protected Uri GetProcessesUri() => new Uri(GetApiUri(), "process/");
+        protected Uri GetProcessesUri() => new(GetApiUri(), "process/");
         /// <summary>
         /// Gets a workflow process URI for a specified process ID at the HyperThought instance.
         /// </summary>
-        protected Uri GetProcessUri(Guid processId) => new Uri(GetProcessesUri(), $"{processId}/");
+        protected Uri GetProcessUri(Guid processId) => new(GetProcessesUri(), $"{processId}/");
         #endregion
 
         /// <summary>
@@ -41,24 +41,24 @@ namespace CartaCore.Integration.Hyperthought.Api
 
         #region Workflow Templates CRUD
         /// <summary>
-        /// Obtains the list of HyperThought workflow templates that exist within a HyperThought project specified by
-        /// project ID.
+        /// Obtains the list of HyperThought workflow templates that exist within a HyperThought workspace specified by
+        /// workspace ID.
         /// </summary>
-        /// <param name="projectId">The project ID.</param>
+        /// <param name="workspaceId">The workspace ID.</param>
         /// <returns>The list of workflow templates obtained from the HyperThought API.</returns>
-        public async Task<IList<HyperthoughtWorkflowTemplate>> GetWorkflowTemplatesAsync(Guid projectId)
+        public async Task<IList<HyperthoughtWorkflowTemplate>> GetWorkflowTemplatesAsync(Guid workspaceId)
         {
-            Uri requestUri = new Uri(GetProcessesUri(), $"templates/?project={projectId}");
+            Uri requestUri = new(GetProcessesUri(), $"templates/?workspaceId={workspaceId}");
             return await Api.GetJsonObjectAsync<IList<HyperthoughtWorkflowTemplate>>(requestUri);
         }
         /// <summary>
-        /// Obtains the list of HyperThought workflow templates that exist within a HyperThought project.
+        /// Obtains the list of HyperThought workflow templates that exist within a HyperThought workspace.
         /// </summary>
-        /// <param name="project">The project.</param>
+        /// <param name="workspace">The workspace.</param>
         /// <returns>The list of workflow templates obtained from the HyperThought API.</returns>
-        public async Task<IList<HyperthoughtWorkflowTemplate>> GetWorkflowTemplatesAsync(HyperthoughtProject project)
+        public async Task<IList<HyperthoughtWorkflowTemplate>> GetWorkflowTemplatesAsync(HyperthoughtWorkspace workspace)
         {
-            return await GetWorkflowTemplatesAsync(project.Content.PrimaryKey);
+            return await GetWorkflowTemplatesAsync(workspace.PrimaryKey);
         }
         #endregion
 
@@ -86,7 +86,7 @@ namespace CartaCore.Integration.Hyperthought.Api
         /// Obtains a HyperThought process specified by a dot-separated path.
         /// </summary>
         /// <param name="path">
-        /// The dot-separated path in the form of <c>"Project.Template.WorkflowA.WorkflowB.Process"</c> and so forth.
+        /// The dot-separated path in the form of <c>"Workspace.Template.WorkflowA.WorkflowB.Process"</c> and so forth.
         /// </param>
         /// <returns>The process obtained from the HyperThought API.</returns>
         public async Task<HyperthoughtProcess> GetProcessAsync(string path)
@@ -126,7 +126,7 @@ namespace CartaCore.Integration.Hyperthought.Api
         /// process from predecessors, successors, and the parent.
         /// </summary>
         /// <param name="path">
-        /// The dot-separated path in the form of <c>"Project.Template.WorkflowA.WorkflowB.Process"</c> and so forth.
+        /// The dot-separated path in the form of <c>"Workspace.Template.WorkflowA.WorkflowB.Process"</c> and so forth.
         /// </param>
         /// <returns>Nothing.</returns>
         public async Task DeleteProcessAsync(string path)
@@ -144,14 +144,14 @@ namespace CartaCore.Integration.Hyperthought.Api
         {
             // Construct the DTO before patching.
             HyperthoughtProcessContent content = process.Content;
-            HyperthoughtPatchProcess processDto = new HyperthoughtPatchProcess(content)
+            HyperthoughtPatchProcess processDto = new(content)
             {
                 Metadata = process.Metadata
             };
 
             // Make the PATCH request to update.
             Uri requestUri = GetProcessUri(process.Content.PrimaryKey);
-            await Api.PatchJsonObjectAsync<HyperthoughtProcess>(requestUri, process);
+            await Api.PatchJsonObjectAsync(requestUri, processDto);
 
             // Append new connections.
             await AppendProcessConnectionsAsync(process);
@@ -166,7 +166,7 @@ namespace CartaCore.Integration.Hyperthought.Api
         {
             // Construct the DTO before posting.
             HyperthoughtProcessContent content = process.Content;
-            HyperthoughtPostProcess processDto = new HyperthoughtPostProcess(content)
+            HyperthoughtPostProcess processDto = new(content)
             {
                 Permissions = process.Permissions
             };
@@ -305,7 +305,7 @@ namespace CartaCore.Integration.Hyperthought.Api
         /// <returns>The list of children processes obtained from the HyperThought API.</returns>
         public async Task<IList<HyperthoughtProcess>> GetWorkflowChildrenProcessesAsync(Guid workflowId)
         {
-            Uri requestUri = new Uri(GetProcessUri(workflowId), $"children/");
+            Uri requestUri = new(GetProcessUri(workflowId), $"children/");
             return await Api.GetJsonObjectAsync<IList<HyperthoughtProcess>>(requestUri);
         }
         /// <summary>
@@ -335,7 +335,7 @@ namespace CartaCore.Integration.Hyperthought.Api
         /// Obtains a process specified by a delimeter-separated path.
         /// </summary>
         /// <param name="path">
-        /// The delimiter-separated path in the form of <c>"Project.Template.WorkflowA.WorkflowB.Process"</c> and so
+        /// The delimiter-separated path in the form of <c>"Workspace.Template.WorkflowA.WorkflowB.Process"</c> and so
         /// forth.
         /// </param>
         /// <param name="delimiter">The text to specify a delimeter. Defaults to <c>"."</c>.</param>
@@ -349,18 +349,18 @@ namespace CartaCore.Integration.Hyperthought.Api
             string[] pathParts = path.Split(delimiter);
 
             // These path parts are required.
-            string projectPath = pathParts.Length > 0 ? pathParts[0] : null;
+            string workspacePath = pathParts.Length > 0 ? pathParts[0] : null;
             string templatePath = pathParts.Length > 1 ? pathParts[1] : null;
-            if (projectPath is null || templatePath is null) return null;
+            if (workspacePath is null || templatePath is null) return null;
 
-            // Get the project.
-            HyperthoughtProject project = (await Api.Projects.GetProjectsAsync())
-                .Where(project => project.Content.Title.ToLower() == projectPath.ToLower())
+            // Get the workspace.
+            HyperthoughtWorkspace workspace = (await Api.Workspaces.GetWorkspacesAsync())
+                .Where(workspace => workspace.Name.ToLower() == workspacePath.ToLower())
                 .FirstOrDefault();
-            if (project is null) return null;
+            if (workspace is null) return null;
 
             // Get the workflow template.
-            HyperthoughtWorkflowTemplate template = (await GetWorkflowTemplatesAsync(project))
+            HyperthoughtWorkflowTemplate template = (await GetWorkflowTemplatesAsync(workspace))
                 .Where(template => template.Title.ToLower() == templatePath.ToLower())
                 .FirstOrDefault();
             if (template is null) return null;
@@ -381,7 +381,7 @@ namespace CartaCore.Integration.Hyperthought.Api
         /// Obtains the UUID for a process specified by a delimeter-separated path.
         /// </summary>
         /// <param name="path">
-        /// The delimiter-separated path in the form of <c>"Project.Template.WorkflowA.WorkflowB.Process"</c> and so
+        /// The delimiter-separated path in the form of <c>"Workspace.Template.WorkflowA.WorkflowB.Process"</c> and so
         /// forth.
         /// </param>
         /// <param name="delimiter">The text to specify a delimeter. Defaults to <c>"."</c>.</param>

@@ -78,7 +78,8 @@ namespace CartaCore.Serialization.Json
                 if (reader.TokenType != JsonTokenType.String)
                     throw new JsonException();
 
-                bool success = Map.TryGetValue(reader.GetString(), out TEnum value);
+                string name = reader.GetString();
+                bool success = Map.TryGetValue(name, out TEnum value);
                 if (success)
                     return value;
                 else
