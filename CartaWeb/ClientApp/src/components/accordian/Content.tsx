@@ -2,6 +2,8 @@ import { FunctionComponent } from "react";
 import classNames from "classnames";
 import { useAccordian } from "./Context";
 
+import "./Accordian.css";
+
 /** The props used for the {@link Content} component. */
 interface ContentProps {}
 

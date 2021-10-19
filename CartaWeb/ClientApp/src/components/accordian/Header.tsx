@@ -1,6 +1,6 @@
 import { FunctionComponent } from "react";
 
-import "./accordian.css";
+import "./Accordian.css";
 
 /** The props used for the {@link Header} component. */
 interface HeaderProps {}

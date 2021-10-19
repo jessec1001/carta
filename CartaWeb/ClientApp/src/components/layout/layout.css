@@ -15,9 +15,6 @@
   flex-direction: column;
   flex-grow: 1;
 }
-.layout-content > * {
-  flex-grow: 1;
-}
 /* #endregion */
 
 /* #region Header/Footer */

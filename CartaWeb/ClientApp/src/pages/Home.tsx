@@ -13,11 +13,11 @@ import { Column, Row } from "components/structure";
 import { Loading, Text, Paragraph, Title } from "components/text";
 import { UserNeedsAuthentication } from "components/user";
 import { WorkspaceCarousel } from "components/workspace";
+import TextSpan from "components/text/TextSpan";
 
 /** A page-specific component to render the workspaces section when the user is unauthenticated. */
 const WorkspacesUnauthenticated: FunctionComponent = () => {
   return (
-    // TODO: Replace with section component.
     <section>
       {/* Render a simplified heading section for the workspaces area. */}
       <Row>
@@ -84,12 +84,11 @@ const WorkspacesAuthenticated: FunctionComponent = () => {
   };
 
   return (
-    // TODO: Replace with section component.
     <section>
       {/* Render a common heading section for the workspaces area. */}
       <Row>
         <Column>
-          <Text size="large">Workspaces</Text>
+          <TextSpan size="large">Workspaces</TextSpan>
           <IconAddButton onClick={navigateNewWorkspace} />
         </Column>
         <Column>

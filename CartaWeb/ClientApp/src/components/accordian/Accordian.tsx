@@ -5,7 +5,7 @@ import Header from "./Header";
 import Toggle from "./Toggle";
 import AccordianContext from "./Context";
 
-import "./accordian.css";
+import "./Accordian.css";
 
 /** The props used for the {@link Accordian} component. */
 interface AccordianProps {

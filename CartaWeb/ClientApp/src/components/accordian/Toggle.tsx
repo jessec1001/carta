@@ -2,7 +2,7 @@ import { FunctionComponent } from "react";
 import { CaretIcon } from "components/icons";
 import { useAccordian } from "./Context";
 
-import "./accordian.css";
+import "./Accordian.css";
 
 /** The props used for the {@link Toggle} component. */
 interface ToggleProps {
