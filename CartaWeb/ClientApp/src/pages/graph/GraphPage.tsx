@@ -2,7 +2,6 @@ import { Component } from "react";
 import queryString from "query-string";
 
 import { RouteComponentProps } from "react-router-dom";
-import { GraphToolbar } from "./graph/GraphToolbar";
 import { Property } from "library/api/data";
 import { GraphData } from "library/api/data/types";
 import { GraphWorkflow } from "library/api/workflow/types";
@@ -246,19 +245,6 @@ export default class GraphPage extends Component<
     )
       graph = this.state.graphs[this.state.selectedGraph].data;
 
-    return (
-      <div className="d-flex flex-column h-100">
-        <GraphToolbar
-          className="toolbar"
-          graph={graph}
-          onOpenGraph={this.handleRequestOpenGraph}
-          onCloseGraph={this.handleRequestCloseGraph}
-          onDuplicateGraph={this.handleRequestDuplicateGraph}
-          onCreateWorkflow={this.handleCreateWorkflow}
-          onApplyWorkflow={this.handleApplyWorkflow}
-          onCreateForm={this.handleCreateForm}
-        />
-      </div>
-    );
+    return null;
   }
 }

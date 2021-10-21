@@ -1,8 +1,4 @@
 import React, { Component, HTMLProps } from "react";
-
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCopy } from "@fortawesome/free-solid-svg-icons";
-
 export interface CopyButtonProps extends HTMLProps<HTMLDivElement> {
   contents: string;
   text?: string;
@@ -47,7 +43,7 @@ export default class CopyButton extends Component<
 
     return (
       <div {...rest} onClick={this.handleClick}>
-        {text} <FontAwesomeIcon icon={faCopy} />
+        {text}
       </div>
     );
   }

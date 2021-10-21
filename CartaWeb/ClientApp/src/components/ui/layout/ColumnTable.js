@@ -1,12 +1,11 @@
 import React, { Component } from "react";
-import { Table } from "reactstrap";
 
 export class ColumnTable extends Component {
   static displayName = ColumnTable.name;
 
   render() {
     return (
-      <Table>
+      <table>
         <thead>
           <tr className="d-flex">
             {this.props.headers.map((header) => (
@@ -27,7 +26,7 @@ export class ColumnTable extends Component {
             </tr>
           ))}
         </tbody>
-      </Table>
+      </table>
     );
   }
 }

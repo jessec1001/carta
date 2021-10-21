@@ -1,9 +1,9 @@
-import React, { Component, MouseEvent } from "react";
-import { CaretDownFill, CaretUpFill } from "react-bootstrap-icons";
+import { Component, MouseEvent } from "react";
 import { Property as GraphProperty } from "library/api/data";
 import { ObservationList } from "./ObservationList";
 import "./Property.css";
 import { PropertyList } from "./PropertyList";
+import { CaretIcon } from "components/icons";
 
 interface PropertyProps {
   property: GraphProperty;
@@ -50,8 +50,8 @@ export class PropertyItem extends Component<PropertyProps, PropertyState> {
               className="d-inline property-expand"
               onClick={this.handleExpand}
             >
-              {!this.state.expanded && <CaretDownFill />}
-              {this.state.expanded && <CaretUpFill />}
+              {!this.state.expanded && <CaretIcon direction="down" />}
+              {this.state.expanded && <CaretIcon direction="up" />}
             </div>
           </div>
         </div>

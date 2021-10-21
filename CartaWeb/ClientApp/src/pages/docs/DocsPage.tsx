@@ -1,5 +1,4 @@
 import { FunctionComponent } from "react";
-import { Container } from "reactstrap";
 import { GraphingDocs } from "./GraphingDocs";
 import { DataFormatsDocs } from "./DataFormatsDocs";
 import { ApiDocs } from "./ApiDocs";
@@ -39,7 +38,7 @@ const DocsPage: FunctionComponent = ({ children }) => {
 
   // Return the correct contents based on the topic.
   return (
-    <Container>
+    <div>
       <SidebarLayout side="left">
         <Sidebar>
           <Link to={`/docs/${Topic.Graphing}`}>Graphing</Link>
@@ -51,7 +50,7 @@ const DocsPage: FunctionComponent = ({ children }) => {
           {contents}
         </Mainbar>
       </SidebarLayout>
-    </Container>
+    </div>
   );
 };
 
