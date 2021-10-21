@@ -6,7 +6,7 @@ import "./Accordian.css";
 interface HeaderProps {}
 
 const Header: FunctionComponent<HeaderProps> = ({ children }) => {
-  return <div className="accordian-header">{children}</div>;
+  return <div className={"Accordian-Header"}>{children}</div>;
 };
 
 export default Header;

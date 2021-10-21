@@ -66,7 +66,7 @@ const Accordian: FunctionComponent<AccordianProps> & AccordianComposition = ({
     <AccordianContext.Provider
       value={{ toggled: actualToggled, setToggled: setToggled }}
     >
-      <div className="accordian">{children}</div>
+      <div className={"Accordian"}>{children}</div>
     </AccordianContext.Provider>
   );
 };

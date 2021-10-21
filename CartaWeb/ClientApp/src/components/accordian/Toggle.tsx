@@ -16,7 +16,7 @@ const Toggle: FunctionComponent<ToggleProps> = ({ caret, children }) => {
   const { toggled, actions } = useAccordian();
 
   return (
-    <div className="accordian-toggle" onClick={actions.toggle}>
+    <div className="Accordian-Toggle" onClick={actions.toggle}>
       {/* Render the children of this component normally. */}
       {children}
 

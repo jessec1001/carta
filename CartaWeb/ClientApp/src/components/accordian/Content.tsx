@@ -14,7 +14,7 @@ const Content: FunctionComponent<ContentProps> = ({ children }) => {
 
   // We return a component that should be rendered conditionally based on the toggled state.
   return (
-    <div className={classNames("accordian-content", { toggled })}>
+    <div className={classNames("Accordian-Content", { toggled })}>
       {children}
     </div>
   );

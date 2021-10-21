@@ -1,6 +1,7 @@
+import { Accordian } from "components/accordian";
 import { PageLayout } from "components/layout";
 import { TabBar, Tabs } from "components/tabs";
-import React, { FunctionComponent, useEffect, useState } from "react";
+import React, { FunctionComponent, useState } from "react";
 
 interface ContainerItem {
   id: number;
@@ -20,7 +21,15 @@ const Container: FunctionComponent = () => {
       id: 1,
       name: "Tab",
       status: "none",
-      element: "Test Panel #1",
+      element: (
+        <Accordian>
+          <Accordian.Header>
+            <span>Blah</span>
+            <Accordian.Toggle caret />
+          </Accordian.Header>
+          <Accordian.Content></Accordian.Content>
+        </Accordian>
+      ),
     },
     {
       id: 2,

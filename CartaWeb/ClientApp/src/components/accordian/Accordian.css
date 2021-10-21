@@ -1,23 +1,31 @@
-.accordian-content {
-  display: none;
-}
-.accordian-content.toggled {
-  display: block;
-}
-.accordian-header {
+.Accordian-Header {
+  /* The header separates and centers items using a flexbox. */
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
 }
-.accordian-toggle {
+
+.Accordian-Toggle {
+  /* We make sure that content inside the accordian toggler are centered. */
   display: flex;
   flex-direction: row;
   align-items: center;
 
+  /* We make the accordian toggler appear interactive. */
   color: var(--color-stroke-lowlight);
   cursor: pointer;
 }
-.accordian-toggle:hover {
+.Accordian-Toggle:hover {
+  /* We make the accordian toggler appear interactive. */
   color: var(--color-stroke-normal);
+}
+
+.Accordian-Content {
+  /* Accordian content is hidden by default. */
+  display: none;
+}
+.Accordian-Content.toggled {
+  /* Accordian content is shown when toggled. */
+  display: block;
 }
