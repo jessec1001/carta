@@ -1,0 +1,63 @@
+.WorkspaceTimeline {
+  list-style: none;
+}
+
+.WorkspaceTimeline-Item {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+}
+
+.WorkspaceTimeline-Trail {
+  position: relative;
+  display: block;
+  width: 1px;
+  margin: 0rem calc(0.5rem - 1px);
+
+  background: var(--color-stroke-normal);
+}
+.WorkspaceTimeline-Item:first-child .WorkspaceTimeline-Trail {
+  background: linear-gradient(
+    to bottom,
+    transparent 0.5rem,
+    var(--color-stroke-normal) 0.5rem
+  );
+}
+.WorkspaceTimeline-Item:last-child .WorkspaceTimeline-Trail {
+  background: linear-gradient(
+    to bottom,
+    var(--color-stroke-normal) 0.5rem,
+    transparent 0.5rem
+  );
+}
+.WorkspaceTimeline-Item:only-child .WorkspaceTimeline-Trail {
+  background: none;
+}
+.WorkspaceTimeline-Trail:not(.start):not(.end)::after {
+  content: "";
+  position: absolute;
+  top: 0.25rem;
+  left: -0.25rem;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 0.5rem;
+  background-color: var(--color-stroke-normal);
+}
+.WorkspaceTimeline-Trail.start {
+  height: 0.5rem;
+
+  background: linear-gradient(
+    to top,
+    var(--color-stroke-normal) 0%,
+    var(--color-stroke-hairline) 100%
+  );
+}
+.WorkspaceTimeline-Trail.end {
+  height: 0.5rem;
+
+  background: linear-gradient(
+    to bottom,
+    var(--color-stroke-normal) 0%,
+    var(--color-stroke-hairline) 100%
+  );
+}

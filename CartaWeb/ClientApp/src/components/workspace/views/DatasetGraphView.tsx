@@ -1,17 +1,9 @@
-import React, {
-  FunctionComponent,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
-import { GraphIcon } from "components/icons";
-import { Tabs } from "components/tabs";
+import { FunctionComponent, useContext, useEffect, useState } from "react";
 import { WorkspaceContext } from "context";
 import { GraphData } from "library/api";
 import { GraphVisualizer } from "components/visualizations";
 import { GraphWorkflow } from "library/api/workflow";
 import ViewContext from "components/views/ViewContext";
-import { Loading } from "components/text";
 
 /** The props used for the {@link DatasetGraphView} component. */
 interface DatasetGraphViewProps {

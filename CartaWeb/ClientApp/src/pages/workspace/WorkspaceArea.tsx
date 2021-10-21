@@ -113,14 +113,8 @@ const WorkspacePage: FunctionComponent = () => {
             }}
           >
             <WorkspaceToolbar />
-            <div
-              style={{
-                flexGrow: 1,
-              }}
-            >
-              <WorkspacePageDefaultLayout />
-              <ViewRenderer />
-            </div>
+            <WorkspacePageDefaultLayout />
+            <ViewRenderer />
             <div
               style={{
                 width: "100%",

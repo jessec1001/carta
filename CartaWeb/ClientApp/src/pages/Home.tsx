@@ -13,7 +13,6 @@ import { Column, Row } from "components/structure";
 import { Loading, Text, Paragraph, Title } from "components/text";
 import { UserNeedsAuthentication } from "components/user";
 import { WorkspaceCarousel } from "components/workspace";
-import TextSpan from "components/text/TextSpan";
 
 /** A page-specific component to render the workspaces section when the user is unauthenticated. */
 const WorkspacesUnauthenticated: FunctionComponent = () => {
@@ -88,8 +87,10 @@ const WorkspacesAuthenticated: FunctionComponent = () => {
       {/* Render a common heading section for the workspaces area. */}
       <Row>
         <Column>
-          <TextSpan size="large">Workspaces</TextSpan>
-          <IconAddButton onClick={navigateNewWorkspace} />
+          <Title level={2} size="large" align="middle">
+            Workspaces &nbsp;
+            <IconAddButton onClick={navigateNewWorkspace} />
+          </Title>
         </Column>
         <Column>
           <SearchboxInput value={query} onChange={setQuery} clearable />

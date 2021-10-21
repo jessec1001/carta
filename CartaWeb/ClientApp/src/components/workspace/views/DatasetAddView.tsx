@@ -18,7 +18,6 @@ import {
   TextFieldInput,
 } from "components/input";
 import { VerticalScroll } from "components/scroll";
-import { Tabs } from "components/tabs";
 import { Text, Loading } from "components/text";
 import { Column, Row } from "components/structure";
 import { ViewContext } from "components/views";

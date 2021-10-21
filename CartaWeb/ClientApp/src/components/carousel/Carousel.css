@@ -1,0 +1,58 @@
+.Carousel {
+  /* We need to display the carousel as a flexbox so we can correctly position arrows. */
+  position: relative;
+  display: flex;
+  flex-direction: row;
+}
+.Carousel.inner {
+  /* An inner carousel takes up exactly its parent container size. */
+  width: 100%;
+  height: 100%;
+
+  margin: 0rem;
+  padding: 0rem;
+}
+.Carousel.outer {
+  /* An outer carousel takes up space outside of its parent container. */
+  width: calc(100% + 3rem);
+  height: 100%;
+
+  margin: 0rem -1.5rem;
+  padding: 0rem;
+}
+
+.Carousel-Entries {
+  /* We display items horizontally in a maximum-width row. */
+  display: flex;
+  flex-direction: row;
+  flex-grow: 1;
+
+  /* The entries should be rendered inside a slightly padded box that can scroll horizontally. */
+  padding: 0.5rem;
+  margin: 0.5rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  /* Give a slight shadow to indicate enclosure. */
+  box-shadow: inset var(--shadow);
+  border-radius: var(--border-radius);
+}
+.Carousel-Item:not(:last-child) {
+  /* Give spacing between items. */
+  margin-right: 1rem;
+}
+
+.Carousel-Arrow {
+  /* The arrow should have a specific width so we can adjust precisely for outer sizing. */
+  display: block;
+  width: 1rem;
+
+  /* Make the arrows appear to be interactive. */
+  cursor: pointer;
+  align-self: center;
+  user-select: none;
+}
+.Carousel-Arrow:hover {
+  /* Make the arrows appear to be interactive. */
+  color: var(--color-primary);
+}

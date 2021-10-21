@@ -1,5 +1,4 @@
 import { FunctionComponent, useContext } from "react";
-import classNames from "classnames";
 import { UserContext } from "context";
 import {
   defaultWorkspaceDatasetName,
@@ -9,12 +8,7 @@ import {
   WorkspaceChangeType,
 } from "library/api";
 
-interface WorkspaceTimelineProps {
-  changes: WorkspaceChange[];
-
-  /** An optional limit to the number of changes to display. If not specified, */
-  limit?: number;
-}
+import "./WorkspaceTimeline.css";
 
 /**
  * Resolves the display name for a specific user. If the username matches the current user, "You" is substituted for
@@ -76,7 +70,9 @@ const resolveDatasetChangeType = (
 
 /** The props used for the {@link WorkspaceChangeItem} component. */
 interface WorkspaceChangeItemProps {
+  /** The list of all workspace changes. */
   changes: WorkspaceChange[];
+  /** The index of the change to render. */
   index: number;
 }
 
@@ -180,74 +176,49 @@ const WorkspaceChangeItem: FunctionComponent<WorkspaceChangeItemProps> = ({
   }
 
   return (
-    <>
+    <span>
       {resolveUserName(user, performingUserName)} {performedAction}
-    </>
+    </span>
   );
 };
 
+/** The props used for the {@link WorkspaceTimeline} component. */
+interface WorkspaceTimelineProps {
+  /** The list of workspace changes. The changes are assumed to be sorted from newest to oldest. */
+  changes: WorkspaceChange[];
+
+  /** An optional starting index (inclusive) for rendering the changes. Defaults to 0. */
+  indexStart?: number;
+  /** An optional ending index (exclusive) for rending the changes. Defaults to the length of the changes. */
+  indexEnd?: number;
+}
+
+/** A component that renders a list of changes to a workspace as  */
 const WorkspaceTimeline: FunctionComponent<WorkspaceTimelineProps> = ({
   changes,
-  limit,
+  indexStart,
+  indexEnd,
 }) => {
-  const limitedChanges =
-    limit === undefined ? changes : changes.slice(0, limit);
-  const includesAllChanges = limitedChanges.length === changes.length;
+  // Compute the defaults for the start and end indices.
+  indexStart = indexStart ?? 0;
+  indexEnd = indexEnd ?? changes.length;
+
+  // Get the list of changes that we are to render and whether to leave trails.
+  const limitedChanges = changes.slice(indexStart, indexEnd);
+  const trailingStart = indexStart > 0;
+  const trailingEnd = indexEnd < changes.length;
 
   return (
-    <>
-      <style>
-        {`
-            .timeline {
-              color: var(--color-stroke-lowlight);
-              list-style: none;
-              margin-left: 0.5rem;
-            }
-            .timeline .timeline-item {
-              position: relative;
-              padding-left: 0.5rem;
-            }
-            .timeline .timeline-item::after {
-              content: "";
-              position: absolute;
-              padding: 0.15rem;
-              width: 0.15rem;
-              height: 0.15rem;
-              background-color: var(--color-stroke-lowlight);
-              border-radius: 1rem;
-              left: -0.5rem;
-              top: 0%;
-              transform: translate(0%, 25%);
-            }
-            .timeline .timeline-item::before {
-              content: "";
-              position: absolute;
-              background-color: var(--color-stroke-lowlight);
-              left: -0.325rem;
-              top: 0.2rem;
-              width: 2px;
-              height: 100%;
-            }
-            .timeline .timeline-item:last-child::before {
-              background: linear-gradient(to bottom, var(--color-stroke-lowlight), transparent);
-            }
-            .timeline:not(.trailingEnd) .timeline-item:last-child::before {
-              background: none;
-            }
-          `}
-      </style>
-      <ol
-        className={classNames("timeline", {
-          trailingEnd: !includesAllChanges,
-        })}
-      >
-        {limitedChanges.map((change, index) => (
-          <li key={index} className="timeline-item">
-            <WorkspaceChangeItem changes={changes} index={index} />
-          </li>
-        ))}
-      </ol>
-    </>
+    <ol className={"WorkspaceTimeline"}>
+      {trailingStart && <div className={"WorkspaceTimeline-Trail start"} />}
+      {limitedChanges.map((change, index) => (
+        <li key={index} className="WorkspaceTimeline-Item">
+          <div className={"WorkspaceTimeline-Trail"} />
+          <WorkspaceChangeItem changes={changes} index={index} />
+        </li>
+      ))}
+      {trailingEnd && <div className={"WorkspaceTimeline-Trail end"} />}
+    </ol>
   );
 };
 

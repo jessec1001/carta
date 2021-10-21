@@ -39,7 +39,7 @@ const WorkspaceCard: FunctionComponent<
     : "never";
 
   return (
-    <Card {...props}>
+    <Card {...props} style={{ width: "16rem", flexShrink: 0 }}>
       <Card.Header>
         <Text size="medium">{workspace.name}</Text>
       </Card.Header>
@@ -47,7 +47,8 @@ const WorkspaceCard: FunctionComponent<
         {/* Render a timeline section for the workspace changes. */}
         <Text size="normal">Changes</Text>
         <Text size="small">
-          <WorkspaceTimeline changes={workspace.changes ?? []} limit={5} />
+          {/* We limit changes in the workspace card view to 5 entires. */}
+          <WorkspaceTimeline changes={workspace.changes ?? []} indexEnd={5} />
         </Text>
       </Card.Body>
       <Card.Footer>

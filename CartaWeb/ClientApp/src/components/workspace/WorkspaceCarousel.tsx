@@ -25,7 +25,7 @@ const WorkspaceCarousel: FunctionComponent<WorkspaceCarouselProps> = ({
   };
 
   return (
-    <Carousel sizing="outer">
+    <Carousel>
       {workspaces.map((workspace) => (
         <Carousel.Item key={workspace.id}>
           {/* We render each element of the carousel as a card. */}
