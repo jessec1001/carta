@@ -2,22 +2,31 @@ import { FunctionComponent, HTMLProps } from "react";
 import { Modify } from "types";
 import classNames from "classnames";
 
-import "./buttons.css";
+import "./BlockButton.css";
 
 /** The props used for the {@link BlockButton} component. */
 interface BlockButtonProps {
+  /** The type of button. This allows for the inclusion of the button in a form to not automatically submit the form. */
   type?: "submit" | "button";
-  color?: "primary" | "secondary";
+  /** The color of the button. Defaults to primary. */
+  color?:
+    | "notify"
+    | "info"
+    | "warning"
+    | "error"
+    | "muted"
+    | "primary"
+    | "secondary";
 }
 
 /** A simple button component that is filled visually. */
 const BlockButton: FunctionComponent<
   Modify<HTMLProps<HTMLButtonElement>, BlockButtonProps>
-> = ({ color, children, className, ...props }) => {
+> = ({ type = "button", color = "primary", children, className, ...props }) => {
   return (
     <button
-      className={classNames(className, "block-button", color ?? "primary")}
-      type="button"
+      className={classNames("BlockButton", color, className)}
+      type={type}
       {...props}
     >
       {children}
@@ -25,6 +34,5 @@ const BlockButton: FunctionComponent<
   );
 };
 
-// Export component and underlying types.
 export default BlockButton;
 export type { BlockButtonProps };

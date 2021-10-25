@@ -1,6 +1,7 @@
+import classNames from "classnames";
 import { FunctionComponent } from "react";
 
-import "./buttons.css";
+import "./ButtonGroup.css";
 
 /** The props used for the {@link ButtonGroup} component. */
 interface ButtonGroupProps {
@@ -13,9 +14,9 @@ const ButtonGroup: FunctionComponent<ButtonGroupProps> = ({
   connected,
   children,
 }) => {
-  if (connected)
-    return <div className="button-group connected">{children}</div>;
-  else return <div className="button-group">{children}</div>;
+  return (
+    <div className={classNames("ButtonGroup", { connected })}>{children}</div>
+  );
 };
 
 export default ButtonGroup;

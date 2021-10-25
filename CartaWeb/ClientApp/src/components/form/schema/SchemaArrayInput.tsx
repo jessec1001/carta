@@ -10,8 +10,8 @@ import {
 } from "library/schema";
 import {
   ButtonGroup,
-  IconAddButton,
-  IconRemoveButton,
+  IconButtonAdd,
+  IconButtonRemove,
 } from "components/buttons";
 import { EmptySymbol } from "components/symbols";
 import FormGroup from "../FormGroup";
@@ -182,8 +182,8 @@ const SchemaArrayItemInput: FunctionComponent<SchemaArrayItemInputProps> = ({
       <div>{children}</div>
       {(addable || removeable) && (
         <div style={{ flexGrow: 0 }}>
-          {addable && <IconAddButton onClick={onAdd} />}
-          {removeable && <IconRemoveButton onClick={onRemove} />}
+          {addable && <IconButtonAdd onClick={onAdd} />}
+          {removeable && <IconButtonRemove onClick={onRemove} />}
         </div>
       )}
     </ButtonGroup>

@@ -1,12 +1,21 @@
-/* #region Theme Definitions */
 /* This is the default theme for colors that do not change. */
 body {
+  --color-notify: #97e433;
+  --color-info: #2681d6;
+  --color-warning: #ffbb00;
+  --color-error: #e92c25;
+  --color-muted: #999999;
+
+  --color-stroke-dark: #222222;
+  --color-stroke-light: #dddddd;
+
+  --color-fill-normal: #ffffff;
+  --color-fill-primary: #53b853;
+  --color-fill-secondary: #c1c7c1;
+
   --color-stroke-normal: #000000;
-  --color-stroke-muted: #999999;
-  --color-stroke-notify: #9ddb9d;
-  --color-stroke-info: #0064c2;
-  --color-stroke-warning: #ffbb00;
-  --color-stroke-error: #e63e38;
+  --color-stroke-primary: #141414;
+  --color-stroke-secondary: #141414;
 
   /* TODO: Standardize this. */
   --color-fill-elevated: var(--color-fill-element);
@@ -74,4 +83,3 @@ body {
     var(--color-fill-element) 100%
   );
 }
-/* #endregion */

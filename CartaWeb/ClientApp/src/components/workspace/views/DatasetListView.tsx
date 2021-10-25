@@ -9,7 +9,7 @@ import React, {
 import { WorkspaceContext } from "context";
 import { WorkspaceDataset } from "library/api";
 import { ObjectFilter } from "library/search";
-import { IconAddButton } from "components/buttons";
+import { IconButtonAdd } from "components/buttons";
 import { DatabaseIcon, DatasetIcon } from "components/icons";
 import { SearchboxInput, TextFieldInput } from "components/input";
 import { VerticalScroll } from "components/scroll";
@@ -234,7 +234,7 @@ const DatasetListView: FunctionComponent = () => {
             <Column>
               <SearchboxInput onChange={setQuery} clearable />
             </Column>
-            <IconAddButton onClick={handleAdd} />
+            <IconButtonAdd onClick={handleAdd} />
           </Row>
         </div>
         {!datasets.value && <span>Loading</span>}

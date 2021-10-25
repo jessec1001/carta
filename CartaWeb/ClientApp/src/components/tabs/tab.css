@@ -11,7 +11,7 @@
 .tab {
   /* Give some spacing within the tab area to not feel cluttered. */
   position: relative;
-  padding: 0.5rem;
+  padding: 0.25rem;
   white-space: nowrap;
   z-index: 1;
 
@@ -45,19 +45,19 @@
 
 /* Tab Indicators */
 .tab.status-modified {
-  --status-color: var(--color-stroke-notify);
+  --status-color: var(--color-notify);
 }
 .tab.status-unmodified {
-  --status-color: var(--color-stroke-muted);
+  --status-color: var(--color-muted);
 }
 .tab.status-info {
-  --status-color: var(--color-stroke-info);
+  --status-color: var(--color-info);
 }
 .tab.status-warning {
-  --status-color: var(--color-stroke-warning);
+  --status-color: var(--color-warning);
 }
 .tab.status-error {
-  --status-color: var(--color-stroke-error);
+  --status-color: var(--color-error);
 }
 
 /* Close */

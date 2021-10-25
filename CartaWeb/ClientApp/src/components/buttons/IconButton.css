@@ -1,0 +1,26 @@
+.IconButton {
+  /* Use same width and height to produce a equal aspect ratio. Notice, size is relative to font size. */
+  width: 1.5em;
+  height: 1.5em;
+
+  /* Center the contents of the button. */
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+
+  /* Remove default button styling. */
+  outline: none;
+  border: none;
+
+  /* Make the button elevated and pop out of the page. */
+  background-color: var(--color-fill-element);
+  color: var(--color-stroke-lowlight);
+  box-shadow: var(--shadow-offset);
+}
+.IconButton.square {
+  border-radius: var(--border-radius);
+}
+.IconButton.circle {
+  border-radius: 1.5em;
+}

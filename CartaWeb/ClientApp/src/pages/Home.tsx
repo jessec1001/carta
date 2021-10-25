@@ -4,7 +4,7 @@ import { useAPI, useLoader, useStoredState } from "hooks";
 import { UserContext } from "context";
 import { Workspace } from "library/api";
 import { ObjectFilter } from "library/search";
-import { IconAddButton } from "components/buttons";
+import { IconButtonAdd } from "components/buttons";
 import { Link } from "components/common";
 import { SearchboxInput } from "components/input";
 import { AnimatedJumbotron } from "components/jumbotron";
@@ -89,7 +89,7 @@ const WorkspacesAuthenticated: FunctionComponent = () => {
         <Column>
           <Title level={2} size="large" align="middle">
             Workspaces &nbsp;
-            <IconAddButton onClick={navigateNewWorkspace} />
+            <IconButtonAdd onClick={navigateNewWorkspace} />
           </Title>
         </Column>
         <Column>

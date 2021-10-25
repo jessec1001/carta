@@ -1,6 +1,13 @@
-import IconAddButton from "./IconAddButton";
-import IconRemoveButton from "./IconRemoveButton";
+import IconButton from "./IconButton";
+import IconButtonAdd from "./IconButtonAdd";
+import IconButtonRemove from "./IconButtonRemove";
 import BlockButton from "./BlockButton";
 import ButtonGroup from "./ButtonGroup";
 
-export { IconAddButton, IconRemoveButton, BlockButton, ButtonGroup };
+export {
+  IconButton,
+  IconButtonAdd,
+  IconButtonRemove,
+  BlockButton,
+  ButtonGroup,
+};

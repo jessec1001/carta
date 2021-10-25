@@ -1,4 +1,4 @@
-import { IconAddButton } from "components/buttons";
+import { IconButtonAdd } from "components/buttons";
 import { WorkflowIcon } from "components/icons";
 import { SearchboxInput } from "components/input";
 import { VerticalScroll } from "components/scroll";
@@ -115,7 +115,7 @@ const WorkspaceToolboxView = () => {
           <Column>
             <SearchboxInput value={query} onChange={setQuery} clearable />
           </Column>
-          <IconAddButton onClick={handleAdd} />
+          <IconButtonAdd onClick={handleAdd} />
         </Row>
         <div
           style={{
