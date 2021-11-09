@@ -1,9 +1,9 @@
 /* This is the default theme for colors that do not change. */
 body {
   --color-notify: #97e433;
-  --color-info: #2681d6;
-  --color-warning: #ffbb00;
-  --color-error: #e92c25;
+  --color-info: #5aabf7;
+  --color-warning: #ffae00;
+  --color-error: #ce221c;
   --color-muted: #999999;
 
   --color-stroke-dark: #222222;
@@ -16,6 +16,7 @@ body {
   --color-stroke-normal: #000000;
   --color-stroke-primary: #141414;
   --color-stroke-secondary: #141414;
+  --color-stroke-hairline: #22222244;
 
   /* TODO: Standardize this. */
   --color-fill-elevated: var(--color-fill-element);

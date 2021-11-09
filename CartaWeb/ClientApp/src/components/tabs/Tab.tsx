@@ -1,9 +1,9 @@
 import { FunctionComponent, HTMLAttributes } from "react";
 import classNames from "classnames";
+import { Modify } from "types";
 import { useTabs } from "./Context";
 
-import "./tab.css";
-import { Modify } from "types";
+import "./Tab.css";
 
 /**
  * The props used for the {@link Tab} component.
@@ -27,31 +27,31 @@ interface TabProps {
 /** A component that renders a tab within a tab container with specified properties on the tab button. */
 const Tab: FunctionComponent<Modify<HTMLAttributes<HTMLDivElement>, TabProps>> =
   ({ id, status, closeable, onClose, onFocus, children, ...props }) => {
-    // We use the state of the tabs environment to perform some rendering and functions of this component.
-    const { activeTab, actions } = useTabs();
+    // We use the state of the tabs context to perform some rendering and functions of this component.
+    const { activeTab, actions: tabActions } = useTabs();
 
     // These event handlers update the tab state while emitting relevant events.
     const handleFocus = () => {
-      actions.set(id);
+      tabActions.set(id);
       onFocus && onFocus();
     };
     const handleClose = () => {
-      if (activeTab === id) actions.clear();
+      if (activeTab === id) tabActions.clear();
       onClose && onClose();
     };
 
     return (
       <div
-        className={classNames("tab", `status-${status}`, {
+        className={classNames("Tab", `status-${status}`, {
           active: activeTab === id,
           closeable: closeable,
         })}
         onClick={handleFocus}
         {...props}
       >
-        {children}
+        <div className="Tab-Content">{children}</div>
         {closeable && (
-          <span className="tab-close" onClick={handleClose}>
+          <span className="Tab-Close" onClick={handleClose}>
             ×
           </span>
         )}

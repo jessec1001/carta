@@ -30,17 +30,20 @@
 .text.color-normal {
   color: var(--color-stroke-normal);
 }
-.text.color-muted {
-  color: var(--color-stroke-muted);
+.text.color-notify {
+  color: var(--color-notify);
 }
 .text.color-info {
-  color: var(--color-stroke-info);
+  color: var(--color-info);
 }
 .text.color-warning {
-  color: var(--color-stroke-warning);
+  color: var(--color-warning);
 }
 .text.color-error {
-  color: var(--color-stroke-error);
+  color: var(--color-error);
+}
+.text.color-muted {
+  color: var(--color-muted);
 }
 
 /* Text alignment */

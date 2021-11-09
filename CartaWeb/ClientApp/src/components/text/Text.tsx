@@ -13,7 +13,8 @@ interface TextProps {
   /** The size of the text to render. If not specified, defaults to the inherited style. */
   size?: "small" | "normal" | "medium" | "large" | "title";
   /** The color of the text to render. If not specified, defaults to the inherited style. */
-  color?: "normal" | "muted" | "info" | "warning" | "error";
+  // TODO: Make this some standard color type.
+  color?: "normal" | "notify" | "info" | "warning" | "error" | "muted";
   /** The horizontal alignment of the text to render. If not specified, defaults to the inherited style. */
   justify?: "left" | "right" | "center";
   /** The vertical alignment of the text to render. If not specified, defaults to the inherited style. */

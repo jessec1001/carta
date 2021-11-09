@@ -2,7 +2,7 @@ import classNames from "classnames";
 import { FunctionComponent } from "react";
 import { useTabs } from "./Context";
 
-import "./tab.css";
+import "./Panel.css";
 
 /** The props used for the {@link Panel} component. */
 interface PanelProps {
@@ -18,7 +18,7 @@ const Panel: FunctionComponent<PanelProps> = ({ id, children }) => {
 
   // We return a component that should be rendered conditionally based on the active tab.
   return (
-    <div className={classNames("tab-panel", { hidden: !currentTab })}>
+    <div className={classNames("TabPanel", { hidden: !currentTab })}>
       {children}
     </div>
   );

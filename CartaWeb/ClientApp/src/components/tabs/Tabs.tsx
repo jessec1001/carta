@@ -3,6 +3,8 @@ import { useControllableState } from "hooks";
 import TabsContext from "./Context";
 import Panel from "./Panel";
 import Tab from "./Tab";
+import Area from "./Area";
+import Bar from "./Bar";
 
 /** The props used for the {@link Tabs} component. */
 interface TabsProps {
@@ -16,10 +18,14 @@ interface TabsProps {
 
 /**
  * Defines the composition of the compound {@link Tabs} component.
+ * @borrows Area as Area
+ * @borrows Bar as Bar
  * @borrows Tab as Tab
  * @borrows Panel as Panel
  */
 interface TabsComposition {
+  Area: typeof Area;
+  Bar: typeof Bar;
   Tab: typeof Tab;
   Panel: typeof Panel;
 }
@@ -70,6 +76,8 @@ const Tabs: FunctionComponent<TabsProps> & TabsComposition = ({
     </TabsContext.Provider>
   );
 };
+Tabs.Area = Area;
+Tabs.Bar = Bar;
 Tabs.Tab = Tab;
 Tabs.Panel = Panel;
 

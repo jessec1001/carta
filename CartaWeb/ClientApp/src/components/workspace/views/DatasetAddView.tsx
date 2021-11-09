@@ -41,7 +41,7 @@ const renderError = (error: ApiException) => {
         error.data.source.toLowerCase() === "HyperThought".toLowerCase()
       )
         return (
-          <Text>
+          <Text color="error">
             You need to be authenticated with HyperThought&trade; to load these
             datasets. To access this data, add your HyperThought&trade; API key
             to the integration section on your{" "}
@@ -185,6 +185,7 @@ const DatasetAddView: FunctionComponent = ({ children }) => {
   };
 
   return (
+    // TODO: Cleanup.
     // Render the view itself within a tab so it can be easily added to container views.
     // <Tabs.Tab
     //   id={0}

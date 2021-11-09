@@ -1,0 +1,55 @@
+/* Base Styling */
+.Tab {
+  /* Give some spacing within the tab area to not feel cluttered. */
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
+  padding: 0.25em;
+  white-space: nowrap;
+  z-index: 0;
+
+  /* We setup a variable for color that dictates the status. */
+  --status-color: transparent;
+
+  /* Tabs should appear to be interactive. */
+  cursor: pointer;
+}
+.Tab::after {
+  content: "";
+  position: absolute;
+  display: block;
+  background-color: transparent;
+}
+.Tab.active::after {
+  background-color: var(--color-fill-element);
+}
+
+/* Make the tab content take up as much room as necessary. */
+.Tab .Tab-Content {
+  flex-grow: 1;
+}
+.Tab.closeable .Tab-Content {
+  margin-right: 0.25em;
+}
+
+/* Make the tab close button red. */
+.Tab-Close:hover {
+  color: #ad1414;
+}
+
+/* Tab Indicators */
+.Tab.status-modified {
+  --status-color: var(--color-notify);
+}
+.Tab.status-unmodified {
+  --status-color: var(--color-muted);
+}
+.Tab.status-info {
+  --status-color: var(--color-info);
+}
+.Tab.status-warning {
+  --status-color: var(--color-warning);
+}
+.Tab.status-error {
+  --status-color: var(--color-error);
+}

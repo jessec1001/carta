@@ -1,0 +1,39 @@
+/* The colors of the tab bar should make it de-emphasized as a menu. */
+.TabBar {
+  background-color: var(--color-fill-element);
+  color: var(--color-stroke-lowlight);
+}
+
+/* Make the tab bar scrollable without ruining the active tab effect. */
+.TabArea.horizontal .TabBar {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+.TabArea.vertical .TabBar {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.TabArea.horizontal .TabBar-Wrapper {
+  /* A horizontal tab bar displays tabs in a row. */
+  display: inline-flex;
+  flex-direction: row;
+  min-width: 100%;
+  border-bottom: 0.5px solid var(--color-stroke-hairline);
+}
+.TabArea.vertical .TabBar-Wrapper {
+  /* A vertical tab bar displays tabs in a column. */
+  display: inline-flex;
+  flex-direction: column;
+  min-height: 100%;
+  border-right: 0.5px solid var(--color-stroke-hairline);
+}
+
+/* Tab bars should not have visible scroll bars. */
+.TabBar::-webkit-scrollbar {
+  display: none;
+}
+.TabBar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

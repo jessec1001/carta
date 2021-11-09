@@ -22,18 +22,18 @@ hr {
 
 /* Scrollbars should be consistent and prettier. */
 *::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
+  width: 2px;
+  height: 2px;
 }
 *::-webkit-scrollbar-track {
   background-color: var(--color-fill-element-lowlight);
 }
 *::-webkit-scrollbar-thumb {
   background-color: var(--color-primary-disabled);
-  border-radius: 4px;
+  border-radius: 2px;
 }
 html {
-  scrollbar-width: thin;
+  scrollbar-width: 2px;
   scrollbar-color: var(--color-fill-element-lowlight) var(--color-primary);
 }
 

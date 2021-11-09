@@ -9,6 +9,7 @@ import { useLocation } from "react-router";
 import { Workspace, WorkspaceAPI } from "library/api";
 import { PageLayout } from "components/layout";
 import {
+  DatasetAddView,
   DatasetListView,
   WorkspaceToolboxView,
 } from "components/workspace/views";
@@ -38,6 +39,7 @@ const WorkspacePageDefaultLayout: FunctionComponent = () => {
       initializedRef.current = true;
       actions.addElementToContainer(rootId, <DatasetListView />);
       actions.addElementToContainer(rootId, <WorkspaceToolboxView />);
+      actions.addElementToContainer(rootId, <DatasetAddView />);
     }
   }, [rootId, actions]);
 

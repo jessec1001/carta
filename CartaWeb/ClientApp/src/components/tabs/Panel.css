@@ -1,0 +1,8 @@
+.TabPanel {
+  width: 100%;
+  height: 100%;
+}
+.TabPanel.hidden {
+  /* We hide the tab panel using styling rather than with script so state is not lost. */
+  display: none;
+}

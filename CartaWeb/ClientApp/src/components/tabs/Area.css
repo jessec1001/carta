@@ -1,0 +1,67 @@
+/* Base area styling fills up the parent element and enables the tab bar and tab panel to fill space correctly. */
+.TabArea.horizontal {
+  width: 100%;
+  height: 100%;
+
+  display: flex;
+  flex-direction: column;
+}
+.TabArea.vertical {
+  width: 100%;
+  height: 100%;
+
+  display: flex;
+  flex-direction: row;
+}
+
+.TabArea .TabBar {
+  flex: 0 0 auto;
+}
+.TabArea .TabPanel {
+  flex: 1 1 auto;
+}
+
+/* The orientation of the tab bar affects the styling of the individual tabs. */
+.TabArea.horizontal .Tab {
+  /* Force tabs to have some minimum size. */
+  min-width: 6rem;
+  min-height: initial;
+
+  /* Add a division between tabs. */
+  border-right: 0.5px solid var(--color-stroke-hairline);
+
+  /* Tabs should have an indicator border at the top to display a status. */
+  border-top: 2px solid var(--status-color);
+}
+.TabArea.vertical .Tab {
+  /* Force tabs to have some minimum size. */
+  min-height: 12ch;
+  min-width: initial;
+
+  /* Add a division between tabs. */
+  border-top: 0.5px solid var(--color-stroke-hairline);
+
+  /* Tabs should have an indicator border at the top to display a status. */
+  border-right: 2px solid var(--status-color);
+
+  /* Vertical tab text should be vertical. */
+  text-orientation: mixed;
+  writing-mode: vertical-lr;
+  transform: rotate(180deg);
+}
+
+/* Active tabs need to have their overlay (blends with tab area) correctly positioned based on orientation. */
+.TabArea.horizontal .Tab::after {
+  left: 0;
+  right: initial;
+  top: 100%;
+  height: 1px;
+  width: 100%;
+}
+.TabArea.vertical .Tab::after {
+  left: initial;
+  right: 100%;
+  top: 0;
+  height: 100%;
+  width: 1px;
+}
