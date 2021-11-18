@@ -24,6 +24,9 @@ const WorkspaceWrapper: FunctionComponent<WorkspaceWrapperProps> = ({
     (async () => {
       const workspace = await workspaceAPI.getWorkspace(id);
       setWorkspace(workspace);
+
+      // TODO: Is there a better place for this?
+      document.title = `${workspace.name} - Carta`;
     })();
   }, [id, workspaceAPI]);
 

@@ -98,9 +98,14 @@ const WorkspacesAuthenticated: FunctionComponent = () => {
       </Row>
 
       {/* If workspaces were retrieved, render them in a carousel. */}
-      {processedWorkspaces && (
-        <WorkspaceCarousel workspaces={processedWorkspaces} />
-      )}
+      {processedWorkspaces &&
+        (processedWorkspaces.length > 0 ? (
+          <WorkspaceCarousel workspaces={processedWorkspaces} />
+        ) : (
+          <Text color="muted">
+            No workspaces yet. Click the '+' button to create one!
+          </Text>
+        ))}
 
       {/* If an error occurred, render it in error colored text. */}
       {error && <Text color="error">Error occurred: {error.message}</Text>}

@@ -4,8 +4,10 @@ import {
   DropdownItem,
   DropdownToggler,
 } from "components/dropdown";
+import { Text } from "components/text";
 import { LoadingIcon } from "components/icons";
 import { useViews } from "components/views";
+import { WorkspaceContext } from "context";
 import { GraphData } from "library/api";
 import MetaApi, { MetaTypeEntry } from "library/api/meta";
 import React, {
@@ -15,11 +17,12 @@ import React, {
   useState,
 } from "react";
 import { DatasetAddView, DatasetListView } from ".";
-import { WorkspaceToolboxView } from "./views";
+import { WorkspaceSettingsView, WorkspaceToolboxView } from "./views";
 import DatasetPropertiesView from "./views/DatasetPropertiesView";
 import VisualizerOperationView from "./views/VisualizerOperationView";
 import VisualizerSelectionView from "./views/VisualizerSelectionView";
 import WorkflowCreateView from "./views/WorkflowCreateView";
+import SettingsIcon from "components/icons/SettingsIcon";
 
 // TODO: Load actors and selectors along with the workspace (in workspace wrapper/context).
 // TODO: Use <kbd /> tag to specify keyboard shortcuts.
@@ -64,6 +67,8 @@ const renderGroupedMenu = (
 
 const WorkspaceToolbar: FunctionComponent = () => {
   const { rootId, actions } = useViews();
+  // TODO: Put workspace context in a wrapped hook.
+  const { workspace } = useContext(WorkspaceContext);
 
   const [actors, setActors] = useState<
     Record<string, Record<string, MetaTypeEntry>> | undefined
@@ -118,94 +123,132 @@ const WorkspaceToolbar: FunctionComponent = () => {
     <div
       style={{
         display: "flex",
-        flexDirection: "row",
-        padding: "0.5rem",
+        flexDirection: "column",
+        // padding: "0.5rem",
         backgroundColor: "var(--color-fill-element)",
         boxShadow: "var(--shadow)",
       }}
     >
-      <Dropdown side="bottom-right">
-        <DropdownToggler>View</DropdownToggler>
-        <DropdownArea>
-          <div className="toolbar-group-label">Datasets</div>
-          <DropdownItem
-            onClick={() => {
-              actions.addElementToContainer(rootId, <DatasetListView />);
-            }}
-          >
-            Dataset List
-          </DropdownItem>
-          <DropdownItem
-            onClick={() => {
-              actions.addElementToContainer(rootId, <DatasetAddView />);
-            }}
-          >
-            Dataset Import{" "}
-          </DropdownItem>
-          <DropdownItem
-            onClick={() => {
-              actions.addElementToContainer(rootId, <DatasetPropertiesView />);
-            }}
-          >
-            Dataset Properties
-          </DropdownItem>
-          <div className="toolbar-group-label">Workflows</div>
-          <DropdownItem
-            onClick={() => {
-              actions.addElementToContainer(rootId, <WorkflowCreateView />);
-            }}
-          >
-            Workflow Create
-          </DropdownItem>
-          <DropdownItem
-            onClick={() => {
-              actions.addElementToContainer(rootId, <WorkspaceToolboxView />);
-            }}
-          >
-            Workflow Toolbox
-          </DropdownItem>
-          <div className="toolbar-group-label">Visualizers</div>
-          <DropdownItem
-            onClick={() => {
-              actions.addElementToContainer(
-                rootId,
-                <VisualizerSelectionView />
-              );
-            }}
-          >
-            Visualizer Selection
-          </DropdownItem>
-        </DropdownArea>
-      </Dropdown>
-      {graph && (
-        <React.Fragment>
-          <Dropdown side="bottom-right">
-            <DropdownToggler>
-              Selection {loading && <LoadingIcon padded animated />}
-            </DropdownToggler>
-            {selectors && (
-              <DropdownArea>
-                {renderGroupedMenu(selectors, "selector", (element) =>
-                  actions.addElementToContainer(rootId, element)
-                )}
-              </DropdownArea>
-            )}
-          </Dropdown>
-          <Dropdown side="bottom-right">
-            <DropdownToggler>
-              Action {loading && <LoadingIcon padded animated />}
-            </DropdownToggler>
-            {!loading && <DropdownArea></DropdownArea>}
-            {actors && (
-              <DropdownArea>
-                {renderGroupedMenu(actors, "actor", (element) =>
-                  actions.addElementToContainer(rootId, element)
-                )}
-              </DropdownArea>
-            )}
-          </Dropdown>
-        </React.Fragment>
+      {workspace && (
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "0.5rem 0.5rem 0rem 0.5rem",
+          }}
+        >
+          <Text size="medium">{workspace.name}</Text>
+          <Text size="normal">
+            <span
+              style={{
+                cursor: "pointer",
+              }}
+              onClick={() => {
+                actions.addElementToContainer(
+                  rootId,
+                  <WorkspaceSettingsView />
+                );
+              }}
+            >
+              <SettingsIcon />
+            </span>
+          </Text>
+        </div>
       )}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "row",
+        }}
+      >
+        <Dropdown side="bottom-right">
+          <DropdownToggler>View</DropdownToggler>
+          <DropdownArea>
+            <div className="toolbar-group-label">Datasets</div>
+            <DropdownItem
+              onClick={() => {
+                actions.addElementToContainer(rootId, <DatasetListView />);
+              }}
+            >
+              Dataset List
+            </DropdownItem>
+            <DropdownItem
+              onClick={() => {
+                actions.addElementToContainer(rootId, <DatasetAddView />);
+              }}
+            >
+              Dataset Import{" "}
+            </DropdownItem>
+            <DropdownItem
+              onClick={() => {
+                actions.addElementToContainer(
+                  rootId,
+                  <DatasetPropertiesView />
+                );
+              }}
+            >
+              Dataset Properties
+            </DropdownItem>
+            <div className="toolbar-group-label">Workflows</div>
+            <DropdownItem
+              onClick={() => {
+                actions.addElementToContainer(rootId, <WorkflowCreateView />);
+              }}
+            >
+              Workflow Create
+            </DropdownItem>
+            <DropdownItem
+              onClick={() => {
+                actions.addElementToContainer(rootId, <WorkspaceToolboxView />);
+              }}
+            >
+              Workflow Toolbox
+            </DropdownItem>
+            <div className="toolbar-group-label">Visualizers</div>
+            <DropdownItem
+              onClick={() => {
+                actions.addElementToContainer(
+                  rootId,
+                  <VisualizerSelectionView />
+                );
+              }}
+            >
+              Visualizer Selection
+            </DropdownItem>
+          </DropdownArea>
+        </Dropdown>
+        {graph && (
+          <React.Fragment>
+            <Dropdown side="bottom-right">
+              <DropdownToggler>
+                Selection {loading && <LoadingIcon padded animated />}
+              </DropdownToggler>
+              {selectors && (
+                <DropdownArea>
+                  {renderGroupedMenu(selectors, "selector", (element) =>
+                    actions.addElementToContainer(rootId, element)
+                  )}
+                </DropdownArea>
+              )}
+            </Dropdown>
+            <Dropdown side="bottom-right">
+              <DropdownToggler>
+                Action {loading && <LoadingIcon padded animated />}
+              </DropdownToggler>
+              {!loading && <DropdownArea></DropdownArea>}
+              {actors && (
+                <DropdownArea>
+                  {renderGroupedMenu(actors, "actor", (element) =>
+                    actions.addElementToContainer(rootId, element)
+                  )}
+                </DropdownArea>
+              )}
+            </Dropdown>
+          </React.Fragment>
+        )}
+      </div>
     </div>
   );
 };
