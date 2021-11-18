@@ -8,6 +8,8 @@ interface OptionInputProps {
   value?: any;
   /** The textual alias showed in some components such as comboboxes. */
   alias?: string;
+  /** Whether this option input is actually selectable. */
+  unselectable?: boolean;
   /** The event handler for when an option is selected. */
   onClick?: (value: any) => void;
 }

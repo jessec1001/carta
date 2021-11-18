@@ -10,6 +10,7 @@ import { UserIcon } from "components/icons";
 import { JoinContainer, JoinInputLabel } from "components/join";
 import ComboboxInput from "../general/ComboboxInput";
 import OptionInput from "../general/OptionInput";
+import { Loading } from "components/text";
 
 /**
  * Converts a query string entered by the user to a request for user information.
@@ -95,7 +96,7 @@ const UserInput: FunctionComponent<UserInputProps> = ({
 
   // We store the user query and its results.
   const [query, setQuery] = useState("");
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<User[] | null>(null);
 
   // We use a sequential request maker to update the queried users.
   const makeUserRequest = useSequentialRequest<User[]>(setUsers);
@@ -122,28 +123,38 @@ const UserInput: FunctionComponent<UserInputProps> = ({
         onTextChanged={setQuery}
         onValueChanged={setValue}
       >
+        {/* If the users have not loaded yet, display a loading symbol. */}
+        {!users && (
+          <OptionInput unselectable>
+            <Loading />
+          </OptionInput>
+        )}
+
         {/* If there are no users found in the search, display as such. Notice that a non-value option works here. */}
-        {users.length === 0 && <OptionInput>No users found</OptionInput>}
+        {users && users.length === 0 && (
+          <OptionInput unselectable>No users found</OptionInput>
+        )}
 
         {/* Each combobox option displays as `{firstName} {lastName} (@{userName})`. */}
-        {users.map((user) => {
-          // We need to convert the user format the from User API into the format for the Workspace API.
-          const value: WorkspaceUser = {
-            userInformation: {
-              id: user.id,
-              name: user.name,
-            },
-          };
+        {users &&
+          users.map((user) => {
+            // We need to convert the user format the from User API into the format for the Workspace API.
+            const value: WorkspaceUser = {
+              userInformation: {
+                id: user.id,
+                name: user.name,
+              },
+            };
 
-          return (
-            <OptionInput key={user.id} value={value} alias={`@${user.name}`}>
-              {user.firstName} {user.lastName}{" "}
-              <span style={{ color: "var(--color-stroke-lowlight)" }}>
-                (@{user.name})
-              </span>
-            </OptionInput>
-          );
-        })}
+            return (
+              <OptionInput key={user.id} value={value} alias={`@${user.name}`}>
+                {user.firstName} {user.lastName}{" "}
+                <span style={{ color: "var(--color-stroke-lowlight)" }}>
+                  (@{user.name})
+                </span>
+              </OptionInput>
+            );
+          })}
       </ComboboxInput>
     </JoinContainer>
   );

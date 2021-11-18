@@ -82,7 +82,9 @@ const OptionSelectorInput: FunctionComponent<OptionSelectorInputProps> = ({
             // Notice the use of the mouse down event here because it fires before focus/blur events needed on combobox.
             <li
               key={childIndex}
-              onMouseDown={() => handleSelect(child.props.value)}
+              onMouseDown={() =>
+                !child.props.unselectable && handleSelect(child.props.value)
+              }
               onMouseOver={() => setIndex(childIndex)}
               className={classNames("input-option", {
                 selected: childIndex === index,
