@@ -1,26 +1,24 @@
 import { BlockButton } from "components/buttons";
 import { FormGroup } from "components/form";
-import { WorkflowIcon } from "components/icons";
 import { TextFieldInput } from "components/input";
-import { Tabs } from "components/tabs";
 import { Text } from "components/text";
-import ViewContext from "components/views/ViewContext";
+import { useViews } from "components/views";
 import { WorkspaceContext } from "context";
 import { WorkspaceWorkflow } from "library/api";
-import React, { FunctionComponent, useContext, useState } from "react";
+import { FunctionComponent, useContext, useState } from "react";
 
 const WorkspaceCreateView: FunctionComponent = () => {
-  const { viewId, actions } = useContext(ViewContext);
+  const { viewId, actions } = useViews();
   const { workflows } = useContext(WorkspaceContext);
 
   const [name, setName] = useState<string>("");
 
   const handleCreate = () => {
     workflows.CRUD.add({ name: name } as WorkspaceWorkflow);
-    actions.removeElement(viewId);
+    actions.removeView(viewId);
   };
   const handleClose = () => {
-    actions.removeElement(viewId);
+    actions.removeView(viewId);
   };
 
   return (

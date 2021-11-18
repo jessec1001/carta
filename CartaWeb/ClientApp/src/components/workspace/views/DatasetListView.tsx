@@ -17,12 +17,12 @@ import { Column, Row } from "components/structure";
 import { Tabs } from "components/tabs";
 import DatasetAddView from "./DatasetAddView";
 import DatasetGraphView from "./DatasetGraphView";
-import ViewContext from "components/views/ViewContext";
+import { useViews } from "components/views";
 
 /** A component that renders a list of datasets that can be searched and sorted. */
 const DatasetListView: FunctionComponent = () => {
   // We use these contexts to handle opening and closing views and managing data.
-  const { viewId, rootId, actions } = useContext(ViewContext);
+  const { viewId, rootId, actions } = useViews();
   const parentView = actions.getParentView(viewId);
   const { datasets } = useContext(WorkspaceContext);
   const elementRef = useRef<HTMLDivElement>(null);
@@ -62,7 +62,7 @@ const DatasetListView: FunctionComponent = () => {
     [actions, rootId]
   );
   const handleClose = useCallback(() => {
-    actions.removeElement(viewId);
+    actions.removeView(viewId);
   }, [actions, viewId]);
 
   /**
@@ -221,7 +221,7 @@ const DatasetListView: FunctionComponent = () => {
           padding: "0rem",
         }}
         onClick={() => {
-          actions.setActiveView(viewId);
+          actions.addHistory(viewId);
         }}
         ref={elementRef}
       >

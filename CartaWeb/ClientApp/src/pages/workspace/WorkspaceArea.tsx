@@ -14,12 +14,11 @@ import {
   WorkspaceToolboxView,
 } from "components/workspace/views";
 import WorkspaceWrapper from "components/workspace/WorkspaceWrapper";
-import ViewContext from "components/views/ViewContext";
-import ViewContainer from "components/views/ViewContainer";
-import ViewRenderer from "components/views/ViewRenderer";
 import WorkspaceToolbar from "components/workspace/WorkspaceToolbar";
 import { Loading } from "components/text";
 import { useStoredState } from "hooks";
+import { useViews } from "components/views";
+import { Views } from "components/views";
 
 const tips: string[] = [
   "Every operation in Carta does not mutate input data.",
@@ -31,15 +30,13 @@ const tips: string[] = [
 ];
 
 const WorkspacePageDefaultLayout: FunctionComponent = () => {
-  const { rootId, actions } = useContext(ViewContext);
+  const { rootId, actions } = useViews();
   const initializedRef = useRef<boolean>(false);
 
   useEffect(() => {
     if (!initializedRef.current) {
       initializedRef.current = true;
       actions.addElementToContainer(rootId, <DatasetListView />);
-      actions.addElementToContainer(rootId, <WorkspaceToolboxView />);
-      actions.addElementToContainer(rootId, <DatasetAddView />);
     }
   }, [rootId, actions]);
 
@@ -105,7 +102,7 @@ const WorkspacePage: FunctionComponent = () => {
   return (
     <PageLayout header>
       <WorkspaceWrapper id={id}>
-        <ViewContainer>
+        <Views>
           <div
             style={{
               flex: 1,
@@ -116,7 +113,7 @@ const WorkspacePage: FunctionComponent = () => {
           >
             <WorkspaceToolbar />
             <WorkspacePageDefaultLayout />
-            <ViewRenderer />
+            <Views.Renderer />
             <div
               style={{
                 width: "100%",
@@ -127,7 +124,7 @@ const WorkspacePage: FunctionComponent = () => {
               }}
             ></div>
           </div>
-        </ViewContainer>
+        </Views>
       </WorkspaceWrapper>
       {loading && (
         <div

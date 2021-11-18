@@ -1,11 +1,9 @@
 import { BlockButton, ButtonGroup } from "components/buttons";
 import { FormGroup } from "components/form";
-import { WorkflowIcon } from "components/icons";
 import { TextAreaInput } from "components/input";
 import { VerticalScroll } from "components/scroll";
-import { Tabs } from "components/tabs";
 import { Loading } from "components/text";
-import { ViewContext } from "components/views";
+import { useViews } from "components/views";
 import { WorkspaceContext } from "context";
 import { useAPI } from "hooks";
 import { WorkflowVersion, WorkspaceWorkflow } from "library/api";
@@ -24,7 +22,7 @@ const WorkflowVersionsView: FunctionComponent<WorkflowVersionsViewProps> = ({
   id,
 }) => {
   const { workspaceAPI, workflowAPI } = useAPI();
-  const { viewId, actions } = useContext(ViewContext);
+  const { viewId, actions } = useViews();
   const { workspace, workflows } = useContext(WorkspaceContext);
 
   const [versions, setVersions] = useState<WorkflowVersion[] | null>(null);
@@ -57,7 +55,7 @@ const WorkflowVersionsView: FunctionComponent<WorkflowVersionsViewProps> = ({
   };
 
   const handleClose = () => {
-    actions.removeElement(viewId);
+    actions.removeView(viewId);
   };
 
   return (

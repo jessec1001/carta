@@ -1,18 +1,11 @@
 import { SchemaForm } from "components/form/schema";
-import { WorkflowIcon } from "components/icons";
 import { VerticalScroll } from "components/scroll";
-import { Tabs } from "components/tabs";
 import { Text, Loading } from "components/text";
-import { ViewContext } from "components/views";
+import { useViews } from "components/views";
 import { GraphData } from "library/api";
 import MetaApi from "library/api/meta";
 import { JsonSchema } from "library/schema";
-import React, {
-  FunctionComponent,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import { FunctionComponent, useEffect, useState } from "react";
 
 interface VisualizerOperationViewProps {
   name: string;
@@ -22,15 +15,14 @@ interface VisualizerOperationViewProps {
 
 const VisualizerOperationView: FunctionComponent<VisualizerOperationViewProps> =
   ({ name, operation, type }) => {
-    const { viewId, activeId, actions } = useContext(ViewContext);
-    const activeView = activeId === null ? null : actions.getView(activeId);
+    const { viewId, actions } = useViews();
 
-    const graph: GraphData | undefined = activeView?.tags["graph"];
+    const graph: GraphData | undefined = actions.getActiveTag("graph");
 
     const [error, setError] = useState<Error | null>(null);
 
     const handleClose = () => {
-      actions.removeElement(viewId);
+      actions.removeView(viewId);
     };
     const handleSubmit = () => {
       if (graph) {

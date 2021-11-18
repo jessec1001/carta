@@ -2,10 +2,6 @@
   /* Scroll containers should fill their parent container. */
   /* We use positioning to create a non-changing width/height effect. */
   position: relative;
-  min-width: 0;
-  width: 100%;
-  min-height: 0;
-  height: 100%;
   flex: 1;
 }
 

@@ -1,15 +1,6 @@
 import View, { ElementView, SplitView, TabView } from "./View";
-import ViewContainer from "./ViewContainer";
-import ViewContext from "./ViewContext";
-import ViewRenderer from "./ViewRenderer";
-import ViewSplitRenderer from "./ViewSplitRenderer";
-import ViewTabRenderer from "./ViewTabRenderer";
+import ViewContext, { useViews } from "./Context";
+import Views from "./Views";
 
-export {
-  ViewContainer,
-  ViewRenderer,
-  ViewSplitRenderer,
-  ViewTabRenderer,
-  ViewContext,
-};
+export { ViewContext, Views, useViews };
 export type { View, SplitView, TabView, ElementView };

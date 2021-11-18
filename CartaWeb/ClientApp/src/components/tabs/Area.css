@@ -1,15 +1,19 @@
 /* Base area styling fills up the parent element and enables the tab bar and tab panel to fill space correctly. */
-.TabArea.horizontal {
+.TabArea:not(.flex) {
   width: 100%;
   height: 100%;
-
+}
+.TabArea.flex {
+  flex: 1 1 0;
+}
+.TabArea.flex .TabPanel:not(.hidden) {
+  display: flex;
+}
+.TabArea.horizontal {
   display: flex;
   flex-direction: column;
 }
 .TabArea.vertical {
-  width: 100%;
-  height: 100%;
-
   display: flex;
   flex-direction: row;
 }

@@ -4,17 +4,11 @@ import { SearchboxInput } from "components/input";
 import { VerticalScroll } from "components/scroll";
 import { Column, Row } from "components/structure";
 import { EmptySymbol, NullSymbol } from "components/symbols";
-import { Tabs } from "components/tabs";
-import { ViewContext } from "components/views";
+import { useViews } from "components/views";
 import { WorkspaceContext } from "context";
 import { DataNode, GraphData, Property } from "library/api";
 import { ObjectFilter } from "library/search";
-import React, {
-  FunctionComponent,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import { FunctionComponent, useContext, useEffect, useState } from "react";
 
 const renderValues = (values: any[]) => {
   return (
@@ -149,11 +143,10 @@ const renderPropertyTree = (properties: Property[] | undefined) => {
 };
 
 const VisualizerSelectionView: FunctionComponent = () => {
-  const { viewId, activeId, actions } = useContext(ViewContext);
-  const activeView = activeId === null ? null : actions.getView(activeId);
+  const { viewId, actions } = useViews();
 
   const { datasets } = useContext(WorkspaceContext);
-  const datasetId: string | undefined = activeView?.tags["dataset"];
+  const datasetId: string | undefined = actions.getActiveTag("dataset");
   // TODO: Better way to find dataset.
   const dataset =
     datasets.value?.find((dataset) => dataset.id === datasetId) ?? null;
@@ -166,7 +159,7 @@ const VisualizerSelectionView: FunctionComponent = () => {
 
   const [mode, setMode] = useState<"vertex" | "property">("vertex");
 
-  const graph: GraphData | undefined = activeView?.tags["graph"];
+  const graph: GraphData | undefined = actions.getActiveTag("graph");
   useEffect(() => {
     const handleSelection = () => {
       if (graph) {
@@ -190,7 +183,7 @@ const VisualizerSelectionView: FunctionComponent = () => {
   }, [graph]);
 
   const handleClose = () => {
-    actions.removeElement(viewId);
+    actions.removeView(viewId);
   };
 
   let filter: ObjectFilter;

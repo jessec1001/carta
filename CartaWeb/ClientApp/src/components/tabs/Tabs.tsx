@@ -40,16 +40,18 @@ interface TabsComposition {
  * @example
  * ```jsx
  * <Tabs>
- *   <TabBar direction="horizontal">
- *     <Tabs.Tab id={1} title={"First Tab"} />
- *     <Tabs.Tab id={2} title={"Second Tab"} color="error" />
- *   </TabBar>
- *   <Tabs.Panel id={1}>
- *     This content displays when the first tab is active.
- *   </Tabs>
- *   <Tabs.Panel id={2}>
- *     This content displays when the second tab is active.
- *   </Tabs>
+ *   <Tabs.Area direction="horizontal">
+ *     <Tabs.Bar>
+ *       <Tabs.Tab id={1} title={"First Tab"} />
+ *       <Tabs.Tab id={2} title={"Second Tab"} color="error" />
+ *     </TabBar>
+ *     <Tabs.Panel id={1}>
+ *       This content displays when the first tab is active.
+ *     </Tabs>
+ *     <Tabs.Panel id={2}>
+ *       This content displays when the second tab is active.
+ *     </Tabs>
+ *   </Tabs.Area>
  * </Tabs>
  * ```
  */

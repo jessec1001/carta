@@ -4,27 +4,24 @@
  */
 
 import { FormGroup } from "components/form";
-import { DatasetIcon } from "components/icons";
 import WorkflowInput from "components/input/resource/WorkflowInput";
 import { VerticalScroll } from "components/scroll";
-import { Tabs } from "components/tabs";
 import { Loading } from "components/text";
-import { ViewContext } from "components/views";
+import { useViews } from "components/views";
 import { WorkspaceContext } from "context";
 import { useAPI } from "hooks";
 import { WorkspaceWorkflow } from "library/api";
-import React, { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 
 /** A view that displays the properties of an active dataset in another view. */
 const DatasetPropertiesView = () => {
   const { workspaceAPI } = useAPI();
   const { workspace } = useContext(WorkspaceContext);
-  const { viewId, activeId, actions } = useContext(ViewContext);
-  const activeView = activeId === null ? null : actions.getView(activeId);
+  const { viewId, actions } = useViews();
 
   // Retrieve the active dataset and its relevant information.
   const { datasets } = useContext(WorkspaceContext);
-  const datasetId = activeView?.tags["dataset"];
+  const datasetId = actions.getActiveTag("dataset");
   // TODO: Better way to find dataset.
   const dataset =
     datasets.value?.find((dataset) => dataset.id === datasetId) ?? null;
@@ -58,7 +55,7 @@ const DatasetPropertiesView = () => {
   }, [workspaceAPI, dataset, workspace]);
 
   const handleClose = () => {
-    actions.removeElement(viewId);
+    actions.removeView(viewId);
   };
   // TODO: Check for extraneous changes to the workflow before updating on the server.
   // TODO: Add a clear and intuitive option to select none in comboboxes.

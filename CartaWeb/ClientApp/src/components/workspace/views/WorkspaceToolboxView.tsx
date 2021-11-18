@@ -3,13 +3,12 @@ import { WorkflowIcon } from "components/icons";
 import { SearchboxInput } from "components/input";
 import { VerticalScroll } from "components/scroll";
 import { Column, Row } from "components/structure";
-import { Tabs } from "components/tabs";
-import ViewContext from "components/views/ViewContext";
+import { useViews } from "components/views";
 import { WorkspaceContext } from "context";
 import { useAPI } from "hooks";
 import { WorkspaceWorkflow } from "library/api";
 import { ObjectFilter } from "library/search";
-import React, { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import WorkflowCreateView from "./WorkflowCreateView";
 import WorkflowVersionsView from "./WorkflowVersionsView";
 
@@ -62,7 +61,7 @@ const renderWorkflow = (workflow: WorkspaceWorkflow, onClick?: () => void) => {
 
 const WorkspaceToolboxView = () => {
   const { workspaceAPI } = useAPI();
-  const { viewId, rootId, actions } = useContext(ViewContext);
+  const { viewId, rootId, actions } = useViews();
   const { workspace } = useContext(WorkspaceContext);
 
   const [workflows, setWorkflows] = useState<WorkspaceWorkflow[] | null>(null);
@@ -80,7 +79,7 @@ const WorkspaceToolboxView = () => {
   }, [workspace, workspaceAPI]);
 
   const handleClose = () => {
-    actions.removeElement(viewId);
+    actions.removeView(viewId);
   };
   const handleAdd = () => {
     const parentView = actions.getParentView(viewId);

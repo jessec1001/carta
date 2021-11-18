@@ -3,7 +3,7 @@ import { WorkspaceContext } from "context";
 import { GraphData } from "library/api";
 import { GraphVisualizer } from "components/visualizations";
 import { GraphWorkflow } from "library/api/workflow";
-import ViewContext from "components/views/ViewContext";
+import { useViews } from "components/views";
 
 /** The props used for the {@link DatasetGraphView} component. */
 interface DatasetGraphViewProps {
@@ -42,10 +42,10 @@ const DatasetGraphView: FunctionComponent<DatasetGraphViewProps> = ({ id }) => {
   const status = error ? "error" : modified ? "modified" : "unmodified";
 
   // We use the view context to create or remove views from the view container.
-  const { viewId, actions } = useContext(ViewContext);
+  const { viewId, actions } = useViews();
   const handleClose = () => {
     // Destroy this view.
-    actions.removeElement(viewId);
+    actions.removeView(viewId);
   };
   useEffect(() => {
     actions.setTag(viewId, "dataset", datasetId);
@@ -80,11 +80,10 @@ const DatasetGraphView: FunctionComponent<DatasetGraphViewProps> = ({ id }) => {
     // >
     <div
       style={{
-        width: "100%",
-        height: "100%",
+        flex: 1,
       }}
       onClick={() => {
-        actions.setActiveView(viewId);
+        actions.addHistory(viewId);
       }}
     >
       {/* Only render the graph if we have created the data structure. */}

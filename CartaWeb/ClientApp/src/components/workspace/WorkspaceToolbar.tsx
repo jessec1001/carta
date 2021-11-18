@@ -5,7 +5,7 @@ import {
   DropdownToggler,
 } from "components/dropdown";
 import { LoadingIcon } from "components/icons";
-import ViewContext from "components/views/ViewContext";
+import { useViews } from "components/views";
 import { GraphData } from "library/api";
 import MetaApi, { MetaTypeEntry } from "library/api/meta";
 import React, {
@@ -63,8 +63,7 @@ const renderGroupedMenu = (
 };
 
 const WorkspaceToolbar: FunctionComponent = () => {
-  const { rootId, activeId, actions } = useContext(ViewContext);
-  const activeView = activeId === null ? null : actions.getView(activeId);
+  const { rootId, actions } = useViews();
 
   const [actors, setActors] = useState<
     Record<string, Record<string, MetaTypeEntry>> | undefined
@@ -113,7 +112,7 @@ const WorkspaceToolbar: FunctionComponent = () => {
     })();
   }, []);
 
-  const graph: GraphData | undefined = activeView?.tags["graph"];
+  const graph: GraphData | undefined = actions.getActiveTag("graph");
 
   return (
     <div

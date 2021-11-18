@@ -11,6 +11,11 @@ import classNames from "classnames";
 
 import "./split.css";
 
+// TODO: Refactor all of this to share a similar definition as the tabs components.
+
+// TODO: Make all split panels have a menu bar that can contain the tab bar and additional buttons for manipulation of
+//       the view hierarchy.
+
 /** A component that renders a handle to adjust the size of a split pane. */
 const SplitGutter = forwardRef<HTMLDivElement>((_, ref) => {
   return <div ref={ref} className="split-gutter" />;

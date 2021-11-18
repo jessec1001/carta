@@ -20,7 +20,7 @@ import {
 import { VerticalScroll } from "components/scroll";
 import { Text, Loading } from "components/text";
 import { Column, Row } from "components/structure";
-import { ViewContext } from "components/views";
+import { useViews } from "components/views";
 import DatasetGraphView from "./DatasetGraphView";
 
 import "./view.css";
@@ -152,7 +152,7 @@ const DatasetAddView: FunctionComponent = ({ children }) => {
   }, [mountedRef, dataAPI]);
 
   // We use the view context to create or remove views from the view container.
-  const { viewId, rootId, actions } = useContext(ViewContext);
+  const { viewId, rootId, actions } = useViews();
   const handleSelect = (source: string, resource: string) => {
     // When a dataset item is clicked, its selected state is toggled.
     // Since we currently only allow a single dataset, this will also move the selection around.
@@ -172,7 +172,7 @@ const DatasetAddView: FunctionComponent = ({ children }) => {
       });
 
       // Destroy this view and open the added dataset in a visualizer view.
-      actions.removeElement(viewId);
+      actions.removeView(viewId);
       actions.addElementToContainer(
         rootId,
         <DatasetGraphView id={newDataset.id} />
@@ -181,7 +181,7 @@ const DatasetAddView: FunctionComponent = ({ children }) => {
   };
   const handleClose = () => {
     // Destroy this view.
-    actions.removeElement(viewId);
+    actions.removeView(viewId);
   };
 
   return (

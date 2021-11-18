@@ -47,28 +47,9 @@ const isContainerView = (view: View): view is SplitView | TabView => {
   return view.type === "split" || view.type === "tab";
 };
 
-/** The specificiation for the actions that can be on the view hierarchy. */
-interface ViewActions {
-  getView: (id: number) => View | null;
-  getParentView: (id: number) => View | null;
-  getChildViews: (id: number) => View[] | null;
-
-  setActiveView: (id: number | null) => void;
-
-  setTag: (id: number, key: string, value: any) => void;
-  unsetTag: (id: number, key: string) => void;
-
-  addElementToContainer: (
-    containerId: number,
-    element: React.ReactElement,
-    tags?: Record<string, string>
-  ) => number | null;
-  removeElement: (elementId: number) => void;
-}
-
 /** The type that a view is allowed to be. */
 type View = ElementView | SplitView | TabView;
 
 export default View;
 export { isContainerView };
-export type { BaseView, ElementView, SplitView, TabView, ViewActions };
+export type { BaseView, ElementView, SplitView, TabView };
