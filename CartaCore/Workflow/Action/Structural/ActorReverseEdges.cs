@@ -20,33 +20,30 @@ namespace CartaCore.Workflow.Action
     [DiscriminantSemantics(Name = "Reverse Edges", Group = "Structural")]
 
     public class ActorReverseEdgesGraph : Actor,
-        IDynamicInGraph<InOutVertex>,
-        IDynamicOutGraph<InOutVertex>,
+        IDynamicInGraph<Vertex>,
+        IDynamicOutGraph<Vertex>,
         IEntireGraph
     {
         /// <inheritdoc />
         protected override bool ShouldProvide(Type type)
         {
             if (type.IsAssignableTo(typeof(IRootedGraph))) return false;
-            if (type.IsAssignableTo(typeof(IDynamicInGraph<IInVertex>))) return Graph.CanProvide<IDynamicInGraph<IInVertex>>();
-            if (type.IsAssignableTo(typeof(IDynamicOutGraph<IOutVertex>))) return Graph.CanProvide<IDynamicOutGraph<IOutVertex>>();
+            if (type.IsAssignableTo(typeof(IDynamicInGraph<Vertex>))) return Graph.CanProvide<IDynamicInGraph<Vertex>>();
+            if (type.IsAssignableTo(typeof(IDynamicOutGraph<Vertex>))) return Graph.CanProvide<IDynamicOutGraph<Vertex>>();
             if (type.IsAssignableTo(typeof(IEntireGraph))) return Graph.CanProvide<IEntireGraph>();
             return base.ShouldProvide(type);
         }
 
         /// <inheritdoc />
-        public new async ITask<InOutVertex> GetVertex(Identity id)
+        public new async ITask<Vertex> GetVertex(Identity id)
         {
             if (Graph.TryProvide(out IDynamicGraph<IVertex> dynamic))
             {
-                IEnumerable<Edge> inEdges = Enumerable.Empty<Edge>();
-                IEnumerable<Edge> outEdges = Enumerable.Empty<Edge>();
                 IVertex vertex = await dynamic.GetVertex(id);
-                if (vertex is IInVertex inVertex)
-                    outEdges = inVertex.InEdges.Select(edge => new Edge(edge.Identifier, edge.Target, edge.Source, edge.Properties));
-                if (vertex is IOutVertex outVertex)
-                    inEdges = outVertex.OutEdges.Select(edge => new Edge(edge.Identifier, edge.Target, edge.Source, edge.Properties));
-                return new InOutVertex(vertex.Identifier, vertex.Properties, inEdges, outEdges)
+                IEnumerable<Edge> edges = vertex.Edges.Select(
+                    edge => new Edge(edge.Identifier, edge.Target, edge.Source, edge.Properties)
+                );
+                return new Vertex(vertex.Identifier, vertex.Properties, edges)
                 {
                     Label = vertex.Label,
                     Description = vertex.Description
@@ -61,13 +58,10 @@ namespace CartaCore.Workflow.Action
             {
                 await foreach (IVertex vertex in entire.GetVertices())
                 {
-                    IEnumerable<Edge> inEdges = Enumerable.Empty<Edge>();
-                    IEnumerable<Edge> outEdges = Enumerable.Empty<Edge>();
-                    if (vertex is IInVertex inVertex)
-                        outEdges = inVertex.InEdges.Select(edge => new Edge(edge.Identifier, edge.Target, edge.Source, edge.Properties));
-                    if (vertex is IOutVertex outVertex)
-                        inEdges = outVertex.OutEdges.Select(edge => new Edge(edge.Identifier, edge.Target, edge.Source, edge.Properties));
-                    yield return new InOutVertex(vertex.Identifier, vertex.Properties, inEdges, outEdges)
+                    IEnumerable<Edge> edges = vertex.Edges.Select(
+                        edge => new Edge(edge.Identifier, edge.Target, edge.Source, edge.Properties)
+                    );
+                    yield return new Vertex(vertex.Identifier, vertex.Properties, edges)
                     {
                         Label = vertex.Label,
                         Description = vertex.Description
@@ -76,31 +70,31 @@ namespace CartaCore.Workflow.Action
             }
         }
         /// <inheritdoc />
-        public async IAsyncEnumerable<InOutVertex> GetParentVertices(Identity id)
+        public async IAsyncEnumerable<Vertex> GetParentVertices(Identity id)
         {
-            if (Graph.TryProvide(out IDynamicOutGraph<InOutVertex> dynamicOutGraph))
+            if (Graph.TryProvide(out IDynamicOutGraph<Vertex> dynamicOutGraph))
             {
-                await foreach (InOutVertex childVertex in dynamicOutGraph.GetChildVertices(id))
+                await foreach (Vertex childVertex in dynamicOutGraph.GetChildVertices(id))
                     yield return childVertex;
             }
             else
             {
-                InOutVertex vertex = await GetVertex(id);
+                Vertex vertex = await GetVertex(id);
                 foreach (Edge outEdge in vertex.OutEdges)
                     yield return await GetVertex(outEdge.Target);
             }
         }
         /// <inheritdoc />
-        public async IAsyncEnumerable<InOutVertex> GetChildVertices(Identity id)
+        public async IAsyncEnumerable<Vertex> GetChildVertices(Identity id)
         {
-            if (Graph.TryProvide(out IDynamicInGraph<InOutVertex> dynamicInGraph))
+            if (Graph.TryProvide(out IDynamicInGraph<Vertex> dynamicInGraph))
             {
-                await foreach (InOutVertex parentVertex in dynamicInGraph.GetParentVertices(id))
+                await foreach (Vertex parentVertex in dynamicInGraph.GetParentVertices(id))
                     yield return parentVertex;
             }
             else
             {
-                InOutVertex vertex = await GetVertex(id);
+                Vertex vertex = await GetVertex(id);
                 foreach (Edge inEdge in vertex.InEdges)
                     yield return await GetVertex(inEdge.Source);
             }

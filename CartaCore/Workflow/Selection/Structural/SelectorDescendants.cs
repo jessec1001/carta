@@ -60,9 +60,9 @@ namespace CartaCore.Workflow.Selection
         #endregion
 
         #region Algorithm Storage
-        private IDynamicOutGraph<IOutVertex> DynamicOutGraph;
-        private IDynamicInGraph<IInVertex> DynamicInGraph;
-        private HashSet<Identity> RetrievedIds;
+        private IDynamicOutGraph<Vertex> DynamicOutGraph;
+        private IDynamicInGraph<Vertex> DynamicInGraph;
+        private readonly HashSet<Identity> RetrievedIds;
         #endregion
 
         /// <summary>
@@ -76,7 +76,7 @@ namespace CartaCore.Workflow.Selection
             RetrievedIds = new HashSet<Identity>();
         }
 
-        private async Task<bool> ContainsVertex(IInVertex vertex)
+        private async Task<bool> ContainsVertex(Vertex vertex)
         {
             foreach (Edge inEdge in vertex.InEdges)
             {
@@ -85,7 +85,7 @@ namespace CartaCore.Workflow.Selection
             }
             RetrievedIds.Add(vertex.Identifier);
 
-            await foreach (IInVertex parentVertex in DynamicInGraph.GetParentVertices(vertex.Identifier))
+            await foreach (Vertex parentVertex in DynamicInGraph.GetParentVertices(vertex.Identifier))
             {
                 if (!RetrievedIds.Contains(parentVertex.Identifier) && await ContainsVertex(parentVertex))
                     return true;
@@ -98,18 +98,18 @@ namespace CartaCore.Workflow.Selection
             if (Ids.Any(id => Identity.Create(id).Equals(vertex.Identifier)))
                 return IncludeRoots;
 
-            if (Graph.TryProvide(out IDynamicInGraph<IInVertex> dynamic))
+            if (Graph.TryProvide(out IDynamicInGraph<Vertex> dynamic))
             {
                 DynamicInGraph = dynamic;
                 RetrievedIds.Clear();
 
-                IInVertex inVertex = await dynamic.GetVertex(vertex.Identifier);
+                Vertex inVertex = await dynamic.GetVertex(vertex.Identifier);
                 return await ContainsVertex(inVertex);
             }
             return false;
         }
 
-        private async IAsyncEnumerable<IOutVertex> TraverseDescendant(IOutVertex vertex, Identity id, int? depth)
+        private async IAsyncEnumerable<Vertex> TraverseDescendant(Vertex vertex, Identity id, int? depth)
         {
             // Emit base vertex for preorder traversal.
             if (vertex is not null && Traversal == GraphTraversalType.Preorder)
@@ -121,13 +121,13 @@ namespace CartaCore.Workflow.Selection
             {
                 // Fetch the child vertices of the base vertex and enumerate their descendants.
                 RetrievedIds.Add(id);
-                await foreach (IOutVertex childVertex in DynamicOutGraph.GetChildVertices(id))
+                await foreach (Vertex childVertex in DynamicOutGraph.GetChildVertices(id))
                 {
                     // Check if the parent vertex has already been retrieved before traversing it.
                     if (RetrievedIds.Contains(childVertex.Identifier)) continue;
 
                     await foreach (
-                        IOutVertex descendantVertex in
+                        Vertex descendantVertex in
                         TraverseDescendant(childVertex, childVertex.Identifier, depth - 1)
                     ) yield return descendantVertex;
                 }
@@ -137,15 +137,15 @@ namespace CartaCore.Workflow.Selection
             if (vertex is not null && Traversal == GraphTraversalType.Postorder)
                 yield return vertex;
         }
-        private async IAsyncEnumerable<IOutVertex> TraverseRoot(Identity id)
+        private async IAsyncEnumerable<Vertex> TraverseRoot(Identity id)
         {
             // Get the root element if it is supposed to be included.
-            IOutVertex vertex = null;
+            Vertex vertex = null;
             if (IncludeRoots && !RetrievedIds.Contains(id))
                 vertex = await DynamicOutGraph.GetVertex(id);
 
             // Return the traversal of the the retrieved vertex.
-            await foreach (IOutVertex descendantVertex in TraverseDescendant(vertex, id, Depth))
+            await foreach (Vertex descendantVertex in TraverseDescendant(vertex, id, Depth))
                 yield return descendantVertex;
         }
 
@@ -153,7 +153,7 @@ namespace CartaCore.Workflow.Selection
         public override async IAsyncEnumerable<IVertex> GetVertices()
         {
             // Check that the graph is dynamic with out-edges.
-            if (Graph.TryProvide(out IDynamicOutGraph<IOutVertex> dynamicOut))
+            if (Graph.TryProvide(out IDynamicOutGraph<Vertex> dynamicOut))
             {
                 // Clear the set of retrieved vertices and set our graph.
                 DynamicOutGraph = dynamicOut;
@@ -164,7 +164,7 @@ namespace CartaCore.Workflow.Selection
                 if (Ids is null) throw new ArgumentNullException(nameof(Ids));
                 foreach (string id in Ids)
                 {
-                    await foreach (IOutVertex vertex in TraverseRoot(Identity.Create(id)))
+                    await foreach (Vertex vertex in TraverseRoot(Identity.Create(id)))
                         yield return vertex;
                 }
             }
@@ -179,7 +179,7 @@ namespace CartaCore.Workflow.Selection
         /// A descendants selector that only selects the direct children of the specified vertices.
         /// </summary>
         [DiscriminantAlias("children")]
-        public static SelectorDescendants CreateChildrenSelector() => new SelectorDescendants
+        public static SelectorDescendants CreateChildrenSelector() => new()
         {
             IncludeRoots = false,
             Depth = 1

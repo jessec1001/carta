@@ -11,14 +11,12 @@ namespace CartaCore.Data
     public class Property : Identifiable<Property>
     {
         /// <summary>
-        /// Gets or sets the property observations.
+        /// The value of this property. Typically represents an observation.
         /// </summary>
-        /// <value>The observations recorded for this property.</value>
-        public IEnumerable<object> Values { get; set; }
+        public object Value { get; set; }
         /// <summary>
-        /// Gets or sets the subproperties.
+        /// The subproperties contained within this property.
         /// </summary>
-        /// <value>The subproperties or metadata for this property.</value>
         public IEnumerable<Property> Subproperties { get; set; }
 
         /// <summary>
@@ -26,12 +24,12 @@ namespace CartaCore.Data
         /// observations recorded for it.
         /// </summary>
         /// <param name="id">The identifier of this property.</param>
-        /// <param name="values">The observations recorded for this property.</param>
-        public Property(Identity id, IEnumerable<object> values)
+        /// <param name="value">The observation recorded for this property.</param>
+        public Property(Identity id, object value)
             : base(id)
         {
-            if (values is null) throw new ArgumentNullException(nameof(values));
-            Values = values;
+            if (value is null) throw new ArgumentNullException(nameof(value));
+            Value = value;
         }
         /// <summary>
         /// Initializes an instance of the <see cref="Property"/> class with its specified identifier.

@@ -11,14 +11,22 @@ namespace CartaCore.Data
     public class Edge : Element<Edge>
     {
         /// <summary>
-        /// Gets the identifier of the source vertex.
+        /// Whether or not this edge is directed. Defaults to true.
         /// </summary>
-        /// <value>The source vertex identifier.</value>
+        public bool Directed { get; init; } = true;
+
+        /// <summary>
+        /// The weight of this edge. Defaults to 1.
+        /// </summary>
+        public double Weight { get; init; } = 1.0;
+
+        /// <summary>
+        /// The identifier of the source vertex.
+        /// </summary>
         public Identity Source { get; protected init; }
         /// <summary>
-        /// Gets the identifier of the target vertex.
+        /// The identifier of the target vertex.
         /// </summary>
-        /// <value>The target vertex identifier.</value>
         public Identity Target { get; protected init; }
 
         /// <summary>
@@ -82,11 +90,11 @@ namespace CartaCore.Data
         /// <summary>
         /// The source identity that is used to construct the identifier.
         /// </summary>
-        private Identity Source;
+        private readonly Identity Source;
         /// <summary>
         /// The target identity that is used to construct the identifier.
         /// </summary>
-        private Identity Target;
+        private readonly Identity Target;
 
         /// <summary>
         /// Initializes an instance of the <see cref="EdgeIdentifier"/> class with the specified source and target
@@ -124,7 +132,7 @@ namespace CartaCore.Data
         /// <inheritdoc />
         public override int GetHashCode()
         {
-            return (Source, Target).GetHashCode();
+            return HashCode.Combine(Source, Target);
         }
 
         /// <inheritdoc />

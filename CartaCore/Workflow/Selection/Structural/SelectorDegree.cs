@@ -50,11 +50,11 @@ namespace CartaCore.Workflow.Selection
         public override Task<bool> ContainsVertex(IVertex vertex)
         {
             if (InDegree.HasValue && (
-                vertex is not IInVertex inVertex ||
+                vertex is not Vertex inVertex ||
                 inVertex.InEdges.Count() != InDegree
             )) return Task.FromResult(false);
             if (OutDegree.HasValue && (
-                vertex is not IOutVertex outVertex ||
+                vertex is not Vertex outVertex ||
                 outVertex.OutEdges.Count() != OutDegree
             )) return Task.FromResult(false);
             return Task.FromResult(true);
@@ -75,7 +75,7 @@ namespace CartaCore.Workflow.Selection
         /// A vertex degree selector that only selects root vertices which have no in-edges.
         /// </summary>
         [DiscriminantAlias("roots")]
-        public static SelectorDegree CreateRootsSelector() => new SelectorDegree
+        public static SelectorDegree CreateRootsSelector() => new()
         {
             InDegree = 0,
             OutDegree = null

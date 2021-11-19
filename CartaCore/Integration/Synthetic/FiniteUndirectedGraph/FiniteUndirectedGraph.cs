@@ -21,7 +21,7 @@ namespace CartaCore.Integration.Synthetic
         /// Creates a new random sampled, finite, undirected graph with the specified parameters.
         /// </summary>
         /// <param name="parameters">The parameters to generate the graph with.</param>
-        public FiniteUndirectedGraph(FiniteUndirectedGraphParameters parameters = default(FiniteUndirectedGraphParameters))
+        public FiniteUndirectedGraph(FiniteUndirectedGraphParameters parameters = default)
             : base(Identity.Create(nameof(FiniteUndirectedGraph)), directed: false)
         {
             // We generate all the graph data after setting the parameters.
@@ -36,7 +36,7 @@ namespace CartaCore.Integration.Synthetic
         protected void GenerateGraph()
         {
             // Random number generator that is seeded with whatever seed was specified.
-            CompoundRandom random = new CompoundRandom(Parameters.Seed);
+            CompoundRandom random = new(Parameters.Seed);
 
             // Generate the random number of vertices and edges.
             int numVertices = Math.Max(Parameters.VertexCount.Sample(random), 0);
@@ -44,20 +44,20 @@ namespace CartaCore.Integration.Synthetic
             int numEdges = Math.Clamp(Parameters.EdgeCount.Sample(random), 0, possibleEdges);
 
             // Generate the vertices.
-            List<Vertex> vertices = new List<Vertex>(
+            List<Vertex> vertices = new(
                 Enumerable
                 .Range(0, numVertices)
                 .Select
                 (_ => new Vertex(Identity.Create(random.NextGuid()))
-                {
-                    Label = (Parameters.Labeled ? random.NextPsuedoword() : null)
-                }
+                    {
+                        Label = Parameters.Labeled ? random.NextPsuedoword() : null
+                    }
                 )
             );
 
             // Generate the edges to randomly select from.
             // This uses a cartesian product without doubles or reversals.
-            LinkedList<Edge> edges = new LinkedList<Edge>(
+            LinkedList<Edge> edges = new(
                 vertices
                 .SelectMany(
                     (vertexA, indexA) => vertices
@@ -67,7 +67,7 @@ namespace CartaCore.Integration.Synthetic
             );
 
             // Randomly select the edges from our list of plausible edges.
-            LinkedList<Edge> edgesSelected = new LinkedList<Edge>();
+            LinkedList<Edge> edgesSelected = new();
             for (int e = 0; e < numEdges; e++)
             {
                 // This here is probably a bit inefficient and sloppy but it performs better than reallocating

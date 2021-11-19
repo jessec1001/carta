@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,8 +13,8 @@ namespace CartaCore.Data
     /// </summary>
     public class FiniteGraph : Graph,
         IEntireGraph,
-        IDynamicInGraph<InOutVertex>,
-        IDynamicOutGraph<InOutVertex>
+        IDynamicInGraph<Vertex>,
+        IDynamicOutGraph<Vertex>
     {
         /// <summary>
         /// Get or sets whether the graph is directed.
@@ -85,10 +86,7 @@ namespace CartaCore.Data
             else
             {
                 VertexSet.Add(vertex.Identifier, vertexBase);
-                if (vertex is IInVertex iVertex)
-                    this.AddEdgeRange(iVertex.InEdges);
-                if (vertex is IOutVertex oVertex)
-                    this.AddEdgeRange(oVertex.OutEdges);
+                AddEdgeRange(vertex.Edges);
                 return true;
             }
         }
@@ -286,22 +284,45 @@ namespace CartaCore.Data
             OutEdgeSet.Clear();
         }
 
+        /// <summary>
+        /// Recreates a vertex specified by an identifier from its vertex information and in- and out-edges.
+        /// </summary>
+        /// <param name="id">The identifier of the vertex.</param>
+        /// <returns>The reconstructed vertex if it exists; otherwise <c>null</c>.</returns>
+        private Vertex ConstituteVertex(Identity id)
+        {
+            // Check if the vertex exists.
+            if (VertexSet.TryGetValue(id, out Vertex vertex))
+            {
+                // Get the edges for the vertex.
+                IEnumerable<Edge> edges = Enumerable.Empty<Edge>();
+                if (InEdgeSet.TryGetValue(id, out HashSet<Edge> inEdges))
+                    edges = edges.Concat(inEdges);
+                if (OutEdgeSet.TryGetValue(id, out HashSet<Edge> outEdges))
+                    edges = edges.Concat(outEdges);
+
+                // Create the vertex.
+                return new Vertex(vertex.Identifier, vertex.Properties, edges)
+                {
+                    Label = vertex.Label,
+                    Description = vertex.Description,
+                };
+            }
+            return null;
+        }
+
         /// <inheritdoc />
         public async IAsyncEnumerable<IVertex> GetVertices()
         {
-            foreach (Vertex vertex in VertexSet.Values)
+            // Get all of the vertices in the vertex set.
+            foreach (Identity id in VertexSet.Keys)
             {
-                InEdgeSet.TryGetValue(vertex.Identifier, out HashSet<Edge> inEdges);
-                OutEdgeSet.TryGetValue(vertex.Identifier, out HashSet<Edge> outEdges);
-                yield return await Task.FromResult
-                (
-                    new InOutVertex
-                    (
-                        vertex,
-                        inEdges ?? new HashSet<Edge>(),
-                        outEdges ?? new HashSet<Edge>()
-                    )
-                );
+                // Get the vertex.
+                Vertex vertex = ConstituteVertex(id);
+                if (vertex is null) continue;
+
+                // Yield the vertex.
+                yield return await Task.FromResult(vertex);
             }
         }
 
@@ -317,34 +338,31 @@ namespace CartaCore.Data
         }
 
         /// <inheritdoc />
-        public ITask<InOutVertex> GetVertex(Identity id)
+        public ITask<Vertex> GetVertex(Identity id)
         {
-            if (!VertexSet.TryGetValue(id, out Vertex vertex))
-                return Task.FromResult<InOutVertex>(null).AsITask();
-
-            InEdgeSet.TryGetValue(id, out HashSet<Edge> inEdges);
-            OutEdgeSet.TryGetValue(id, out HashSet<Edge> outEdges);
-            InOutVertex inoutVertex = new InOutVertex
-            (
-                vertex,
-                inEdges ?? new HashSet<Edge>(),
-                outEdges ?? new HashSet<Edge>()
-            );
-            return Task.FromResult(inoutVertex).AsITask();
+            // Get the vertex.
+            Vertex vertex = ConstituteVertex(id);
+            return Task.FromResult(vertex).AsITask();
         }
         /// <inheritdoc />
-        public async IAsyncEnumerable<InOutVertex> GetParentVertices(Identity id)
+        public async IAsyncEnumerable<Vertex> GetParentVertices(Identity id)
         {
-            InOutVertex vertex = await GetVertex(id);
-            foreach (Edge inEdge in vertex.InEdges)
-                yield return await GetVertex(inEdge.Source);
+            InEdgeSet.TryGetValue(id, out HashSet<Edge> edges);
+            if (edges is not null)
+            {
+                foreach (Edge edge in edges)
+                    yield return await GetVertex(edge.Source);
+            }
         }
         /// <inheritdoc />
-        public async IAsyncEnumerable<InOutVertex> GetChildVertices(Identity id)
+        public async IAsyncEnumerable<Vertex> GetChildVertices(Identity id)
         {
-            InOutVertex vertex = await GetVertex(id);
-            foreach (Edge outEdge in vertex.OutEdges)
-                yield return await GetVertex(outEdge.Target);
+            OutEdgeSet.TryGetValue(id, out HashSet<Edge> edges);
+            if (edges is not null)
+            {
+                foreach (Edge edge in edges)
+                    yield return await GetVertex(edge.Target);
+            }
         }
     }
 }

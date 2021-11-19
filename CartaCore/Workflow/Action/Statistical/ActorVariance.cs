@@ -36,7 +36,11 @@ namespace CartaCore.Workflow.Action
             try
             {
                 // Get the numeric data.
-                List<double> numbers = property.Values.Cast<double>().ToList();
+                List<double> numbers;
+                if (property.Value is IEnumerable<object> values)
+                    numbers = values.Cast<double>().ToList();
+                else
+                    numbers = new List<double>();
 
                 if (numbers.Count > 0)
                 {

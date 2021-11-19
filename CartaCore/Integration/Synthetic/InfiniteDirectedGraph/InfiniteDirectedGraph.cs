@@ -15,31 +15,30 @@ namespace CartaCore.Integration.Synthetic
     /// </summary>
     public class InfiniteDirectedGraph : Graph,
         IRootedGraph,
-        IDynamicGraph<OutVertex>,
-        IDynamicOutGraph<OutVertex>,
+        IDynamicGraph<Vertex>,
+        IDynamicOutGraph<Vertex>,
         IParameterizedGraph<InfiniteDirectedGraphParameters>
     {
         /// <inheritdoc />
         public InfiniteDirectedGraphParameters Parameters { get; set; }
 
         /// <summary>
-        /// Gets or sets the named types of properties used in the graph.
+        /// A map of name-type pairs of the names and types of each property included in this graph.
         /// </summary>
-        /// <value>A map of name-type pairs of the names and types of each property included in this graph.</value>
         private IDictionary<string, Type> NamedPropertyTypes { get; set; }
 
         /// <summary>
         /// Creates a new random sampled, infinite, directed graph with the specified parameters.
         /// </summary>
         /// <param name="parameters">The parameters to generate the graph with.</param>
-        public InfiniteDirectedGraph(InfiniteDirectedGraphParameters parameters)
+        public InfiniteDirectedGraph(InfiniteDirectedGraphParameters parameters = default)
             : base(Identity.Create(nameof(InfiniteDirectedGraph)))
         {
             // Set the parameters.
             Parameters = parameters;
 
             // Generate our random properties.
-            CompoundRandom random = new CompoundRandom(Parameters.Seed);
+            CompoundRandom random = new(Parameters.Seed);
             int propertyCount = Parameters.PropertyCount.Sample(random);
             NamedPropertyTypes = new Dictionary<string, Type>();
             while (NamedPropertyTypes.Count < propertyCount)
@@ -57,7 +56,7 @@ namespace CartaCore.Integration.Synthetic
         /// </summary>
         /// <param name="random">The random number generator.</param>
         /// <returns>An available type for random data.</returns>
-        protected Type GenerateRandomType(CompoundRandom random)
+        protected static Type GenerateRandomType(CompoundRandom random)
         {
             // These are the available types to use in the graph vertex properties.
             Type[] availableTypes = new Type[]
@@ -76,7 +75,7 @@ namespace CartaCore.Integration.Synthetic
         /// <param name="random">The random number generator.</param>
         /// <param name="type">The type of value to generate.</param>
         /// <returns>The random value.</returns>
-        protected object GenerateRandomValue(CompoundRandom random, Type type)
+        protected static object GenerateRandomValue(CompoundRandom random, Type type)
         {
             // Return a random value based on the type desired.
             if (typeof(int) == type)
@@ -113,25 +112,23 @@ namespace CartaCore.Integration.Synthetic
         /// </summary>
         /// <param name="id">The vertex identifier.</param>
         /// <returns>The requested vertex generated randomly.</returns>
-        protected OutVertex GenerateVertex(Identity id)
+        protected Vertex GenerateVertex(Identity id)
         {
             // Check that we can convert the specified ID to a GUID.
             if (!id.IsType(out Guid guid)) throw new InvalidCastException();
 
             // Create a compound random number generator using the GUID and original seed as a combined seed.
-            CompoundRandom random = new CompoundRandom(Parameters.Seed, guid);
+            CompoundRandom random = new(Parameters.Seed, guid);
 
             // Create properties from the set of graph properties.
-            List<Property> properties = new List<Property>(capacity: NamedPropertyTypes.Count);
+            List<Property> properties = new(capacity: NamedPropertyTypes.Count);
             foreach (KeyValuePair<string, Type> namedPropertyType in NamedPropertyTypes)
             {
                 if (random.NextDouble() < Parameters.PropertyInclusionProbability)
                 {
-                    // Add a single observation to the property.
-                    List<object> values = new List<object>(capacity: 1);
-                    values.Add(GenerateRandomValue(random, namedPropertyType.Value));
-
-                    Property property = new Property(Identity.Create(namedPropertyType.Key), values);
+                    // Add the observation value to the property.
+                    object value = GenerateRandomValue(random, namedPropertyType.Value);
+                    Property property = new(Identity.Create(namedPropertyType.Key), value);
                     properties.Add(property);
                 }
             }
@@ -139,7 +136,7 @@ namespace CartaCore.Integration.Synthetic
 
             // Create out-edges.
             int childCount = Parameters.ChildCount.Sample(random);
-            List<Edge> outEdges = new List<Edge>(capacity: childCount);
+            List<Edge> outEdges = new(capacity: childCount);
             for (int index = 0; index < childCount; index++)
             {
                 // We must construct the ID from the random number generator and not from the system.
@@ -150,20 +147,20 @@ namespace CartaCore.Integration.Synthetic
             }
 
             // Return the randomly generated vertex with properties.
-            OutVertex vertex = new OutVertex(id, properties, outEdges);
+            Vertex vertex = new(id, properties, outEdges);
             if (Parameters.Labeled) vertex.Label = random.NextPsuedoword();
             return vertex;
         }
 
         /// <inheritdoc />
-        public ITask<OutVertex> GetVertex(Identity id)
+        public ITask<Vertex> GetVertex(Identity id)
         {
-            return Task.FromResult<OutVertex>(GenerateVertex(id)).AsITask();
+            return Task.FromResult(GenerateVertex(id)).AsITask();
         }
         /// <inheritdoc />
-        public async IAsyncEnumerable<OutVertex> GetChildVertices(Identity id)
+        public async IAsyncEnumerable<Vertex> GetChildVertices(Identity id)
         {
-            OutVertex vertex = await GetVertex(id);
+            Vertex vertex = await GetVertex(id);
             foreach (Edge outEdge in vertex.OutEdges)
                 yield return await GetVertex(outEdge.Target);
         }

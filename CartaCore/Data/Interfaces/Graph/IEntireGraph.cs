@@ -20,7 +20,7 @@ namespace CartaCore.Data
         IAsyncEnumerable<Edge> GetEdges()
         {
             return GetVertices()
-                .SelectMany(vertex => IVertex.GetEdges(vertex).ToAsyncEnumerable())
+                .SelectMany(vertex => vertex.Edges.ToAsyncEnumerable())
                 .Distinct();
         }
     }

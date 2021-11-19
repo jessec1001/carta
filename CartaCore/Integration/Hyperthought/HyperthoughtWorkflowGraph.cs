@@ -16,8 +16,8 @@ namespace CartaCore.Integration.Hyperthought
     /// </summary>
     public class HyperthoughtWorkflowGraph : Graph,
         IRootedGraph,
-        IDynamicInGraph<InOutVertex>,
-        IDynamicOutGraph<InOutVertex>
+        IDynamicInGraph<Vertex>,
+        IDynamicOutGraph<Vertex>
     {
         /// <summary>
         /// The connector to the HyperThought API. 
@@ -35,7 +35,7 @@ namespace CartaCore.Integration.Hyperthought
         /// <param name="api">The HyperThought API.</param>
         /// <param name="id">The ID of the workflow.</param>
         public HyperthoughtWorkflowGraph(HyperthoughtApi api, Guid id)
-            : base(Identity.Create(nameof(HyperthoughtWorkflowGraph)))
+            : base(Identity.Create($"{nameof(HyperthoughtWorkflowGraph)}:{id}"))
         {
             Api = api;
             Id = id;
@@ -62,17 +62,17 @@ namespace CartaCore.Integration.Hyperthought
         /// </summary>
         /// <param name="workflow">The workflow object.</param>
         /// <returns>The converted vertex.</returns>
-        private InOutVertex VertexFromWorkflow(HyperthoughtProcess workflow)
+        private static Vertex VertexFromWorkflow(HyperthoughtProcess workflow)
         {
             // Properties are compiled from the contents read from the data source.
             // This depends on the schema for this data source.
             List<Property> subproperties = new();
 
-            #region triples
-            Property triples = new Property(Identity.Create("Triples"));
-            List<object> subjects = new List<object>(workflow.Triples.Count);
-            List<object> predicates = new List<object>(workflow.Triples.Count);
-            List<object> objects = new List<object>(workflow.Triples.Count);
+            #region Triples
+            Property triples = new(Identity.Create("Triples"));
+            List<object> subjects = new(workflow.Triples.Count);
+            List<object> predicates = new(workflow.Triples.Count);
+            List<object> objects = new(workflow.Triples.Count);
             foreach (HyperthoughtTriple triple in workflow.Triples)
             {
                 subjects.Add(triple.Content.Subject.Data);
@@ -88,285 +88,126 @@ namespace CartaCore.Integration.Hyperthought
             subproperties.Add(triples);
             #endregion
 
-            #region headers
-            Property headers = new Property(Identity.Create("Headers"))
+            #region Headers
+            Property headers = new(Identity.Create("Headers"))
             {
                 Subproperties = new Property[]
                 {
-                    new Property
-                    (
-                        Identity.Create("Canonical URI"),
-                        new object[] { workflow.Headers.CanonicalUri }
-                    ),
-                    new Property
-                    (
-                        Identity.Create("URI"),
-                        new object[] { workflow.Headers.Uri }
-                    ),
-                    new Property
-                    (
-                        Identity.Create("System Creation Time"),
-                        new object[] { workflow.Headers.CreationTime }
-                    ),
-                    new Property
-                    (
-                        Identity.Create("System Last Modification Time"),
-                        new object[] { workflow.Headers.LastModifiedTime }
-                    ),
-                    new Property
-                    (
-                        Identity.Create("Created By"),
-                        new object[] { workflow.Headers.CreatedBy }
-                    ),
-                    new Property
-                    (
-                        Identity.Create("Modified By"),
-                        new object[] { workflow.Headers.LastModifiedBy }
-                    ),
-                    new Property
-                    (
-                        Identity.Create("Process ID"),
-                        new object[] { workflow.Headers.ProcessId }
-                    )
+                    new Property(Identity.Create("Canonical URI"), workflow.Headers.CanonicalUri),
+                    new Property(Identity.Create("URI"), workflow.Headers.Uri),
+                    new Property(Identity.Create("System Creation Time"), workflow.Headers.CreationTime),
+                    new Property(Identity.Create("System Last Modification Time"), workflow.Headers.LastModifiedTime),
+                    new Property(Identity.Create("Created By"), workflow.Headers.CreatedBy),
+                    new Property(Identity.Create("Modified By"), workflow.Headers.LastModifiedBy),
+                    new Property(Identity.Create("Process ID"), workflow.Headers.ProcessId)
                 }
             };
             subproperties.Add(headers);
             #endregion
 
-            #region permissions
-            Property permissions = new Property(Identity.Create("Permissions"));
-            Property workspaces = new Property(Identity.Create("Workspaces"));
-            Property users = new Property(Identity.Create("Users"));
+            #region Permissions
+            // Structure permissions so that each permission entry is a property of the appropriate permissions field.
+            Property permissions = new(Identity.Create("Permissions"));
+            Property workspacePermissions = new(Identity.Create("Workspaces"));
+            Property userPermissions = new(Identity.Create("Users"));
             List<Property> workspaceSubproperties = new();
-            foreach (string key in workflow.Permissions.Workspaces.Keys)
-            {
-                workspaceSubproperties.Add
-                (
-                    new Property
-                    (
-                        Identity.Create(key),
-                        new object[] { workflow.Permissions.Workspaces[key] }
-                    )
-                );
-            }
-            workspaceSubproperties.TrimExcess();
             List<Property> userSubproperties = new();
+
+            foreach (string key in workflow.Permissions.Workspaces.Keys)
+                workspaceSubproperties.Add(new Property(Identity.Create(key), workflow.Permissions.Workspaces[key]));
             foreach (string key in workflow.Permissions.Users.Keys)
-            {
-                userSubproperties.Add
-                (
-                    new Property
-                    (
-                        Identity.Create(key),
-                        new object[] { workflow.Permissions.Users[key] }
-                    )
-                );
-            }
+                userSubproperties.Add(new Property(Identity.Create(key), workflow.Permissions.Users[key]));
+
+            workspacePermissions.Subproperties = workspaceSubproperties;
+            workspaceSubproperties.TrimExcess();
+            userPermissions.Subproperties = userSubproperties;
             userSubproperties.TrimExcess();
+
             permissions.Subproperties = new Property[]
             {
-                workspaces,
-                users
+                workspacePermissions,
+                userPermissions
             };
             subproperties.Add(permissions);
             #endregion
 
-            #region restrictions
-            Property restrictions = new Property(Identity.Create("Restrictions"))
+            #region Restrictions
+            Property restrictions = new(Identity.Create("Restrictions"))
             {
                 Subproperties = new Property[]
                 {
-                    new Property
-                    (
-                        Identity.Create("Distribution"),
-                        new object[] { workflow.Restrictions.Distribution }
-                    ),
-                    new Property
-                    (
-                        Identity.Create("Export Control"),
-                        new object[] { workflow.Restrictions.ExportControl }
-                    ),
-                    new Property
-                    (
-                        Identity.Create("Security Marking"),
-                        new object[] { workflow.Restrictions.SecurityMarking }
-                    )
+                    new Property(Identity.Create("Distribution"), workflow.Restrictions.Distribution),
+                    new Property(Identity.Create("Export Control"), workflow.Restrictions.ExportControl),
+                    new Property(Identity.Create("Security Marking"), workflow.Restrictions.SecurityMarking)
                 }
             };
             subproperties.Add(restrictions);
             #endregion
 
-            #region content
-            List<Property> content = new List<Property>
-            (
-                new Property[]
-                {
-                    // Name is excluded because the name is used to name the Vertex itself.
-                    new Property
-                    (
-                        Identity.Create("Process ID"),
-                        new object[] { workflow.Content.ProcessId }
-                    ),
-                    new Property
-                    (
-                        Identity.Create("Parent Process"),
-                        new object[] { workflow.Content.ParentProcessId }
-                    ),
-                    new Property
-                    (
-                        Identity.Create("Client ID"),
-                        new object[] { workflow.Content.ClientId }
-                    ),
-                    new Property
-                    (
-                        Identity.Create("Successors"),
-                        workflow.Content.SuccessorIds.Cast<object>().ToList()
-                    ),
-                    new Property
-                    (
-                        Identity.Create("Predecessors"),
-                        workflow.Content.PredecessorIds.Cast<object>().ToList()
-                    ),
-                    new Property
-                    (
-                        Identity.Create("Children"),
-                        workflow.Content.ChildrenIds.Cast<object>().ToList()
-                    ),
-                    new Property
-                    (
-                        Identity.Create("Primary Key"),
-                        new object[] { workflow.Content.PrimaryKey }
-                    ),
-                    new Property
-                    (
-                        Identity.Create("Process Type"),
-                        new object[] { workflow.Content.Type }
-                    ),
-                    new Property
-                    (
-                        Identity.Create("Template"),
-                        new object[] { workflow.Content.Template }
-                    ),
-                    new Property
-                    (
-                        Identity.Create("Created By"),
-                        new object[] { workflow.Content.CreatedBy }
-                    ),
-                    new Property
-                    (
-                        Identity.Create("Creation Time"),
-                        new object[] { workflow.Content.CreatedTime }
-                    ),
-                    new Property
-                    (
-                        Identity.Create("Last Modified By"),
-                        new object[] { workflow.Content.LastModifiedBy }
-                    ),
-                    new Property
-                    (
-                        Identity.Create("Last Modification Time"),
-                        new object[] { workflow.Content.LastModifiedTime }
-                    ),
-                    new Property
-                    (
-                        Identity.Create("Assignee"),
-                        new object[] { workflow.Content.Assignee }
-                    ),
-                    new Property
-                    (
-                        Identity.Create("Status"),
-                        new object[] { workflow.Content.Status }
-                    ),
-                    new Property
-                    (
-                        Identity.Create("Started"),
-                        new object[] { workflow.Content.StartedTime }
-                    ),
-                    new Property
-                    (
-                        Identity.Create("Completed"),
-                        new object[] { workflow.Content.CompletedTime }
-                    ),
-                    new Property
-                    (
-                        Identity.Create("XML"),
-                        new object[] { workflow.Content.Xml }
-                    ),
-                    new Property
-                    (
-                        Identity.Create("Notes"),
-                        new object[] { workflow.Content.Notes }
-                    )
-                }
-            );
+            #region Content
+            List<Property> content = new()
+            {
+                // ID, and name and description are excluded because they are included in the vertex structure itself.
+                new Property(Identity.Create("Process ID"), workflow.Content.ProcessId),
+                new Property(Identity.Create("Parent Process"), workflow.Content.ParentProcessId),
+                new Property(Identity.Create("Client ID"), workflow.Content.ClientId),
+                new Property(Identity.Create("Successors"), workflow.Content.SuccessorIds),
+                new Property(Identity.Create("Predecessors"), workflow.Content.PredecessorIds),
+                new Property(Identity.Create("Children"), workflow.Content.ChildrenIds),
+                new Property(Identity.Create("Process Type"), workflow.Content.Type),
+                new Property(Identity.Create("Template"), workflow.Content.Template),
+                new Property(Identity.Create("Created By"), workflow.Content.CreatedBy),
+                new Property(Identity.Create("Creation Time"), workflow.Content.CreatedTime),
+                new Property(Identity.Create("Last Modified By"), workflow.Content.LastModifiedBy),
+                new Property(Identity.Create("Last Modification Time"), workflow.Content.LastModifiedTime),
+                new Property(Identity.Create("Assignee"), workflow.Content.Assignee),
+                new Property(Identity.Create("Status"), workflow.Content.Status),
+                new Property(Identity.Create("Started"), workflow.Content.StartedTime),
+                new Property(Identity.Create("Completed"), workflow.Content.CompletedTime),
+                new Property(Identity.Create("XML"), workflow.Content.Xml),
+            };
+
             // Add any fields not explicitly part of the schema.
             foreach (string key in workflow.Content.Extensions.Keys)
-            {
-                content.Add
-                (
-                    new Property
-                    (
-                        Identity.Create(key),
-                        new object[] { workflow.Content.Extensions[key] }
-                    )
-                );
-            };
-            subproperties.Add
-            (
-                new Property(Identity.Create("Content"))
-                {
-                    Subproperties = content
-                }
-            );
+                content.Add(new Property(Identity.Create(key), workflow.Content.Extensions[key]));
+
+            subproperties.Add(new Property(Identity.Create("Content")) { Subproperties = content });
             #endregion
 
-            subproperties.TrimExcess();
-            // We find the properties for the vertex from the metadata.
-            List<Property> properties = new(workflow.Metadata.Count);
-            foreach (HyperthoughtMetadata metadata in workflow.Metadata)
+            #region Process Metadata
+            // We check if the node is a non-workflow node to determine if we should add metadata to it.
+            // If the node is a workflow node, we use its additional properties as the properties itself.
+            List<Property> properties;
+            if (workflow.Content.Type != HyperthoughtProcessType.Workflow)
             {
-                // Properties may have multiple observations which we need to account for.
-                // We search for the property by key in our current properties.
-                HyperthoughtMetadataValue value = metadata.Value;
-                Property property = null;
-                property = properties.FirstOrDefault
-                (
-                    prop => (prop.Identifier.IsType(out string typedId) && typedId == metadata.Key)
-                );
-
-                // We create a new property if necessary.
-                if (property is null)
+                // We find the properties for the vertex from the metadata.
+                properties = new(workflow.Metadata.Count);
+                foreach (HyperthoughtMetadata metadata in workflow.Metadata)
                 {
-                    property = new Property(Identity.Create(metadata.Key), new List<object>());
+                    // If properties end up having the same name, we need to make sure that the values are unique.
+                    // Thus, we ignore every value except the first.
+                    HyperthoughtMetadataValue value = metadata.Value;
+                    if (properties.Any(property => property.Identifier.Equals(metadata.Key))) continue;
+
+                    // We create a new property.
+                    Property property = new(Identity.Create(metadata.Key), value.Link);
                     properties.Add(property);
+
+                    // Add metadata on this property.
+                    List<Property> vertexSubproperties = new(subproperties);
+                    foreach (string key in metadata.Extensions.Keys)
+                        vertexSubproperties.Insert(0, new Property(Identity.Create(key), metadata.Extensions[key]));
+                    vertexSubproperties.TrimExcess();
+                    property.Subproperties = vertexSubproperties;
                 }
-
-                // We add the observation afterwards.
-                List<object> values = property.Values as List<object>;
-                values.Add(value.Link);
-
-                // Add metadata on this property
-                List<Property> vertexSubproperties = new(subproperties);
-                foreach (string key in metadata.Extensions.Keys)
-                {
-                    vertexSubproperties.Insert
-                    (
-                        0,
-                        new Property
-                        (
-                            Identity.Create(key),
-                            new object[] { metadata.Extensions[key] }
-                        )
-                    );
-                };
-                vertexSubproperties.TrimExcess();
-                property.Subproperties = vertexSubproperties;
+                properties.TrimExcess();
             }
-            properties.TrimExcess();
-
-            // include the vertex information as properties if no metadata is reported
-            if (properties.Count == 0)
+            else
+            {
+                subproperties.TrimExcess();
                 properties = subproperties;
+            }
+            #endregion
 
             // Get the identifier of this vertex.
             Identity id = Identity.Create(workflow.Content.PrimaryKey);
@@ -374,31 +215,25 @@ namespace CartaCore.Integration.Hyperthought
             // Add the parent and predecessors to in-edges.
             int inEdgeCount = 1 + workflow.Content.PredecessorIds.Count;
             IList<Edge> inEdges = new List<Edge>(capacity: inEdgeCount);
-
-            inEdges.Add(new Edge(Identity.Create(workflow.Content.ParentProcessId ?? Guid.Empty), id));
+            if (workflow.Content.ParentProcessId is not null)
+                inEdges.Add(new Edge(Identity.Create(workflow.Content.ParentProcessId.Value), id));
             foreach (Guid predecessorId in workflow.Content.PredecessorIds.OrderBy(id => id))
                 inEdges.Add(new Edge(Identity.Create(predecessorId), id));
 
             // Add all children and successors to out-edges.
             int outEdgeCount = workflow.Content.ChildrenIds.Count + workflow.Content.SuccessorIds.Count;
             IList<Edge> outEdges = new List<Edge>(capacity: outEdgeCount);
-
             foreach (Guid childId in workflow.Content.ChildrenIds.OrderBy(id => id))
                 outEdges.Add(new Edge(id, Identity.Create(childId)));
             foreach (Guid successorId in workflow.Content.SuccessorIds.OrderBy(id => id))
                 outEdges.Add(new Edge(id, Identity.Create(successorId)));
 
             // Create the vertex with the name and notes as labels and description respectively.
-            InOutVertex vertex = new InOutVertex
-            (
-                Identity.Create(workflow.Content.PrimaryKey),
-                properties, inEdges, outEdges
-            )
+            return new(id, properties, Enumerable.Concat(inEdges, outEdges))
             {
                 Label = workflow.Content.Name,
                 Description = workflow.Content.Notes
             };
-            return vertex;
         }
 
         /// <inheritdoc />
@@ -419,7 +254,7 @@ namespace CartaCore.Integration.Hyperthought
         }
 
         /// <inheritdoc />
-        public async ITask<InOutVertex> GetVertex(Identity id)
+        public async ITask<Vertex> GetVertex(Identity id)
         {
             // Check that the identifier is of the correct type first.
             if (!id.IsType(out Guid guid)) throw new InvalidCastException();
@@ -429,7 +264,7 @@ namespace CartaCore.Integration.Hyperthought
             return VertexFromWorkflow(workflow);
         }
         /// <inheritdoc />
-        public async IAsyncEnumerable<InOutVertex> GetVertices(IEnumerable<Identity> ids)
+        public async IAsyncEnumerable<Vertex> GetVertices(IEnumerable<Identity> ids)
         {
             // Setup our data structures to store our identifiers and async tasks.
             List<Identity> idList = ids.ToList();
@@ -447,15 +282,17 @@ namespace CartaCore.Integration.Hyperthought
                 yield return VertexFromWorkflow(await workflowTasks[k]);
         }
         /// <inheritdoc />
-        public async IAsyncEnumerable<InOutVertex> GetParentVertices(Identity id)
+        public async IAsyncEnumerable<Vertex> GetParentVertices(Identity id)
         {
-            InOutVertex vertex = await GetVertex(id);
+            // Get the vertex asynchronously and return the parent vertex created from it.
+            Vertex vertex = await GetVertex(id);
             foreach (Edge inEdge in vertex.InEdges)
                 yield return await GetVertex(inEdge.Target);
         }
         /// <inheritdoc />
-        public async IAsyncEnumerable<InOutVertex> GetChildVertices(Identity id)
+        public async IAsyncEnumerable<Vertex> GetChildVertices(Identity id)
         {
+            // This is an optimized co-version of get parent vertices because HyperThought supports this API.
             // Check that the identifier is of the correct type first.
             if (!id.IsType(out Guid guid)) throw new InvalidCastException();
 

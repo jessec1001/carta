@@ -68,7 +68,7 @@ namespace CartaWeb.Serialization.Json
             get
             {
                 // Create a graph and add the vertices and edges.
-                FiniteGraph graph = new FiniteGraph(Identity.Create(Id), Directed);
+                FiniteGraph graph = new(Identity.Create(Id), Directed);
                 graph.AddVertexRange(Nodes.Select(node => node.Vertex));
                 graph.AddEdgeRange(Edges.Select(edge => edge.Edge));
 
@@ -88,7 +88,7 @@ namespace CartaWeb.Serialization.Json
         /// <returns>The Vis formatted graph.</returns>
         public static async Task<VisFormat> CreateAsync(IEntireGraph graph)
         {
-            VisFormat visFormat = new VisFormat();
+            VisFormat visFormat = new();
 
             if (graph is Graph baseGraph) visFormat.Id = baseGraph.Identifier.ToString();
 
@@ -270,9 +270,9 @@ namespace CartaWeb.Serialization.Json
         /// Gets or sets the observations of the property.
         /// </summary>
         /// <value>The property observations.</value>
-        [JsonPropertyName("values")]
-        [JsonConverter(typeof(JsonObjectListConverter))]
-        public List<object> Values { get; set; }
+        [JsonPropertyName("value")]
+        [JsonConverter(typeof(JsonObjectConverter))]
+        public object Value { get; set; }
         /// <summary>
         /// Gets or sets the subproperties of the property.
         /// </summary>
@@ -294,7 +294,7 @@ namespace CartaWeb.Serialization.Json
                 return new Property
                 (
                     Identity.Create(Id),
-                    Values
+                    Value
                 )
                 {
                     Subproperties = Subproperties?.Select(subproperty => subproperty.Property)
@@ -309,7 +309,7 @@ namespace CartaWeb.Serialization.Json
         public VisFormatProperty(Property property)
         {
             Id = property.Identifier.ToString();
-            Values = property.Values.ToList();
+            Value = property.Value;
             Subproperties = property.Subproperties?.Select(subproperty => new VisFormatProperty(subproperty)).ToList();
         }
         /// <summary>

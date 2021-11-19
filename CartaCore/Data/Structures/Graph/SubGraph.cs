@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 namespace CartaCore.Data
 {
+    // TODO: Replace references to this data structure in non-VisJS serializers.
     /// <summary>
     /// Represents a graph that has finitely many vertices and edges that can be enumerated over.
     /// </summary>
@@ -227,7 +228,7 @@ namespace CartaCore.Data
         /// <param name="graph">The base graph.</param>
         /// <param name="ids">The identifiers specifying which vertices and out-edges to include.</param>
         /// <returns>A finite subgraph of the base graph.</returns>
-        public static async Task<SubGraph> CreateSubgraph(IDynamicOutGraph<IOutVertex> graph, IEnumerable<Identity> ids)
+        public static async Task<SubGraph> CreateSubgraph(IDynamicOutGraph<Vertex> graph, IEnumerable<Identity> ids)
         {
             // Copy over the settings from the base graph into a new finite graph.
             SubGraph subgraph;
@@ -241,7 +242,7 @@ namespace CartaCore.Data
             subgraph.UnderlyingGraph = graph;
 
             // Get the vertices from the graph.
-            await foreach (IOutVertex vertex in graph.GetVertices(ids))
+            await foreach (Vertex vertex in graph.GetVertices(ids))
             {
                 subgraph.AddVertex(vertex);
                 subgraph.AddEdgeRange(vertex.OutEdges);
@@ -256,7 +257,7 @@ namespace CartaCore.Data
         /// <param name="graph">The base graph.</param>
         /// <param name="ids">The identifiers specifying which vertices' children to include.</param>
         /// <returns>A finite child subgraph of the base graph.</returns>
-        public static async Task<SubGraph> CreateChildSubgraph(IDynamicOutGraph<IOutVertex> graph, IEnumerable<Identity> ids)
+        public static async Task<SubGraph> CreateChildSubgraph(IDynamicOutGraph<Vertex> graph, IEnumerable<Identity> ids)
         {
             // Copy over the settings from the base graph into a new finite graph.
             SubGraph subgraph;
@@ -272,7 +273,7 @@ namespace CartaCore.Data
             // Get the child vertices from the graph.
             foreach (Identity id in ids)
             {
-                await foreach (IOutVertex vertex in graph.GetChildVertices(id))
+                await foreach (Vertex vertex in graph.GetChildVertices(id))
                 {
                     subgraph.AddVertex(vertex);
                     subgraph.AddEdgeRange(vertex.OutEdges);

@@ -52,20 +52,20 @@ namespace CartaCore.Workflow.Action
         {
             IDynamicGraph<IVertex> dynamic = Graph.Provide<IDynamicGraph<IVertex>>();
 
-            List<Property> properties = new List<Property>();
-            List<Edge> inEdges = new List<Edge>();
-            List<Edge> outEdges = new List<Edge>();
+            List<Property> properties = new();
+            List<Edge> inEdges = new();
+            List<Edge> outEdges = new();
             await foreach (IVertex subvertex in Selector.GetVertices())
             {
                 foreach (Property property in subvertex.Properties)
                 {
                     Property combinedProperty = properties.FirstOrDefault(prop => prop.Identifier.Equals(property.Identifier));
                     if (combinedProperty is null)
-                        combinedProperty = new Property(property.Identifier);
-
-                    combinedProperty.Values = combinedProperty.Values.Append(property.Values);
+                        combinedProperty = new Property(property.Identifier, new List<object>());
+                    if (combinedProperty.Value is List<object> values)
+                        values.Add(property.Value);
                 }
-                if (subvertex is IInVertex inVertex)
+                if (subvertex is Vertex inVertex)
                 {
                     foreach (Edge inEdge in inVertex.InEdges)
                     {
@@ -74,7 +74,7 @@ namespace CartaCore.Workflow.Action
                             inEdges.Add(new Edge(inEdge.Identifier, inEdge.Source, Identity.Create(Id), inEdge.Properties));
                     }
                 }
-                if (subvertex is IOutVertex outVertex)
+                if (subvertex is Vertex outVertex)
                 {
                     foreach (Edge outEdge in outVertex.OutEdges)
                     {
@@ -84,7 +84,7 @@ namespace CartaCore.Workflow.Action
                     }
                 }
             }
-            IVertex vertex = new InOutVertex(Identity.Create(Id), properties, inEdges, outEdges)
+            IVertex vertex = new Vertex(Identity.Create(Id), properties, Enumerable.Concat(inEdges, outEdges))
             {
                 Label = Name
             };

@@ -47,7 +47,7 @@ namespace CartaWeb.Serialization.Xml
         /// <returns>The GEX formatted graph.</returns>
         public static async Task<GexFormat> CreateAsync(IEntireGraph graph)
         {
-            GexFormat gexFormat = new GexFormat();
+            GexFormat gexFormat = new();
             gexFormat.Data = await GexFormatGraph.CreateAsync(graph);
             return gexFormat;
         }
@@ -137,7 +137,7 @@ namespace CartaWeb.Serialization.Xml
             get
             {
                 // Create a graph.
-                SubGraph graph = new SubGraph(null, EdgeType == GexFormatEdgeType.Directed);
+                SubGraph graph = new(null, EdgeType == GexFormatEdgeType.Directed);
 
                 // Get the property mapping.
                 Dictionary<int, (string Name, Property Property)> properties = PropertyDefinitions.Definitions
@@ -184,11 +184,10 @@ namespace CartaWeb.Serialization.Xml
         /// <returns>The GEX formatted graph.</returns>
         public static async Task<GexFormatGraph> CreateAsync(IEntireGraph graph)
         {
-            GexFormatGraph gexFormatGraph = new GexFormatGraph();
+            GexFormatGraph gexFormatGraph = new();
 
             // We need the property mapping before creating the nodes.
-            Dictionary<string, (int index, Property prop)> properties =
-                new Dictionary<string, (int index, Property prop)>();
+            Dictionary<string, (int index, Property prop)> properties = new();
             await foreach (Vertex vertex in graph.GetVertices())
             {
                 foreach (Property property in vertex.Properties)
@@ -408,15 +407,9 @@ namespace CartaWeb.Serialization.Xml
         public GexFormatPropertyDefinitionList(Dictionary<string, (int index, Property prop)> properties)
         {
             Class = GexFormatClassType.Node;
-            Definitions = properties.Select
-            (
-                pair => new GexFormatPropertyDefinition
-                (
-                    pair.Value.index,
-                    pair.Key,
-                    pair.Value.prop
-                )
-            ).ToList();
+            Definitions = properties
+                .Select(pair => new GexFormatPropertyDefinition(pair.Value.index, pair.Key))
+                .ToList();
         }
         /// <summary>
         /// Initializes a new instance of the <see cref="GexFormatPropertyDefinitionList"/> class.
@@ -461,8 +454,7 @@ namespace CartaWeb.Serialization.Xml
         /// </summary>
         /// <param name="id">The property ID.</param>
         /// <param name="name">The property name.</param>
-        /// <param name="property">The property to convert to a new format.</param>
-        public GexFormatPropertyDefinition(int id, string name, Property property)
+        public GexFormatPropertyDefinition(int id, string name)
         {
             Id = id;
 
@@ -493,21 +485,17 @@ namespace CartaWeb.Serialization.Xml
         /// Gets or sets the property observations.
         /// </summary>
         /// <value>The property observations.</value>
-        [XmlArray(ElementName = "values")]
-        [XmlArrayItem(ElementName = "value")]
-        public List<GexFormatObservation> Values { get; set; }
+        [XmlAttribute(AttributeName = "value")]
+        public object Value { get; set; }
 
         /// <summary>
         /// Gets the property observations.
         /// </summary>
         /// <value>The property observations.</value>
         [XmlIgnore]
-        public IEnumerable<object> Observations
+        public object Observations
         {
-            get
-            {
-                return Values.Select(observation => observation.Observation);
-            }
+            get => Value;
         }
 
         /// <summary>
@@ -518,54 +506,11 @@ namespace CartaWeb.Serialization.Xml
         public GexFormatProperty(int id, Property property)
         {
             Id = id;
-            Values = property.Values
-                .Select(observation => new GexFormatObservation(observation))
-                .ToList();
+            Value = property.Value;
         }
         /// <summary>
         /// Initializes a new instance of the <see cref="GexFormatProperty"/> class.
         /// </summary>
         public GexFormatProperty() { }
-    }
-
-    /// <summary>
-    /// Represents a property observation in Graph Exchange XML format.
-    /// </summary>
-    public class GexFormatObservation
-    {
-        /// <summary>
-        /// Gets or sets the observation value.
-        /// </summary>
-        /// <value>
-        /// The observation value.
-        /// </value>
-        [XmlAttribute(AttributeName = "value")]
-        public string Value { get; set; }
-
-        /// <summary>
-        /// Gets the observation.
-        /// </summary>
-        /// <value>The observation.</value>
-        [XmlIgnore]
-        public string Observation
-        {
-            get
-            {
-                return Value;
-            }
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="GexFormatObservation"/> class with the specified observation.
-        /// </summary>
-        /// <param name="value">The observation of a property.</param>
-        public GexFormatObservation(object value)
-        {
-            Value = value.ToString();
-        }
-        /// <summary>
-        /// Initializes a new instance of the <see cref="GexFormatObservation"/> class.
-        /// </summary>
-        public GexFormatObservation() { }
     }
 }

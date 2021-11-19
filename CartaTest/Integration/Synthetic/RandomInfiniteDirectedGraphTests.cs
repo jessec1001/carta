@@ -19,7 +19,7 @@ namespace CartaTest.Data.Synthetic
         /// <summary>
         /// The graph generated to test on.
         /// </summary>
-        protected IDynamicOutGraph<OutVertex> Graph;
+        protected IDynamicOutGraph<Vertex> Graph;
 
         /// <summary>
         /// Sets up the test fixture.
@@ -40,7 +40,7 @@ namespace CartaTest.Data.Synthetic
             Identity id = Identity.Create(Guid.NewGuid());
 
             // Generate the properties and edges of the vertex.
-            OutVertex vertex = await Graph.GetVertex(id);
+            Vertex vertex = await Graph.GetVertex(id);
 
             Assert.IsNotNull(vertex.OutEdges);
             Assert.Pass();
@@ -57,8 +57,8 @@ namespace CartaTest.Data.Synthetic
             Identity id = Identity.Create(Guid.NewGuid());
 
             // Generate the two instances of the vertex properties and edges.
-            OutVertex vertex1 = await Graph.GetVertex(id);
-            OutVertex vertex2 = await Graph.GetVertex(id);
+            Vertex vertex1 = await Graph.GetVertex(id);
+            Vertex vertex2 = await Graph.GetVertex(id);
 
             // Check that the vertex properties are the same.
             IList<Property> properties1 = vertex1.Properties.ToList();
@@ -67,12 +67,10 @@ namespace CartaTest.Data.Synthetic
             Assert.AreEqual(properties1.Count, properties2.Count);
             for (int k = 0; k < properties1.Count; k++)
             {
-                IList<object> values1 = properties1[k].Values.ToList();
-                IList<object> values2 = properties2[k].Values.ToList();
+                object value1 = properties1[k].Value;
+                object value2 = properties2[k].Value;
                 Assert.AreEqual(properties1[k].Identifier, properties2[k].Identifier);
-                Assert.AreEqual(values1.Count, values2.Count);
-                for (int l = 0; l < values1.Count; l++)
-                    Assert.AreEqual(values1[l], values2[l]);
+                Assert.AreEqual(value1, value2);
             }
 
             // Check that the vertex edges are the same.

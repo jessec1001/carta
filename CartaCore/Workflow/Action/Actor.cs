@@ -56,7 +56,7 @@ namespace CartaCore.Workflow.Action
             bool shouldProvide = ShouldProvide(typeof(U));
             if (!shouldProvide)
             {
-                func = default(U);
+                func = default;
                 return false;
             }
 
@@ -103,13 +103,7 @@ namespace CartaCore.Workflow.Action
                 return property;
 
             property = await TransformProperty(property);
-            return new Property
-            (
-                property.Identifier,
-                property.Values
-                    .Select(async value => await TransformValue(value))
-                    .Select(task => task.Result)
-            )
+            return new Property(property.Identifier, await TransformValue(property.Value))
             { Subproperties = property.Subproperties };
         }
         private async Task<Edge> ReconstructEdge(Edge edge)
@@ -127,11 +121,11 @@ namespace CartaCore.Workflow.Action
             vertex = await TransformVertex(vertex);
             IEnumerable<Edge> inEdges = null;
             IEnumerable<Edge> outEdges = null;
-            if (vertex is IInVertex inVertex)
+            if (vertex is Vertex inVertex)
                 inEdges = inVertex.InEdges
                     .Select(async edge => await ReconstructEdge(edge))
                     .Select(task => task.Result);
-            if (vertex is IOutVertex outVertex)
+            if (vertex is Vertex outVertex)
                 outEdges = outVertex.OutEdges
                     .Select(async edge => await ReconstructEdge(edge))
                     .Select(task => task.Result);
@@ -143,14 +137,13 @@ namespace CartaCore.Workflow.Action
             inEdges = edges.Where(edge => edge.Target.Equals(vertex.Identifier));
             outEdges = edges.Where(edge => edge.Source.Equals(vertex.Identifier));
 
-            vertex = new InOutVertex
+            vertex = new Vertex
             (
                 vertex.Identifier,
                 vertex.Properties
                     .Select(async property => await ReconstructProperty(property))
                     .Select(task => task.Result),
-                inEdges,
-                outEdges
+                Enumerable.Concat(inEdges, outEdges)
             )
             {
                 Label = vertex.Label,

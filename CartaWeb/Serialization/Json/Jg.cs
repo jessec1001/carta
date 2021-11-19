@@ -80,7 +80,7 @@ namespace CartaWeb.Serialization.Json
         /// <returns>The JG formatted graph.</returns>
         public static async Task<JgFormat> CreateAsync(IEntireGraph graph)
         {
-            JgFormat jgFormat = new JgFormat();
+            JgFormat jgFormat = new();
             jgFormat.GraphSingle = await JgFormatGraph.CreateAsync(graph);
             return jgFormat;
         }
@@ -91,7 +91,7 @@ namespace CartaWeb.Serialization.Json
         /// <returns>The JG formatted graphs.</returns>
         public static async Task<JgFormat> CreateAsync(IEnumerable<IEntireGraph> graphs)
         {
-            JgFormat jgFormat = new JgFormat();
+            JgFormat jgFormat = new();
             jgFormat.GraphsMultiple = new List<JgFormatGraph>
             (
                 await Task.WhenAll(graphs.Select(async graph => await JgFormatGraph.CreateAsync(graph)))
@@ -143,7 +143,7 @@ namespace CartaWeb.Serialization.Json
             get
             {
                 // Create a graph and add the vertices and edges.
-                SubGraph graph = new SubGraph(null, Directed);
+                SubGraph graph = new(null, Directed);
                 graph.AddVertexRange(Nodes.Select(pair => new Vertex
                 (
                     Identity.Create(pair.Key),
@@ -171,7 +171,7 @@ namespace CartaWeb.Serialization.Json
         /// <returns>The JG formatted graph.</returns>
         public static async Task<JgFormatGraph> CreateAsync(IEntireGraph graph)
         {
-            JgFormatGraph jgFormatGraph = new JgFormatGraph();
+            JgFormatGraph jgFormatGraph = new();
 
             jgFormatGraph.Directed = graph.GetProperties().Directed;
             jgFormatGraph.Nodes = await graph.GetVertices().ToDictionaryAwaitAsync
@@ -217,7 +217,7 @@ namespace CartaWeb.Serialization.Json
         /// The vertex metadata.
         /// </value>
         [JsonPropertyName("metadata")]
-        public Dictionary<string, List<object>> Metadata { get; set; }
+        public Dictionary<string, object> Metadata { get; set; }
 
         /// <summary>
         /// Gets the properties.
@@ -239,7 +239,7 @@ namespace CartaWeb.Serialization.Json
                     .Select(pair => new Property
                     (
                         Identity.Create(pair.Key),
-                        pair.Value.ToList()
+                        pair.Value
                     )).ToList();
             }
         }
@@ -258,7 +258,7 @@ namespace CartaWeb.Serialization.Json
                 Metadata = vertex.Properties
                     .ToDictionary(
                         property => property.Identifier.ToString(),
-                        property => property.Values.ToList()
+                        property => property.Value
                     );
             }
         }

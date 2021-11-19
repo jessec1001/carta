@@ -20,7 +20,7 @@ namespace CartaCore.Workflow.Action
     [DiscriminantSemantics(Name = "Aggregate Properties", Group = "Structural")]
     public class ActorAggregate : Actor
     {
-        private void AddVertexProperties(Dictionary<Identity, List<object>> properties, IVertex vertex)
+        private static void AddVertexProperties(Dictionary<Identity, List<object>> properties, IVertex vertex)
         {
             foreach (Property property in vertex.Properties)
             {
@@ -30,20 +30,20 @@ namespace CartaCore.Workflow.Action
 
                 // Merge in the set of observations into the property.
                 if (properties.TryGetValue(property.Identifier, out List<object> values))
-                    values.AddRange(property.Values);
+                    values.Add(property.Value);
             }
         }
 
         /// <inheritdoc />
         public async override Task<IVertex> TransformVertex(IVertex vertex)
         {
-            if (Graph.TryProvide(out IDynamicOutGraph<IOutVertex> dynamicOutGraph))
+            if (Graph.TryProvide(out IDynamicOutGraph<Vertex> dynamicOutGraph))
             {
                 // Set up data structures to store intermediate information.
                 HashSet<Identity> fetchedVertices = new HashSet<Identity>();
-                Dictionary<Identity, List<object>> properties = new Dictionary<Identity, List<object>>();
+                Dictionary<Identity, List<object>> properties = new();
 
-                List<IAsyncEnumerable<IOutVertex>> childrenVertices = new List<IAsyncEnumerable<IOutVertex>>();
+                List<IAsyncEnumerable<Vertex>> childrenVertices = new();
 
                 // Kick off the algorithm by grabbing the parents of this vertex.
                 AddVertexProperties(properties, vertex);
@@ -54,11 +54,11 @@ namespace CartaCore.Workflow.Action
                 while (childrenVertices.Count > 0)
                 {
                     // Get the earliest queued parent item.
-                    IAsyncEnumerable<IOutVertex> childVertices = childrenVertices.First();
+                    IAsyncEnumerable<Vertex> childVertices = childrenVertices.First();
                     childrenVertices.RemoveAt(0);
 
                     // Iterate over the parent vertex collection propagating properties.
-                    await foreach (IOutVertex childVertex in childVertices)
+                    await foreach (Vertex childVertex in childVertices)
                     {
                         // We need to make sure that we do not duplicate observations.
                         if (!fetchedVertices.Contains(childVertex.Identifier))
@@ -78,7 +78,7 @@ namespace CartaCore.Workflow.Action
                     .Select
                     (
                         (KeyValuePair<Identity, List<object>> pair) =>
-                        new Property(pair.Key) { Values = pair.Value }
+                        new Property(pair.Key, pair.Value)
                     )
                 )
                 {
