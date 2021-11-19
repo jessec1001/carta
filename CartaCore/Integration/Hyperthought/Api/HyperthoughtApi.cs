@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -127,6 +128,19 @@ namespace CartaCore.Integration.Hyperthought.Api
         public HyperthoughtApi(string accessKey)
             : this(ParseAccessKey(accessKey)) { }
 
+
+        /// <summary>
+        /// Constructs an instance of the HyperThought API with a given API access key.
+        /// Allows for a timeout in seconds to be set on the HTTP client
+        /// </summary>
+        /// <param name="accessKey">The API access key.</param>
+        /// <param name="httpTimeout">The HTTP time out in sectods</param>
+        public HyperthoughtApi(string accessKey, double httpTimeout)
+            : this(ParseAccessKey(accessKey))
+        {
+            Client.Timeout = TimeSpan.FromSeconds(httpTimeout);
+        }
+
         /// <summary>
         /// Reads an object from a specified URI and tries to convert it to a JSON object. Throws an HTTP error if one
         /// has occurred. Will attempt to run multiple times in case of HTTP error.
@@ -145,7 +159,7 @@ namespace CartaCore.Integration.Hyperthought.Api
             try
             {
                 HttpResponseMessage response = await Client.GetAsync(uri);
-                response.EnsureSuccessStatusCode();
+                response.EnsureSuccessStatusCode();                
                 return await response.Content.ReadFromJsonAsync<T>(JsonOptions);
             }
             catch (HttpRequestException)
@@ -229,7 +243,7 @@ namespace CartaCore.Integration.Hyperthought.Api
             if (!attempts.HasValue) attempts = RetryAttempts;
             try
             {
-                HttpContent content = JsonContent.Create<T>(value, options: JsonOptions);
+                HttpContent content = await GetHttpContent<T>(value);
                 HttpResponseMessage response = await Client.PatchAsync(uri, content);
                 response.EnsureSuccessStatusCode();
                 return await response.Content.ReadFromJsonAsync<U>(options: JsonOptions);
@@ -258,7 +272,7 @@ namespace CartaCore.Integration.Hyperthought.Api
             if (!attempts.HasValue) attempts = RetryAttempts;
             try
             {
-                HttpContent content = JsonContent.Create<T>(value, options: JsonOptions);
+                HttpContent content = await GetHttpContent<T>(value);
                 HttpResponseMessage response = await Client.PatchAsync(uri, content);
                 response.EnsureSuccessStatusCode();
             }
@@ -287,7 +301,7 @@ namespace CartaCore.Integration.Hyperthought.Api
             if (!attempts.HasValue) attempts = RetryAttempts;
             try
             {
-                HttpContent content = JsonContent.Create<T>(value, options: JsonOptions);
+                HttpContent content = await GetHttpContent<T>(value);
                 HttpResponseMessage response = await Client.PostAsync(uri, content);
                 response.EnsureSuccessStatusCode();
                 return await response.Content.ReadFromJsonAsync<U>(options: JsonOptions);
@@ -316,7 +330,7 @@ namespace CartaCore.Integration.Hyperthought.Api
             if (!attempts.HasValue) attempts = RetryAttempts;
             try
             {
-                HttpContent content = JsonContent.Create<T>(value, options: JsonOptions);
+                HttpContent content = await GetHttpContent<T>(value);
                 HttpResponseMessage response = await Client.PostAsync(uri, content);
                 response.EnsureSuccessStatusCode();
             }
@@ -325,6 +339,62 @@ namespace CartaCore.Integration.Hyperthought.Api
                 if (--attempts <= 0) throw;
                 else await PostJsonObjectAsync<T>(uri, value, attempts);
             }
+        }
+
+        /// <summary>
+        /// Uploads a stream to the given URI.
+        /// </summary>
+        /// <param name="uri">The URI to put the data.</param>
+        /// <param name="stream">A stream containing the data.</param>
+        /// <param name="fileName">The file name to asssign to the stream.</param>
+        /// <param name="attempts">
+        /// The number of attempts to use when retrieving data. If not specified, will default to
+        /// <see cref="RetryAttempts"/>. Will only reattempt on HTTP errors.
+        /// </param>
+        public async Task PutStreamAsync(Uri uri, Stream stream, string fileName, int? attempts = null)
+        {
+            // Try to make the request multiple times if HTTP errors occur.
+            if (!attempts.HasValue) attempts = RetryAttempts;
+            try
+            {
+                HttpContent content = new StreamContent(stream);
+                content.Headers.ContentDisposition = new ContentDispositionHeaderValue("inline");
+                content.Headers.ContentDisposition.FileName = fileName;
+                byte[] b = await content.ReadAsByteArrayAsync();
+                content.Headers.ContentLength = b.Length;
+                HttpResponseMessage response = await Client.PutAsync(uri, content);
+                response.EnsureSuccessStatusCode();
+            }
+            catch (HttpRequestException)
+            {
+                if (--attempts <= 0) throw;
+                else await PutStreamAsync(uri, stream, fileName, attempts);
+            }
+        }
+
+        /// <summary>
+        /// Downloads a stream from the given URI.
+        /// </summary>
+        /// <param name="uri">The URI to download the file from.</param>
+        /// <returns>The deserialized object returned from the endpoint.</returns>
+        public async Task<Stream> DownloadFileAsync(Uri uri)
+        {
+            return await Client.GetStreamAsync(uri);
+        }
+
+        /// <summary>
+        /// Sets the HTTP content to a deserialized JSON value, with the necessary headers expected
+        /// by Hyperthought
+        /// </summary>
+        /// <param name="value">The value of the data.</param>
+        /// <returns>The HTTP content.</returns>
+        private async Task<HttpContent> GetHttpContent<T>(T value)
+        {
+            HttpContent content = JsonContent.Create<T>(value, options: JsonOptions);
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+            byte[] b = await content.ReadAsByteArrayAsync();
+            content.Headers.ContentLength = b.Length;
+            return content;
         }
 
         /// <summary>

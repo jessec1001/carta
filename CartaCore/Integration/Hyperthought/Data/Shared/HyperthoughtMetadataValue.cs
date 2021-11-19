@@ -20,5 +20,10 @@ namespace CartaCore.Integration.Hyperthought.Data
         [JsonPropertyName("link")]
         [JsonConverter(typeof(JsonObjectConverter))]
         public object Link { get; set; }
+        /// <summary>
+        /// The display text - only applicable to files, and is the human readable full file path
+        /// </summary>
+        [JsonPropertyName("displayText")]
+        public string DisplayText { get; set; }
     }
 }

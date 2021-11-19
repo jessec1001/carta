@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 using CartaCore.Integration.Hyperthought.Data;
+
 
 namespace CartaCore.Integration.Hyperthought.Api
 {
@@ -19,7 +21,8 @@ namespace CartaCore.Integration.Hyperthought.Api
         /// <summary>
         /// Gets the files API URI at the HyperThought instance.
         /// </summary>
-        protected Uri GetApiUri() => new Uri(Api.GetBaseUri(), "files/");
+        protected Uri GetApiUri() => new Uri(Api.GetBaseUri(), "files/v1/");
+
 
         /// <summary>
         /// Initializes an instance of the <see cref="HyperthoughtFilesApi"/> class with the specified base API.
@@ -29,6 +32,142 @@ namespace CartaCore.Integration.Hyperthought.Api
         {
             Api = api;
         }
+
+        #region Operations
+        /// <summary>
+        /// Obtains the HyperThought file for a file under the given UUID directory path and workspace ID.
+        /// </summary>
+        /// <param name="uuidPath">A HyperThought API directory path: comma-seperated directory UUIDs</param>
+        /// <param name="fileName">The name of the file or folder located under the given directory path</param>
+        /// <param name="workspaceId">The workspace ID of the file or folder</param>
+        /// <returns>The Hyperthought file object, null if the file object does not exist.</returns>
+        public async Task<HyperthoughtFile> GetFileAsync(
+            string uuidPath,
+            string fileName,
+            Guid workspaceId
+        )
+        {
+            Uri requestUri = new Uri(GetApiUri(), $"workspace/{workspaceId}/?path={uuidPath}");
+            IList<HyperthoughtFile> hyperthoughtFiles =
+                await Api.GetJsonObjectAsync<IList<HyperthoughtFile>>(requestUri);
+            HyperthoughtFile hyperthoughtFile =
+                hyperthoughtFiles.FirstOrDefault(x => x.Name == fileName);
+            return hyperthoughtFile;
+        }
+
+        /// <summary>
+        /// Creates a new folder under the given UUID directory path.
+        /// </summary>
+        /// <param name="uuidPath">A HyperThought API directory path: comma-seperated directory UUIDs.</param>
+        /// <param name="folderName">The name of the folder located under the given directory path.</param>
+        /// <param name="workspaceId">The workspace ID</param>
+        /// <returns>A response to the Hyperthought create folder.</returns>
+        public async Task<HyperthoughtCreateFolderResponse> CreateFolderAsync(
+            string uuidPath,
+            string folderName,
+            Guid workspaceId
+        )
+        {
+            HyperthoughtCreateFolderRequest createFolder = new HyperthoughtCreateFolderRequest
+            {
+                WorkspaceId = workspaceId,
+                UUIDPath = uuidPath,
+                FolderName = folderName
+            };
+            Uri uri = new Uri(Api.GetBaseUri(), "files/create-folder/");
+            HyperthoughtCreateFolderResponse hyperthoughtCreateFolderResponse =
+                await Api.PostJsonObjectAsync<HyperthoughtCreateFolderRequest, HyperthoughtCreateFolderResponse>
+                (
+                    uri,
+                    createFolder
+                );
+            return hyperthoughtCreateFolderResponse;
+        }
+
+        /// <summary>
+        /// Moves a file with the given UUID to the folder with the given UUID.
+        /// </summary>
+        /// <param name="fileId">The file ID.</param>
+        /// <param name="sourceWorkspaceId">The source workspace ID.</param>
+        /// <param name="destinationWorkspaceId">The destination workspace ID.</param>
+        /// <param name="sourceDirectoryId">The source directory ID.</param>
+        /// <param name="destinationDirectoryId">The destination directory ID.</param>
+        public async Task MoveFileAsync(
+            Guid fileId,
+            Guid sourceWorkspaceId,
+            Guid destinationWorkspaceId,
+            string sourceDirectoryId = null,
+            string destinationDirectoryId = null
+        )
+        {
+            // Note: moving files in the root directory requires that the source and destination directory IDs
+            // to not be set. Since the Guid do not allow nullable fields, these have been specified as strings.
+            HyperthoughtMoveFileRequest hyperthoughtMoveFileRequest = new HyperthoughtMoveFileRequest
+            {
+                SourceSpaceId = sourceWorkspaceId,
+                SourceParentFolderId = sourceDirectoryId,
+                DestinationSpaceId = destinationWorkspaceId,
+                DestinationParentFolderId = destinationDirectoryId,
+                FileIds = new List<Guid> { fileId }
+            };
+            Uri uri = new Uri(GetApiUri(), "move/");
+            await Api.PostJsonObjectAsync<HyperthoughtMoveFileRequest>(uri, hyperthoughtMoveFileRequest);
+        }
+
+        /// <summary>
+        /// Uploads a file to Hyperthought
+        /// </summary>
+        /// <param name="stream">The file stream.</param>
+        /// <param name="uuidPath">A HyperThought API directory path: comma-seperated directory UUIDs.</param>
+        /// <param name="fileName">The name of the file.</param>
+        /// <param name="workspaceId">The workspace ID.</param>
+        public async Task UploadFileAsync(
+            Stream stream,
+            string uuidPath,
+            string fileName,
+            Guid workspaceId
+        )
+        {
+            HyperthoughtGetUploadUrlRequest hyperthoughtGetUploadUrlRequest = new HyperthoughtGetUploadUrlRequest
+            {
+                UUIDPath = uuidPath,
+                FileName = fileName,
+                Size = stream.Length,
+                WorkspaceId = workspaceId
+            };
+            Uri generateUploadUri = new Uri(GetApiUri(), "generate-upload-url/");
+            HyperthoughtGetUploadUrlResponse hyperthoughtGetUploadUrlResponse =
+                await Api.PostJsonObjectAsync<HyperthoughtGetUploadUrlRequest, HyperthoughtGetUploadUrlResponse>
+                (
+                    generateUploadUri,
+                    hyperthoughtGetUploadUrlRequest
+                );
+
+            // Upload the file
+            Uri uploadUri = new Uri(new Uri(Api.Access?.BaseUrl), hyperthoughtGetUploadUrlResponse.Uri);
+            await Api.PutStreamAsync(uploadUri, stream, fileName);
+
+            // Move the file to permanent storage space
+            Uri moveToPermanentUri = new Uri(GetApiUri(), $"{hyperthoughtGetUploadUrlResponse.FileId}/temp-to-perm/");
+            await Api.PatchJsonObjectAsync<HyperthoughtTempToPermRequest>(moveToPermanentUri, null);
+
+        }
+
+        /// <summary>
+        /// Downloads a file from Hyperthought
+        /// </summary>
+        /// <param name="fileId">The file ID.</param>
+        /// <returns>A stream.</returns>
+        public async Task<Stream> DownloadFileAsync(
+            Guid fileId
+        )
+        {
+            Uri requestUri = new Uri(new Uri(Api.Access?.BaseUrl), $"api/files/generate-download-url/?id={fileId}");
+            HyperthoughtGetDownloadUrlResponse hyperthoughtGetUploadUrlResponse =
+                await Api.GetJsonObjectAsync<HyperthoughtGetDownloadUrlResponse>(requestUri);
+            return await Api.DownloadFileAsync(new Uri(hyperthoughtGetUploadUrlResponse.Uri));
+        }
+        #endregion
 
         #region File Object Link Handling
         /// <summary>
@@ -73,7 +212,7 @@ namespace CartaCore.Integration.Hyperthought.Api
         /// <returns>The file object link to the HyperThought filesystem.</returns>
         public string ComputeFileObjectLink(HyperthoughtFile file)
         {
-            return ComputeFileObjectLink(file.Content.PrimaryKey);
+            return ComputeFileObjectLink(file.PrimaryKey);
         }
         #endregion
 
@@ -121,7 +260,7 @@ namespace CartaCore.Integration.Hyperthought.Api
         /// <returns>Nothing.</returns>
         public async Task DeleteFileAsync(HyperthoughtFile file)
         {
-            await DeleteFileAsync(file.Content.PrimaryKey);
+            await DeleteFileAsync(file.PrimaryKey);
         }
 
         /// <summary>
@@ -156,6 +295,7 @@ namespace CartaCore.Integration.Hyperthought.Api
             Uri requestUri = new Uri(GetApiUri(), $"?path={ConcatenateDirectories(directoryIds)}&{methodParameters}");
             return await Api.GetJsonObjectAsync<IList<HyperthoughtFile>>(requestUri);
         }
+
         /// <summary>
         /// Obtains a list of HyperThought file entries within a group space specified by parent directories.
         /// </summary>
@@ -223,7 +363,7 @@ namespace CartaCore.Integration.Hyperthought.Api
             {
                 IList<HyperthoughtFile> files = await GetDirectoryContentsAsync(space, spaceId, directoryIds);
                 HyperthoughtFile file = files
-                    .Where(file => file.Content.Name == pathParts[k])
+                    .Where(file => file.Name == pathParts[k])
                     .FirstOrDefault();
                 if (file is null) return null;
                 retrievedFile = file;
@@ -251,7 +391,7 @@ namespace CartaCore.Integration.Hyperthought.Api
         {
             HyperthoughtFile file = await GetFileFromPathAsync(path, delimiter, space, spaceId);
             if (file is null) return Guid.Empty;
-            else return file.Content.PrimaryKey;
+            else return file.PrimaryKey;
         }
         #endregion
 

@@ -42,8 +42,6 @@ namespace CartaCore.Integration.Hyperthought.Data
             StartedTime = content.StartedTime;
             CompletedTime = content.CompletedTime;
             Notes = content.Notes;
-
-            Extensions = content.Extensions;
         }
 
         #region Naming Information

@@ -37,7 +37,7 @@ namespace CartaCore.Integration.Hyperthought.Api
         /// <returns>The user information obtained from the HyperThought API.</returns>
         public async Task<HyperthoughtUserInfo> GetUserInfoAsync()
         {
-            Uri requestUri = new Uri(GetApiUri(), "userinfo/");
+            Uri requestUri = new Uri(Api.GetBaseUri(), "auth/userinfo/");
             return await Api.GetJsonObjectAsync<HyperthoughtUserInfo>(requestUri);
         }
 

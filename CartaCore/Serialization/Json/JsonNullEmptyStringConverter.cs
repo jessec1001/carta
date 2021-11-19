@@ -66,7 +66,7 @@ namespace CartaCore.Serialization.Json
             /// <inheritdoc />
             public override void Write(Utf8JsonWriter writer, T? value, JsonSerializerOptions options)
             {
-                throw new NotImplementedException();
+                JsonSerializer.Serialize<T>(writer, value.Value, options);
             }
 
         }
