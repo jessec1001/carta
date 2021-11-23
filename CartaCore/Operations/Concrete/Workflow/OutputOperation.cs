@@ -1,0 +1,43 @@
+using System;
+using System.Threading.Tasks;
+
+namespace CartaCore.Operations
+{
+    /// <summary>
+    /// The input for the <see cref="OutputOperation" /> operation.
+    /// </summary>
+    public struct OutputOperationIn
+    {
+        /// <summary>
+        /// The name of the output value.
+        /// </summary>
+        public string Name { get; set; }
+        /// <summary>
+        /// The value extracted from the output value to the external operation.
+        /// </summary>
+        public object Value { get; set; }
+    }
+    /// <summary>
+    /// The output for the <see cref="OutputOperation" /> operation.
+    /// </summary>
+    public struct OutputOperationOut { }
+
+    /// <summary>
+    /// Specifies an expected output from the workflow that contains this operation.
+    /// </summary>
+    public class OutputOperation : TypedOperation
+    <
+        OutputOperationIn,
+        OutputOperationOut
+    >
+    {
+        /// <inheritdoc />
+        public override Task<OutputOperationOut> Perform(OutputOperationIn input, OperationContext callingContext)
+        {
+            if (callingContext is not null && callingContext.Output.TryAdd(input.Name, input.Value))
+                return Task.FromResult(new OutputOperationOut());
+            else
+                throw new ArgumentException($"Workflow output '{input.Name}' was duplicated or has an invalid name.");
+        }
+    }
+}

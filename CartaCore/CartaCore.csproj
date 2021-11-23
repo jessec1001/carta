@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="CsvHelper" Version="27.2.0" />
     <PackageReference Include="MorseCode.ITask" Version="2.0.3" />
     <PackageReference Include="NJsonSchema" Version="10.4.4" />
     <PackageReference Include="System.Linq.Async" Version="5.0.0" />

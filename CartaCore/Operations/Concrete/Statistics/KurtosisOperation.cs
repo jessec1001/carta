@@ -1,0 +1,44 @@
+using System.Threading.Tasks;
+using CartaCore.Statistics;
+
+namespace CartaCore.Operations
+{
+    /// <summary>
+    /// The input for the <see cref="KurtosisOperation" /> operation.
+    /// </summary>
+    public struct KurtosisOperationIn
+    {
+        /// <summary>
+        /// The list of numeric values to compute the central kurtosis of.
+        /// </summary>
+        public double[] Values { get; set; }
+    }
+    /// <summary>
+    /// The output for the <see cref="KurtosisOperation" /> operation.
+    /// </summary>
+    public struct KurtosisOperationOut
+    {
+        /// <summary>
+        /// The computed central kurtosis.
+        /// </summary>
+        public double Kurtosis { get; set; }
+    }
+
+    /// <summary>
+    /// Calculates the central kurtosis of a set of numeric values.
+    /// </summary>
+    public class KurtosisOperation : TypedOperation
+    <
+        KurtosisOperationIn,
+        KurtosisOperationOut
+    >
+    {
+        /// <inheritdoc />
+        public override Task<KurtosisOperationOut> Perform(KurtosisOperationIn input)
+        {
+            return Task.FromResult(new KurtosisOperationOut()
+                { Kurtosis = StatisticsUtils.ComputeNormalizedMoment(input.Values, 4) }
+            );
+        }
+    }
+}
