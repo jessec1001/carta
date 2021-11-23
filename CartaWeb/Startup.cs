@@ -217,6 +217,7 @@ namespace CartaWeb
         /// </remarks>
         /// <param name="app">The application builder.</param>
         /// <param name="env">The web host environment.</param>
+        /// <param name="loggerFactory">The logger factory.</param>
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
             // Add AWS cloud watch logging for production

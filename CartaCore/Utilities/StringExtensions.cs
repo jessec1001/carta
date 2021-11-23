@@ -1,4 +1,5 @@
 using System;
+using System.Text.RegularExpressions;
 
 namespace CartaCore.Utilities
 {
@@ -7,6 +8,16 @@ namespace CartaCore.Utilities
     /// </summary>
     public static class StringExtensions
     {
+        /// <summary>
+        /// Replaces any consecutive whitespace characters with a single space and trims the string.
+        /// </summary>
+        /// <param name="str">The string to format.</param>
+        /// <returns>The formatted string with whitespace contracted.</returns>
+        public static string ContractWhitespace(this string str)
+        {
+            return Regex.Replace(str, @"\s+", " ").Trim();
+        }
+
         /// <summary>
         /// Checks if a supstring (superstring) contains a (non-contiguous) subsequence (substring) of characters.
         /// </summary>
