@@ -13,6 +13,7 @@ using CartaCore.Serialization;
 using CartaCore.Workflow.Action;
 using CartaCore.Workflow.Selection;
 using CartaWeb.Models.Meta;
+using CartaCore.Documentation;
 
 namespace CartaWeb.Controllers
 {
@@ -45,13 +46,13 @@ namespace CartaWeb.Controllers
         /// </remarks>
         /// <param name="type">The controller type.</param>
         /// <returns>A string representing the name of the controller.</returns>
-        private string ResolveControllerName(Type type)
+        private static string ResolveControllerName(Type type)
         {
             // If the type ends in "Controller" (which it should), remove it and set the remainder as the type name.
             const string suffix = "controller";
             string typeName = type.Name.ToLower();
             if (typeName.EndsWith(suffix))
-                return typeName.Substring(0, typeName.Length - suffix.Length);
+                return typeName[..^suffix.Length];
             else
                 return typeName;
         }
@@ -61,7 +62,7 @@ namespace CartaWeb.Controllers
         /// </summary>
         /// <param name="type">The controller type.</param>
         /// <returns>An enumerable of string routes.</returns>
-        private IEnumerable<string> ResolveControllerRoute(Type type)
+        private static IEnumerable<string> ResolveControllerRoute(Type type)
         {
             // Get the name of the type as a controller.
             string controllerName = ResolveControllerName(type);
@@ -90,8 +91,11 @@ namespace CartaWeb.Controllers
         /// </summary>
         /// <param name="method">The controller action.</param>
         /// <returns>An enumerable of API endpoints.</returns>
-        private IEnumerable<ApiEndpoint> ResolveActionRoute(MethodInfo method)
+        private static IEnumerable<ApiEndpoint> ResolveActionRoute(MethodInfo method)
         {
+            // Get the endpoint documentation for the endpoint method.
+            EndpointDocumentation endpointDoc = method.GetDocumentation<EndpointDocumentation>();
+
             // Get the containing controller routes.
             IEnumerable<string> controllerRoutes = ResolveControllerRoute(method.DeclaringType);
 
@@ -117,7 +121,7 @@ namespace CartaWeb.Controllers
                 // The complete route is the concatenation of the controller and action route.
                 foreach (string controllerRoute in controllerRoutes)
                 {
-                    ApiMethod actionMethod = default(ApiMethod);
+                    ApiMethod actionMethod = default;
                     string actionRoute;
                     if (string.IsNullOrEmpty(route))
                         actionRoute = controllerRoute;
@@ -133,9 +137,17 @@ namespace CartaWeb.Controllers
                         Method = actionMethod,
                         Path = actionRoute,
                         Parameters = parameters,
-                        Requests = method.GetDocsRequests(),
-                        Description = method.GetDocsSummary(),
-                        Returns = method.GetDocsReturns(),
+                        Requests = endpointDoc.Requests
+                            .Select(request => new ApiRequest()
+                            {
+                                Name = request.Name,
+                                Body = request.JsonBody,
+                                Arguments = request.DictionaryArguments
+                            })
+                            .ToList(),
+                        Description = endpointDoc.Summary,
+                        Returns = endpointDoc.Returns
+                            .ToDictionary(ret => ret.StatusCode, ret => ret.Return),
                     };
                 }
             }
@@ -145,7 +157,7 @@ namespace CartaWeb.Controllers
         /// </summary>
         /// <param name="method">The controller action.</param>
         /// <returns>A list of API parameters.</returns>
-        private List<ApiParameter> ResolveActionParameters(MethodInfo method)
+        private static List<ApiParameter> ResolveActionParameters(MethodInfo method)
         {
             // We get the parameter list.
             List<ApiParameter> parameters =
@@ -176,7 +188,9 @@ namespace CartaWeb.Controllers
                             Name = name,
                             Type = parameterType,
                             Format = format,
-                            Description = param.GetDocsSummary()
+                            Description = param
+                                .GetDocumentation<StandardDocumentation>()
+                                .Summary
                         };
                     })
                     .ToList();
@@ -187,7 +201,7 @@ namespace CartaWeb.Controllers
         /// </summary>
         /// <param name="parameter">The parameter.</param>
         /// <returns>The query string parameter.</returns>
-        private string ResolveParameterString(ParameterInfo parameter)
+        private static string ResolveParameterString(ParameterInfo parameter)
         {
             // The parameter name is either set by the from query attribute or defaults to the name of the parameter.
             string parameterName = parameter
@@ -216,7 +230,7 @@ namespace CartaWeb.Controllers
         [HttpGet]
         public List<ApiCollection> GetEndpoints()
         {
-            List<ApiCollection> endpoints = new List<ApiCollection>();
+            List<ApiCollection> endpoints = new();
 
             // Get each controller type in this assembly.
             IList<Type> controllerTypes = Assembly
@@ -230,14 +244,16 @@ namespace CartaWeb.Controllers
             {
                 // We add a list of endpoints per controller.
                 string controllerName = ResolveControllerName(controllerType);
-                List<ApiEndpoint> controllerEndpoints = new List<ApiEndpoint>();
+                List<ApiEndpoint> controllerEndpoints = new();
                 endpoints.Add
                 (
                     new ApiCollection
                     {
                         Name = controllerName,
                         Endpoints = controllerEndpoints,
-                        Description = controllerType.GetDocsSummary()
+                        Description = controllerType
+                            .GetDocumentation<StandardDocumentation>()
+                            .Summary
                     }
                 );
 
@@ -257,9 +273,8 @@ namespace CartaWeb.Controllers
         protected JsonSchema ConstructSchema(DiscriminantType type)
         {
             // Generate the schema from the underlying discrinant type.
-            JsonSchemaGeneratorSettings settings = new JsonSchemaGeneratorSettings();
-            JsonSchemaGenerator generator = new JsonSchemaGenerator(settings);
-            JsonSchema schema = JsonSchema.FromType(type.Type);
+            JsonSchemaGeneratorSettings settings = new();
+            JsonSchema schema = JsonSchema.FromType(type.Type, settings);
 
             // Use the name provided in the discriminant type as the schema title.
             schema.Title = type.Name;
@@ -345,7 +360,7 @@ namespace CartaWeb.Controllers
             if (Discriminant.TryGetType<Actor>(actor, out DiscriminantType actorType))
             {
                 JsonSchema schema = ConstructSchema(actorType);
-                ContentResult result = new ContentResult
+                ContentResult result = new()
                 {
                     Content = schema.ToJson(),
                     ContentType = "application/json",
@@ -422,7 +437,7 @@ namespace CartaWeb.Controllers
             if (Discriminant.TryGetType<Selector>(selector, out DiscriminantType selectorType))
             {
                 JsonSchema schema = ConstructSchema(selectorType);
-                ContentResult result = new ContentResult
+                ContentResult result = new()
                 {
                     Content = schema.ToJson(),
                     ContentType = "application/json",

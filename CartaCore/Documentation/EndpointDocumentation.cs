@@ -62,7 +62,7 @@ namespace CartaCore.Documentation
         /// The arguments of the request as a dictionary representation.
         /// </summary>
         [XmlIgnore]
-        public Dictionary<string, string> Parameters
+        public Dictionary<string, string> DictionaryArguments
         {
             get
             {

@@ -1,167 +1,99 @@
-﻿using System.Text.Json;
-using NUlid;
-using CartaCore.Workflow;
-using CartaWeb.Models.Data;
-using CartaCore.Persistence;
+using System;
 
 namespace CartaWeb.Models.DocumentItem
 {
     /// <summary>
-    /// Used to store workflow information
+    /// A point at which a workflow connection can attach to. Refers of a specific field on an operation.
+    /// </summary>
+    public class WorkflowConnectionPoint
+    {
+        /// <summary>
+        /// The unique identifier of the operation.
+        /// </summary>
+        public string Operation { get; set; }
+        /// <summary>
+        /// The field on the operation to attach to.
+        /// </summary>
+        public string Field { get; set; }
+    }
+    /// <summary>
+    /// A connection between two fields on distinct workflow operations indicating a passage of data.
+    /// </summary>
+    public class WorkflowConnection
+    {
+        /// <summary>
+        /// The unique identifier of the connection.
+        /// </summary>
+        public string Id { get; set; }
+
+        /// <summary>
+        /// The source point of the connection.
+        /// </summary>
+        public WorkflowConnectionPoint Source { get; set; }
+        /// <summary>
+        /// The target point of the connection.
+        /// </summary>
+        public WorkflowConnectionPoint Target { get; set; }
+        
+        /// <summary>
+        /// Whether this connection should multiplex from source to target.
+        /// </summary>
+        public bool Multiplex { get; set; } = false;
+    }
+
+    /// <summary>
+    /// An item that represents a workflow along with its suboperations and connections. This workflow item is then used
+    /// to construct a workflow operation from its template.
     /// </summary>
     public class WorkflowItem : Item
     {
         /// <summary>
-        /// Flag used to indicate whether the workflow item should be read/persisted as a temporary workflow under a
-        /// user or as an officially versioned workflow.
+        /// The name of the workflow template.
         /// </summary>
-        public bool IsTempWorkflow { get; set; } 
+        public string Name { get; set; }
         /// <summary>
-        /// The workflow
+        /// The description of the workflow template.
         /// </summary>
-        public Workflow Workflow { get; set; }
-        /// <summary>
-        /// Version information of the workflow
-        /// </summary>
-        public VersionInformation VersionInformation { get; set; }
+        public string Description { get; set; }
 
         /// <summary>
-        /// Parameterless constructor required for deserialization
+        /// The suboperations contained in the workflow.
         /// </summary>
-        public WorkflowItem() { }
+        public string[] Operations { get; set; }
+        /// <summary>
+        /// The connections between the suboperations contained in the workflow.
+        /// </summary>
+        public WorkflowConnection[] Connections { get; set; }
 
         /// <summary>
-        /// Creates a new instance of the <see cref="WorkflowItem"/> class, used to persist information.
+        /// Initializes a new instance of the <see cref="WorkflowItem"/> class with specified suboperations and
+        /// connections.
         /// </summary>
-        /// <param name="isTempWorkflow">Set to true to read a temporary user workflow, else false.</param>
-        /// <param name="partitionKeyId">The partition key identifier (the user identifier if a temporary workflow, else 
-        /// the workflow identifier).</param>
-        /// <param name="workflow">The workflow.</param>
-        /// <param name="versionInformation">Version information</param>
-        public WorkflowItem(
-            bool isTempWorkflow,
-            string partitionKeyId,
-            Workflow workflow,
-            VersionInformation versionInformation)
+        /// <param name="workspaceId">The identifier of the workspace containing the workflow.</param>
+        /// <param name="operations">The suboperations of the workflow.</param>
+        /// <param name="connections">The connections of the workflow.</param>
+        public WorkflowItem(string workspaceId, string[] operations, WorkflowConnection[] connections)
         {
-            IsTempWorkflow = isTempWorkflow;
-            PartitionKeyId = partitionKeyId;
-            Id = workflow.Id;
-            Workflow = workflow;
-            VersionInformation = versionInformation;
-            workflow.VersionNumber = VersionInformation.Number;
+            PartitionKeyId = workspaceId;
+
+            Operations = operations;
+            Connections = connections;
+        }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="WorkflowItem"/> class with no suboperations or connections.
+        /// </summary>
+        /// <param name="workspaceId">The identifier of the workspace containing the workflow.</param>
+        public WorkflowItem(string workspaceId)
+        {
+            PartitionKeyId = workspaceId;
+
+            Operations = Array.Empty<string>();
+            Connections = Array.Empty<WorkflowConnection>();
         }
 
-        /// <summary>
-        /// Constructor, used to create an instance for reading all items stored under the partition key identifier. 
-        /// </summary>
-        /// <param name="isTempWorkflow">Set to true to read a temporary user workflow, else false.</param>
-        /// <param name="partitionKeyId">The partition key identifier (the user identifier if temporary, else the
-        /// workflow identifier).</param>
-        public WorkflowItem(bool isTempWorkflow, string partitionKeyId)
-        {
-            IsTempWorkflow = isTempWorkflow;
-            PartitionKeyId = partitionKeyId;
-        }
-
-        /// <summary>
-        /// Constructor, used to create an instance for reading a temporary workflow item stored under the
-        /// partition and sort key identifiers. 
-        /// </summary>
-        /// <param name="partitionKeyId">The partition key identifier = user identifier.</param>
-        /// <param name="id">The workflow identifier.</param>
-        public WorkflowItem(string partitionKeyId, string id)
-        {
-            IsTempWorkflow = true;
-            PartitionKeyId = partitionKeyId;
-            Id = id;
-        }
-
-        /// <summary>
-        /// Constructor, used to create an instance for reading an official workflow item version
-        /// </summary>
-        /// <param name="partitionKeyId">The partition key identifier = workflow identifier.</param>
-        /// <param name="versionNumber">The  workflow version number.</param>
-        public WorkflowItem(string partitionKeyId, int versionNumber)
-        {
-            IsTempWorkflow = false;
-            PartitionKeyId = partitionKeyId;
-            VersionInformation = new VersionInformation();
-            VersionInformation.Number = versionNumber;
-        }
-
-        /// <summary>
-        /// Codifies the partition key prefix to use for the document.
-        /// </summary>
-        /// <returns>The partition key prefix.</returns>
-        public override string PartitionKeyPrefix
-        {
-            get
-            {
-                if (IsTempWorkflow) return "USER#";
-                else return "WORKFLOW#";
-            }
-        }
-
-        /// <summary>
-        /// Codifies the sort key prefix to use for the document.
-        /// </summary>
-        /// <returns>The sort key prefix.</returns>
-        public override string SortKeyPrefix
-        {
-            get
-            {
-                if (IsTempWorkflow) return "WORKFLOW#";
-                else return "VERSION#";
-            }
-        }
-
-        /// <summary>
-        /// Returns the sort key of the document.
-        /// </summary>
-        /// <returns>The sort key.</returns>
-        public override string GetSortKey()
-        {
-            if (IsTempWorkflow) return SortKeyPrefix + Id;
-            else return SortKeyPrefix + VersionInformation.Number;
-        }
-
-        /// <summary>
-        /// Creates a database document to persist a new item to the database.
-        /// </summary>
-        /// <returns>A database document.</returns>
-        public override DbDocument CreateDbDocument()
-        {
-            string docId = Ulid.NewUlid().ToString();
-            string sortKey = SortKeyPrefix + docId;
-            Id = docId;
-            Workflow.Id = Id;
-            DbDocument dbDocument = new DbDocument
-            (
-                GetPartitionKey(),
-                sortKey,
-                JsonSerializer.Serialize(this, GetType(), JsonOptions),
-                DbOperationEnumeration.Create
-            );
-            return dbDocument;
-        }
-
-        /// <summary>
-        /// Creates a database document to save an item to the database.
-        /// If the item does not exist, the item will be created, else the item will be updated.
-        /// </summary>
-        /// <returns>A database document.</returns>
-        public override DbDocument SaveDbDocument()
-        {
-            Workflow.VersionNumber = VersionInformation.Number;
-            DbDocument dbDocument = new DbDocument
-            (
-                GetPartitionKey(),
-                GetSortKey(),
-                JsonSerializer.Serialize(this, GetType(), JsonOptions),
-                DbOperationEnumeration.Save
-            );
-            return dbDocument;
-        }
+        /// <inheritdoc />
+        public override string PartitionKeyPrefix => "WORKSPACE#";
+        /// <inheritdoc />
+        public override string SortKeyPrefix => "WORKFLOW#";
     }
 }
