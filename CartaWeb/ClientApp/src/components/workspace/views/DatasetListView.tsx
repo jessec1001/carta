@@ -7,30 +7,70 @@ import React, {
   useRef,
   useState,
 } from "react";
+import classNames from "classnames";
 import { WorkspaceContext } from "context";
-import { WorkspaceDataset } from "library/api";
+import { defaultWorkspaceDatasetName, WorkspaceDataset } from "library/api";
 import { ObjectFilter } from "library/search";
-import { Text } from "components/text";
+import { Text, Loading } from "components/text";
 import { IconButtonAdd } from "components/buttons";
 import { DatabaseIcon, DatasetIcon } from "components/icons";
 import { SearchboxInput, TextFieldInput } from "components/input";
-import { VerticalScroll } from "components/scroll";
 import { Column, Row } from "components/structure";
 import { useViews, Views } from "components/views";
 import DatasetAddView from "./DatasetAddView";
 import DatasetGraphView from "./DatasetGraphView";
+
 import "./DatasetListView.css";
-import { totalmem } from "os";
+
+/**
+ * Renders a dataset item that can be selected and renamed..
+ * @param dataset The dataset to render.
+ * @param setSelected A function to set the selected dataset.
+ * @param setName A function to set the name of the dataset.
+ * @param selected Whether this dataset is currently selected.
+ * @param rename Whether this dataset is currently being renamed and what it is being renamed to.
+ * @returns An element that represents a dataset item.
+ */
+const renderDataset = (
+  dataset: WorkspaceDataset,
+  setSelected: (event: React.MouseEvent) => void,
+  setName: (value: string) => void,
+  selected: boolean,
+  rename?: string
+) => {
+  // Compute the default display name for the dataset.
+  const displayName = dataset.name ?? defaultWorkspaceDatasetName(dataset);
+
+  return (
+    <li
+      className={classNames("DatasetListView-DatasetItem", { selected })}
+      key={dataset.id}
+      onClick={setSelected}
+    >
+      <Text align="middle">
+        <DatasetIcon padded />
+        {rename !== undefined && selected ? (
+          <TextFieldInput
+            className={"DatasetListView-DatasetItem-Input"}
+            value={rename}
+            onChange={setName}
+            placeholder={displayName}
+          />
+        ) : (
+          displayName
+        )}
+      </Text>
+    </li>
+  );
+};
 
 /** A component that renders a list of datasets that can be searched and sorted. */
 const DatasetListView: FunctionComponent = () => {
-  // TODO: Make the workspace context have a custom hook.
   // We use these contexts to handle opening and closing views and managing data.
   const { viewId, rootId, actions } = useViews();
   const { datasets } = useContext(WorkspaceContext);
   const elementRef = useRef<HTMLDivElement>(null);
 
-  // TODO: Open the dataset properties view when a dataset is selected and close it otherwise.
   // We use a state variable to indicate which item of the dataset list is currently selected.
   // We use a state variable to indicate whether the currently selected dataset item is being renamed and the new name.
   // By selecting a dataset, we indicate that we are preparing to rename the dataset.
@@ -51,13 +91,10 @@ const DatasetListView: FunctionComponent = () => {
   // Clicking the add button should open the add dataset view.
   // Clicking the close tab button should close the list datasets view.
   // Executing a dataset item should open the graph dataset view to that dataset.
-  const handleAdd = useCallback(() => {
-    const parentView = actions.getParentView(viewId);
-    if (parentView) {
-      actions.addElementToContainer(parentView.currentId, <DatasetAddView />);
-    }
-  }, [actions, viewId]);
-  const handleOpen = useCallback(
+  const handleAddDataset = useCallback(() => {
+    actions.addElementToContainer(rootId, <DatasetAddView />);
+  }, [actions, rootId]);
+  const handleOpenDataset = useCallback(
     (datasetId: string) => {
       actions.addElementToContainer(
         rootId,
@@ -66,10 +103,6 @@ const DatasetListView: FunctionComponent = () => {
     },
     [actions, rootId]
   );
-  // TODO: Implement this in the view component.
-  const handleClose = useCallback(() => {
-    actions.removeView(viewId);
-  }, [actions, viewId]);
 
   /**
    * Dataset items should be able to be renamed.
@@ -93,7 +126,6 @@ const DatasetListView: FunctionComponent = () => {
   // This handles the logic of actually submitting a renaming update.
   const handleRename = useCallback(() => {
     // Try to find the selected dataset within the datasets collection.
-    // TODO: Review this code.
     const dataset = datasets.value?.find((dataset) => dataset.id === selected);
     if (dataset) {
       // Perform the actual update.
@@ -105,7 +137,6 @@ const DatasetListView: FunctionComponent = () => {
   }, [datasets, name, selected]);
   // This handles the logic of deleting a dataset.
   const handleDelete = useCallback(() => {
-    // TODO: Review this code.
     const dataset = datasets.value?.find((dataset) => dataset.id === selected);
     if (dataset) {
       datasets.CRUD.remove(dataset);
@@ -121,8 +152,7 @@ const DatasetListView: FunctionComponent = () => {
         if (selected === dataset.id) {
           // If the current selected element was clicked, start renaming.
           // TODO: Default dataset names?
-          const name =
-            dataset.name ?? `(${dataset.source}/${dataset.resource})`;
+          const name = dataset.name ?? defaultWorkspaceDatasetName(dataset);
           if (!renaming) {
             setRenaming(true);
             setName(name);
@@ -139,10 +169,10 @@ const DatasetListView: FunctionComponent = () => {
 
       // This corresponds to a double click.
       if (event.detail === 2 && !renaming) {
-        handleOpen(dataset.id);
+        handleOpenDataset(dataset.id);
       }
     },
-    [handleOpen, handleRename, selected, renaming]
+    [handleOpenDataset, handleRename, selected, renaming]
   );
 
   // This removes the selection when a click is made outside of the dataset list.
@@ -197,6 +227,7 @@ const DatasetListView: FunctionComponent = () => {
     return () => window.removeEventListener("keydown", handlePotentialKey);
   }, [handleRename, handleDelete, renaming]);
 
+  // Whenever the selected dataset changes, we update the view tags.
   useEffect(() => {
     if (selected) actions.setTag(viewId, "dataset", selected);
     else actions.unsetTag(viewId, "dataset");
@@ -212,70 +243,41 @@ const DatasetListView: FunctionComponent = () => {
   }, []);
 
   return (
-    <Views.Container title={title} closeable>
-      <VerticalScroll
-      // TODO: Reimplement these on the scroll components.
-      // ref={elementRef}
-      // onClick={() => actions.addHistory(viewId)}
-      >
-        <Row>
-          <Column>
-            <SearchboxInput onChange={setQuery} clearable />
-          </Column>
-          <IconButtonAdd onClick={handleAdd} />
-        </Row>
-        {!datasets.value && <span>Loading</span>}
-        {datasets.value && (
-          <ul role="presentation" ref={datasetListRef}>
-            {datasetFilter.filter(datasets.value).map((dataset) => {
-              // TODO: Default dataset names?
-              const displayName =
-                dataset.name ?? `(${dataset.source}/${dataset.resource})`;
-              const datasetSelected = selected === dataset.id;
+    <Views.Container
+      title={title}
+      closeable
+      direction="vertical"
+      ref={elementRef}
+      onClick={() => actions.addHistory(viewId)}
+    >
+      {/* Display a searchbox for filtering the datasets. */}
+      <Row>
+        <Column>
+          <SearchboxInput onChange={setQuery} clearable />
+        </Column>
+        <IconButtonAdd onClick={handleAddDataset} />
+      </Row>
 
-              return (
-                <li
-                  className={`dataset-item ${
-                    datasetSelected ? "selected" : ""
-                  }`}
-                  key={dataset.id}
-                  style={{
-                    padding: "0rem 1rem",
-                    cursor: "pointer",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                  }}
-                  onClick={(event) => handleSelect(dataset, event)}
-                >
-                  {/* TODO: Fix overflow not becoming ellipses correctly. */}
-                  <span
-                    className="normal-text"
-                    style={{
-                      // display: "inline-flex",
-                      flexShrink: 0,
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                    }}
-                  >
-                    <DatasetIcon padded />
-                    {renaming && datasetSelected ? (
-                      <TextFieldInput
-                        value={name}
-                        onChange={setName}
-                        placeholder={displayName}
-                      />
-                    ) : (
-                      displayName
-                    )}
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </VerticalScroll>
+      {/* Display the dataset list. */}
+      {/* If loading, display loading text. */}
+      {!datasets.value && <Loading />}
+
+      {/* Otherwise, display the list of datasets. */}
+      {datasets.value && (
+        <ul role="presentation" ref={datasetListRef}>
+          {datasetFilter
+            .filter(datasets.value)
+            .map((dataset) =>
+              renderDataset(
+                dataset,
+                (event) => handleSelect(dataset, event),
+                setName,
+                selected === dataset.id,
+                renaming ? name : undefined
+              )
+            )}
+        </ul>
+      )}
     </Views.Container>
   );
 };

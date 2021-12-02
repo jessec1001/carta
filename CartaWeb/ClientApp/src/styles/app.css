@@ -4,7 +4,10 @@
 body {
   color: var(--color-stroke-normal);
   background-color: var(--color-fill-body);
-  font-family: "Source Sans Pro", sans-serif;
+  font-family: "Source Sans Pro", sans-serif !important;
+}
+input {
+  font-family: "Source Sans Pro", sans-serif !important;
 }
 hr {
   border: none;
