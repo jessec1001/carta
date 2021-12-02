@@ -1,0 +1,7 @@
+/* TODO: Clean up. */
+.dataset-item:hover {
+  background-color: var(--color-primary-hover);
+}
+.dataset-item.selected {
+  background-color: var(--color-primary-select);
+}

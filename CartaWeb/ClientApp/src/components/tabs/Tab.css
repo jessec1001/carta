@@ -28,9 +28,6 @@
 .Tab .Tab-Content {
   flex-grow: 1;
 }
-.Tab.closeable .Tab-Content {
-  margin-right: 0.25em;
-}
 
 /* Make the tab close button red. */
 .Tab-Close:hover {

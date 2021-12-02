@@ -5,6 +5,12 @@ interface BaseView<T extends string> {
   /** The type of the view. */
   type: T;
 
+  /** The title of the view. */
+  title: React.ReactNode;
+  // TODO: Check if a view is closeable before closing it in the context actions.
+  /** Whether the view is closeable. */
+  closeable: boolean;
+
   /** The unique identifier for the current view. */
   currentId: number;
   /** The unique identifier for the parent view or `null` if it does not exist. */

@@ -9,21 +9,22 @@ import React, {
 import { WorkspaceContext } from "context";
 import { WorkspaceDataset } from "library/api";
 import { ObjectFilter } from "library/search";
+import { Text } from "components/text";
 import { IconButtonAdd } from "components/buttons";
 import { DatabaseIcon, DatasetIcon } from "components/icons";
 import { SearchboxInput, TextFieldInput } from "components/input";
 import { VerticalScroll } from "components/scroll";
 import { Column, Row } from "components/structure";
-import { Tabs } from "components/tabs";
+import { useViews, Views } from "components/views";
 import DatasetAddView from "./DatasetAddView";
 import DatasetGraphView from "./DatasetGraphView";
-import { useViews } from "components/views";
+import "./DatasetListView.css";
 
 /** A component that renders a list of datasets that can be searched and sorted. */
 const DatasetListView: FunctionComponent = () => {
+  // TODO: Make the workspace context have a custom hook.
   // We use these contexts to handle opening and closing views and managing data.
   const { viewId, rootId, actions } = useViews();
-  const parentView = actions.getParentView(viewId);
   const { datasets } = useContext(WorkspaceContext);
   const elementRef = useRef<HTMLDivElement>(null);
 
@@ -49,9 +50,11 @@ const DatasetListView: FunctionComponent = () => {
   // Clicking the close tab button should close the list datasets view.
   // Executing a dataset item should open the graph dataset view to that dataset.
   const handleAdd = useCallback(() => {
-    if (parentView)
+    const parentView = actions.getParentView(viewId);
+    if (parentView) {
       actions.addElementToContainer(parentView.currentId, <DatasetAddView />);
-  }, [actions, parentView]);
+    }
+  }, [actions, viewId]);
   const handleOpen = useCallback(
     (datasetId: string) => {
       actions.addElementToContainer(
@@ -61,6 +64,7 @@ const DatasetListView: FunctionComponent = () => {
     },
     [actions, rootId]
   );
+  // TODO: Implement this in the view component.
   const handleClose = useCallback(() => {
     actions.removeView(viewId);
   }, [actions, viewId]);
@@ -87,6 +91,7 @@ const DatasetListView: FunctionComponent = () => {
   // This handles the logic of actually submitting a renaming update.
   const handleRename = useCallback(() => {
     // Try to find the selected dataset within the datasets collection.
+    // TODO: Review this code.
     const dataset = datasets.value?.find((dataset) => dataset.id === selected);
     if (dataset) {
       // Perform the actual update.
@@ -98,6 +103,7 @@ const DatasetListView: FunctionComponent = () => {
   }, [datasets, name, selected]);
   // This handles the logic of deleting a dataset.
   const handleDelete = useCallback(() => {
+    // TODO: Review this code.
     const dataset = datasets.value?.find((dataset) => dataset.id === selected);
     if (dataset) {
       datasets.CRUD.remove(dataset);
@@ -112,6 +118,7 @@ const DatasetListView: FunctionComponent = () => {
       if (event.detail === 1) {
         if (selected === dataset.id) {
           // If the current selected element was clicked, start renaming.
+          // TODO: Default dataset names?
           const name =
             dataset.name ?? `(${dataset.source}/${dataset.resource})`;
           if (!renaming) {
@@ -194,53 +201,30 @@ const DatasetListView: FunctionComponent = () => {
   }, [selected, viewId, actions]);
 
   return (
-    // <Tabs.Tab
-    //   id={0}
-    //   title={
-    //     <React.Fragment>
-    //       <DatabaseIcon padded /> Datasets
-    //     </React.Fragment>
-    //   }
-    //   onClose={handleClose}
-    //   closeable
-    // >
-    <VerticalScroll>
-      <style>
-        {`
-          .dataset-item:hover {
-            background-color: var(--color-primary-hover);
-          }
-          .dataset-item.selected {
-            background-color: var(--color-primary-select);
-          }
-          `}
-      </style>
-      <div
-        className="view"
-        style={{
-          padding: "0rem",
-        }}
-        onClick={() => {
-          actions.addHistory(viewId);
-        }}
-        ref={elementRef}
+    <Views.Container
+      title={
+        <Text align="middle">
+          <DatabaseIcon padded /> Datasets
+        </Text>
+      }
+      closeable
+    >
+      <VerticalScroll
+      // TODO: Reimplement these on the scroll components.
+      // ref={elementRef}
+      // onClick={() => actions.addHistory(viewId)}
       >
-        <div
-          style={{
-            padding: "1rem",
-          }}
-        >
-          <Row>
-            <Column>
-              <SearchboxInput onChange={setQuery} clearable />
-            </Column>
-            <IconButtonAdd onClick={handleAdd} />
-          </Row>
-        </div>
+        <Row>
+          <Column>
+            <SearchboxInput onChange={setQuery} clearable />
+          </Column>
+          <IconButtonAdd onClick={handleAdd} />
+        </Row>
         {!datasets.value && <span>Loading</span>}
         {datasets.value && (
           <ul role="presentation" ref={datasetListRef}>
             {datasetFilter.filter(datasets.value).map((dataset) => {
+              // TODO: Default dataset names?
               const displayName =
                 dataset.name ?? `(${dataset.source}/${dataset.resource})`;
               const datasetSelected = selected === dataset.id;
@@ -287,39 +271,9 @@ const DatasetListView: FunctionComponent = () => {
             })}
           </ul>
         )}
-      </div>
-    </VerticalScroll>
-    // </Tabs.Tab>
+      </VerticalScroll>
+    </Views.Container>
   );
 };
-
-// TODO: Toggle for resource/source hierarchy:
-// <Database Icon> <Accordian> Source
-//   <Database Icon> <Accordian> Resource
-//     <Dataset Icon> Dataset Name
-//     <Dataset Icon> Dataset Name
-//   <Database Icon> <Accordian> Resource
-//     <Dataset Icon> Dataset Name
-
-// TODO: INTERACTIONS
-/** Search
- * const filter = new ObjectFilter(searchText);
- * const filteredObjects = filter.filter(datasets);
- */
-
-/** Focus
- * handleSingleClick = () => setFocusIndex(index)
- */
-
-/** Rename
- * handleSingleClick = (event) => {
- *   if (event.detail === 1) {
- *     setRenamining(true);
- *   }
- * }
- *
- * handleRename = (event) => {
- * }
- */
 
 export default DatasetListView;

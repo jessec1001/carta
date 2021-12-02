@@ -21,7 +21,6 @@ const Renderer: FunctionComponent = () => {
   const { viewId, rootId, actions } = useViews();
   const view = actions.getView(viewId);
   const childViews = actions.getChildViews(viewId);
-  if (childViews) console.log("CHILD VIEWS:", [...childViews]);
 
   // If the view exists, render it.
   const contextActions = {
@@ -78,13 +77,12 @@ const Renderer: FunctionComponent = () => {
       return (
         // TODO: Incorporate tab focus.
         // TODO: Try to move the tab bar up into a status bar of the split panels.
+        // TODO: Make sure that the view is closed when the tab 'x' button is clicked (if closeable).
         <Tabs>
           <Tabs.Area direction="horizontal" flex>
             <Tabs.Bar>
               {childViews.map((childView) => {
                 if (!childView) return null;
-                // TODO: Add some title or name component to views that can be used here.
-                // TODO: Add support for closeable tabs.
                 return (
                   // We use a view context for the tab bar to allow for view-based tab buttons.
                   <ViewContext.Provider
@@ -95,8 +93,11 @@ const Renderer: FunctionComponent = () => {
                       ...contextActions,
                     }}
                   >
-                    <Tabs.Tab id={childView.currentId}>
-                      View {childView.currentId}
+                    <Tabs.Tab
+                      id={childView.currentId}
+                      closeable={childView.closeable}
+                    >
+                      {childView.title}
                     </Tabs.Tab>
                   </ViewContext.Provider>
                 );

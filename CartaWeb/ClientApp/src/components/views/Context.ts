@@ -1,4 +1,9 @@
-import { ReactElement, createContext, useContext, useCallback } from "react";
+import React, {
+  ReactElement,
+  createContext,
+  useContext,
+  useCallback,
+} from "react";
 import View, { isContainerView } from "./View";
 
 // TODO: We could consider having multiple active views that have a specific type associated to them.
@@ -43,6 +48,15 @@ interface IViewsActions {
   removeView: (id: number) => void;
   getParentView: (id: number) => View | null;
   getChildViews: (id: number) => (View | null)[] | null;
+
+  /**
+   * Sets the specified options on the current view.
+   * @param options The options to set.
+   */
+  setOptions: (options: {
+    title?: React.ReactNode;
+    closeable?: boolean;
+  }) => void;
 
   /* Actions that retrieve or modify the history of views. */
   getHistory: () => number[];
@@ -111,6 +125,31 @@ const useViews = (): IViews => {
     [getView]
   );
 
+  const setOptions = useCallback(
+    ({
+      title,
+      closeable,
+    }: {
+      title?: React.ReactNode;
+      closeable?: boolean;
+    }): void => {
+      let view = getView(viewId);
+      if (view === null) return;
+
+      let changed = false;
+      if (title !== undefined && view.title !== title) {
+        view = { ...view, title };
+        changed = true;
+      }
+      if (closeable !== undefined && view.closeable !== closeable) {
+        view = { ...view, closeable };
+        changed = true;
+      }
+      if (changed) setView(viewId, view);
+    },
+    [getView, setView, viewId]
+  );
+
   const getTag = useCallback(
     (id: number, key: string): any => {
       const view = getView(id);
@@ -122,7 +161,6 @@ const useViews = (): IViews => {
   const setTag = useCallback(
     (id: number, key: string, value: any): void => {
       const view = getView(id);
-      console.log("SET TAG", view, key, value);
       if (view === null || view.tags[key] === value) return;
 
       const viewCopy = { ...view, tags: { ...view.tags, [key]: value } };
@@ -133,7 +171,6 @@ const useViews = (): IViews => {
   const unsetTag = useCallback(
     (id: number, key: string): void => {
       const view = getView(id);
-      console.log("UNSET TAG", view, key);
       if (view === null || view.tags[key] === undefined) return;
 
       const viewCopy = { ...view, tags: { ...view.tags } };
@@ -171,6 +208,8 @@ const useViews = (): IViews => {
       if (container === null || !isContainerView(container)) return null;
 
       return addView({
+        title: "View",
+        closeable: true,
         type: "element",
         currentId: containerId, // Any value will do here.
         parentId: containerId,
@@ -195,6 +234,7 @@ const useViews = (): IViews => {
       getParentView,
       getChildViews,
       getActiveTag,
+      setOptions,
       getTag,
       setTag,
       unsetTag,

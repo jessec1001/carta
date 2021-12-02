@@ -1,4 +1,5 @@
 import { FunctionComponent, useCallback, useRef, useState } from "react";
+import Container from "./Container";
 import ViewsContext from "./Context";
 import Renderer from "./Renderer";
 import View, { isContainerView } from "./View";
@@ -9,9 +10,11 @@ interface ViewsProps {}
 /**
  * Defines the composition of the compound {@link Views} component.
  * @borrows Renderer as Renderer
+ * @borrows Container as Container
  */
 interface ViewsComposition {
   Renderer: typeof Renderer;
+  Container: typeof Container;
 }
 
 const Views: FunctionComponent<ViewsProps> & ViewsComposition = ({
@@ -29,6 +32,9 @@ const Views: FunctionComponent<ViewsProps> & ViewsComposition = ({
         {
           currentId: 0,
           parentId: null,
+
+          title: "root",
+          closeable: false,
 
           tags: {},
 
@@ -175,6 +181,7 @@ const Views: FunctionComponent<ViewsProps> & ViewsComposition = ({
   );
 };
 Views.Renderer = Renderer;
+Views.Container = Container;
 
 export default Views;
 export type { ViewsProps };
