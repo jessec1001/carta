@@ -3,6 +3,7 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -19,6 +20,7 @@ import { useViews, Views } from "components/views";
 import DatasetAddView from "./DatasetAddView";
 import DatasetGraphView from "./DatasetGraphView";
 import "./DatasetListView.css";
+import { totalmem } from "os";
 
 /** A component that renders a list of datasets that can be searched and sorted. */
 const DatasetListView: FunctionComponent = () => {
@@ -200,15 +202,17 @@ const DatasetListView: FunctionComponent = () => {
     else actions.unsetTag(viewId, "dataset");
   }, [selected, viewId, actions]);
 
+  // Create the view title component.
+  const title = useMemo(() => {
+    return (
+      <Text align="middle">
+        <DatabaseIcon padded /> Datasets
+      </Text>
+    );
+  }, []);
+
   return (
-    <Views.Container
-      title={
-        <Text align="middle">
-          <DatabaseIcon padded /> Datasets
-        </Text>
-      }
-      closeable
-    >
+    <Views.Container title={title} closeable>
       <VerticalScroll
       // TODO: Reimplement these on the scroll components.
       // ref={elementRef}

@@ -1,0 +1,9 @@
+/* Give the right spacing to the resource list. */
+.DatasetAddView-Resource {
+  display: flex;
+  flex-direction: row;
+}
+.DatasetAddView-Resource-Checkbox {
+  margin: 0rem 0.25rem;
+  flex-shrink: 0;
+}

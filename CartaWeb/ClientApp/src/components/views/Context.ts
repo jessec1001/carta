@@ -136,6 +136,7 @@ const useViews = (): IViews => {
       let view = getView(viewId);
       if (view === null) return;
 
+      console.log(title !== undefined && view.title !== title);
       let changed = false;
       if (title !== undefined && view.title !== title) {
         view = { ...view, title };

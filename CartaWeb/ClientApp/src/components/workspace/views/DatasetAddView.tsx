@@ -1,4 +1,10 @@
-import { FunctionComponent, useContext, useEffect, useState } from "react";
+import {
+  FunctionComponent,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { useAPI, useMounted } from "hooks";
 import { WorkspaceContext } from "context";
 import { Accordian } from "components/accordian";
@@ -12,13 +18,12 @@ import {
   SearchboxInput,
   TextFieldInput,
 } from "components/input";
-import { VerticalScroll } from "components/scroll";
 import { Text, Loading } from "components/text";
 import { Column, Row } from "components/structure";
-import { useViews } from "components/views";
+import { useViews, Views } from "components/views";
 import DatasetGraphView from "./DatasetGraphView";
 
-import "./view.css";
+import "./DatasetAddView.css";
 
 /**
  * Renders an error that has been raised while loading resources.
@@ -73,15 +78,18 @@ const renderResource = (
   selected: boolean
 ) => {
   return (
-    <label style={{ display: "flex" }}>
-      <CheckboxInput style={{ flexShrink: 0 }} value={selected} />{" "}
-      <span style={{ padding: "0rem 0.5rem" }}>{resource}</span>
+    <label className="DatasetAddView-Resource">
+      <CheckboxInput
+        className="DatasetAddView-Resource-Checkbox"
+        value={selected}
+      />
+      {resource}
     </label>
   );
 };
 
 /** A component that renders a view to add datasets to a workspace. */
-const DatasetAddView: FunctionComponent = ({ children }) => {
+const DatasetAddView: FunctionComponent = () => {
   // We need the data API to make calls to get the data resources.
   const { dataAPI } = useAPI();
   const { datasets } = useContext(WorkspaceContext);
@@ -99,7 +107,7 @@ const DatasetAddView: FunctionComponent = ({ children }) => {
 
   // These resources are stored in a dictionary:
   // Keys - Data source
-  // Values - Data resources per source (or null if loading)
+  // Values - Data resources per source (or null if loading, or error if applicable)
   const mountedRef = useMounted();
   const [groupedResources, setGroupedResources] = useState<
     Record<string, string[] | ApiException | null>
@@ -174,128 +182,117 @@ const DatasetAddView: FunctionComponent = ({ children }) => {
       );
     })();
   };
-  const handleClose = () => {
-    // Destroy this view.
+  const handleCancel = () => {
     actions.removeView(viewId);
   };
 
+  // Create the view title component.
+  const title = useMemo(() => {
+    return (
+      <Text align="middle">
+        <DatabaseIcon padded /> Add Dataset
+      </Text>
+    );
+  }, []);
+
   return (
-    // TODO: Cleanup.
-    // Render the view itself within a tab so it can be easily added to container views.
-    // <Tabs.Tab
-    //   id={0}
-    //   // title={
-    //   //   <React.Fragment>
-    //   //     <DatabaseIcon padded /> Add Dataset
-    //   //   </React.Fragment>
-    //   // }
-    //   status="none"
-    //   closeable
-    //   onClose={handleClose}
-    // >
-    <VerticalScroll>
-      <div className="view">
-        {/* Render some information on how to use this view. */}
-        <Text>
-          Select a dataset to add to the workspace by clicking on the checkbox
-          beside its name. You can optionally provide a more descriptive name
-          for the dataset that will be displayed within the workspace.
-        </Text>
+    <Views.Container title={title} closeable padded direction="vertical">
+      {/* Render some information on how to use this view. */}
+      <Text>
+        Select a dataset to add to the workspace by clicking on the checkbox
+        beside its name. You can optionally provide a more descriptive name for
+        the dataset that will be displayed within the workspace.
+      </Text>
 
-        {/* Display a searchbox for filtering the datasets. */}
-        <Row>
-          <Column>
-            <FormGroup density="flow">
-              <SearchboxInput value={query} onChange={setQuery} clearable />
-            </FormGroup>
-          </Column>
-        </Row>
+      {/* Display a searchbox for filtering the datasets. */}
+      <Row>
+        <Column>
+          <FormGroup density="flow">
+            <SearchboxInput value={query} onChange={setQuery} clearable />
+          </FormGroup>
+        </Column>
+      </Row>
 
-        {/* Depending on the state of each group of resources, execute a corresponding rendering function. */}
-        {Object.entries(groupedResources).map(([source, resources]) => {
-          let contents;
-          if (resources === null) {
-            contents = <Loading />;
-          } else if (resources instanceof ApiException) {
-            contents = renderError(resources);
-          } else {
-            // Filter on the query in the search bar.
-            resources = resources.filter((resource) =>
-              resource.toLowerCase().includes(query.toLowerCase())
-            );
-            contents =
-              resources.length > 0 ? (
-                <Text>
-                  <ul role="presentation">
-                    {resources.map((resource) => (
-                      <li
-                        key={resource}
-                        onClick={() => handleSelect(source, resource)}
-                      >
-                        {renderResource(
-                          source,
-                          resource,
-                          selected !== null &&
-                            source === selected.source &&
-                            resource === selected.resource
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                </Text>
-              ) : (
-                <Text>No data resources found.</Text>
-              );
-          }
-
-          // Each source is rendered inside of an accordian that can be collapsed.
-          return (
-            <div key={source}>
-              <Accordian>
-                <Accordian.Header>
-                  <Text size="medium" align="middle">
-                    <DatabaseIcon /> {source}
-                  </Text>
-                  <Accordian.Toggle caret />
-                </Accordian.Header>
-                <Accordian.Content>{contents}</Accordian.Content>
-              </Accordian>
-            </div>
+      {/* Depending on the state of each group of resources, execute a corresponding rendering function. */}
+      {Object.entries(groupedResources).map(([source, resources]) => {
+        let contents;
+        if (resources === null) {
+          contents = <Loading />;
+        } else if (resources instanceof ApiException) {
+          contents = renderError(resources);
+        } else {
+          // Filter on the query in the search bar.
+          resources = resources.filter((resource) =>
+            resource.toLowerCase().includes(query.toLowerCase())
           );
-        })}
+          contents =
+            resources.length > 0 ? (
+              <Text>
+                <ul role="presentation">
+                  {resources.map((resource) => (
+                    <li
+                      key={resource}
+                      onClick={() => handleSelect(source, resource)}
+                    >
+                      {renderResource(
+                        source,
+                        resource,
+                        selected !== null &&
+                          source === selected.source &&
+                          resource === selected.resource
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </Text>
+            ) : (
+              <Text>No data resources found.</Text>
+            );
+        }
 
-        {/* Render an input for the optional display name of the selected dataset. */}
-        <FormGroup title="Name" density="flow">
-          <TextFieldInput
-            placeholder={
-              selected ? `(${selected.source}/${selected.resource})` : undefined
-            }
-            disabled={selected === null}
-            value={name}
-            onChange={setName}
-          />
-        </FormGroup>
+        // Each source is rendered inside of an accordian that can be collapsed.
+        return (
+          <div key={source}>
+            <Accordian>
+              <Accordian.Header>
+                <Text size="medium" align="middle">
+                  <DatabaseIcon /> {source}
+                </Text>
+                <Accordian.Toggle caret />
+              </Accordian.Header>
+              <Accordian.Content>{contents}</Accordian.Content>
+            </Accordian>
+          </div>
+        );
+      })}
 
-        {/* Render a set of buttons to perform or cancel the add dataset operation. */}
-        <ButtonGroup>
-          <BlockButton
-            color="primary"
-            type="submit"
-            onClick={handleAdd}
-            disabled={selected === null}
-          >
-            Add
-          </BlockButton>
-          <BlockButton color="secondary" type="button" onClick={handleClose}>
-            Cancel
-          </BlockButton>
-        </ButtonGroup>
+      {/* Render an input for the optional display name of the selected dataset. */}
+      <FormGroup title="Name" density="flow">
+        <TextFieldInput
+          placeholder={
+            selected ? `(${selected.source}/${selected.resource})` : undefined
+          }
+          disabled={selected === null}
+          value={name}
+          onChange={setName}
+        />
+      </FormGroup>
 
-        {/* TODO: Fix vertical scroll so that this is not necessary. */}
-        <div style={{ paddingBottom: "1rem" }} />
-      </div>
-    </VerticalScroll>
-    // </Tabs.Tab>
+      {/* Render a set of buttons to perform or cancel the add dataset operation. */}
+      <ButtonGroup>
+        <BlockButton
+          color="primary"
+          type="submit"
+          onClick={handleAdd}
+          disabled={selected === null}
+        >
+          Add
+        </BlockButton>
+        <BlockButton color="secondary" type="button" onClick={handleCancel}>
+          Cancel
+        </BlockButton>
+      </ButtonGroup>
+    </Views.Container>
   );
 };
 
