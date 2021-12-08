@@ -151,7 +151,6 @@ const DatasetListView: FunctionComponent = () => {
       if (event.detail === 1) {
         if (selected === dataset.id) {
           // If the current selected element was clicked, start renaming.
-          // TODO: Default dataset names?
           const name = dataset.name ?? defaultWorkspaceDatasetName(dataset);
           if (!renaming) {
             setRenaming(true);
@@ -251,10 +250,11 @@ const DatasetListView: FunctionComponent = () => {
       onClick={() => actions.addHistory(viewId)}
     >
       {/* Display a searchbox for filtering the datasets. */}
-      <Row>
+      <Row className="DatasetListView-Header">
         <Column>
           <SearchboxInput onChange={setQuery} clearable />
         </Column>
+        &nbsp;
         <IconButtonAdd onClick={handleAddDataset} />
       </Row>
 

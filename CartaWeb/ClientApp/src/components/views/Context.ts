@@ -56,6 +56,7 @@ interface IViewsActions {
   setOptions: (options: {
     title?: React.ReactNode;
     closeable?: boolean;
+    status?: "none" | "modified" | "unmodified" | "info" | "warning" | "error";
   }) => void;
 
   /* Actions that retrieve or modify the history of views. */
@@ -129,14 +130,21 @@ const useViews = (): IViews => {
     ({
       title,
       closeable,
+      status,
     }: {
       title?: React.ReactNode;
       closeable?: boolean;
+      status?:
+        | "none"
+        | "modified"
+        | "unmodified"
+        | "info"
+        | "warning"
+        | "error";
     }): void => {
       let view = getView(viewId);
       if (view === null) return;
 
-      console.log(title !== undefined && view.title !== title);
       let changed = false;
       if (title !== undefined && view.title !== title) {
         view = { ...view, title };
@@ -144,6 +152,10 @@ const useViews = (): IViews => {
       }
       if (closeable !== undefined && view.closeable !== closeable) {
         view = { ...view, closeable };
+        changed = true;
+      }
+      if (status !== undefined && view.status !== status) {
+        view = { ...view, status };
         changed = true;
       }
       if (changed) setView(viewId, view);
@@ -211,6 +223,7 @@ const useViews = (): IViews => {
       return addView({
         title: "View",
         closeable: true,
+        status: "none",
         type: "element",
         currentId: containerId, // Any value will do here.
         parentId: containerId,

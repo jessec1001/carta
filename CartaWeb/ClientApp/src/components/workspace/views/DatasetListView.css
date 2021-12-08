@@ -1,5 +1,11 @@
+/* Add some spacing to the header. */
+.DatasetListView-Header {
+  padding: 1rem;
+}
+
 /* Restyle the list items to display like a file browser. */
 .DatasetListView-DatasetItem {
+  padding-left: 0.5rem;
   cursor: pointer;
   /* TODO: Check these ellipses are working. */
   text-overflow: ellipsis;

@@ -35,6 +35,7 @@ const Views: FunctionComponent<ViewsProps> & ViewsComposition = ({
 
           title: "root",
           closeable: false,
+          status: "none",
 
           tags: {},
 

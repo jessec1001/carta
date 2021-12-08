@@ -7,6 +7,7 @@ export interface Property {
 
   /** The observations of the property. */
   values: Array<any>;
+  /** The subproperties of the property. */
   properties?: Array<Property>;
 }
 
@@ -38,6 +39,7 @@ export interface Edge extends VisEdge {
 export interface GraphProperties {
   /** Whether or not the edges of the graph are directed. */
   directed: boolean;
+  /** Whether or not the graph is dynamic. */
   dynamic: boolean;
 }
 

@@ -10,6 +10,8 @@ interface BaseView<T extends string> {
   // TODO: Check if a view is closeable before closing it in the context actions.
   /** Whether the view is closeable. */
   closeable: boolean;
+  /** The status of the view. */
+  status: "none" | "modified" | "unmodified" | "info" | "warning" | "error";
 
   /** The unique identifier for the current view. */
   currentId: number;

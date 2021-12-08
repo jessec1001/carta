@@ -1,0 +1,12 @@
+/* Make the mode button appear interactive. */
+.VisualizerSelectionView-Mode {
+  cursor: pointer;
+}
+.VisualizerSelectionView-Mode:hover {
+  color: var(--color-primary);
+}
+
+/* Style the property/vertex list. */
+.VisualizerSelectionView-List {
+  padding-top: 1rem;
+}

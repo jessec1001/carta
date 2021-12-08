@@ -1,9 +1,20 @@
-import { FunctionComponent, useContext, useEffect, useState } from "react";
+import {
+  FunctionComponent,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { WorkspaceContext } from "context";
-import { GraphData } from "library/api";
+import {
+  defaultWorkspaceDatasetName,
+  GraphData,
+  GraphWorkflow,
+} from "library/api";
 import { GraphVisualizer } from "components/visualizations";
-import { GraphWorkflow } from "library/api/workflow";
-import { useViews } from "components/views";
+import { useViews, Views } from "components/views";
+import { GraphIcon } from "components/icons";
+import { Loading, Text } from "components/text";
 
 /** The props used for the {@link DatasetGraphView} component. */
 interface DatasetGraphViewProps {
@@ -15,38 +26,37 @@ interface DatasetGraphViewProps {
 const DatasetGraphView: FunctionComponent<DatasetGraphViewProps> = ({ id }) => {
   // Retrieve the specified dataset and its relevant information.
   const { datasets } = useContext(WorkspaceContext);
+
+  // Retrieve the dataset information.
   const datasetId = id;
-  // TODO: Better way to find dataset.
   const dataset =
     datasets.value?.find((dataset) => dataset.id === datasetId) ?? null;
-  // TODO: Better way to get dataset name.
   const datasetName =
-    dataset && (dataset.name ?? `(${dataset.source}/${dataset.resource})`);
+    dataset && (dataset.name ?? defaultWorkspaceDatasetName(dataset));
 
   // Construct a reference to the graph data structure when the dataset has loaded correctly.
-  // TODO: Replace usage of old graph data structure class with new data structure.
   const [graph, setGraph] = useState<GraphData | null>(null);
   const { source, resource, workflow } = dataset ?? {};
   useEffect(() => {
     // We only create the graph data when the source/resource exist and are different than previously.
     if (!source || !resource) return;
-    setGraph((graph) => {
+    setGraph(() => {
       return new GraphData(source, resource, new GraphWorkflow(workflow));
     });
   }, [source, resource, workflow]);
 
   // TODO: Use modified value.
   // TODO: Use error value.
+  // Calculate the current status of this view.
   const modified = false;
   const error = false;
-  const status = error ? "error" : modified ? "modified" : "unmodified";
+
+  let status: "error" | "modified" | "unmodified" = "unmodified";
+  if (error) status = "error";
+  else if (modified) status = "modified";
 
   // We use the view context to create or remove views from the view container.
   const { viewId, actions } = useViews();
-  const handleClose = () => {
-    // Destroy this view.
-    actions.removeView(viewId);
-  };
   useEffect(() => {
     actions.setTag(viewId, "dataset", datasetId);
   }, [datasetId, viewId, actions]);
@@ -55,41 +65,30 @@ const DatasetGraphView: FunctionComponent<DatasetGraphViewProps> = ({ id }) => {
     else actions.unsetTag(viewId, "graph");
   }, [graph, viewId, actions]);
 
+  // Create the view title component.
+  const title = useMemo(() => {
+    return (
+      <Text align="middle">
+        <GraphIcon padded /> {datasetName ?? <Loading />}&nbsp;
+        <Text color="muted" size="small">
+          [Visualizer]
+        </Text>
+      </Text>
+    );
+  }, [datasetName]);
+
+  // TODO: Implement data stored about the active graph vertices.
   return (
-    // Render the view itself within a tab so it can be easily added to container views.
-    // <Tabs.Tab
-    //   id={0}
-    //   title={
-    //     <React.Fragment>
-    //       <GraphIcon padded />
-    //       {datasetName ?? <Loading />}
-    //       &nbsp;
-    //       <span
-    //         style={{
-    //           color: "var(--color-stroke-muted)",
-    //           fontSize: "var(--font-small)",
-    //         }}
-    //       >
-    //         [Visualizer]
-    //       </span>
-    //     </React.Fragment>
-    //   }
-    //   status={status}
-    //   closeable
-    //   onClose={handleClose}
-    // >
-    <div
-      style={{
-        flex: 1,
-      }}
-      onClick={() => {
-        actions.addHistory(viewId);
-      }}
+    <Views.Container
+      title={title}
+      closeable
+      direction="fill"
+      status={status}
+      onClick={() => actions.addHistory(viewId)}
     >
       {/* Only render the graph if we have created the data structure. */}
       {graph && <GraphVisualizer graph={graph} />}
-    </div>
-    // </Tabs.Tab>
+    </Views.Container>
   );
 };
 

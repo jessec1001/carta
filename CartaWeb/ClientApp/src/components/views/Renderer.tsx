@@ -96,6 +96,8 @@ const Renderer: FunctionComponent = () => {
                     <Tabs.Tab
                       id={childView.currentId}
                       closeable={childView.closeable}
+                      status={childView.status}
+                      onClose={() => actions.removeView(childView.currentId)}
                     >
                       {childView.title}
                     </Tabs.Tab>

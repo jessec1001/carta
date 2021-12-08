@@ -5,6 +5,7 @@ import DatabaseIcon from "./DatabaseIcon";
 import DatasetIcon from "./DatasetIcon";
 import GraphIcon from "./GraphIcon";
 import PushIcon from "./PushIcon";
+import PropertyIcon from "./PropertyIcon";
 import UserIcon from "./UserIcon";
 import WorkflowIcon from "./WorkflowIcon";
 import LoadingIcon from "./LoadingIcon";
@@ -20,6 +21,7 @@ export {
   GraphIcon,
   LoadingIcon,
   PushIcon,
+  PropertyIcon,
   UserIcon,
   ValueIcon,
   VertexIcon,

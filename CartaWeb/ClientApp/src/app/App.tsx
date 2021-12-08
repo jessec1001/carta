@@ -2,7 +2,6 @@ import { FunctionComponent } from "react";
 import { Route, Switch } from "react-router";
 import {
   HomePage,
-  GraphPage,
   DocsPage,
   ProfilePage,
   TestPage,
@@ -33,7 +32,6 @@ const App: FunctionComponent = () => {
 
             <Route path="/profile" component={ProfilePage} />
             <Route path="/documentation/:topic" component={DocsPage} />
-            <Route path="/graph" component={GraphPage} />
             <Route path="/test" component={TestPage} />
 
             {/* Workspace page routes. */}

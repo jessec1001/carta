@@ -16,6 +16,8 @@ interface ContainerProps {
   title?: React.ReactNode;
   /** Whether the view should be closeable or not. Defaults to true. */
   closeable?: boolean;
+  /** The status of the view to display in the tab for the view. */
+  status?: "none" | "modified" | "unmodified" | "info" | "warning" | "error";
 
   /** Whether the view container should be padded. */
   padded?: boolean;
@@ -27,22 +29,27 @@ interface ContainerProps {
 const Container = forwardRef<
   HTMLDivElement,
   PropsWithChildren<Modify<HTMLAttributes<HTMLDivElement>, ContainerProps>>
->(({ title, closeable, padded, direction, children }, ref) => {
-  // TODO: Add status for tabs.
-  // We set the options on the view when specified.
-  const { actions } = useViews();
-  useEffect(() => {
-    actions.setOptions({ title, closeable });
-  }, [title, closeable, actions]);
+>(
+  (
+    { title, closeable, status, padded, direction, children, ...props },
+    ref
+  ) => {
+    // We set the options on the view when specified.
+    const { actions } = useViews();
+    useEffect(() => {
+      actions.setOptions({ title, closeable, status });
+    }, [title, closeable, actions, status]);
 
-  return (
-    <div
-      ref={ref}
-      className={classNames("View-Container", { padded }, direction)}
-    >
-      <div className={"View-Container-Internal"}>{children}</div>
-    </div>
-  );
-});
+    return (
+      <div
+        ref={ref}
+        className={classNames("View-Container", { padded }, direction)}
+        {...props}
+      >
+        <div className={"View-Container-Internal"}>{children}</div>
+      </div>
+    );
+  }
+);
 
 export default Container;
