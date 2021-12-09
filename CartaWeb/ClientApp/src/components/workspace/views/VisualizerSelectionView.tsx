@@ -59,7 +59,7 @@ const renderValues = (values: any[]) => {
 };
 const renderAttachedValues = (values: [DataNode, any][]) => {
   return (
-    <ul role="presentation">
+    <ul role="presentation" className="VisualizerSelectionView-IndentList">
       {/* Loop through each of the values in the array. */}
       {values.map((obs, index) => {
         // Get the type and color of the value.
@@ -67,13 +67,11 @@ const renderAttachedValues = (values: [DataNode, any][]) => {
         const valueType = computeTypeName(value);
         return (
           <li key={index}>
-            <Text align="middle">
-              <VertexIcon
-                padded
-                selected
-                color={vertex.color as string}
-                {...{ title: vertex.label }}
-              />
+            <Text
+              align="middle"
+              {...{ title: `Name: ${vertex.label}; ID: ${vertex.id}` }}
+            >
+              <VertexIcon padded selected color={vertex.color as string} />
               <span title={valueType}>{renderValue(value)}</span>
             </Text>
           </li>
@@ -124,8 +122,15 @@ const computeTypeName = (value: any) => {
   }
 };
 
+/**
+ * Consolidates a list of properties into a single property hierarchy with all of the same-named properties at equal
+ * levels condensed into a single list of values and subproperties.
+ * @param properties The list of properties to consolidate.
+ * @returns The consolidated properties.
+ */
 const consolidateProperties = (
-  properties: AttachedProperty[] | undefined
+  properties: AttachedProperty[] | undefined,
+  filter?: ObjectFilter
 ): AttachedProperty[] => {
   // We store properties in a map so that there is one property (with possibly multiple values) per key.
   const consolidated: Record<string, AttachedProperty> = {};
@@ -133,8 +138,12 @@ const consolidateProperties = (
   // Loop through each of the properties.
   if (properties) {
     for (const property of properties) {
-      const id = property.id;
+      // Check if we should include this property based on the filter.
+      if (filter && filter.filter([property]).length === 0) {
+        continue;
+      }
 
+      const id = property.id;
       if (id in consolidated) {
         // If the property already exists, merge the values.
         consolidated[id].values = consolidated[id].values.concat(
@@ -235,26 +244,25 @@ const renderValue = (value: any) => {
   }
 };
 
+/**
+ * Renders the tree of properties attached to a single vertex.
+ * @param properties The properties attached to the vertex.
+ * @returns The rendered properties.
+ */
 const renderVertexTree = (properties: Property[] | undefined) => {
+  // Render the properties if they exist.
   if (!properties) return null;
-  // TODO: Cleanup.
   return (
-    <ul
-      role="presentation"
-      style={{
-        marginLeft: "0.7em",
-        paddingLeft: "0.5em",
-        borderLeft: "1px solid var(--color-stroke-hairline)",
-        color: "var(--color-stroke-lowlight)",
-      }}
-    >
+    <ul role="presentation" className="VisualizerSelectionView-IndentList">
       {properties.map((property) => {
+        // We check if the property has subproperties and render them in an expandable accordian.
         const hasSubproperties =
           property.properties !== undefined && property.properties.length > 0;
         return (
           <li key={property.id}>
             <Accordian initialToggled={!hasSubproperties}>
               <Accordian.Header>
+                {/* Render the title of the property along with the property icon. */}
                 <Text align="middle">
                   <PropertyIcon padded />
                   {property.id}
@@ -262,8 +270,9 @@ const renderVertexTree = (properties: Property[] | undefined) => {
                 {hasSubproperties && <Accordian.Toggle caret />}
               </Accordian.Header>
               <Accordian.Content>
-                {hasSubproperties && renderVertexTree(property.properties)}
+                {/* Render the values first followed by subproperties second. */}
                 {renderValues(property.values)}
+                {hasSubproperties && renderVertexTree(property.properties)}
               </Accordian.Content>
             </Accordian>
           </li>
@@ -272,35 +281,37 @@ const renderVertexTree = (properties: Property[] | undefined) => {
     </ul>
   );
 };
+/**
+ * Renders the tree of properties under a parent property (if it exists).
+ * @param properties The subproperties of a property (in attached format).
+ * @returns The rendered properties.
+ */
 const renderPropertyTree = (properties: AttachedProperty[] | undefined) => {
-  // TODO: Cleanup.
+  // Render the properties if they exist.
   if (!properties) return null;
   return (
-    <ul
-      role="presentation"
-      style={{
-        marginLeft: "0.7em",
-        paddingLeft: "0.5em",
-        borderLeft: "1px solid var(--color-stroke-hairline)",
-        color: "var(--color-stroke-lowlight)",
-      }}
-    >
+    <ul role="presentation" className="VisualizerSelectionView-IndentList">
       {properties.map((property) => {
+        // We check if the property has subproperties or values and render them in an expandable accordian.
         const hasSubproperties =
           property.properties !== undefined && property.properties.length > 0;
+        const hasValues = property.values.length > 0;
         return (
           <li key={property.id}>
-            <Accordian initialToggled={!hasSubproperties}>
+            <Accordian initialToggled={!(hasSubproperties || hasValues)}>
               <Accordian.Header>
+                {/* Render the title of the property along with the property icon. */}
                 <Text align="middle">
                   <PropertyIcon padded />
                   {property.id}
                 </Text>
-                {hasSubproperties && <Accordian.Toggle caret />}
+                {(hasSubproperties || hasValues) && <Accordian.Toggle caret />}
               </Accordian.Header>
               <Accordian.Content>
-                {hasSubproperties && renderPropertyTree(property.properties)}
+                {/* Render the values first followed by subproperties second. */}
                 {renderAttachedValues(property.values)}
+                {(hasSubproperties || hasValues) &&
+                  renderPropertyTree(property.properties)}
               </Accordian.Content>
             </Accordian>
           </li>
@@ -359,14 +370,12 @@ const renderVertexList = (vertices: DataNode[], filter: ObjectFilter) => {
  */
 const renderPropertyList = (vertices: DataNode[], filter: ObjectFilter) => {
   // Get the considated properties of the vertices.
+  // Notice that we also apply the filter so we can search for properties.
   let properties: AttachedProperty[] = [];
   for (const vertex of vertices) {
     properties = properties.concat(formatProperties(vertex));
   }
-  properties = consolidateProperties(properties);
-  console.log(properties);
-
-  // TODO: Apply the filter to the properties of the vertices.
+  properties = consolidateProperties(properties, filter);
 
   // Render the property tree.
   return renderPropertyTree(properties);

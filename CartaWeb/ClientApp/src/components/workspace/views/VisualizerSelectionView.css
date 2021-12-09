@@ -10,3 +10,10 @@
 .VisualizerSelectionView-List {
   padding-top: 1rem;
 }
+
+.VisualizerSelectionView-IndentList {
+  margin-left: 0.7em;
+  padding-left: 0.5em;
+  border-left: 1px solid var(--color-stroke-hairline);
+  color: var(--color-stroke-lowlight);
+}
