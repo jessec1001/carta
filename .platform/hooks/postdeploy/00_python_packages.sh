@@ -8,7 +8,9 @@ pip3 --version
 # Install pipenv.
 pip3 install --user pipenv
 
-# TODO: Change to the execution directory.
+# Change to the execution directory.
+cd /var/app/current
+
 # Install Python packages.
 # After this point, you can run Python scripts with "pipenv run python3 script.py".
 pipenv install numpy
