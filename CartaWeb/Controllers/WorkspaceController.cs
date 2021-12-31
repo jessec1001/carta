@@ -61,6 +61,7 @@ namespace CartaWeb.Controllers
         /// </returns>
         protected async Task<WorkspaceItem> LoadWorkspaceAsync(string userId, string workspaceId)
         {
+
             WorkspaceItem workspaceItem = new(userId, workspaceId);
             Item item = await _persistence.LoadItemAsync(workspaceItem);
             return (WorkspaceItem)item;
@@ -93,7 +94,7 @@ namespace CartaWeb.Controllers
             Item item = await _persistence.LoadItemAsync(operationAccessItem);
             return (OperationAccessItem)item;
         }
-       
+
         /// <summary>
         /// Checks whether a specified workspace change date falls within from date and to date criteria.
         /// </summary>
@@ -157,7 +158,7 @@ namespace CartaWeb.Controllers
             {
                 _logger.LogWarning($"Workspace {name} created by user {userInformation.Name} could not be saved");
                 return Conflict();
-            }        
+            }
         }
 
         /// <summary>
@@ -252,7 +253,7 @@ namespace CartaWeb.Controllers
             {
                 foreach (UserItem item in readUserItems) userItems.Add(item);
                 return Ok(userItems);
-            }          
+            }
         }
 
         /// <summary>
@@ -301,7 +302,7 @@ namespace CartaWeb.Controllers
                     id,
                     userItem.UserInformation.Name,
                     WorkspaceActionEnumeration.Removed,
-                    userItem                    
+                    userItem
                 );
             }
             else
@@ -390,7 +391,7 @@ namespace CartaWeb.Controllers
                     WorkspaceActionEnumeration.Added,
                     writeUserItem
                 );
-             
+
                 bool isSaved = await _persistence.WriteDbDocumentsAsync(new List<DbDocument>
                 {
                     workspaceItem.SaveDbDocument(),
@@ -513,7 +514,8 @@ namespace CartaWeb.Controllers
                 userInformation.Name,
                 WorkspaceActionEnumeration.Added,
                 operationAccessItem
-            ) { WorkspaceChangeInformation = new() };
+            )
+            { WorkspaceChangeInformation = new() };
 
             bool isSaved = await _persistence.WriteDbDocumentsAsync(new List<DbDocument>
             {
@@ -701,7 +703,7 @@ namespace CartaWeb.Controllers
                 if (IsDateInRange(workspaceChangeItem.WorkspaceAction.DateTime, dateFrom, dateTo))
                     workspaceChangeItems.Add(workspaceChangeItem);
             }
-        
+
             // Sort the list by date
             workspaceChangeItems.Sort((q, p) => p.WorkspaceAction.DateTime.CompareTo(q.WorkspaceAction.DateTime));
 
