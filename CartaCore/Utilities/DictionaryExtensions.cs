@@ -175,7 +175,7 @@ namespace CartaCore.Utilities
         /// identical.
         /// </summary>
         /// <returns>The byte array representing the hash.</returns>
-        public static async Task<byte[]> ComputeHashAsync(this Dictionary<string, object> fields, HashAlgorithm hasher)
+        public static async Task<byte[]> ComputeHashAsync(this Dictionary<string, object> fields, HashAlgorithm hasher = null)
         {
             // Assign the hasher if it is null.
             bool unmanaged = hasher is null;

@@ -1,3 +1,6 @@
+using System;
+using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using CartaCore.Utilities;
 
@@ -9,6 +12,8 @@ namespace CartaCore.Operations
     /// <typeparam name="TInput">The input type.</typeparam>
     /// <typeparam name="TOutput">The output type.</typeparam>
     public abstract class TypedOperation<TInput, TOutput> : Operation
+        where TInput : new()
+        where TOutput : new()
     {
         /// <summary>
         /// Operates on a specified operation context containing input and output mappings. Most operations will use the
@@ -47,6 +52,65 @@ namespace CartaCore.Operations
         {
             TInput input = context.Input.AsTyped<TInput>();
             return IsDeterministic(input);
+        }
+
+        /// <summary>
+        /// The typed default values of the operation as specified externally.
+        /// </summary>
+        public TInput DefaultTyped
+        {
+            get => Default.AsTyped<TInput>();
+            set => Default = value.AsDictionary();
+        }
+
+        // TODO: We need to incorporate the attributes into the following methods.  
+        /// <inheritdoc />
+        public override string[] GetInputFields()
+        {
+            return typeof(TInput)
+                .GetProperties(
+                    BindingFlags.IgnoreCase |
+                    BindingFlags.Public |
+                    BindingFlags.Instance
+                )
+                .Select(property => property.Name)
+                .ToArray();
+        }
+        /// <inheritdoc />
+        public override string[] GetOutputFields()
+        {
+            return typeof(TOutput)
+                .GetProperties(
+                    BindingFlags.IgnoreCase |
+                    BindingFlags.Public |
+                    BindingFlags.Instance
+                )
+                .Select(property => property.Name)
+                .ToArray();
+        }
+
+        // TODO: Refactor
+        /*
+            We need more information that simply the type or types that a value can be set to.
+            In some circumstances, we need some special functionality defined in terms of attributes.
+            We need to transform this additional functionality into a generalizeable structure that
+            may be passed around easily.
+        */
+        /// <inheritdoc />
+        public override Type GetInputFieldType(string field)
+        {
+            return typeof(TInput).GetProperty(field,
+                BindingFlags.IgnoreCase |
+                BindingFlags.Public |
+                BindingFlags.Instance).PropertyType;
+        }
+        /// <inheritdoc />
+        public override Type GetOutputFieldType(string field)
+        {
+            return typeof(TOutput).GetProperty(field,
+                BindingFlags.IgnoreCase |
+                BindingFlags.Public |
+                BindingFlags.Instance).PropertyType;
         }
     }
 }

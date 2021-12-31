@@ -1,8 +1,9 @@
 using System.Threading.Tasks;
-using CartaCore.Persistence;
-using CartaWeb.Models.DocumentItem;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using CartaCore.Operations;
+using CartaCore.Persistence;
+using CartaWeb.Models.DocumentItem;
 
 namespace CartaWeb.Controllers
 {
@@ -13,6 +14,31 @@ namespace CartaWeb.Controllers
         // TODO: Logging.
         private readonly ILogger<WorkflowController> _logger;
         private readonly Persistence _persistence;
+
+        public static async Task<OperationDescription[]> LoadWorkflowDescriptionsAsync()
+        {
+            // Get all of the workflows.
+            WorkflowItem[] workflowItems = await LoadWorkflowsAsync();
+
+            // Convert the workflow items into descriptions.
+            return workflowItems
+                .Select(workflowItem =>
+                {
+                    // TODO: We should make the "workflow" type a constant somewhere.
+                    // TODO: Allow tags to be assigned to workflows in front-end and back-end.
+                    // TODO: Allow description of the workflow to be assigned in front-end.
+                    return new OperationDescription()
+                    {
+                        Type = "workflow",
+                        Subtype = workflowItem.Id.ToString(),
+
+                        Display = workflowItem.Name,
+                        Description = workflowItem.Description,
+                        Tags = Array.Empty<string>(),
+                    };
+                })
+                .ToArray();
+        }
 
         /// <inheritdoc />
         public WorkflowsController(ILogger<WorkflowController> logger, INoSqlDbContext noSqlDbContext)

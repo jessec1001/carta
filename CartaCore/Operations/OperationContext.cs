@@ -1,4 +1,3 @@
-using System.Buffers;
 using System.Collections.Generic;
 
 namespace CartaCore.Operations
@@ -22,6 +21,11 @@ namespace CartaCore.Operations
         /// </summary>
         public int Threads { get; set; }
 
+        // TODO: Check if this default dictionary is redundant.
+        /// <summary>
+        /// The default for the operation.
+        /// </summary>
+        public Dictionary<string, object> Default { get; set; }
         /// <summary>
         /// The input mapping for an operation.
         /// </summary>
@@ -30,6 +34,22 @@ namespace CartaCore.Operations
         /// The output mapping for an operation.
         /// </summary>
         public Dictionary<string, object> Output { get; set; }
+
+        /// <summary>
+        /// The total combined input and default to the operation.
+        /// </summary>
+        public Dictionary<string, object> Total
+        {
+            get
+            {
+                Dictionary<string, object> total = new();
+                foreach (KeyValuePair<string, object> entry in Input)
+                    total.TryAdd(entry.Key, entry.Value);
+                foreach (KeyValuePair<string, object> entry in Default)
+                    total.TryAdd(entry.Key, entry.Value);
+                return total;
+            }
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="OperationContext"/> class with optionally specified mappings

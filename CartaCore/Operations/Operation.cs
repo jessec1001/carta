@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -15,10 +16,11 @@ namespace CartaCore.Operations
     /// </summary>
     public abstract class Operation
     {
+        // TODO: Can we make this readonly?
         /// <summary>
         /// A unique identifier for this operation that should be used for specifying references to this operation.
         /// </summary>
-        public string Identifier { get; init; }
+        public string Identifier { get; set; }
         /// <summary>
         /// The default values of the operation.
         /// </summary>
@@ -49,6 +51,74 @@ namespace CartaCore.Operations
         /// </param>
         /// <returns><c>true</c> if the operation is deterministic on a context; otherwise <c>false</c>.</returns>
         public virtual bool IsDeterministic(OperationContext context) => true;
+
+        // TODO: Incorporate context into these methods allowing for dynamic input fields.
+        /// <summary>
+        /// Gets the input fields that are available for this operation.
+        /// </summary>
+        /// <returns>A list of valid input fields.</returns>
+        public abstract string[] GetInputFields();
+        /// <summary>
+        /// Gets the output fields that are available for this operation.
+        /// </summary>
+        /// <returns>A list of valid output fields.</returns>
+        public abstract string[] GetOutputFields();
+
+        /// <summary>
+        /// Gets the type of an input field specified by its name.
+        /// </summary>
+        /// <param name="field">The name of the field.</param>
+        /// <returns>The type of the input field.</returns>
+        public abstract Type GetInputFieldType(string field);
+        /// <summary>
+        /// Gets the type of an output field specified by its name.
+        /// </summary>
+        /// <param name="field">The name of the field.</param>
+        /// <returns>The type of the output field.</returns>
+        public abstract Type GetOutputFieldType(string field);
+
+        /// <summary>
+        /// Get the tasks that need to be executed in order for the operation to complete.
+        /// </summary>
+        /// <param name="context">The context under which the operation is executing.</param>
+        /// <returns>A list of tasks.</returns>
+        public IEnumerable<OperationTask> GetTasks(OperationContext context)
+        {
+            // TODO: Support tasks being added by individual operations at any stage in the workflow execution. For now,
+            //       we will only consider tasks induced by missing inputs to the entire operation.
+            Dictionary<string, object> total = context.Total;
+            foreach (KeyValuePair<string, object> entry in total)
+            {
+                // This check for tasks should really only be available for `InputOperation`.
+                if (entry.Value is Stream stream && stream == Stream.Null)
+                {
+                    yield return new OperationTask()
+                    {
+                        Type = OperationTaskType.File,
+                        Field = entry.Key
+                    };
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets an operation type by its type name if it exists.
+        /// </summary>
+        /// <returns>
+        /// The type which is assignable to type <see cref="Operation" />. May be null if such a type does not exist.
+        /// </returns>
+        public static Type TypeFromName(string name)
+        {
+            Type[] assemblyTypes = Assembly.GetAssembly(typeof(Operation)).GetTypes();
+            Type operationType = assemblyTypes
+                .FirstOrDefault(type =>
+                    type.IsAssignableTo(typeof(Operation)) &&
+                    type.IsPublic &&
+                    !(type.IsAbstract || type.IsInterface) &&
+                    type.GetCustomAttribute<OperationNameAttribute>()?.Type == name
+                );
+            return operationType;
+        }
 
         /// <summary>
         /// Constructs a new operation from a specified type.

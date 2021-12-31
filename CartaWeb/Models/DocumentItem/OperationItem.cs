@@ -29,13 +29,11 @@ namespace CartaWeb.Models.DocumentItem
         /// </summary>
         public OperationItem() { }
         /// <summary>
-        /// Initializes a new instance of the <see cref="OperationItem"/> class with specified owning user from an
-        /// instance of an operation.
+        /// Initializes a new instance of the <see cref="OperationItem"/> class with specified instance of an operation.
         /// </summary>
-        /// <param name="username"></param>
-        /// <param name="operation"></param>
-        public OperationItem(string username, Operation operation)
-            : base(username, operation.Identifier)
+        /// <param name="operation">The operation instance.</param>
+        public OperationItem(Operation operation)
+            : base(operation.Identifier)
         {
             // Get a description of the operation.
             OperationDescription description = OperationDescription.FromInstance(operation);
@@ -46,10 +44,23 @@ namespace CartaWeb.Models.DocumentItem
             
             Default = operation.Default;
         }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OperationItem"/> class with specified owning user from an
+        /// instance of an operation.
+        /// </summary>
+        /// <param name="operationId">The operation instance.</param>
+        public OperationItem(string operationId)
+            : base(operationId) { }
 
         /// <inheritdoc />
-        public override string PartitionKeyPrefix => "USER#";
+        public override string PartitionKeyPrefix => "OPERATION#";
         /// <inheritdoc />
         public override string SortKeyPrefix => "OPERATION#";
+
+        /// <inheritdoc />
+        public override string GetSortKey()
+        {
+            return SortKeyPrefix;
+        }
     }
 }

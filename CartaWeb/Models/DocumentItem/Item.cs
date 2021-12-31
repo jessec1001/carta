@@ -2,6 +2,7 @@
 using System.Text.Json;
 using NUlid;
 using CartaCore.Persistence;
+using CartaCore.Serialization.Json;
 
 namespace CartaWeb.Models.DocumentItem
 {
@@ -24,6 +25,7 @@ namespace CartaWeb.Models.DocumentItem
         {
             JsonOptions.PropertyNameCaseInsensitive = false;
             JsonOptions.IgnoreNullValues = true;
+            JsonOptions.Converters.Add(new JsonObjectConverter());
         }
 
         /// <summary>

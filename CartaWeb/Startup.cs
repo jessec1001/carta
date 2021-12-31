@@ -21,6 +21,8 @@ using CartaWeb.Models.Binders;
 using CartaWeb.Models.Migration;
 using CartaWeb.Models.Options;
 using System.Text.Json;
+using CartaWeb.Services;
+using Carta.Api.Services;
 
 namespace CartaWeb
 {
@@ -74,15 +76,17 @@ namespace CartaWeb
                 awsDynamoDbOptions.TableName = awsCdkOptions.DynamoDBTable;
                 awsCognitoOptions.UserPoolId = awsCdkOptions.UserPoolId;
             }
-            services.
-                AddSingleton<INoSqlDbContext>(
-                    new DynamoDbContext
-                    (
-                        awsOptions.AccessKey,
-                        awsOptions.SecretKey,
-                        Amazon.RegionEndpoint.GetBySystemName(awsOptions.RegionEndpoint),
-                        awsDynamoDbOptions.TableName
-                    ));
+            services.AddSingleton<OperationTaskCollection>(new OperationTaskCollection());
+            services.AddHostedService<BackgroundOperationService>();
+            services.AddSingleton<INoSqlDbContext>(
+                new DynamoDbContext
+                (
+                    awsOptions.AccessKey,
+                    awsOptions.SecretKey,
+                    Amazon.RegionEndpoint.GetBySystemName(awsOptions.RegionEndpoint),
+                    awsDynamoDbOptions.TableName
+                )
+            );
             if (awsOptions.AccessKey is null)
                 services.
                     AddSingleton<IAmazonCognitoIdentityProvider>(
@@ -136,7 +140,6 @@ namespace CartaWeb
                     options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
                     options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
                     options.JsonSerializerOptions.IgnoreNullValues = true;
-                    options.JsonSerializerOptions.Converters.Insert(0, new JsonDiscriminantConverter());
                 });
 
             // Important: this solves a deployment only issue.

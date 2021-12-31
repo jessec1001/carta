@@ -30,14 +30,14 @@ namespace CartaCore.Serialization.Json
                     return null;
                 case JsonTokenType.StartArray:
                     // Try to convert into array.
-                    List<object> array = new List<object>();
+                    List<object> array = new();
                     while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
                         array.Add(Read(ref reader, typeToConvert, options));
                     if (reader.TokenType != JsonTokenType.EndArray) throw new JsonException();
                     return array.ToArray();
                 case JsonTokenType.StartObject:
                     // Try to convert into dictionary.
-                    Dictionary<string, object> map = new Dictionary<string, object>();
+                    Dictionary<string, object> map = new();
                     while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
                     {
                         // Read the property name.
@@ -50,6 +50,7 @@ namespace CartaCore.Serialization.Json
 
                         map.Add(propertyName, propertyValue);
                     }
+                    if (reader.TokenType != JsonTokenType.EndObject) throw new JsonException();
                     return map;
                 default:
                     throw new JsonException("Unsupported JSON format.");
