@@ -37,33 +37,38 @@ namespace CartaWeb.Controllers
 
         private readonly Persistence _persistence;
 
-        private static Dictionary<DataSource, IDataResolver> DataResolvers;
+        private static readonly Dictionary<DataSource, IDataResolver> DataResolvers;
 
-        private static string BaseDirectory = @"data";
-        private static string GraphDirectory = @"graphs";
+        private static readonly string BaseDirectory = @"data";
+        private static readonly string GraphDirectory = @"graphs";
 
-        private static JsonSerializerOptions JsonOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+        private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
         static DataController()
         {
             // Create the data resolvers.
-            DataResolvers = new Dictionary<DataSource, IDataResolver>();
-            DataResolvers.Add(DataSource.Synthetic, new OptionsDataResolver
-            (
-                new Dictionary<string, OptionsResourceResolver>
-                (
-                    new Dictionary<string, OptionsResourceResolver>
-                    {
-                        [nameof(FiniteUndirectedGraph)] = new OptionsResourceResolver<FiniteUndirectedGraphParameters>
-                            (options => new FiniteUndirectedGraph(options)),
-                        [nameof(InfiniteDirectedGraph)] = new OptionsResourceResolver<InfiniteDirectedGraphParameters>
-                            (options => new InfiniteDirectedGraph(options)),
-                    },
-                    StringComparer.OrdinalIgnoreCase
-                )
-            ));
-            DataResolvers.Add(DataSource.HyperThought, new HyperthoughtDataResolver());
-            DataResolvers.Add(DataSource.User, new UserDataResolver());
+            DataResolvers = new Dictionary<DataSource, IDataResolver>
+            {
+                {
+                    DataSource.Synthetic,
+                    new OptionsDataResolver
+                    (
+                        new Dictionary<string, OptionsResourceResolver>
+                        (
+                            new Dictionary<string, OptionsResourceResolver>
+                            {
+                                [nameof(FiniteUndirectedGraph)] = new OptionsResourceResolver<FiniteUndirectedGraphParameters>
+                                    (options => new FiniteUndirectedGraph(options)),
+                                [nameof(InfiniteDirectedGraph)] = new OptionsResourceResolver<InfiniteDirectedGraphParameters>
+                                    (options => new InfiniteDirectedGraph(options)),
+                            },
+                            StringComparer.OrdinalIgnoreCase
+                        )
+                    )
+                },
+                { DataSource.HyperThought, new HyperthoughtDataResolver() },
+                { DataSource.User, new UserDataResolver() }
+            };
 
             // JSON options.
             JsonOptions.Converters.Insert(0, new JsonObjectConverter());
@@ -96,12 +101,10 @@ namespace CartaWeb.Controllers
             // Try to read the JSON file.
             string graphPath = Path.Combine(BaseDirectory, GraphDirectory, $"{id}.json");
             if (!System.IO.File.Exists(graphPath)) return null;
-            using (StreamReader file = new StreamReader(graphPath))
-            {
-                FiniteGraph graph = JsonSerializer.Deserialize<VisFormat>(await file.ReadToEndAsync(), JsonOptions).Graph;
-                graph.Identifier = Identity.Create(id);
-                return graph;
-            }
+            using StreamReader file = new(graphPath);
+            FiniteGraph graph = JsonSerializer.Deserialize<VisFormat>(await file.ReadToEndAsync(), JsonOptions).Graph;
+            graph.Identifier = Identity.Create(id);
+            return graph;
         }
         /// <summary>
         /// Saves a single graph asynchronously. If an existing identifier is specified, the graph is overwritten.
@@ -121,10 +124,10 @@ namespace CartaWeb.Controllers
 
             // Create the JSON file.
             string graphPath = Path.Combine(graphDir, $"{id}.json");
-            using (StreamWriter file = new StreamWriter(graphPath))
+            using (StreamWriter file = new(graphPath))
             {
                 graph.Identifier = Identity.Create(id);
-                string json = JsonSerializer.Serialize<VisFormat>(await VisFormat.CreateAsync(graph), JsonOptions);
+                string json = JsonSerializer.Serialize(await VisFormat.CreateAsync(graph), JsonOptions);
                 await file.WriteAsync(json);
             }
 
@@ -292,37 +295,13 @@ namespace CartaWeb.Controllers
             }
         }
 
-        // [HttpGet("{source}/{resource}")]
-        // public async Task<ActionResult<GraphOptions>> GetGraphOptions(
-        //     [FromRoute] DataSource source,
-        //     [FromRoute] string resource,
-        //     [FromQuery(Name = "workflow")] int? workflowId = null
-        // )
-        // {
-
-        // }
-
         /// <summary>
         /// Gets a particular selector of data from the graph at the specified data resource.
-        /// The graph may have an optional workflow, specified by the Workflow API, applied to it.
         /// </summary>
         /// <request name="Synthetic Graph - Root">
         ///     <arg name="source">synthetic</arg>
         ///     <arg name="resource">infiniteDirectedGraph</arg>
         ///     <arg name="selector">roots</arg>
-        /// </request>
-        /// <request name="Synthetic Graph with Workflow - Root">
-        ///     <arg name="source">synthetic</arg>
-        ///     <arg name="resource">infiniteDirectedGraph</arg>
-        ///     <arg name="selector">roots</arg>
-        ///     <arg name="workflow">01F7S2CBC9WHE5YMBHX8FB2FAM</arg>
-        /// </request>
-        /// <request name="Synthetic Graph with Workflow and Version Number - Root">
-        ///     <arg name="source">synthetic</arg>
-        ///     <arg name="resource">infiniteDirectedGraph</arg>
-        ///     <arg name="selector">roots</arg>
-        ///     <arg name="nr">3</arg>
-        ///     <arg name="workflow">01F7S2CBC9WHE5YMBHX8FB2FAM</arg>
         /// </request>
         /// <request name="HyperThought Workflow Graph - Root">
         ///     <arg name="source">hyperthought</arg>
@@ -369,9 +348,7 @@ namespace CartaWeb.Controllers
         public async Task<ActionResult<Graph>> GetGraphSelection(
             [FromRoute] DataSource source,
             [FromRoute] string resource,
-            [FromRoute] string selector,
-            [FromQuery(Name = "nr")] int? versionNumber,
-            [FromQuery(Name = "workflow")] string workflowId = null
+            [FromRoute] string selector
         )
         {
             try
@@ -380,26 +357,7 @@ namespace CartaWeb.Controllers
                 IGraph graph = await LookupData(source, resource);
                 if (graph is null) return NotFound();
 
-                // Apply workflow.
-                if (workflowId is not null)
-                {
-                    // We need to check if the user is authenticated in order to access workflows.
-                    if (!User.Identity.IsAuthenticated)
-                        return Forbid();
-
-                    string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                    WorkflowItem workflowItem = await WorkflowController.LoadWorkflowAsync
-                    (
-                        userId,
-                        workflowId,
-                        versionNumber,
-                        _persistence
-                    );
-                    if (workflowItem is null) return NotFound();
-                    else
-                        graph = workflowItem.Workflow.Apply(graph);
-                }
-
+                // TODO: Fix being able to reference selectors by name.
                 // We find the appropriate selector class corresponding to the specified discriminant.
                 // We wrap our original graph in this selector graph to provide selection-specific data retrieval.
                 Discriminant.TryGetValue<Selector>(selector, out Selector selectorGraph);

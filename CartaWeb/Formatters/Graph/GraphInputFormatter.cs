@@ -8,7 +8,6 @@ using System.Xml;
 using System.Xml.Serialization;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.Net.Http.Headers;
-
 using CartaCore.Data;
 using CartaWeb.Serialization.Json;
 using CartaWeb.Serialization.Xml;
@@ -27,31 +26,30 @@ namespace CartaWeb.Formatters
     /// </summary>
     public class GraphInputFormatter : TextInputFormatter
     {
-        private static JsonSerializerOptions JsonOptions = new JsonSerializerOptions
+        private static readonly JsonSerializerOptions JsonOptions = new()
         {
             IgnoreNullValues = true
         };
 
-        private static List<(MediaTypeHeaderValue MediaHeader, MediaUnformatter Formatter)> MediaUnformatters
-            = new List<(MediaTypeHeaderValue, MediaUnformatter)>()
-            {
-                // JSON-based formats.
-                (MediaTypeHeaderValue.Parse("application/vnd.vis+json"), UnformatVis),
-                (MediaTypeHeaderValue.Parse("application/vnd.jgf+json"), UnformatJg),
-                (MediaTypeHeaderValue.Parse("application/json"), UnformatVis), // Default
+        private static readonly List<(MediaTypeHeaderValue MediaHeader, MediaUnformatter Formatter)> MediaUnformatters = new()
+        {
+            // JSON-based formats.
+            (MediaTypeHeaderValue.Parse("application/vnd.vis+json"), UnformatVis),
+            (MediaTypeHeaderValue.Parse("application/vnd.jgf+json"), UnformatJg),
+            (MediaTypeHeaderValue.Parse("application/json"), UnformatVis), // Default
 
-                // XML-based formats.
-                (MediaTypeHeaderValue.Parse("application/vnd.gexf+xml"), UnformatGex),
-                (MediaTypeHeaderValue.Parse("application/xml"), UnformatGex), // Default
-            };
+            // XML-based formats.
+            (MediaTypeHeaderValue.Parse("application/vnd.gexf+xml"), UnformatGex),
+            (MediaTypeHeaderValue.Parse("application/xml"), UnformatGex), // Default
+        };
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GraphInputFormatter"/> class.
         /// </summary>
         public GraphInputFormatter()
         {
-            foreach (var unformatter in MediaUnformatters)
-                SupportedMediaTypes.Add(unformatter.MediaHeader);
+            foreach (var (MediaHeader, _) in MediaUnformatters)
+                SupportedMediaTypes.Add(MediaHeader);
 
             SupportedEncodings.Add(Encoding.UTF8);
             SupportedEncodings.Add(Encoding.Unicode);
@@ -75,12 +73,12 @@ namespace CartaWeb.Formatters
             IEntireGraph graph = null;
             if (context.ModelType.IsAssignableTo(typeof(IEntireGraph)))
             {
-                foreach (var unformatter in MediaUnformatters)
+                foreach (var (MediaHeader, Formatter) in MediaUnformatters)
                 {
-                    if (contentHeader.IsSubsetOf(unformatter.MediaHeader))
+                    if (contentHeader.IsSubsetOf(MediaHeader))
                     {
                         // Return the successful input result.
-                        graph = await unformatter.Formatter(stream);
+                        graph = await Formatter(stream);
                         return await InputFormatterResult.SuccessAsync(graph);
                     }
                 }
@@ -96,11 +94,9 @@ namespace CartaWeb.Formatters
         }
         private static async Task<T> DeserializeXml<T>(Stream stream)
         {
-            using (XmlReader xr = XmlReader.Create(stream))
-            {
-                XmlSerializer serializer = new XmlSerializer(typeof(T));
-                return await Task.FromResult((T)serializer.Deserialize(xr));
-            }
+            using XmlReader xr = XmlReader.Create(stream);
+            XmlSerializer serializer = new(typeof(T));
+            return await Task.FromResult((T)serializer.Deserialize(xr));
         }
 
         private static async Task<IEntireGraph> UnformatJg(Stream stream) => (await DeserializeJson<JgFormat>(stream)).Graph;

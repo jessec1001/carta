@@ -9,13 +9,10 @@ using System.Xml.Serialization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.Net.Http.Headers;
-
 using CartaCore.Data;
 using CartaCore.Serialization.Json;
-using CartaCore.Workflow.Selection;
 using CartaWeb.Serialization.Json;
 using CartaWeb.Serialization.Xml;
-using CartaCore.Workflow.Action;
 
 namespace CartaWeb.Formatters
 {
@@ -31,23 +28,22 @@ namespace CartaWeb.Formatters
     /// </summary>
     public class GraphOutputFormatter : TextOutputFormatter
     {
-        private static JsonSerializerOptions JsonOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web)
+        private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
         {
             IgnoreNullValues = true
         };
 
-        private static List<(MediaTypeHeaderValue MediaHeader, MediaFormatter Formatter)> MediaFormatters
-            = new List<(MediaTypeHeaderValue, MediaFormatter)>()
-            {
-                // JSON-based formats.
-                (MediaTypeHeaderValue.Parse("application/vnd.vis+json"), FormatVis),
-                (MediaTypeHeaderValue.Parse("application/vnd.jgf+json"), FormatJg),
-                (MediaTypeHeaderValue.Parse("application/json"), FormatVis), // Default
+        private static readonly List<(MediaTypeHeaderValue MediaHeader, MediaFormatter Formatter)> MediaFormatters = new()
+        {
+            // JSON-based formats.
+            (MediaTypeHeaderValue.Parse("application/vnd.vis+json"), FormatVis),
+            (MediaTypeHeaderValue.Parse("application/vnd.jgf+json"), FormatJg),
+            (MediaTypeHeaderValue.Parse("application/json"), FormatVis), // Default
 
-                // XML-based formats.
-                (MediaTypeHeaderValue.Parse("application/vnd.gexf+xml"), FormatGex),
-                (MediaTypeHeaderValue.Parse("application/xml"), FormatGex), // Default
-            };
+            // XML-based formats.
+            (MediaTypeHeaderValue.Parse("application/vnd.gexf+xml"), FormatGex),
+            (MediaTypeHeaderValue.Parse("application/xml"), FormatGex), // Default
+        };
 
         static GraphOutputFormatter()
         {
@@ -59,8 +55,8 @@ namespace CartaWeb.Formatters
         /// </summary>
         public GraphOutputFormatter()
         {
-            foreach (var formatter in MediaFormatters)
-                SupportedMediaTypes.Add(formatter.MediaHeader);
+            foreach (var (MediaHeader, _) in MediaFormatters)
+                SupportedMediaTypes.Add(MediaHeader);
 
             SupportedEncodings.Add(Encoding.UTF8);
             SupportedEncodings.Add(Encoding.Unicode);
@@ -81,17 +77,13 @@ namespace CartaWeb.Formatters
 
             // Find the correct formatter and use it to write the content.
             string content = string.Empty;
-            if (context.Object is Selector selector && selector.Graph is null)
-                content = SerializeJson<Selector>(selector);
-            else if (context.Object is Actor actor && actor.Graph is null)
-                content = SerializeJson<Actor>(actor);
-            else if (context.Object is IEntireGraph graph)
+            if (context.Object is IEntireGraph graph)
             {
-                foreach (var formatter in MediaFormatters)
+                foreach (var (MediaHeader, Formatter) in MediaFormatters)
                 {
-                    if (contentHeader.IsSubsetOf(formatter.MediaHeader))
+                    if (contentHeader.IsSubsetOf(MediaHeader))
                     {
-                        content = await formatter.Formatter(graph);
+                        content = await Formatter(graph);
                         break;
                     }
                 }
@@ -103,23 +95,21 @@ namespace CartaWeb.Formatters
 
         private static string SerializeJson<T>(T obj)
         {
-            return JsonSerializer.Serialize<T>(obj, JsonOptions);
+            return JsonSerializer.Serialize(obj, JsonOptions);
         }
         private static string SerializeXml<T>(T obj)
         {
-            using (StringWriter sw = new StringWriter())
+            using StringWriter sw = new();
+            using (XmlWriter xw = XmlWriter.Create(sw))
             {
-                using (XmlWriter xw = XmlWriter.Create(sw))
-                {
-                    XmlSerializer serializer = new XmlSerializer(typeof(T));
-                    serializer.Serialize(xw, obj);
-                }
-                return sw.ToString();
+                XmlSerializer serializer = new(typeof(T));
+                serializer.Serialize(xw, obj);
             }
+            return sw.ToString();
         }
 
-        private static async Task<string> FormatJg(IEntireGraph graph) => SerializeJson<JgFormat>(await JgFormat.CreateAsync(graph));
-        private static async Task<string> FormatVis(IEntireGraph graph) => SerializeJson<VisFormat>(await VisFormat.CreateAsync(graph));
-        private static async Task<string> FormatGex(IEntireGraph graph) => SerializeXml<GexFormat>(await GexFormat.CreateAsync(graph));
+        private static async Task<string> FormatJg(IEntireGraph graph) => SerializeJson(await JgFormat.CreateAsync(graph));
+        private static async Task<string> FormatVis(IEntireGraph graph) => SerializeJson(await VisFormat.CreateAsync(graph));
+        private static async Task<string> FormatGex(IEntireGraph graph) => SerializeXml(await GexFormat.CreateAsync(graph));
     }
 }
