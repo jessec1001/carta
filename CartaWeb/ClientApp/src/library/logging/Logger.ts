@@ -5,6 +5,7 @@ interface LoggerOptions {
   logLevel: LogSeverity;
 }
 
+// TODO: Add lots of logging.
 abstract class Logger<T = {}> extends EventDriver<T> {
   public logLevel: LogSeverity;
 

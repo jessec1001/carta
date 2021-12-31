@@ -1,17 +1,14 @@
-using System.Collections.Generic;
-using System.Security.Claims;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using System.Collections.Generic;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using CartaWeb.Models.Options;
+using CartaWeb.Models.Data;
 using Amazon.CognitoIdentityProvider;
 using Amazon.CognitoIdentityProvider.Model;
-
-using CartaWeb.Models.Data;
-using CartaWeb.Models.DocumentItem;
-using CartaWeb.Models.Options;
-
-using Microsoft.Extensions.Logging;
 
 namespace CartaWeb.Controllers
 {
@@ -40,15 +37,14 @@ namespace CartaWeb.Controllers
         /// <summary>
         /// Dictionary that maps user attributes to Cognito user attrubute names
         /// </summary>
-        protected static Dictionary<string, string> _attributeDictionary =
-            new Dictionary<string, string>
-            {
-                        { "UserId", "sub" },
-                        { "UserName", "username" },
-                        { "Email", "email" },
-                        { "FirstName", "given_name" },
-                        { "LastName", "family_name" }
-            };
+        private static readonly Dictionary<string, string> AttributeDictionary = new()
+        {
+            { "UserId", "sub" },
+            { "UserName", "username" },
+            { "Email", "email" },
+            { "FirstName", "given_name" },
+            { "LastName", "family_name" }
+        };
 
         /// <summary>
         /// Creates a new instance of the <see cref="UserController"/> class with a specified controller.
@@ -68,13 +64,13 @@ namespace CartaWeb.Controllers
 
         /// <summary>
         /// Helper method to return the value of a Cognito attribute type.
+        /// </summary>
         /// <param name="attributes">Cognito attribute type.</param>
         /// <param name="attributeName">The name of the attribute to retrieve.</param>
         /// <returns>
         /// The attribute value.
         /// </returns>
-        /// </summary>
-        private string GetUserAttribute(List<AttributeType> attributes, string attributeName)
+        private static string GetUserAttribute(List<AttributeType> attributes, string attributeName)
         {
             AttributeType attribute = attributes.Find(i => i.Name == attributeName);
             if (attribute is not null) return attribute.Value;
@@ -90,8 +86,7 @@ namespace CartaWeb.Controllers
         /// </returns>
         public static UserInformation GetUserInformation(ClaimsPrincipal user)
         {
-            UserInformation userInformation = new UserInformation
-            (
+            UserInformation userInformation = new(
                 user.FindFirstValue(ClaimTypes.NameIdentifier),
                 user.FindFirstValue("cognito:username")
             );
@@ -160,12 +155,11 @@ namespace CartaWeb.Controllers
             string attributeValue,
             string attributeFilter)
         {
-            List<UserInformation> userInformationList = new() { };
+            List<UserInformation> userInformationList = new();
 
-            ListUsersRequest request = new ListUsersRequest();
-            request.UserPoolId = _options.UserPoolId;
+            ListUsersRequest request = new() { UserPoolId = _options.UserPoolId };
             if (attributeName.HasValue)
-                request.Filter = _attributeDictionary[attributeName.ToString()] +
+                request.Filter = AttributeDictionary[attributeName.ToString()] +
                     attributeFilter + "\"" + attributeValue + "\"";
 
             do
@@ -175,33 +169,27 @@ namespace CartaWeb.Controllers
                 {
                     response = await _identityProvider.ListUsersAsync(request);
                 }
-                catch (Amazon.CognitoIdentityProvider.AmazonCognitoIdentityProviderException e)
+                catch (AmazonCognitoIdentityProviderException ex)
                 {
-                    _logger.LogTrace(e.StackTrace);
+                    _logger.LogTrace(ex.StackTrace);
                     return BadRequest();
                 }
 
                 foreach (UserType user in response.Users)
                 {
-                    UserInformation userInformation = new UserInformation
-                    (
-                        GetUserAttribute(user.Attributes, "sub"),
-                        user.Username
-                    );
-                    userInformation.Email = GetUserAttribute(user.Attributes, "email");
-                    userInformation.FirstName = GetUserAttribute(user.Attributes, "given_name");
-                    userInformation.LastName = GetUserAttribute(user.Attributes, "family_name");
+                    UserInformation userInformation = new(GetUserAttribute(user.Attributes, "sub"), user.Username)
+                    {
+                        Email = GetUserAttribute(user.Attributes, "email"),
+                        FirstName = GetUserAttribute(user.Attributes, "given_name"),
+                        LastName = GetUserAttribute(user.Attributes, "family_name")
+                    };
                     userInformationList.Add(userInformation);
                 }
 
                 if ((response.PaginationToken is not null) & (response.PaginationToken != ""))
-                {
                     request.PaginationToken = response.PaginationToken;
-                }
                 else
-                {
                     request.PaginationToken = null;
-                }
             }
             while ((request.PaginationToken is not null) & (request.PaginationToken != ""));
 
@@ -225,25 +213,27 @@ namespace CartaWeb.Controllers
         {
             List<UserInformation> userInformationList = new() { };
 
-            ListUsersInGroupRequest request = new ListUsersInGroupRequest();
-            request.GroupName = groupName;
-            request.UserPoolId = _options.UserPoolId;
+            ListUsersInGroupRequest request = new()
+            {
+                GroupName = groupName,
+                UserPoolId = _options.UserPoolId
+            };
 
             do
             {
-                ListUsersInGroupResponse response = null;
+                ListUsersInGroupResponse response;
                 try
                 {
                     response = await _identityProvider.ListUsersInGroupAsync(request);
                 }
-                catch (Amazon.CognitoIdentityProvider.Model.ResourceNotFoundException e)
+                catch (ResourceNotFoundException ex)
                 {
-                    _logger.LogTrace(e.StackTrace);
+                    _logger.LogTrace(ex.StackTrace);
                     return NotFound();
                 }
-                catch (AmazonCognitoIdentityProviderException e)
+                catch (AmazonCognitoIdentityProviderException ex)
                 {
-                    _logger.LogTrace(e.StackTrace);
+                    _logger.LogTrace(ex.StackTrace);
                     return BadRequest();
                 }
 
@@ -252,14 +242,12 @@ namespace CartaWeb.Controllers
 
                 foreach (UserType user in response.Users)
                 {
-                    UserInformation userInformation = new UserInformation
-                    (
-                        GetUserAttribute(user.Attributes, "sub"),
-                        user.Username
-                    );
-                    userInformation.Email = GetUserAttribute(user.Attributes, "email");
-                    userInformation.FirstName = GetUserAttribute(user.Attributes, "given_name");
-                    userInformation.LastName = GetUserAttribute(user.Attributes, "family_name");
+                    UserInformation userInformation = new(GetUserAttribute(user.Attributes, "sub"), user.Username)
+                    {
+                        Email = GetUserAttribute(user.Attributes, "email"),
+                        FirstName = GetUserAttribute(user.Attributes, "given_name"),
+                        LastName = GetUserAttribute(user.Attributes, "family_name")
+                    };
                     userInformationList.Add(userInformation);
                 }
 
