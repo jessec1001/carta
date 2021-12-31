@@ -19,6 +19,21 @@ namespace CartaCore.Utilities
         }
 
         /// <summary>
+        /// Converts a string into a regular expression pattern. If the string is surrounded by forward slashes, it is
+        /// assumed to be a regular expression pattern. Otherwise, it is assumed to be a literal substring and will be
+        /// escaped.
+        /// </summary>
+        /// <param name="str">The string to convert.</param>
+        /// <returns>A regular expression pattern.</returns>
+        public static Regex ToRegexPattern(this string str)
+        {
+            if (str.StartsWith("/") && str.EndsWith("/"))
+                return new Regex(str[1..^1]);
+            else
+                return new Regex(Regex.Escape(str));
+        }
+
+        /// <summary>
         /// Checks if a supstring (superstring) contains a (non-contiguous) subsequence (substring) of characters.
         /// </summary>
         /// <param name="supstring">The supstring.</param>

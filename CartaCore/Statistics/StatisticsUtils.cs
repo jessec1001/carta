@@ -20,6 +20,26 @@ namespace CartaCore.Statistics
             return sum / values.Length;
         }
         /// <summary>
+        /// Computes the median of a list of values.
+        /// </summary>
+        /// <param name="values">The values.</param>
+        /// <returns>The median.</returns>
+        public static double ComputeMedian(double[] values)
+        {
+            // Sort the array of values.
+            double[] sorted = (double[])values.Clone();
+            Array.Sort(sorted);
+
+            // If the number of values is zero, return zero.
+            // If the number of values is even, return the mean of the two middle values.
+            // If the number of values is odd, return the middle value.
+            if (sorted.Length == 0)
+                return 0.0;
+            if (sorted.Length % 2 == 0)
+                return (sorted[sorted.Length / 2 - 1] + sorted[sorted.Length / 2]) / 2.0;
+            return sorted[sorted.Length / 2];
+        }
+        /// <summary>
         /// Computes a specific sample moment of a list of values.
         /// </summary>
         /// <param name="values">The values.</param>

@@ -1,10 +1,18 @@
+using System.Collections.Generic;
+
 namespace CartaCore.Data
 {
     /// <summary>
     /// Represents a graph that wraps around another instance of a graph to provide additional functionality.
     /// </summary>
-    public abstract class WrapperGraph : IGraph
+    public abstract class WrapperGraph : Graph
     {
+        /// <inheritdoc />
+        protected WrapperGraph(Identity id) : base(id) { }
+
+        /// <inheritdoc />
+        protected WrapperGraph(Identity id, IEnumerable<Property> properties) : base(id, properties) { }
+
         /// <summary>
         /// Gets the wrapped graph.
         /// </summary>
@@ -12,7 +20,7 @@ namespace CartaCore.Data
         protected abstract IGraph WrappedGraph { get; }
 
         /// <inheritdoc />
-        public GraphProperties GetProperties()
+        public override GraphProperties GetProperties()
         {
             return WrappedGraph.GetProperties();
         }
@@ -39,7 +47,7 @@ namespace CartaCore.Data
             }
             else
             {
-                func = default(U);
+                func = default;
                 return false;
             }
         }
