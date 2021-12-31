@@ -3,22 +3,19 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Security.Claims;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-
 using CartaCore.Data;
 using CartaCore.Integration.Synthetic;
+using CartaCore.Persistence;
 using CartaCore.Serialization;
 using CartaCore.Serialization.Json;
-using CartaCore.Workflow;
-using CartaCore.Workflow.Selection;
 using CartaWeb.Models.Data;
 using CartaWeb.Models.DocumentItem;
 using CartaWeb.Serialization.Json;
-using CartaCore.Persistence;
+using CartaCore.Operations;
 
 namespace CartaWeb.Controllers
 {
@@ -354,18 +351,14 @@ namespace CartaWeb.Controllers
             try
             {
                 // Get the base graph and check if it was actually retrieved.
-                IGraph graph = await LookupData(source, resource);
+                Graph graph = await LookupData(source, resource);
                 if (graph is null) return NotFound();
 
-                // TODO: Fix being able to reference selectors by name.
                 // We find the appropriate selector class corresponding to the specified discriminant.
                 // We wrap our original graph in this selector graph to provide selection-specific data retrieval.
-                Discriminant.TryGetValue<Selector>(selector, out Selector selectorGraph);
-                if (selectorGraph is null)
-                    return BadRequest();
-                await TryUpdateModelAsync(selectorGraph, selectorGraph.GetType(), "");
-                selectorGraph.Graph = graph;
-                graph = selectorGraph;
+                Operation selectorOperation = Operation.ConstructSelector(selector, out object selectorInput, out object _);
+                await TryUpdateModelAsync(selectorInput, selectorInput.GetType(), "");
+                graph = await Operation.ExecuteSelector(selectorOperation, selectorInput, graph);
 
                 // Return the graph with an okay status.
                 return Ok(graph);

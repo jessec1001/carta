@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using CartaCore.Data;
+using CartaCore.Operations.Attributes;
 
 namespace CartaCore.Operations
 {
@@ -12,6 +13,7 @@ namespace CartaCore.Operations
         /// <summary>
         /// The graph containing vertices to filter.
         /// </summary>
+        [OperationSelectorGraph]
         public Graph Graph { get; set; }
         /// <summary>
         /// The [indegree](https://en.wikipedia.org/wiki/Directed_graph#Indegree_and_outdegree) of vertices to filter.
@@ -34,12 +36,14 @@ namespace CartaCore.Operations
         /// <summary>
         /// The resulting graph containing only the selected vertices.
         /// </summary>
+        [OperationSelectorGraph]
         public Graph Graph { get; set; }
     }
 
     /// <summary>
     /// Filters the vertices of a graph by the number of edges into and out of them.
     /// </summary>
+    [OperationSelector("degree")]
     public class FilterVertexByDegreeOperation : TypedOperation
     <
         FilterVertexByDegreeOperationIn,

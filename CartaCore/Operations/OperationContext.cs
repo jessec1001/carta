@@ -25,17 +25,11 @@ namespace CartaCore.Operations
         /// <summary>
         /// The input mapping for an operation.
         /// </summary>
-        public Dictionary<string, object> Input { get; private init; }
+        public Dictionary<string, object> Input { get; set; }
         /// <summary>
         /// The output mapping for an operation.
         /// </summary>
-        public Dictionary<string, object> Output { get; private init; }
-
-        // TODO: Add operation statuses somewhere specific per job.
-        // /// <summary>
-        // /// The statuses of executing or executed operations.
-        // /// </summary>
-        // public Dictionary<string, OperationStatus> Statuses { get; private init; }
+        public Dictionary<string, object> Output { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="OperationContext"/> class with optionally specified mappings
@@ -50,8 +44,6 @@ namespace CartaCore.Operations
         {
             Input = input ?? new Dictionary<string, object>();
             Output = output ?? new Dictionary<string, object>();
-
-            Statuses = new Dictionary<string, OperationStatus>();
         }
     }
 }

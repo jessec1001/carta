@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using CartaCore.Data;
+using CartaCore.Operations.Attributes;
 
 namespace CartaCore.Operations
 {
@@ -12,6 +13,7 @@ namespace CartaCore.Operations
         /// <summary>
         /// The graph to perform the inclusion on.
         /// </summary>
+        [OperationSelectorGraph]
         public Graph Graph { get; set; }
         /// <summary>
         /// The identifiers of the vertices to include.
@@ -26,12 +28,14 @@ namespace CartaCore.Operations
         /// <summary>
         /// The resulting graph containing the included vertices.
         /// </summary>
+        [OperationSelectorGraph]
         public Graph Graph { get; set; }
     }
 
     /// <summary>
     /// Includes the vertices of a graph by matching their identifier.
     /// </summary>
+    [OperationSelector("include")]
     public class IncludeVertexByIdOperation : TypedOperation
     <
         IncludeVertexByIdOperationIn,

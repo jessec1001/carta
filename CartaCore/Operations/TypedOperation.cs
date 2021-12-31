@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using CartaCore.Utilities;
 
 namespace CartaCore.Operations
 {
@@ -29,9 +30,9 @@ namespace CartaCore.Operations
         /// <inheritdoc />
         public override async Task Perform(OperationContext context)
         {
-            TInput input = context.Input.ToTyped<TInput>();
+            TInput input = DictionaryUtilities.AsTyped<TInput>(context.Input);
             TOutput output = await Perform(input);
-            context.Output = output.ToDictionary<TOutput>();
+            context.Output = DictionaryUtilities.AsDictionary(output);
         }
 
         /// <summary>
@@ -44,7 +45,7 @@ namespace CartaCore.Operations
         /// <inheritdoc />
         public override bool IsDeterministic(OperationContext context)
         {
-            TInput input = context.Input.ToTyped<TInput>();
+            TInput input = DictionaryUtilities.AsTyped<TInput>(context.Input);
             return IsDeterministic(input);
         }
     }

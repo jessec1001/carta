@@ -1,4 +1,10 @@
+using System;
+using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
+using CartaCore.Data;
+using CartaCore.Operations.Attributes;
+using CartaCore.Utilities;
 
 namespace CartaCore.Operations
 {
@@ -38,5 +44,185 @@ namespace CartaCore.Operations
         /// </param>
         /// <returns><c>true</c> if the operation is deterministic on a context; otherwise <c>false</c>.</returns>
         public virtual bool IsDeterministic(OperationContext context) => true;
+
+        /// <summary>
+        /// Constructs a new operation from a specified type.
+        /// </summary>
+        /// <param name="type">The type name of the operation to construct.</param>
+        /// <param name="input">The default input for the operation.</param>
+        /// <param name="output">The default output for the operation.</param>
+        /// <param name="assembly">The assembly to find the operation inside of.</param>
+        /// <returns>The newly constructed operation.</returns>
+        public static Operation Construct(string type, out object input, out object output, Assembly assembly = null)
+        {
+            // TODO: This contains mostly duplicated code from `OperationDescription`.
+            // Assign the assembly to the current assembly if it is not specified.
+            assembly ??= Assembly.GetAssembly(typeof(Operation));
+
+            // Get the concrete types which are implementations of an operation.
+            Type[] assemblyTypes = assembly.GetTypes();
+            Type[] operationTypes = assemblyTypes
+                .Where(type =>
+                    type.IsAssignableTo(typeof(Operation)) &&
+                    type.IsPublic &&
+                    !(type.IsAbstract || type.IsInterface))
+                .ToArray();
+
+            // Generate the descriptions for each of the operation implementation types.
+            OperationDescription[] descriptions = new OperationDescription[operationTypes.Length];
+            for (int k = 0; k < operationTypes.Length; k++)
+            {
+                descriptions[k] = OperationDescription.FromType(operationTypes[k]);
+                
+                // Find the operation type corresponding to the specified type.
+                if (descriptions[k].Type == type)
+                {
+                    // Construct the operation.
+                    Operation operation = (Operation)Activator.CreateInstance(operationTypes[k]);
+
+                    // Construct the input and output values if the operation is a typed operation.
+                    Type baseType = operation.GetType().BaseType;
+                    if (baseType.IsAssignableTo(typeof(TypedOperation<,>)))
+                    {
+                        // Get the input and output types.
+                        Type inputType = baseType.GetGenericArguments()[0];
+                        Type outputType = baseType.GetGenericArguments()[1];
+
+                        // Construct the input and output values.
+                        input = Activator.CreateInstance(inputType);
+                        output = Activator.CreateInstance(outputType);
+                    }
+                    else
+                    {
+                        input = null;
+                        output = null;
+                    }
+                }
+            }
+
+            // If the operation type was not found, return null.
+            input = output = null;
+            return null;
+        }
+        /// <summary>
+        /// Contructs a new operation from a specified type.
+        /// </summary>
+        /// <param name="type">The type name of the operation to construct.</param>
+        /// <param name="assembly">The assembly to find the operation inside of.</param>
+        /// <returns>The newly constructed operation.</returns>
+        public static Operation Construct(string type, Assembly assembly = null)
+        {
+            return Construct(type, out _, out _, assembly);
+        }
+        /// <summary>
+        /// Constructs a new selector operation from a specified selector type.
+        /// </summary>
+        /// <param name="selector">The selector type name of the operation to construct.</param>
+        /// <param name="input">The default input for the operation.</param>
+        /// <param name="output">The default output for the operation.</param>
+        /// <param name="assembly">The assembly to find the operation inside of.</param>
+        /// <returns>The newly constructed operation.</returns>
+        public static Operation ConstructSelector(string selector, out object input, out object output, Assembly assembly = null)
+        {
+            // TODO: This contains mostly duplicated code from `OperationDescription`.
+            // Assign the assembly to the current assembly if it is not specified.
+            assembly ??= Assembly.GetAssembly(typeof(Operation));
+
+            // Get the concrete types which are implementations of an operation.
+            Type[] assemblyTypes = assembly.GetTypes();
+            Type[] operationTypes = assemblyTypes
+                .Where(type =>
+                    type.IsAssignableTo(typeof(Operation)) &&
+                    type.IsPublic &&
+                    !(type.IsAbstract || type.IsInterface))
+                .ToArray();
+
+            // Generate the descriptions for each of the operation implementation types.
+            OperationDescription[] descriptions = new OperationDescription[operationTypes.Length];
+            for (int k = 0; k < operationTypes.Length; k++)
+            {
+                descriptions[k] = OperationDescription.FromType(operationTypes[k]);
+                
+                // Find the operation type corresponding to the specified selector.
+                if (descriptions[k].Selector == selector)
+                {
+                    // Construct the operation.
+                    Operation operation = (Operation)Activator.CreateInstance(operationTypes[k]);
+
+                    // Construct the input and output values if the operation is a typed operation.
+                    Type baseType = operation.GetType().BaseType;
+                    if (baseType.IsAssignableTo(typeof(TypedOperation<,>)))
+                    {
+                        // Get the input and output types.
+                        Type inputType = baseType.GetGenericArguments()[0];
+                        Type outputType = baseType.GetGenericArguments()[1];
+
+                        // Construct the input and output values.
+                        input = Activator.CreateInstance(inputType);
+                        output = Activator.CreateInstance(outputType);
+                    }
+                    else
+                    {
+                        input = null;
+                        output = null;
+                    }
+                }
+            }
+
+            // If the operation type was not found, return null.
+            input = output = null;
+            return null;
+        }
+        /// <summary>
+        /// Executes a selector operation by setting and getting the preset selector graph on the operation.
+        /// </summary>
+        /// <param name="operation">The selector operation.</param>
+        /// <param name="input">The input to the operation.</param>
+        /// <param name="graph">The graph to perform the selector on.</param>
+        /// <returns>The resulting graph after the selector has been applied.</returns>
+        public static async Task<Graph> ExecuteSelector(Operation operation, object input, Graph graph)
+        {
+            // Find the field on the input object that corresponds to the selector graph.
+            foreach (PropertyInfo property in input.GetType().GetProperties())
+            {
+                // Set the graph value on the input object.
+                OperationSelectorGraphAttribute attr = property.GetCustomAttribute<OperationSelectorGraphAttribute>();
+                if (attr is not null)
+                    property.SetValue(input, graph);
+            }
+
+            // Get the input and output types of the operation.
+            Type baseType = operation.GetType().BaseType;
+            Type inputType = null;
+            Type outputType = null;
+            if (baseType.IsAssignableTo(typeof(TypedOperation<,>)))
+            {
+                // Get the input and output types.
+                inputType = baseType.GetGenericArguments()[0];
+                outputType = baseType.GetGenericArguments()[1];
+            }
+
+            // TODO: We need to inherit execution settings from the calling API.
+            // Execute the operation.
+            OperationContext context = new() { Operation = operation };
+            context.Input = DictionaryUtilities.AsDictionary(input, inputType);
+            await operation.Perform(context);
+            object output = DictionaryUtilities.AsTyped(context.Output, outputType);
+
+            // Find the field on the output object that corresponds to the selector graph.
+            foreach (PropertyInfo property in output.GetType().GetProperties())
+            {
+                // Get the graph value from the output object.
+                OperationSelectorGraphAttribute attr = property.GetCustomAttribute<OperationSelectorGraphAttribute>();
+                if (attr is not null)
+                {
+                    graph = (Graph)property.GetValue(output);
+                    return graph;
+                }
+            }
+
+            // If the graph was not found, return null.
+            return null;
+        }
     }
 }

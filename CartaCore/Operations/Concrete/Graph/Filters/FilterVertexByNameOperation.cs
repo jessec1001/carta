@@ -1,6 +1,7 @@
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using CartaCore.Data;
+using CartaCore.Operations.Attributes;
 using CartaCore.Utilities;
 
 namespace CartaCore.Operations
@@ -13,6 +14,7 @@ namespace CartaCore.Operations
         /// <summary>
         /// The graph to perform the filter on.
         /// </summary>
+        [OperationSelectorGraph]
         public Graph Graph { get; set; }
         /// <summary>
         /// The pattern used to match vertices by name.
@@ -29,12 +31,14 @@ namespace CartaCore.Operations
         /// <summary>
         /// The resulting graph containing the filtered vertices.
         /// </summary>
+        [OperationSelectorGraph]
         public Graph Graph { get; set; }
     }
 
     /// <summary>
     /// Filters the vertices of a graph by their name. Can utilize a regular expression to match the name.
     /// </summary>
+    [OperationSelector("name")]
     public class FilterVertexByNameOperation : TypedOperation
     <
         FilterVertexByNameOperationIn,

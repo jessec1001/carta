@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using CartaCore.Data;
+using CartaCore.Operations.Attributes;
 
 namespace CartaCore.Operations
 {
@@ -12,6 +13,7 @@ namespace CartaCore.Operations
         /// <summary>
         /// The graph to filter vertices on.
         /// </summary>
+        [OperationSelectorGraph]
         public Graph Graph { get; set; }
         /// <summary>
         /// The vertex to select the ancestors of.
@@ -43,12 +45,14 @@ namespace CartaCore.Operations
         /// <summary>
         /// The resulting graph containing ancestor vertices.
         /// </summary>
+        [OperationSelectorGraph]
         public Graph Graph { get; set; }
     }
 
     /// <summary>
     /// Filters the vertices of a graph to only include the ancestors of a specified vertex.
     /// </summary>
+    [OperationSelector("ancestors")]
     public class FilterAncestorsOperation : TypedOperation
     <
         FilterAncestorsOperationIn,
