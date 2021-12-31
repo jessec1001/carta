@@ -190,15 +190,16 @@ namespace CartaWeb.Controllers
             [FromQuery(Name = "tags")] string[] filterTags,
             [FromQuery(Name = "limit")] int? limit)
         {
+            // TODO: Reimplement workflow types.
             // Get the descriptions for all of the operations.
             OperationDescription[] descriptionsSimple = OperationDescription.FromOperationTypes();
-            OperationDescription[] descriptionsWorkflow = await WorkflowsController.LoadWorkflowDescriptionsAsync();
+            // OperationDescription[] descriptionsWorkflow = await WorkflowsController.LoadWorkflowDescriptionsAsync();
             OperationDescription[] descriptions = new OperationDescription
             [
-                descriptionsSimple.Length + descriptionsWorkflow.Length
+                descriptionsSimple.Length // + descriptionsWorkflow.Length
             ];
             descriptionsSimple.CopyTo(descriptions, 0);
-            descriptionsWorkflow.CopyTo(descriptions, descriptionsSimple.Length);
+            // descriptionsWorkflow.CopyTo(descriptions, descriptionsSimple.Length);
 
             // If the tags filter was specified, we filter operations based on the union of tags specified.
             // That is, if any of the specified tags exist on the operation description, that operation is included.
@@ -598,7 +599,7 @@ namespace CartaWeb.Controllers
 
             if (operationItem.Type == "workflow")
             {
-                WorkflowItem workflow = await WorkflowsController.LoadWorkflowAsync(operationItem.Subtype);
+                WorkflowItem workflow = await WorkflowsController.LoadWorkflowAsync(operationItem.Subtype, _persistence);
                 WorkflowOperation workflowOperation = (WorkflowOperation)await InstantiateOperation(operationItem, _persistence);
                 JsonSchema schema = new JsonSchema();
                 schema.Type = JsonObjectType.Object;
@@ -720,7 +721,7 @@ namespace CartaWeb.Controllers
         {
             if (operationItem.Type == "workflow")
             {
-                WorkflowItem workflowItem = await WorkflowsController.LoadWorkflowAsync(operationItem.Subtype);
+                WorkflowItem workflowItem = await WorkflowsController.LoadWorkflowAsync(operationItem.Subtype, _persistence);
                 List<Operation> suboperations = new(workflowItem.Operations.Length);
                 foreach (string suboperationId in workflowItem.Operations)
                 {

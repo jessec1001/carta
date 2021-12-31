@@ -27,7 +27,6 @@ namespace CartaWeb.Models.Migration
         {
             JsonOptions.PropertyNameCaseInsensitive = false;
             JsonOptions.IgnoreNullValues = true;
-            JsonOptions.Converters.Insert(0, new JsonDiscriminantConverter());
         }
 
         /// <summary>

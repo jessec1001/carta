@@ -65,35 +65,36 @@ namespace CartaWeb.Models.DocumentItem
         /// </summary>
         public WorkflowConnection[] Connections { get; set; }
 
-        // TODO: Redo this implementation.
+        /// <summary>
+        /// Initializes a new instance of the <see cref="WorkflowItem"/> class.
+        /// </summary>
+        public WorkflowItem() { }
         /// <summary>
         /// Initializes a new instance of the <see cref="WorkflowItem"/> class with specified suboperations and
         /// connections.
         /// </summary>
-        /// <param name="workspaceId">The identifier of the workspace containing the workflow.</param>
+        /// <param name="workflowId">The unique identifier of the workflow.</param>
         /// <param name="operations">The suboperations of the workflow.</param>
         /// <param name="connections">The connections of the workflow.</param>
-        public WorkflowItem(string workspaceId, string[] operations, WorkflowConnection[] connections)
+        public WorkflowItem(string workflowId, string[] operations, WorkflowConnection[] connections)
+            : base(workflowId)
         {
-            PartitionKeyId = workspaceId;
-
             Operations = operations;
             Connections = connections;
         }
         /// <summary>
         /// Initializes a new instance of the <see cref="WorkflowItem"/> class with no suboperations or connections.
         /// </summary>
-        /// <param name="workspaceId">The identifier of the workspace containing the workflow.</param>
-        public WorkflowItem(string workspaceId)
+        /// <param name="workflowId">The unique identifier of the workflow.</param>
+        public WorkflowItem(string workflowId)
+            : base(workflowId)
         {
-            PartitionKeyId = workspaceId;
-
             Operations = Array.Empty<string>();
             Connections = Array.Empty<WorkflowConnection>();
         }
 
         /// <inheritdoc />
-        public override string PartitionKeyPrefix => "USER#";
+        public override string PartitionKeyPrefix => "WORKFLOW#";
         /// <inheritdoc />
         public override string SortKeyPrefix => "WORKFLOW#";
     }

@@ -44,12 +44,7 @@ namespace CartaWeb.Formatters
             (MediaTypeHeaderValue.Parse("application/vnd.gexf+xml"), FormatGex),
             (MediaTypeHeaderValue.Parse("application/xml"), FormatGex), // Default
         };
-
-        static GraphOutputFormatter()
-        {
-            JsonOptions.Converters.Insert(0, new JsonDiscriminantConverter());
-        }
-
+        
         /// <summary>
         /// Initializes a new instance of the <see cref="GraphOutputFormatter"/> class.
         /// </summary>

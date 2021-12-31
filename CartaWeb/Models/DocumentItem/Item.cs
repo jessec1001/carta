@@ -16,7 +16,7 @@ namespace CartaWeb.Models.DocumentItem
         /// <summary>
         /// Options for serialization
         /// </summary>
-        private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+        public static JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
         /// <summary>
         /// Static constructor for initializing JSON serialization/deserialization options
