@@ -1,6 +1,7 @@
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
+using CartaWeb.Models.DocumentItem;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CartaWeb.Controllers
@@ -85,7 +86,7 @@ namespace CartaWeb.Controllers
             else
                 return Task.FromResult(false);
         }
-        public static async Task<OperationItem> LoadOperationAsync(string operationId)
+        public static async Task<OperationItem> LoadOperationAsync(string operationId, Persistence _persistence)
         {
             // Get the path where the file should be located.
             if (!Directory.Exists(OperationsDirectory)) Directory.CreateDirectory(OperationsDirectory);

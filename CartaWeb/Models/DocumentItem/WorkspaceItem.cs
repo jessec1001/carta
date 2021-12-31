@@ -1,5 +1,4 @@
-﻿using System;
-using CartaWeb.Models.Data;
+﻿using CartaWeb.Models.Data;
 
 namespace CartaWeb.Models.DocumentItem
 {

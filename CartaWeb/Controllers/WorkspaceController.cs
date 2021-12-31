@@ -1,15 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Security.Claims;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-
-
-using CartaCore.Serialization.Json;
 using CartaCore.Persistence;
 using CartaWeb.Models.Data;
 using CartaWeb.Models.DocumentItem;
@@ -27,7 +23,7 @@ namespace CartaWeb.Controllers
         /// <summary>
         /// Options for serialization
         /// </summary>
-        private static JsonSerializerOptions JsonOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+        private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
         /// <summary>
         /// Static constructor for initializing JSON serialization/deserialization options
@@ -36,7 +32,6 @@ namespace CartaWeb.Controllers
         {
             JsonOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
             JsonOptions.PropertyNameCaseInsensitive = false;
-            JsonOptions.Converters.Insert(0, new JsonDiscriminantConverter());
         }
 
         /// <summary>
@@ -64,9 +59,9 @@ namespace CartaWeb.Controllers
         /// <returns>
         /// A workspace item.
         /// </returns>
-        protected async Task<WorkspaceItem> LoadWorkspaceItemAsync(string userId, string workspaceId)
+        protected async Task<WorkspaceItem> LoadWorkspaceAsync(string userId, string workspaceId)
         {
-            WorkspaceItem workspaceItem = new WorkspaceItem(userId, workspaceId);
+            WorkspaceItem workspaceItem = new(userId, workspaceId);
             Item item = await _persistence.LoadItemAsync(workspaceItem);
             return (WorkspaceItem)item;
         }
@@ -79,44 +74,25 @@ namespace CartaWeb.Controllers
         /// <returns>
         /// The user item.
         /// </returns>
-        protected async Task<UserItem> LoadUserItemAsync(string workspaceId, string userId)
+        protected async Task<UserItem> LoadUserAsync(string workspaceId, string userId)
         {
-            UserItem userItem = new UserItem(workspaceId, userId);
+            UserItem userItem = new(workspaceId, userId);
             Item item = await _persistence.LoadItemAsync(userItem);
             return (UserItem)item;
         }
 
         /// <summary>
-        /// Loads data set information for the given workspace identifier and data set identifier
+        /// Retrieves access information on the specified operation.
         /// </summary>
         /// <param name="workspaceId">The workspace identifier.</param>
-        /// <param name="datasetId">The dataset identifier</param>
-        protected async Task<DatasetItem> LoadWorkspaceDatasetAsync(
-            string workspaceId,
-            string datasetId
-        )
+        /// <param name="operationId">The operation identifier.</param>
+        /// <returns>Access information for the operation inside the workspace.</returns>
+        protected async Task<OperationAccessItem> LoadOperationAccessAsync(string workspaceId, string operationId)
         {
-            DatasetItem datasetItem = new DatasetItem(workspaceId, datasetId);
-            Item item = await _persistence.LoadItemAsync(datasetItem);
-            return (DatasetItem)item;
+            OperationAccessItem operationAccessItem = new(workspaceId, operationId);
+            Item item = await _persistence.LoadItemAsync(operationAccessItem);
+            return (OperationAccessItem)item;
         }
-
-        /// <summary>
-        /// Retrieves accees information on the specified workflow.
-        /// </summary>
-        /// <param name="id">The workspace identifier.</param>
-        /// <param name="workflowId">The workflow identifier.</param>
-        /// <returns>Workflow access information.</returns>
-        protected async Task<WorkflowAccessItem> LoadWorkflowAccessAsync(
-            string id,
-            string workflowId
-        )
-        {
-            WorkflowAccessItem workflowAccessItem = new WorkflowAccessItem(false, id, workflowId);
-            Item item = await _persistence.LoadItemAsync(workflowAccessItem);
-            return (WorkflowAccessItem)item;
-        }
-
        
         /// <summary>
         /// Checks whether a specified workspace change date falls within from date and to date criteria.
@@ -150,17 +126,16 @@ namespace CartaWeb.Controllers
         )
         {
             // Create workspace item 
-            UserInformation userInformation = new UserInformation(User);
-            WorkspaceItem workspaceItem = new WorkspaceItem(userInformation.Id, name, userInformation);
+            UserInformation userInformation = new(User);
+            WorkspaceItem workspaceItem = new(userInformation.Id, name, userInformation);
             DbDocument workspaceItemDbDocument = workspaceItem.CreateDbDocument();
 
             // Create user item 
-            UserItem userItem = new UserItem(workspaceItem.Id, userInformation);
+            UserItem userItem = new(workspaceItem.Id, userInformation);
             userItem.DocumentHistory.AddedBy = userInformation;
 
             // Create workspace change item 
-            WorkspaceChangeItem workspaceChangeItem = new WorkspaceChangeItem
-            (
+            WorkspaceChangeItem workspaceChangeItem = new(
                 workspaceItem.Id,
                 userItem.UserInformation.Name,
                 WorkspaceActionEnumeration.Added,
@@ -203,7 +178,7 @@ namespace CartaWeb.Controllers
             [FromRoute] string id
         )
         {
-            WorkspaceItem workspaceItem = await LoadWorkspaceItemAsync(new UserInformation(User).Id, id);
+            WorkspaceItem workspaceItem = await LoadWorkspaceAsync(new UserInformation(User).Id, id);
             if (workspaceItem is null) return NotFound();
             else return Ok(workspaceItem);
         }
@@ -236,12 +211,12 @@ namespace CartaWeb.Controllers
             if (!archived.HasValue) archived = false;
 
             // Load the items and filter items according to archived flag
-            WorkspaceItem workspaceItem = new WorkspaceItem(new UserInformation(User).Id);
+            WorkspaceItem workspaceItem = new(new UserInformation(User).Id);
             IEnumerable<Item> allWorkspaceItems = await _persistence.LoadItemsAsync(workspaceItem);
             if (allWorkspaceItems is null) return NotFound();
             else
             {
-                List<WorkspaceItem> workspaceItems = new List<WorkspaceItem>();
+                List<WorkspaceItem> workspaceItems = new();
                 foreach (WorkspaceItem item in allWorkspaceItems)
                 {
                     if (item.Archived == archived.Value) workspaceItems.Add(item);
@@ -269,9 +244,9 @@ namespace CartaWeb.Controllers
             [FromRoute] string id
         )
         {
-            UserItem userItem = new UserItem(id);
+            UserItem userItem = new(id);
             IEnumerable<Item> readUserItems = await _persistence.LoadItemsAsync(userItem);
-            List<UserItem> userItems = new List<UserItem>() { };
+            List<UserItem> userItems = new() { };
             if (readUserItems is null) return NotFound();
             else
             {
@@ -308,13 +283,13 @@ namespace CartaWeb.Controllers
             [FromQuery(Name = "archived")] bool archived
         )
         {
-            UserInformation userInformation = new UserInformation(User);
-            WorkspaceItem workspaceItem = await LoadWorkspaceItemAsync(userInformation.Id, id);
+            UserInformation userInformation = new(User);
+            WorkspaceItem workspaceItem = await LoadWorkspaceAsync(userInformation.Id, id);
             if (workspaceItem is null) return NotFound();
-            UserItem userItem = await LoadUserItemAsync(id, userInformation.Id);
+            UserItem userItem = await LoadUserAsync(id, userInformation.Id);
             if (userItem is null) return NotFound();
             workspaceItem.Archived = archived;
-            WorkspaceChangeItem workspaceChangeItem = null;
+            WorkspaceChangeItem workspaceChangeItem;
 
             if (archived)
             {
@@ -390,27 +365,26 @@ namespace CartaWeb.Controllers
         /// <returns status="200">Occurs when the operation is successful.</returns>
         [Authorize]
         [HttpPatch("{id}/users")]
-        public async Task<ActionResult<List<UserItem>>> PatchWorkspaceUsers(
+        public async Task<ActionResult<List<UserItem>>> AddWorkspaceUsers(
             [FromRoute] string id,
             [FromBody] List<UserItem> userItems
         )
         {
-            UserInformation userInformation = new UserInformation(User);
-            WorkspaceItem workspaceItem = await LoadWorkspaceItemAsync(userInformation.Id, id);
+            UserInformation userInformation = new(User);
+            WorkspaceItem workspaceItem = await LoadWorkspaceAsync(userInformation.Id, id);
             if (workspaceItem is null) return NotFound();
 
-            List<UserItem> writeUserItems = new List<UserItem>() { };
+            List<UserItem> writeUserItems = new() { };
             foreach (UserItem userItem in userItems)
             {
                 workspaceItem.SetPartitionKeyId(userItem.UserInformation.Id);
 
-                UserItem writeUserItem = new UserItem(id, userItem.UserInformation);
+                UserItem writeUserItem = new(id, userItem.UserInformation);
                 writeUserItem.DocumentHistory.DateAdded = DateTime.Now;
                 writeUserItem.DocumentHistory.AddedBy = userInformation;
                 writeUserItems.Add(writeUserItem);
 
-                WorkspaceChangeItem workspaceChangeItem = new WorkspaceChangeItem
-                (
+                WorkspaceChangeItem workspaceChangeItem = new(
                     id,
                     userInformation.Name,
                     WorkspaceActionEnumeration.Added,
@@ -451,7 +425,7 @@ namespace CartaWeb.Controllers
         /// </returns>
         [Authorize]
         [HttpDelete("{id}/users")]
-        public async Task<ActionResult> DeleteWorkspaceUser(
+        public async Task<ActionResult> RemoveWorkspaceUser(
             [FromRoute] string id,
             [FromQuery(Name = "users")] List<string> users
         )
@@ -459,13 +433,13 @@ namespace CartaWeb.Controllers
             foreach (string userId in users)
             {
                 // Load the workspace and user items
-                WorkspaceItem workspaceItem = await LoadWorkspaceItemAsync(userId, id);
+                WorkspaceItem workspaceItem = await LoadWorkspaceAsync(userId, id);
                 if (workspaceItem is null) return NotFound();
-                UserItem userItem = await LoadUserItemAsync(id, userId);
+                UserItem userItem = await LoadUserAsync(id, userId);
                 if (userItem is null) return NotFound();
 
                 // Delete the workspace for the given user if the workspace is owned by the logged in user
-                UserInformation currentUser = new UserInformation(User);
+                UserInformation currentUser = new(User);
                 if (workspaceItem.DocumentHistory.AddedBy.Id != currentUser.Id)
                 {
                     _logger.LogWarning($"Workspace item for user {userId} and workspace {workspaceItem.Id} " +
@@ -474,8 +448,7 @@ namespace CartaWeb.Controllers
                 }
 
                 // Create structure to record the change
-                WorkspaceChangeItem workspaceChangeItem = new WorkspaceChangeItem
-                (
+                WorkspaceChangeItem workspaceChangeItem = new(
                     id,
                     currentUser.Name,
                     WorkspaceActionEnumeration.Removed,
@@ -503,566 +476,143 @@ namespace CartaWeb.Controllers
         }
 
         /// <summary>
-        /// Persist the data set under the given workspace. 
+        /// Allows members of a workspace to access a specified operation.
         /// </summary>
-        /// <param name="id">The workspace identifier.</param>
-        /// <param name="source">The data set source.</param>
-        /// <param name="resource">The data set resource.</param>
-        /// <param name="name">Optional name for the data set.</param>
-        /// <request name="Example">
-        ///     <arg name="id">01F68ES7FSMMY1PYCG72B31759</arg>
-        ///     <arg name="source">Synthetic</arg>
-        ///     <arg name="resource">Finite</arg>
-        /// </request>
-        /// <request name="Example with name">
-        ///     <arg name="id">01F68ES7FSMMY1PYCG72B31759</arg>
-        ///     <arg name="source">Synthetic</arg>
-        ///     <arg name="resource">Finite</arg>
-        ///     <arg name="name">MyDatasetName</arg>
-        /// </request>
-        /// <returns status="200">Occurs when the operation is successful. The data set information,
-        /// including an unique identifier, will be attached to the response.</returns>
+        /// <param name="workspaceId">The workspace identifier.</param>
+        /// <param name="operationId">The operation identifier.</param>
+        /// <returns status="200">
+        /// Occurs when the operation is successful. The operation information will be attached to the response object.
+        /// </returns>
+        /// <returns status="404">
+        /// Occurs when an operation with the specified identifier could not be found.
+        /// </returns>
         /// <returns status="409">
-        /// Returned when an unexpected database conflict occured when trying to persist the workflow. 
+        /// Returned when an unexpected database conflict occured when trying to add the operation. 
         /// </returns>
         [Authorize]
-        [HttpPost("{id}/data/{source}/{resource}")]
-        public async Task<ActionResult<DatasetItem>> PostWorkspaceData(
-            [FromRoute] string id,
-            [FromRoute] DataSource source,
-            [FromRoute] string resource,
-            [FromQuery(Name = "name")] string name
+        [HttpPost("{workspaceId}/operations/{operationId}")]
+        public async Task<ActionResult<OperationAccessItem>> PostWorkspaceOperation(
+            [FromRoute] string workspaceId,
+            [FromRoute] string operationId
         )
         {
-            UserInformation userInformation = new UserInformation(User);
-            DatasetItem datasetItem = new DatasetItem(id, source, resource, userInformation);
-            if (name is not null) datasetItem.Name = name;
-            
-            WorkspaceChangeItem workspaceChangeItem = new WorkspaceChangeItem
-            (
-                id,
+            // Get user information.
+            UserInformation userInformation = new(User);
+
+            // Load operation information.
+            OperationItem operationItem = await OperationsController.LoadOperationAsync(operationId, _persistence);
+            if (operationItem is null) return NotFound();
+
+            // Persist access information and record change history.
+            OperationAccessItem operationAccessItem = new(workspaceId, operationId)
+            {
+                DocumentHistory = new(userInformation)
+            };
+            WorkspaceChangeItem workspaceChangeItem = new(
+                workspaceId,
                 userInformation.Name,
                 WorkspaceActionEnumeration.Added,
-                datasetItem
-            );
-            workspaceChangeItem.WorkspaceChangeInformation = new WorkspaceChangeInformation();
-            workspaceChangeItem.WorkspaceChangeInformation.DatasetSource = source.ToString();
-            workspaceChangeItem.WorkspaceChangeInformation.DatasetResource = resource;
-            
+                operationAccessItem
+            ) { WorkspaceChangeInformation = new() };
+
             bool isSaved = await _persistence.WriteDbDocumentsAsync(new List<DbDocument>
             {
-                datasetItem.CreateDbDocument(),
+                operationAccessItem.SaveDbDocument(),
                 workspaceChangeItem.CreateDbDocument()
             });
-            if (isSaved)
-            {
-                return Ok(datasetItem);
-            }
+            if (isSaved) return Ok(operationAccessItem);
             else
             {
-                _logger.LogWarning($"Dataset {source}/{resource} could not be saved under workflow with ID {id}");
+                _logger.LogWarning($"Workflow {operationItem.Id} could not be saved under workspace ID {workspaceId}");
                 return Conflict();
             }
         }
 
         /// <summary>
-        /// Update the name or workflow of a dataset.
+        /// Retrieves information on operations that are accessible by workspace members.
         /// </summary>
-        /// <param name="id">The workspace identifier.</param>
-        /// <param name="datasetId">The unique data set identifier.</param>
-        /// <param name="name">Optional name for the data set.</param>
-        /// <param name="workflowId">Optional workflow identifier to apply to the data set.</param>
-        /// <param name="versionNumber">Optional workflow version number to apply to the data set.</param>
-        /// <request name="Example to update name">
-        ///     <arg name="id">01F68ES7FSMMY1PYCG72B31759</arg>
-        ///     <arg name="datasetId">02F69ES5FSMMY1PYCG72B31531</arg>
-        ///     <arg name="name">MyDataset</arg>
-        /// </request>
-        /// <request name="Example to update workflow">
-        ///     <arg name="id">01F68ES7FSMMY1PYCG72B31759</arg>
-        ///     <arg name="datasetId">02F69ES5FSMMY1PYCG72B31531</arg>
-        ///     <arg name="workflow">01F6Q75NC7TEPXWSNSXJC18BDE</arg>
-        /// </request>
-        /// <request name="Example to update name, workflow and workflow version">
-        ///     <arg name="id">01F68ES7FSMMY1PYCG72B31759</arg>
-        ///     <arg name="datasetId">02F69ES5FSMMY1PYCG72B31531</arg>
-        ///     <arg name="name">MyDatasetName</arg>
-        ///     <arg name="workflowId">01F6Q75NC7TEPXWSNSXJC18BDE</arg>
-        ///     <arg name="versionNumber">3</arg>
-        /// </request>
-        /// <returns status="200">Occurs when the operation is successful. The
-        /// data set information will be attached to the response.</returns>
-        /// <returns status="400">Occurs when a version number is specified but a workflow identifier is not</returns>
-        /// <returns status="404">Occurs when the data set or workflow could not be found.</returns>
-        /// <returns status="409">
-        /// Returned when an unexpected database conflict occured when trying to persist the workflow. 
+        /// <param name="workspaceId">The workspace identifier.</param>
+        /// <returns status="200">
+        /// Occurs when the operation is successful. The workflow information will be attached to the response object.
         /// </returns>
         [Authorize]
-        [HttpPatch("{id}/data/{datasetId}")]
-        public async Task<ActionResult<DatasetItem>> PatchWorkspaceData(
-            [FromRoute] string id,
-            [FromRoute] string datasetId,
-            [FromQuery(Name = "name")] string name,
-            [FromQuery(Name = "workflow")] string workflowId,
-            [FromQuery(Name = "workflowVersion")] int? versionNumber
+        [HttpGet("{workspaceId}/operations")]
+        public async Task<ActionResult<List<OperationAccessItem>>> GetWorkspaceOperations(
+            [FromRoute] string workspaceId
         )
         {
-            if (versionNumber.HasValue & (workflowId is null)) return BadRequest();
-
-            UserInformation userInformation = new UserInformation(User);
-            DatasetItem datasetItem = await LoadWorkspaceDatasetAsync(id, datasetId);
-            if (datasetItem is null) return NotFound();
-            WorkspaceChangeItem workspaceChangeItem = new WorkspaceChangeItem
-            (
-                id,
-                userInformation.Name,
-                WorkspaceActionEnumeration.Updated,
-                datasetItem
-            );
-            workspaceChangeItem.WorkspaceChangeInformation = new WorkspaceChangeInformation();
-            if (name is not null)
+            // Retrieve the operation access items.
+            List<OperationAccessItem> operationAccessItems = new();
+            OperationAccessItem readOperationAccessItem = new(workspaceId, null);
+            IEnumerable<Item> readOperationAccessItems = await _persistence.LoadItemsAsync(readOperationAccessItem);
+            foreach (OperationAccessItem operationAccessItem in readOperationAccessItems)
             {
-                datasetItem.Name = name;
-                workspaceChangeItem.WorkspaceChangeInformation.DatasetSource = datasetItem.Source.ToString();
-                workspaceChangeItem.WorkspaceChangeInformation.DatasetResource = datasetItem.Resource;
-            }
-            if (workflowId is not null)
-            {
-                WorkflowAccessItem workflowAccessItem = await LoadWorkflowAccessAsync(id, workflowId);
-                if (workflowAccessItem is null) return NotFound();
-                datasetItem.WorkflowId = workflowId;
-                workspaceChangeItem.WorkspaceChangeInformation.WorkflowId = workflowId;
-                workspaceChangeItem.WorkspaceChangeInformation.WorkflowName = workflowAccessItem.Name;
-                if (versionNumber.HasValue)
-                {
-                    datasetItem.VersionNumber = versionNumber.Value;
-                    workspaceChangeItem.WorkspaceChangeInformation.WorkflowVersion = versionNumber.Value;
-                }           
+                operationAccessItems.Add(operationAccessItem);
             }
 
-            datasetItem.SetPartitionKeyId(id);
-            bool isSaved = await _persistence.WriteDbDocumentsAsync(new List<DbDocument>
-            {
-                datasetItem.UpdateDbDocument(),
-                workspaceChangeItem.CreateDbDocument()
-            });
-            if (isSaved)
-            {
-                return Ok(datasetItem);
-            }
-            else
-            {
-                _logger.LogWarning($"Dataset with ID {datasetId} could not be patched under workspace with ID {id}");
-                return Conflict();
-            }   
+            // Return the list of items.
+            return Ok(operationAccessItems);
         }
 
         /// <summary>
-        /// Retrieves all the data sets under the given workspace. 
+        /// Retrieves information on the specified operation that is accessible by workspace members..
         /// </summary>
-        /// <param name="id">The workspace identifier.</param>
-        /// <request name="Example">
-        ///     <arg name="workspaceId">01F68ES7FSMMY1PYCG72B31759</arg>
-        /// </request>
-        /// <returns status="200">Occurs when the operation is successful.
-        /// A list of data sets will be attached to the returned object.</returns>
-        [Authorize]
-        [HttpGet("{id}/data")]
-        public async Task<ActionResult<List<DatasetItem>>> GetWorkspaceDatasets(
-            [FromRoute] string id
-        )
-        {
-            DatasetItem datasetItem = new DatasetItem(id);
-            IEnumerable<Item> readDatasetItems = await _persistence.LoadItemsAsync(datasetItem);
-            List<DatasetItem> datasetItems = new List<DatasetItem>() { };
-            foreach (DatasetItem item in readDatasetItems) datasetItems.Add(item);
-            return Ok(datasetItems);
-        }
-
-        /// <summary>
-        /// Retrieves data set information for the specified workspace and data set.
-        /// </summary>
-        /// <param name="id">The workspace identifier.</param>
-        /// <param name="datasetId">The data set identifier.</param>
-        /// <request name="Example">
-        ///     <arg name="id">01F68ES7FSMMY1PYCG72B31759</arg>
-        ///     <arg name="datasetId">02F69ES5FSMMY1PYCG72B31531</arg>
-        /// </request>
-        /// <returns status="200">Occurs when the operation is successful.
-        /// The data set information will be attached to the returned object.</returns>
-        /// <returns status="404">Occurs when the data set could not be found.</returns>
-        [Authorize]
-        [HttpGet("{id}/data/{datasetId}")]
-        public async Task<ActionResult<DatasetItem>> GetWorkspaceDataset(
-            [FromRoute] string id,
-            [FromRoute] string datasetId
-        )
-        {
-            DatasetItem datasetItem = await LoadWorkspaceDatasetAsync(id, datasetId);
-            if (datasetItem is null) return NotFound();
-            else return Ok(datasetItem);
-        }
-
-        /// <summary>
-        /// Delete the data set from the given workspace. 
-        /// </summary>
-        /// <param name="id">The workspace identifier.</param>
-        /// <param name="datasetId">The data set identifier.</param>
-        /// <request name="Example">
-        ///     <arg name="id">01F68ES7FSMMY1PYCG72B31759</arg>
-        ///     <arg name="datasetId">02F69ES5FSMMY1PYCG72B31531</arg>
-        /// </request>
-        /// <returns status="200">Occurs when the operation is successful.</returns>
-        /// <returns status="404">Occurs when the data set could not be found.</returns>
-        /// <returns status="409">
-        /// Returned when an unexpected database conflict occured when trying to persist the workflow. 
+        /// <param name="workspaceId">The workspace identifier.</param>
+        /// <param name="operationId">The operation identifier.</param>
+        /// <returns status="200">
+        /// Occurs when the operation is successful. The operation information will be attached to the response object.
+        /// </returns>
+        /// <returns status="404">
+        /// Occurs when no operation information could be found.
         /// </returns>
         [Authorize]
-        [HttpDelete("{id}/data/{datasetId}")]
-        public async Task<ActionResult> DeleteWorkspaceData(
-            [FromRoute] string id,
-            [FromRoute] string datasetId
+        [HttpGet("{workspaceId}/operations/{operationId}")]
+        public async Task<ActionResult<OperationAccessItem>> GetWorkspaceOperation(
+            [FromRoute] string workspaceId,
+            [FromRoute] string operationId
         )
         {
-            DatasetItem datasetItem = await LoadWorkspaceDatasetAsync(id, datasetId);
-            if (datasetItem is null) return NotFound();
-            WorkspaceChangeItem workspaceChangeItem = new WorkspaceChangeItem
-            (
-                id,
-                new UserInformation(User).Name,
-                WorkspaceActionEnumeration.Removed,
-                datasetItem
-            );
-            workspaceChangeItem.WorkspaceChangeInformation = new WorkspaceChangeInformation();
-            workspaceChangeItem.WorkspaceChangeInformation.DatasetSource = datasetItem.Source.ToString();
-            workspaceChangeItem.WorkspaceChangeInformation.DatasetResource = datasetItem.Resource;
-
-            datasetItem.SetPartitionKeyId(id);
-            bool isSaved = await _persistence.WriteDbDocumentsAsync(new List<DbDocument>
-            {
-                datasetItem.DeleteDbDocument(),
-                workspaceChangeItem.CreateDbDocument()
-            });
-            if (isSaved)
-            {
-                return Ok();
-            }
-            else
-            {
-                _logger.LogWarning($"Dataset with ID {id} could not be deleted under workflow with ID {id}");
-                return Conflict();
-            }    
+            OperationAccessItem operationAccessItem = await LoadOperationAccessAsync(workspaceId, operationId);
+            if (operationAccessItem is null) return NotFound();
+            else return Ok(operationAccessItem);
         }
 
         /// <summary>
-        /// Persists a workflow under the given workspace
+        /// Disallows members of a workspace to access a specified operation.
         /// </summary>
-        /// <param name="id">The workspace identifier.</param>
-        /// <param name="workflowId">The workflow identifier.</param>
-        /// <param name="versionNumber">Optional workflow version number.</param>
-        /// <request name="Example">
-        ///     <arg name="id">01F68ES7FSMMY1PYCG72B31759</arg>
-        ///     <arg name="workflowId">01F7S2CBC9WHE5YMBHX8FB2FAM</arg>
-        /// </request>
-        /// <request name="Example with version number">
-        ///     <arg name="id">01F68ES7FSMMY1PYCG72B31759</arg>
-        ///     <arg name="workflowId">01F7S2CBC9WHE5YMBHX8FB2FAM</arg>
-        ///     <arg name="versionNumber">3</arg>
-        /// </request>
-        /// <returns status="200">Occurs when the operation is successful. The workflow information
-        /// will be attached to the response object.</returns>
-        /// <returns status="404">Occurs when a workflow with the specified identifier and version
-        /// could not be found.</returns>
-        /// <returns status="409">
-        /// Returned when an unexpected database conflict occured when trying to persist the workflow. 
+        /// <param name="workspaceId">The workspace identifier.</param>
+        /// <param name="operationId">The operation identifier.</param>
+        /// <returns status="200">
+        /// Occurs when the operation is successful.
+        /// </returns>
+        /// <returns status="403"
+        /// >Occurs when the workflow was not originally added by the logged in user.
+        /// </returns>
+        /// <returns status="404">
+        /// Occurs when no workflow information could be found.
         /// </returns>
         [Authorize]
-        [HttpPost("{id}/workflows/{workflowId}")]
-        public async Task<ActionResult<WorkflowAccessItem>> PostWorkspaceWorkflow(
-            [FromRoute] string id,
-            [FromRoute] string workflowId,
-            [FromQuery(Name = "workflowVersion")] int? versionNumber 
+        [HttpDelete("{workspaceId}/operations/{operationId}")]
+        public async Task<ActionResult<OperationAccessItem>> DeleteWorkspaceOperation(
+            [FromRoute] string workspaceId,
+            [FromRoute] string operationId
         )
         {
-            // Get user information
-            UserInformation userInformation = new UserInformation(User);
-            string userId = userInformation.Id;
-
-            // Set the version number
-            int nr;
-            if (versionNumber.HasValue) nr = versionNumber.Value;
-            else nr = await WorkflowController.GetCurrentWorkflowVersionNumber(userId, workflowId, _persistence);
-                
-            // Load workflow information
-            WorkflowItem workflowItem = await WorkflowController.LoadWorkflowAsync(workflowId, nr, _persistence);
-            if (workflowItem is null) return NotFound();
-
-            // Persist access information and record change history
-            WorkflowAccessItem workflowAccessItem = new WorkflowAccessItem
-            (
-                false,
-                id,
-                workflowId,
-                workflowItem.Workflow.Name,
-                workflowItem.VersionInformation
-            );
-            workflowAccessItem.DocumentHistory = new DocumentHistory(new UserInformation(User));
-            WorkspaceChangeItem workspaceChangeItem = new WorkspaceChangeItem
-            (
-                id,
-                userInformation.Name,
-                WorkspaceActionEnumeration.Added,
-                workflowAccessItem
-            );
-            workspaceChangeItem.WorkspaceChangeInformation = new WorkspaceChangeInformation();
-            workspaceChangeItem.WorkspaceChangeInformation.WorkflowVersion = workflowItem.VersionInformation.Number;
-
-            bool isSaved = await _persistence.WriteDbDocumentsAsync(new List<DbDocument>
-            {
-                workflowAccessItem.SaveDbDocument(),
-                workspaceChangeItem.CreateDbDocument()
-            });
-            if (isSaved)
-            {
-                return Ok(workflowAccessItem);
-            }
-            else
-            {
-                _logger.LogWarning($"Workflow {workflowItem.Workflow.Name} could not be saved under workspace ID {id}");
-                return Conflict();
-            }
-        }
-
-        /// <summary>
-        /// Retrieves information on workflows that are accessible under a workspace.
-        /// </summary>
-        /// <param name="id">The workspace identifier.</param>
-        /// <param name="archived">A flag indicating whether archived workspaces should be returned.
-        /// Set to true if archived workspaces should be returned, otherwise set to false.
-        /// Defaults to false.</param>
-        /// <request name="Example">
-        ///     <arg name="id">01F68ES7FSMMY1PYCG72B31759</arg>
-        /// </request>
-        /// <request name="Example to retrieve archived workflows">
-        ///     <arg name="id">01F68ES7FSMMY1PYCG72B31759</arg>
-        ///     <arg name="archived">true</arg>
-        /// </request>
-        /// <returns status="200">Occurs when the operation is successful. The workflow information
-        /// will be attached to the response object.</returns>
-        [Authorize]
-        [HttpGet("{id}/workflows")]
-        public async Task<ActionResult<List<WorkflowAccessItem>>> GetWorkspaceWorkflows(
-            [FromRoute] string id,
-            [FromQuery(Name = "archived")] bool? archived
-        )
-        {
-            // If no archived query parameter has been passed, set it to false
-            bool isArchived = false;
-            if (archived.HasValue) isArchived = archived.Value;
-
-            // Retrieve the workflow access items
-            List<WorkflowAccessItem> workflowAccessItems = new() { };
-            WorkflowAccessItem readWorkflowAccessItem = new WorkflowAccessItem(false, id);
-            IEnumerable<Item> readWorkflowAccesItems = await _persistence.LoadItemsAsync(readWorkflowAccessItem);
-            foreach (WorkflowAccessItem workflowAccessItem in readWorkflowAccesItems)
-            {
-                if (workflowAccessItem.Archived == isArchived) workflowAccessItems.Add(workflowAccessItem);
-            }
-
-            // Return the list of items
-            return Ok(workflowAccessItems);
-        }
-
-        /// <summary>
-        /// Retrieves information on the specified workflow.
-        /// </summary>
-        /// <param name="id">The workspace identifier.</param>
-        /// <param name="workflowId">The workflow identifier.</param>
-        /// <request name="Example">
-        ///     <arg name="id">01F68ES7FSMMY1PYCG72B31759</arg>
-        ///     <arg name="workflowId">01F7S2CBC9WHE5YMBHX8FB2FAM</arg>
-        /// </request>
-        /// <returns status="200">Occurs when the operation is successful. The workflow information
-        /// will be attached to the response object.</returns>
-        /// <returns status="404">Occurs when no workflow information could be found.</returns>
-        [Authorize]
-        [HttpGet("{id}/workflows/{workflowId}")]
-        public async Task<ActionResult<WorkflowAccessItem>> GetWorkspaceWorkflow(
-            [FromRoute] string id,
-            [FromRoute] string workflowId
-        )
-        {
-            WorkflowAccessItem workflowAccessItem = await LoadWorkflowAccessAsync(id, workflowId);
-            if (workflowAccessItem is null) return NotFound();
-            else return Ok(workflowAccessItem);
-        }
-
-        /// <summary>
-        /// Archives/unarchives a workflow from the workspace, or updates the version of the workflow available
-        /// under the workspace
-        /// </summary>
-        /// <param name="id">The workspace identifier.</param>
-        /// <param name="workflowId">The workflow identifier.</param>
-        /// <param name="archived">Flag indicating whether the workflow should be archived (true)
-        /// or not (false).</param>
-        /// <param name="versionNumber">Optional workflow version number that should be accessible under the
-        /// workspace.</param>
-        /// <request name="Example to archive a workflow">
-        ///     <arg name="id">01F68ES7FSMMY1PYCG72B31759</arg>
-        ///     <arg name="workflowId">01F7S2CBC9WHE5YMBHX8FB2FAM</arg>
-        ///     <arg name="archived">true</arg>
-        /// </request>
-        /// <request name="Example to update version number">
-        ///     <arg name="id">01F68ES7FSMMY1PYCG72B31759</arg>
-        ///     <arg name="workflowId">01F7S2CBC9WHE5YMBHX8FB2FAM</arg>
-        ///     <arg name="versionNumber">3</arg>
-        /// </request>
-        /// <request name="Example to unarchive a workflow and set it to a specific version">
-        ///     <arg name="id">01F68ES7FSMMY1PYCG72B31759</arg>
-        ///     <arg name="workflowId">01F7S2CBC9WHE5YMBHX8FB2FAM</arg>
-        ///     <arg name="archived">false</arg>
-        ///     <arg name="versionNumber">3</arg>
-        /// </request>
-        /// <returns status="200">Occurs when the operation is successful. The workflow access information
-        /// will be attached to the response object.</returns>
-        /// <returns status="404">Occurs when a workflow with the specified identifier 
-        /// could not be found.</returns>
-        /// <returns status="409">
-        /// Returned when an unexpected database conflict occured when trying to persist the workflow. 
-        /// </returns>
-        [Authorize]
-        [HttpPatch("{id}/workflows/{workflowId}")]
-        public async Task<ActionResult<WorkflowAccessItem>> PatchWorkspaceWorkflow(
-            [FromRoute] string id,
-            [FromRoute] string workflowId,
-            [FromQuery(Name = "archived")] bool? archived,
-            [FromQuery(Name = "workflowVersion")] int? versionNumber
-        )
-        {
-            // Load the workflow
-            WorkflowAccessItem workflowAccessItem = await LoadWorkflowAccessAsync(id, workflowId);
-            if (workflowAccessItem is null)
-            {
-                _logger.LogWarning($"Workflow access item for workspace id {id} and workflow {workflowId} could " +
-                    $"not be found for patching");
-                return NotFound();
-            }
-
-            // Check that at least one of the optional parameters is set - otherwise no changes will be affected
-            if ((!archived.HasValue) & (!versionNumber.HasValue)) return BadRequest();
-
-            // Update archive information
-            WorkspaceChangeItem workspaceChangeItem = null;
-            if (archived.HasValue)
-            {
-                workflowAccessItem.Archived = archived.Value;
-                if (archived.Value)
-                {
-                    workflowAccessItem.DocumentHistory.ArchivedBy = new UserInformation(User);
-                    workflowAccessItem.DocumentHistory.DateArchived = DateTime.Now;
-                    workspaceChangeItem = new WorkspaceChangeItem
-                    (
-                        id,
-                        workflowAccessItem.DocumentHistory.ArchivedBy.Name,
-                        WorkspaceActionEnumeration.Removed,
-                        workflowAccessItem
-                    );
-                }
-                else
-                {
-                    workflowAccessItem.DocumentHistory.UnarchivedBy = new UserInformation(User);
-                    workflowAccessItem.DocumentHistory.DateUnarchived = DateTime.Now;
-                    workspaceChangeItem = new WorkspaceChangeItem
-                    (
-                        id,
-                        workflowAccessItem.DocumentHistory.UnarchivedBy.Name,
-                        WorkspaceActionEnumeration.Added,
-                        workflowAccessItem
-                    );
-                }
-            }
-
-            // Update version information
-            if (versionNumber.HasValue)
-            {
-                WorkflowItem workflowItem = await WorkflowController.LoadWorkflowAsync
-                (
-                    workflowId,
-                    versionNumber.Value,
-                    _persistence
-                );
-                if (workflowItem is null)
-                {
-                    _logger.LogWarning($"Workflow item for workspace id {id} and workflow {workflowId} could not be " +
-                        $"found for patching");
-                    return NotFound();
-                }
-                workflowAccessItem.VersionInformation = workflowItem.VersionInformation;
-                UserInformation userInformation = new UserInformation(User);
-                workspaceChangeItem = new WorkspaceChangeItem
-                (
-                    id,
-                    userInformation.Name,
-                    WorkspaceActionEnumeration.Updated,
-                    workflowAccessItem
-                );
-                workspaceChangeItem.WorkspaceChangeInformation = new WorkspaceChangeInformation();
-                workspaceChangeItem.WorkspaceChangeInformation.WorkflowVersion = workflowItem.VersionInformation.Number;
-            }
-
-            // Write information
-            workflowAccessItem.SetPartitionKeyId(id);
-            bool isSaved = await _persistence.WriteDbDocumentsAsync(new List<DbDocument>
-            {
-                workflowAccessItem.SaveDbDocument(),
-                workspaceChangeItem.CreateDbDocument()
-            });
-            if (isSaved)
-            {
-                return Ok(workflowAccessItem);
-            }
-            else
-            {
-                _logger.LogWarning($"Workflow with ID {workflowId} could not be patched under workspace ID {id}");
-                return Conflict();
-            }
-        }
-
-        /// <summary>
-        /// Deletes the specified workflow
-        /// </summary>
-        /// <param name="id">The workspace identifier.</param>
-        /// <param name="workflowId">The workflow identifier.</param>
-        /// <request name="Example">
-        ///     <arg name="id">01F68ES7FSMMY1PYCG72B31759</arg>
-        ///     <arg name="workflowId">01F7S2CBC9WHE5YMBHX8FB2FAM</arg>
-        /// </request>
-        /// <returns status="200">Occurs when the operation is successful.</returns>
-        /// <returns status="403">Occurs when the workflow was not originally added by the logged in user.</returns>
-        /// <returns status="404">Occurs when no workflow information could be found.</returns>
-        [Authorize]
-        [HttpDelete("{id}/workflows/{workflowId}")]
-        public async Task<ActionResult<WorkflowAccessItem>> DeleteWorkspaceWorkflow(
-            [FromRoute] string id,
-            [FromRoute] string workflowId
-        )
-        {
-            WorkflowAccessItem workflowAccessItem = await LoadWorkflowAccessAsync(id, workflowId);
-            UserInformation currentUser = new UserInformation(User);
-            if (workflowAccessItem is null) return NotFound();
-            if (workflowAccessItem.DocumentHistory.AddedBy.Id != currentUser.Id) return Forbid();
-            WorkspaceChangeItem workspaceChangeItem = new WorkspaceChangeItem
-            (
-                id,
+            OperationAccessItem operationAccessItem = await LoadOperationAccessAsync(workspaceId, operationId);
+            UserInformation currentUser = new(User);
+            if (operationAccessItem is null) return NotFound();
+            if (operationAccessItem.DocumentHistory.AddedBy.Id != currentUser.Id) return Forbid();
+            WorkspaceChangeItem workspaceChangeItem = new(
+                workspaceId,
                 currentUser.Name,
                 WorkspaceActionEnumeration.Removed,
-                workflowAccessItem
+                operationAccessItem
             );
 
-            workflowAccessItem.SetPartitionKeyId(id);
+            operationAccessItem.SetPartitionKeyId(workspaceId);
             bool isSaved = await _persistence.WriteDbDocumentsAsync(new List<DbDocument>
             {
-                workflowAccessItem.DeleteDbDocument(),
+                operationAccessItem.DeleteDbDocument(),
                 workspaceChangeItem.CreateDbDocument()
             });
             if (isSaved)
@@ -1071,7 +621,7 @@ namespace CartaWeb.Controllers
             }
             else
             {
-                _logger.LogWarning($"Workflow with IH {workflowId} could not be deleted from workspace ID {id}");
+                _logger.LogWarning($"Operation with ID {operationId} could not be deleted from workspace ID {workspaceId}");
                 return Conflict();
             }
         }
@@ -1158,7 +708,5 @@ namespace CartaWeb.Controllers
             // Return changes
             return Ok(workspaceChangeItems);
         }
-        
     }
-        
 }

@@ -1,5 +1,5 @@
-﻿using CartaCore.Serialization.Json;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
+using CartaCore.Serialization.Json;
 
 namespace CartaCore.Operations.Hyperthought.Data
 {

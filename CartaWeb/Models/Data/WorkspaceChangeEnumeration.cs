@@ -11,20 +11,16 @@ namespace CartaWeb.Models.Data
     public enum WorkspaceChangeEnumeration
     {
         /// <summary>
-        /// Addition of a workspace
+        /// Addition of a workspace.
         /// </summary>
         Workspace,
         /// <summary>
-        /// Addition or removal of a user
+        /// Addition or removal of a user.
         /// </summary>
         User,
         /// <summary>
-        /// Addition, update or removal of a workflow
+        /// Addition, update or removal of a operation.
         /// </summary>
-        Workflow,
-        /// <summary>
-        /// Addition, update or removal of a dataset
-        /// </summary>
-        Dataset
+        Operation
     }
 }

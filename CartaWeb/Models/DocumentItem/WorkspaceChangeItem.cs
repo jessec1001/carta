@@ -51,10 +51,12 @@ namespace CartaWeb.Models.DocumentItem
         {
             PartitionKeyId = partitionKeyId;
 
-            WorkspaceAction = new WorkspaceAction();
-            WorkspaceAction.Type = actionType;
-            WorkspaceAction.UserName = userName;
-            WorkspaceAction.DateTime = DateTime.Now;
+            WorkspaceAction = new WorkspaceAction
+            {
+                Type = actionType,
+                UserName = userName,
+                DateTime = DateTime.Now
+            };
 
             switch (item)
             {
@@ -68,15 +70,9 @@ namespace CartaWeb.Models.DocumentItem
                     Id = userItem.UserInformation.Id;
                     Name = userItem.UserInformation.Name;
                     break;
-                case WorkflowAccessItem workflowAccessItem:
-                    ChangeType = WorkspaceChangeEnumeration.Workflow;
-                    Id = workflowAccessItem.Id;
-                    Name = workflowAccessItem.Name;
-                    break;
-                case DatasetItem datasetItem:
-                    ChangeType = WorkspaceChangeEnumeration.Dataset;
-                    Id = datasetItem.Id;
-                    Name = datasetItem.Name;
+                case OperationAccessItem operationAccessItem:
+                    ChangeType = WorkspaceChangeEnumeration.Operation;
+                    Id = operationAccessItem.Id;
                     break;
             }
 

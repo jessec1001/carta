@@ -2,7 +2,6 @@
 using System.Text.Json;
 using NUlid;
 using CartaCore.Persistence;
-using CartaCore.Serialization.Json;
 
 namespace CartaWeb.Models.DocumentItem
 {
@@ -16,7 +15,7 @@ namespace CartaWeb.Models.DocumentItem
         /// <summary>
         /// Options for serialization
         /// </summary>
-        public static JsonSerializerOptions JsonOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+        private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
         /// <summary>
         /// Static constructor for initializing JSON serialization/deserialization options
@@ -25,7 +24,6 @@ namespace CartaWeb.Models.DocumentItem
         {
             JsonOptions.PropertyNameCaseInsensitive = false;
             JsonOptions.IgnoreNullValues = true;
-            JsonOptions.Converters.Insert(0, new JsonDiscriminantConverter());
         }
 
         /// <summary>

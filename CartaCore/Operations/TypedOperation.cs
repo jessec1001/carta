@@ -30,9 +30,9 @@ namespace CartaCore.Operations
         /// <inheritdoc />
         public override async Task Perform(OperationContext context)
         {
-            TInput input = DictionaryUtilities.AsTyped<TInput>(context.Input);
+            TInput input = context.Input.AsTyped<TInput>();
             TOutput output = await Perform(input);
-            context.Output = DictionaryUtilities.AsDictionary(output);
+            context.Output = output.AsDictionary();
         }
 
         /// <summary>
@@ -45,7 +45,7 @@ namespace CartaCore.Operations
         /// <inheritdoc />
         public override bool IsDeterministic(OperationContext context)
         {
-            TInput input = DictionaryUtilities.AsTyped<TInput>(context.Input);
+            TInput input = context.Input.AsTyped<TInput>();
             return IsDeterministic(input);
         }
     }

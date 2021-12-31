@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -18,6 +19,10 @@ namespace CartaCore.Operations
         /// A unique identifier for this operation that should be used for specifying references to this operation.
         /// </summary>
         public string Identifier { get; init; }
+        /// <summary>
+        /// The default values of the operation.
+        /// </summary>
+        public Dictionary<string, object> Default { get; set; } = new();
 
         /// <summary>
         /// Operates on a specified operation context containing input and output mappings. Most operations will use the
@@ -205,9 +210,9 @@ namespace CartaCore.Operations
             // TODO: We need to inherit execution settings from the calling API.
             // Execute the operation.
             OperationContext context = new() { Operation = operation };
-            context.Input = DictionaryUtilities.AsDictionary(input, inputType);
+            context.Input = input.AsDictionary(inputType);
             await operation.Perform(context);
-            object output = DictionaryUtilities.AsTyped(context.Output, outputType);
+            object output = context.Output.AsTyped(outputType);
 
             // Find the field on the output object that corresponds to the selector graph.
             foreach (PropertyInfo property in output.GetType().GetProperties())

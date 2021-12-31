@@ -65,6 +65,7 @@ namespace CartaWeb.Models.DocumentItem
         /// </summary>
         public WorkflowConnection[] Connections { get; set; }
 
+        // TODO: Redo this implementation.
         /// <summary>
         /// Initializes a new instance of the <see cref="WorkflowItem"/> class with specified suboperations and
         /// connections.
@@ -92,7 +93,7 @@ namespace CartaWeb.Models.DocumentItem
         }
 
         /// <inheritdoc />
-        public override string PartitionKeyPrefix => "WORKSPACE#";
+        public override string PartitionKeyPrefix => "USER#";
         /// <inheritdoc />
         public override string SortKeyPrefix => "WORKFLOW#";
     }

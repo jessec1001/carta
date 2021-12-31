@@ -81,6 +81,24 @@ namespace CartaCore.Operations
         }
 
         /// <summary>
+        /// Create a description from a particular instance of an operation.
+        /// </summary>
+        /// <param name="operation">The operation instance.</param>
+        /// <returns>The generated description.</returns>
+        public static OperationDescription FromInstance(Operation operation)
+        {
+            // Get the base description.
+            OperationDescription description = FromType(operation.GetType());
+
+            // TODO: Implement.
+            // // If the operation is a workflow, add a subtype to the description.
+            // if (operation is WorkflowOperation workflowOperation)
+            //     description.Subtype = operation.Identifier;
+
+            return description;
+        }
+
+        /// <summary>
         /// Creates the descriptions for all concretely-implemented public operations.
         /// </summary>
         /// <returns>A list operation descriptions for all operation types.</returns>

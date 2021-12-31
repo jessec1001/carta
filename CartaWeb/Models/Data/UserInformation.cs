@@ -9,38 +9,38 @@ namespace CartaWeb.Models.Data
     public class UserInformation
     {
         /// <summary>
-        /// The user ID
+        /// The unique identifier for the user.
         /// </summary>
         public string Id { get; set; }
         /// <summary>
-        /// The user name
+        /// The alias for the user.
         /// </summary>
         public string Name { get; set; }
         /// <summary>
-        /// The user's email
+        /// The email address for the user.
         /// </summary>
         public string Email { get; set; }
         /// <summary>
-        /// The user's given (first) name
+        /// The first name for the user.
         /// </summary>
         public string FirstName { get; set; }
         /// <summary>
-        /// The user's last name
+        /// The last name for the user.
         /// </summary>
         public string LastName { get; set; }
         /// <summary>
-        /// List of groups that a user belongs to
+        /// The list of groups that a user belongs to.
         /// </summary>
         public List<string> Groups { get; set; }
 
 
         /// <summary>
-        /// Creates a new instance of the <see cref="UserInformation"/> class
+        /// Creates a new instance of the <see cref="UserInformation"/> class.
         /// </summary>
         public UserInformation() {}
 
         /// <summary>
-        /// Creates a new instance of the <see cref="UserInformation"/> class
+        /// Creates a new instance of the <see cref="UserInformation"/> class.
         /// </summary>
         public UserInformation(string id, string name)
         {
@@ -49,10 +49,11 @@ namespace CartaWeb.Models.Data
         }
 
         /// <summary>
-        /// Creates a new instance of the <see cref="UserInformation"/> class
+        /// Creates a new instance of the <see cref="UserInformation"/> class.
         /// </summary>
         public UserInformation(ClaimsPrincipal user)
         {
+            // TODO: Abstract the cognito username claim.
             Id = user.FindFirstValue(ClaimTypes.NameIdentifier);
             Name = user.FindFirstValue("cognito:username");
         }

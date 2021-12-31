@@ -9,16 +9,16 @@ namespace CartaWeb.Models.DocumentItem
     public class UserItem : Item
     {
         /// <summary>
-        /// The user information
+        /// Information about the references user.
         /// </summary>
         public UserInformation UserInformation { get; set; }
         /// <summary>
-        /// History of the user item
+        /// History about this user item.
         /// </summary>
         public DocumentHistory DocumentHistory { get; set; }
 
         /// <summary>
-        /// Parameterless constructor required for deserialization
+        /// Parameterless constructor required for deserialization.
         /// </summary>
         public UserItem() { }
 
