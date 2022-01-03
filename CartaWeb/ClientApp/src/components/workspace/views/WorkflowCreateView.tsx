@@ -3,18 +3,14 @@ import { FormGroup } from "components/form";
 import { TextFieldInput } from "components/input";
 import { Text } from "components/text";
 import { useViews } from "components/views";
-import { WorkspaceContext } from "context";
-import { WorkspaceWorkflow } from "library/api";
-import { FunctionComponent, useContext, useState } from "react";
+import { FunctionComponent, useState } from "react";
 
 const WorkspaceCreateView: FunctionComponent = () => {
   const { viewId, actions } = useViews();
-  const { workflows } = useContext(WorkspaceContext);
 
   const [name, setName] = useState<string>("");
 
   const handleCreate = () => {
-    workflows.CRUD.add({ name: name } as WorkspaceWorkflow);
     actions.removeView(viewId);
   };
   const handleClose = () => {

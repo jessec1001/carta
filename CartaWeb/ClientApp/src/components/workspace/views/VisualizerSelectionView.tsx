@@ -6,12 +6,7 @@ import {
   useState,
 } from "react";
 import { WorkspaceContext } from "context";
-import {
-  DataNode,
-  defaultWorkspaceDatasetName,
-  GraphData,
-  Property,
-} from "library/api";
+import { DataNode, GraphData, Property } from "library/api";
 import { ObjectFilter } from "library/search";
 import { Accordian } from "components/accordian";
 import { PropertyIcon, ValueIcon, VertexIcon } from "components/icons";
@@ -385,12 +380,9 @@ const renderPropertyList = (vertices: DataNode[], filter: ObjectFilter) => {
 const VisualizerSelectionView: FunctionComponent = () => {
   // Retrieve the dataset information.
   const { actions } = useViews();
-  const { datasets } = useContext(WorkspaceContext);
   const datasetId: string | undefined = actions.getActiveTag("dataset");
-  const dataset =
-    datasets.value?.find((dataset) => dataset.id === datasetId) ?? null;
-  const datasetName =
-    dataset && (dataset.name ?? defaultWorkspaceDatasetName(dataset));
+  const dataset: any = null;
+  const datasetName = dataset && (dataset.name ?? "UNKNOWN");
 
   // Retrieve the graph information.
   // Additionally, setup event handlers to update the view when the graph selection changes.

@@ -9,7 +9,6 @@ import React, {
 } from "react";
 import classNames from "classnames";
 import { WorkspaceContext } from "context";
-import { defaultWorkspaceDatasetName, WorkspaceDataset } from "library/api";
 import { ObjectFilter } from "library/search";
 import { Text, Loading } from "components/text";
 import { IconButtonAdd } from "components/buttons";
@@ -32,14 +31,14 @@ import "./DatasetListView.css";
  * @returns An element that represents a dataset item.
  */
 const renderDataset = (
-  dataset: WorkspaceDataset,
+  dataset: any,
   setSelected: (event: React.MouseEvent) => void,
   setName: (value: string) => void,
   selected: boolean,
   rename?: string
 ) => {
   // Compute the default display name for the dataset.
-  const displayName = dataset.name ?? defaultWorkspaceDatasetName(dataset);
+  const displayName = dataset.name ?? "UNKNOWN";
 
   return (
     <li
@@ -68,7 +67,6 @@ const renderDataset = (
 const DatasetListView: FunctionComponent = () => {
   // We use these contexts to handle opening and closing views and managing data.
   const { viewId, rootId, actions } = useViews();
-  const { datasets } = useContext(WorkspaceContext);
   const elementRef = useRef<HTMLDivElement>(null);
 
   // We use a state variable to indicate which item of the dataset list is currently selected.
@@ -124,34 +122,18 @@ const DatasetListView: FunctionComponent = () => {
    */
 
   // This handles the logic of actually submitting a renaming update.
-  const handleRename = useCallback(() => {
-    // Try to find the selected dataset within the datasets collection.
-    const dataset = datasets.value?.find((dataset) => dataset.id === selected);
-    if (dataset) {
-      // Perform the actual update.
-      datasets.CRUD.update({
-        ...dataset,
-        name: name,
-      });
-    }
-  }, [datasets, name, selected]);
+  const handleRename = useCallback(() => {}, []);
   // This handles the logic of deleting a dataset.
-  const handleDelete = useCallback(() => {
-    const dataset = datasets.value?.find((dataset) => dataset.id === selected);
-    if (dataset) {
-      datasets.CRUD.remove(dataset);
-      setSelected(null);
-    }
-  }, [datasets, selected]);
+  const handleDelete = useCallback(() => {}, []);
 
   // This handles the logic of selecting a particular dataset item.
   const handleSelect = useCallback(
-    (dataset: WorkspaceDataset, event: React.MouseEvent) => {
+    (dataset: any, event: React.MouseEvent) => {
       // This corresponds to a single click.
       if (event.detail === 1) {
         if (selected === dataset.id) {
           // If the current selected element was clicked, start renaming.
-          const name = dataset.name ?? defaultWorkspaceDatasetName(dataset);
+          const name = dataset.name ?? "UNKNOWN";
           if (!renaming) {
             setRenaming(true);
             setName(name);
@@ -260,10 +242,10 @@ const DatasetListView: FunctionComponent = () => {
 
       {/* Display the dataset list. */}
       {/* If loading, display loading text. */}
-      {!datasets.value && <Loading />}
+      {/* {!datasets.value && <Loading />} */}
 
       {/* Otherwise, display the list of datasets. */}
-      {datasets.value && (
+      {/* {datasets.value && (
         <ul role="presentation" ref={datasetListRef}>
           {datasetFilter
             .filter(datasets.value)
@@ -277,7 +259,7 @@ const DatasetListView: FunctionComponent = () => {
               )
             )}
         </ul>
-      )}
+      )} */}
     </Views.Container>
   );
 };

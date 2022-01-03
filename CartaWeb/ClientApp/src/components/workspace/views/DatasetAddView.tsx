@@ -92,7 +92,6 @@ const renderResource = (
 const DatasetAddView: FunctionComponent = () => {
   // We need the data API to make calls to get the data resources.
   const { dataAPI } = useAPI();
-  const { datasets } = useContext(WorkspaceContext);
 
   // We store a reference to the selected source-resource pair.
   // For now, only a single dataset should be able to be selected at a time.
@@ -163,25 +162,7 @@ const DatasetAddView: FunctionComponent = () => {
       setSelected(null);
     else setSelected({ source, resource });
   };
-  const handleAdd = () => {
-    (async () => {
-      // Add the new dataset to the workspace.
-      if (selected === null || datasets === null) return;
-      const newDataset = await datasets.CRUD.add({
-        id: undefined!,
-        source: selected.source,
-        resource: selected.resource,
-        name: name.length === 0 ? undefined : name,
-      });
-
-      // Destroy this view and open the added dataset in a visualizer view.
-      actions.removeView(viewId);
-      actions.addElementToContainer(
-        rootId,
-        <DatasetGraphView id={newDataset.id} />
-      );
-    })();
-  };
+  const handleAdd = () => {};
   const handleCancel = () => {
     actions.removeView(viewId);
   };

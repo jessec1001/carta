@@ -1,7 +1,6 @@
 import { FunctionComponent, useContext } from "react";
 import { UserContext } from "context";
 import {
-  defaultWorkspaceDatasetName,
   User,
   WorkspaceActionType,
   WorkspaceChange,
@@ -20,52 +19,6 @@ import "./WorkspaceTimeline.css";
 const resolveUserName = (user: User | null, name?: string): string => {
   if (name === user?.name) return "You";
   else return `@${name}`;
-};
-/**
- * Determines the change type of an update to a workspace dataset. This is needed because the API does not currently
- * provide enough information to determine the change type per entry.
- * @param changes The complete change history of the workspace (or at least the subset of dataset changes).
- * @param index The index of the current change.
- * @returns The type of dataset update that was applied.
- */
-const resolveDatasetChangeType = (
-  changes: WorkspaceChange[],
-  index: number
-):
-  | "renamed"
-  | "workflowVersion"
-  | "workflowAssign"
-  | "workflowUnassign"
-  | null => {
-  // Find the index of the last update to the same dataset.
-  let previousIndex = index;
-  do previousIndex++;
-  while (
-    previousIndex < changes.length &&
-    changes[previousIndex].id !== changes[index].id
-  );
-
-  // If no such entry exists, something is wrong and we should indicate it.
-  if (previousIndex >= changes.length) return null;
-  const currentChangeInfo = changes[index].workspaceChangeInformation;
-  const previousChangeInfo = changes[previousIndex].workspaceChangeInformation;
-  if (currentChangeInfo === undefined || previousChangeInfo === undefined)
-    return null;
-
-  // If the workflow identifier was changed, the workflow was reassigned completely.
-  // If there is no workflow assigned anymore, the previous workflow was unassigned.
-  // Else, a new workflow was assigned on top of an old workflow.
-  if (currentChangeInfo.workflowId !== previousChangeInfo.workflowId) {
-    if (currentChangeInfo.workflowId) return "workflowAssign";
-    else return "workflowUnassign";
-  }
-
-  // If the workflow version was changed, then this indicates only the version was changed.
-  if (currentChangeInfo.workflowVersion !== previousChangeInfo.workflowVersion)
-    return "workflowVersion";
-
-  // If none of the workflow information has changed, then, the dataset was renamed.
-  return "renamed";
 };
 
 /** The props used for the {@link WorkspaceChangeItem} component. */
@@ -111,67 +64,8 @@ const WorkspaceChangeItem: FunctionComponent<WorkspaceChangeItemProps> = ({
       }
       break;
 
-    case WorkspaceChangeType.Dataset:
-      const targetDatasetSource =
-        change.workspaceChangeInformation!.datasetSource!;
-      const targetDatasetResource =
-        change.workspaceChangeInformation!.datasetResource!;
-      const targetDatasetName = change.name
-        ? `"${change.name}"`
-        : defaultWorkspaceDatasetName({
-            source: targetDatasetSource,
-            resource: targetDatasetResource,
-          });
-      switch (change.workspaceAction.type) {
-        case WorkspaceActionType.Added:
-          performedAction = `added the ${targetDatasetName} dataset to the workspace.`;
-          break;
-        case WorkspaceActionType.Removed:
-          performedAction = `removed the ${targetDatasetName} dataset from the workspace.`;
-          break;
-        case WorkspaceActionType.Updated:
-          const datasetUpdateType = resolveDatasetChangeType(changes, index);
-
-          const workflowName = change.workspaceChangeInformation?.workflowName;
-          const workflowVersion =
-            change.workspaceChangeInformation?.workflowVersion;
-          const workflowVersionSuffix =
-            workflowVersion === undefined ? "" : `(v${workflowVersion})`;
-
-          switch (datasetUpdateType) {
-            case "renamed":
-              performedAction = `renamed the ${targetDatasetName} dataset.`;
-              break;
-            case "workflowAssign":
-              performedAction = `assigned the "${workflowName}" ${workflowVersionSuffix} workflow on the ${targetDatasetName} dataset.`;
-              break;
-            case "workflowUnassign":
-              performedAction = `unassigned the workflow on the ${targetDatasetName} dataset.`;
-              break;
-            case "workflowVersion":
-              performedAction = `changed the version of the "${workflowName}" workflow to ${workflowVersionSuffix} on the ${targetDatasetName} dataset.`;
-              break;
-          }
-          break;
-      }
-      break;
-
-    case WorkspaceChangeType.Workflow:
-      const workflowVersion =
-        change.workspaceChangeInformation?.workflowVersion;
-      const workflowVersionSuffix =
-        workflowVersion === undefined ? "" : `(v${workflowVersion})`;
-      switch (change.workspaceAction.type) {
-        case WorkspaceActionType.Added:
-          performedAction = `added the "${change.name}" ${workflowVersionSuffix} workflow to the workspace.`;
-          break;
-        case WorkspaceActionType.Removed:
-          performedAction = `removed the "${change.name}" ${workflowVersionSuffix} workflow from the workspace.`;
-          break;
-        case WorkspaceActionType.Updated:
-          performedAction = `changed the "${change.name}" workflow to ${workflowVersionSuffix}.`;
-          break;
-      }
+    case WorkspaceChangeType.Operation:
+      // TODO: Implement.
       break;
   }
 

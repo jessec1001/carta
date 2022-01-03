@@ -17,8 +17,7 @@ import React, {
   useState,
 } from "react";
 import { DatasetAddView, DatasetListView } from ".";
-import { WorkspaceSettingsView, WorkspaceToolboxView } from "./views";
-import DatasetPropertiesView from "./views/DatasetPropertiesView";
+import { WorkspaceSettingsView } from "./views";
 import VisualizerOperationView from "./views/VisualizerOperationView";
 import VisualizerSelectionView from "./views/VisualizerSelectionView";
 import WorkflowCreateView from "./views/WorkflowCreateView";
@@ -181,16 +180,6 @@ const WorkspaceToolbar: FunctionComponent = () => {
             >
               Dataset Import{" "}
             </DropdownItem>
-            <DropdownItem
-              onClick={() => {
-                actions.addElementToContainer(
-                  rootId,
-                  <DatasetPropertiesView />
-                );
-              }}
-            >
-              Dataset Properties
-            </DropdownItem>
             <div className="toolbar-group-label">Workflows</div>
             <DropdownItem
               onClick={() => {
@@ -198,13 +187,6 @@ const WorkspaceToolbar: FunctionComponent = () => {
               }}
             >
               Workflow Create
-            </DropdownItem>
-            <DropdownItem
-              onClick={() => {
-                actions.addElementToContainer(rootId, <WorkspaceToolboxView />);
-              }}
-            >
-              Workflow Toolbox
             </DropdownItem>
             <div className="toolbar-group-label">Visualizers</div>
             <DropdownItem

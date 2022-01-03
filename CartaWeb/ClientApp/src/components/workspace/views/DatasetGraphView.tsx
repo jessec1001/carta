@@ -6,11 +6,7 @@ import {
   useState,
 } from "react";
 import { WorkspaceContext } from "context";
-import {
-  defaultWorkspaceDatasetName,
-  GraphData,
-  GraphWorkflow,
-} from "library/api";
+import { GraphData, GraphWorkflow } from "library/api";
 import { GraphVisualizer } from "components/visualizations";
 import { useViews, Views } from "components/views";
 import { GraphIcon } from "components/icons";
@@ -24,15 +20,10 @@ interface DatasetGraphViewProps {
 
 /** A component that renders a graph of a particular dataset. */
 const DatasetGraphView: FunctionComponent<DatasetGraphViewProps> = ({ id }) => {
-  // Retrieve the specified dataset and its relevant information.
-  const { datasets } = useContext(WorkspaceContext);
-
   // Retrieve the dataset information.
   const datasetId = id;
-  const dataset =
-    datasets.value?.find((dataset) => dataset.id === datasetId) ?? null;
-  const datasetName =
-    dataset && (dataset.name ?? defaultWorkspaceDatasetName(dataset));
+  const dataset: any = null;
+  const datasetName = dataset && (dataset.name ?? "UNKNOWN");
 
   // Construct a reference to the graph data structure when the dataset has loaded correctly.
   const [graph, setGraph] = useState<GraphData | null>(null);

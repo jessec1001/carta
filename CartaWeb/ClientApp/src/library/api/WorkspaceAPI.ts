@@ -2,21 +2,15 @@ import queryString from "query-string";
 import BaseAPI from "./BaseAPI";
 import {
   parseWorkspace,
-  parseWorkspaceDataset,
   parseWorkspaceUser,
   Workspace,
   WorkspaceDTO,
-  WorkspaceDataset,
-  WorkspaceDatasetDTO,
   WorkspaceUser,
   WorkspaceUserDTO,
   parseWorkspaceChange,
   WorkspaceChangeDTO,
   WorkspaceChange,
   WorkspaceChangeType,
-  WorkspaceWorkflowDTO,
-  parseWorkspaceWorkflow,
-  WorkspaceWorkflow,
 } from "./workspace";
 
 /** Contains methods for accessing the Carta Workspace API module. */

@@ -4,8 +4,7 @@ import { Modify } from "types";
 enum WorkspaceChangeType {
   Workspace = "Workspace",
   User = "User",
-  Dataset = "Dataset",
-  Workflow = "Workflow",
+  Operation = "Operation",
 }
 /** Represents the possible change action type that can be applied to a data type. */
 enum WorkspaceActionType {
@@ -24,20 +23,6 @@ interface WorkspaceChange {
   /** The type of data structure the change was applied to. */
   changeType: WorkspaceChangeType;
 
-  /** In-depth information about the change of the data type. */
-  workspaceChangeInformation?: {
-    /** The dataset source if change type is dataset. */
-    datasetSource?: string;
-    /** The dataset resource if change type is dataset. */
-    datasetResource?: string;
-
-    /** The workflow identifier if change type is dataset or workflow. */
-    workflowId?: string;
-    /** The workflow name if change type is dataset or workflow. */
-    workflowName?: string;
-    /** The workflow version if change type is dataset or workflow. */
-    workflowVersion?: number;
-  };
   /** Information about who performed what change. */
   workspaceAction: {
     /** The type of change that was performed. */

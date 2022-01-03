@@ -1,6 +1,6 @@
 import { createContext } from "react";
 import { DataCRUD, DataValue } from "hooks";
-import { Workspace, WorkspaceDataset, WorkspaceWorkflow } from "library/api";
+import { Workspace } from "library/api";
 
 /** Represents CRUD operations and a collection of data for a particular data type. */
 interface DataCRUDWithValue<TData> {
@@ -28,9 +28,6 @@ interface DataCRUDWithValue<TData> {
 /** The type of value of {@link WorkspaceContext}. */
 interface WorkspaceContextValue {
   workspace: Workspace | null;
-
-  datasets: DataCRUDWithValue<WorkspaceDataset>;
-  workflows: DataCRUDWithValue<WorkspaceWorkflow>;
 }
 
 /** A context to provide easy access to retrieving and managing data related to a workspace. */

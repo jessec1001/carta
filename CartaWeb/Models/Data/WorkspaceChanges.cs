@@ -25,10 +25,5 @@ namespace CartaWeb.Models.Data
         /// The action that was performed by the change
         /// </summary>
         public WorkspaceAction WorkspaceAction { get; set; }
-
-        /// <summary>
-        /// Additional information about the changes 
-        /// </summary>
-        public WorkspaceChangeInformation WorkspaceChangeInformation { get; set; }
     }
 }

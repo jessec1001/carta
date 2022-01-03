@@ -514,8 +514,7 @@ namespace CartaWeb.Controllers
                 userInformation.Name,
                 WorkspaceActionEnumeration.Added,
                 operationAccessItem
-            )
-            { WorkspaceChangeInformation = new() };
+            );
 
             bool isSaved = await _persistence.WriteDbDocumentsAsync(new List<DbDocument>
             {

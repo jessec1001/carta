@@ -1,18 +1,8 @@
-import {
-  FunctionComponent,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { FunctionComponent, useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router";
 import { Workspace, WorkspaceAPI } from "library/api";
 import { PageLayout } from "components/layout";
-import {
-  DatasetAddView,
-  DatasetListView,
-  WorkspaceToolboxView,
-} from "components/workspace/views";
+import { DatasetListView } from "components/workspace/views";
 import WorkspaceWrapper from "components/workspace/WorkspaceWrapper";
 import WorkspaceToolbar from "components/workspace/WorkspaceToolbar";
 import { Loading } from "components/text";

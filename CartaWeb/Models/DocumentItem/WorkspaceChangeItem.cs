@@ -1,7 +1,7 @@
 ﻿using System;
 using CartaWeb.Models.Data;
 
-namespace CartaWeb.Models.DocumentItem 
+namespace CartaWeb.Models.DocumentItem
 {
     /// <summary>
     /// Used to store changes made in a workspace
@@ -26,14 +26,9 @@ namespace CartaWeb.Models.DocumentItem
         public WorkspaceAction WorkspaceAction { get; set; }
 
         /// <summary>
-        /// Additional information about the changes 
-        /// </summary>
-        public WorkspaceChangeInformation WorkspaceChangeInformation { get; set; }
-
-        /// <summary>
         /// Parameterless constructor required for deserialization
         /// </summary>
-        public WorkspaceChangeItem() {}
+        public WorkspaceChangeItem() { }
 
         /// <summary>
         /// Creates a new instance of the <see cref="WorkspaceChangeItem"/> class, used to persist a new workspace
