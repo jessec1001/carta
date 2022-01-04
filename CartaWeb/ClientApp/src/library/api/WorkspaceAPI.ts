@@ -11,6 +11,9 @@ import {
   WorkspaceChangeDTO,
   WorkspaceChange,
   WorkspaceChangeType,
+  parseWorkspaceOperation,
+  WorkspaceOperationDTO,
+  WorkspaceOperation,
 } from "./workspace";
 
 /** Contains methods for accessing the Carta Workspace API module. */
@@ -296,6 +299,93 @@ class WorkspaceAPI extends BaseAPI {
   // #endregion
 
   // #region Workspace Operations
+  /**
+   * Retrieves the operations that are contained within a specific workspace.
+   * @param workspaceId The unique identifier of the workspace.
+   * @returns The list of operations of the workspace.
+   */
+  public async getWorkspaceOperations(
+    workspaceId: string
+  ): Promise<WorkspaceOperation[]> {
+    const url = `${this.getWorkspaceUrl(workspaceId)}/operations`;
+    const response = await fetch(url, this.defaultFetcher("GET"));
+
+    await this.ensureSuccess(
+      response,
+      "Error occurred while trying to fetch workspace operations."
+    );
+
+    return (await this.readJSON<WorkspaceOperationDTO[]>(response)).map(
+      parseWorkspaceOperation
+    );
+  }
+  /**
+   * Retrieves a specific operation that is contained within a specific workspace.
+   * @param workspaceId The unique identifier of the workspace.
+   * @param operationId The unique identifier of the operation.
+   * @returns The specified operation of the workspace.
+   */
+  public async getWorkspaceOperation(
+    workspaceId: string,
+    operationId: string
+  ): Promise<WorkspaceOperation> {
+    const url = `${this.getWorkspaceUrl(
+      workspaceId
+    )}/operations/${operationId}`;
+    const response = await fetch(url, this.defaultFetcher("GET"));
+
+    await this.ensureSuccess(
+      response,
+      "Error occurred while trying to fetch workspace operation."
+    );
+
+    return parseWorkspaceOperation(
+      await this.readJSON<WorkspaceOperationDTO>(response)
+    );
+  }
+  /**
+   * Adds an operation to a workspace so that it is now accessible to members of the workspace.
+   * @param workspaceId The unique identifier of the workspace.
+   * @param operationId The unique identifier of the operation.
+   * @returns The operation that was added to the workspace.
+   */
+  public async addWorkspaceOperation(
+    workspaceId: string,
+    operationId: string
+  ): Promise<WorkspaceOperation> {
+    const url = `${this.getWorkspaceUrl(
+      workspaceId
+    )}/operations/${operationId}`;
+    const response = await fetch(url, this.defaultFetcher("POST"));
+
+    await this.ensureSuccess(
+      response,
+      "Error occurred while trying to add operation to workspace."
+    );
+
+    return parseWorkspaceOperation(
+      await this.readJSON<WorkspaceOperationDTO>(response)
+    );
+  }
+  /**
+   * Removes an operation from a workspace so that it is no longer accessible to members of the workspace.
+   * @param workspaceId The unique identifier of the workspace.
+   * @param operationId The unique identifier of the operation.
+   */
+  public async removeWorkspaceOperation(
+    workspaceId: string,
+    operationId: string
+  ): Promise<void> {
+    const url = `${this.getWorkspaceUrl(
+      workspaceId
+    )}/operations/${operationId}`;
+    const response = await fetch(url, this.defaultFetcher("DELETE"));
+
+    await this.ensureSuccess(
+      response,
+      "Error occurred while trying to remove operation from workspace."
+    );
+  }
   // TODO: Add API endpoint support for operations contained in a workspace.
   // #endregion
 }

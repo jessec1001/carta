@@ -1,0 +1,8 @@
+/* TODO: Cleanup. */
+.MenuOption {
+  padding: 0.25rem 0.5rem;
+  cursor: pointer;
+}
+.MenuOption.selected {
+  background-color: var(--color-primary-select);
+}

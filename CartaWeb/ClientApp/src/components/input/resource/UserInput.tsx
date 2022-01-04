@@ -104,7 +104,7 @@ const UserInput: FunctionComponent<UserInputProps> = ({
   // When the query has changed, we need to retrieve new user information.
   useEffect(() => {
     // We construct a specific request for users from the query.
-    makeUserRequest(constructUserRequest(query, userAPI));
+    makeUserRequest(() => constructUserRequest(query, userAPI));
   }, [makeUserRequest, userAPI, query]);
 
   return (

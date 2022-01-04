@@ -7,7 +7,7 @@ import {
 import { Text } from "components/text";
 import { LoadingIcon } from "components/icons";
 import { useViews } from "components/views";
-import { WorkspaceContext } from "context";
+import { useWorkspace } from "./WorkspaceContext";
 import { GraphData } from "library/api";
 import MetaApi, { MetaTypeEntry } from "library/api/meta";
 import React, {
@@ -67,7 +67,7 @@ const renderGroupedMenu = (
 const WorkspaceToolbar: FunctionComponent = () => {
   const { rootId, actions } = useViews();
   // TODO: Put workspace context in a wrapped hook.
-  const { workspace } = useContext(WorkspaceContext);
+  const { workspace } = useWorkspace();
 
   const [actors, setActors] = useState<
     Record<string, Record<string, MetaTypeEntry>> | undefined

@@ -5,7 +5,6 @@ import {
   useMemo,
   useState,
 } from "react";
-import { WorkspaceContext } from "context";
 import { GraphData, GraphWorkflow } from "library/api";
 import { GraphVisualizer } from "components/visualizations";
 import { useViews, Views } from "components/views";

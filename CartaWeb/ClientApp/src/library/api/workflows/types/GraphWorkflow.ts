@@ -1,5 +1,4 @@
 import { WorkflowApi } from "library/api";
-import { WorkflowOperation } from "library/api/workflow";
 import Action from "./actors/actions";
 import Selector, {
   SelectorExclude,
@@ -76,7 +75,7 @@ export default class GraphWorkflow {
       this._callEvent("workflowCreated");
     }
   }
-  async _appendOperation(operation: WorkflowOperation) {
+  async _appendOperation(operation: any) {
     if (this._id === undefined) return;
     await WorkflowApi.insertWorkflowOperationAsync({
       operation,

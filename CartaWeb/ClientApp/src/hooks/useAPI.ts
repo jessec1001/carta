@@ -1,5 +1,11 @@
 import React, { useMemo, useRef } from "react";
-import { DataAPI, UserAPI, WorkflowAPI, WorkspaceAPI } from "library/api";
+import {
+  DataAPI,
+  UserAPI,
+  OperationsAPI,
+  WorkflowsAPI,
+  WorkspaceAPI,
+} from "library/api";
 import useStoredState from "./useStoredState";
 
 /**
@@ -11,7 +17,8 @@ const useAPI = () => {
   let dataAPIRef: React.MutableRefObject<DataAPI>;
   let userAPIRef: React.MutableRefObject<UserAPI>;
   let workspaceAPIRef: React.MutableRefObject<WorkspaceAPI>;
-  let workflowAPIRef: React.MutableRefObject<WorkflowAPI>;
+  let operationsAPIRef: React.MutableRefObject<OperationsAPI>;
+  let workflowsAPIRef: React.MutableRefObject<WorkflowsAPI>;
 
   // Specificially for the data API, we need to incorporate the integration keys.
   const [hyperthoughtKey] = useStoredState("", "hyperthoughtKey");
@@ -34,14 +41,16 @@ const useAPI = () => {
   // Create the static API references.
   userAPIRef = useRef(new UserAPI());
   workspaceAPIRef = useRef(new WorkspaceAPI());
-  workflowAPIRef = useRef(new WorkflowAPI());
+  operationsAPIRef = useRef(new OperationsAPI());
+  workflowsAPIRef = useRef(new WorkflowsAPI());
 
   // Return their current value.
   return {
     dataAPI: dataAPIRef.current,
     userAPI: userAPIRef.current,
     workspaceAPI: workspaceAPIRef.current,
-    workflowAPI: workflowAPIRef.current,
+    operationsAPI: operationsAPIRef.current,
+    workflowsAPI: workflowsAPIRef.current,
   };
 };
 

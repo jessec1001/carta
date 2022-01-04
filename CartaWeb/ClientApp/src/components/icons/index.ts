@@ -4,6 +4,7 @@ import CaretIcon from "./CaretIcon";
 import DatabaseIcon from "./DatabaseIcon";
 import DatasetIcon from "./DatasetIcon";
 import GraphIcon from "./GraphIcon";
+import OperationIcon from "./OperationIcon";
 import PushIcon from "./PushIcon";
 import PropertyIcon from "./PropertyIcon";
 import UserIcon from "./UserIcon";
@@ -20,6 +21,7 @@ export {
   DatasetIcon,
   GraphIcon,
   LoadingIcon,
+  OperationIcon,
   PushIcon,
   PropertyIcon,
   UserIcon,

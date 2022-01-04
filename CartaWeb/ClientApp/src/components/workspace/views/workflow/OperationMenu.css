@@ -1,0 +1,19 @@
+.OperationMenu {
+  /* This defines the number of items that should be shown at the same time. */
+  --shown-items: 10;
+
+  /* The menu should display its elements stretched out as much as possible. */
+  display: flex;
+  flex-direction: column;
+
+  /* We compute these set metrics based on the number of items we want to show. */
+  width: 24em;
+  height: calc(
+    var(--shown-items) * (1rem + var(--font-small) + var(--font-normal))
+  );
+}
+
+/* TODO: Temporary */
+.Tag:hover {
+  text-decoration: underline;
+}

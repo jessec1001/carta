@@ -1,0 +1,40 @@
+.OperationNodeConnector {
+  display: flex;
+  align-self: flex-start;
+
+  align-items: center;
+}
+.OperationNodeConnector.input {
+  flex-direction: row;
+  margin-right: 0.5rem;
+}
+.OperationNodeConnector.output {
+  flex-direction: row-reverse;
+  margin-left: 0.5rem;
+}
+
+.OperationNodeConnector .point {
+  --connector-border-size: 3px;
+  --connector-point-size: 0.75rem;
+
+  display: inline-block;
+
+  flex-shrink: 0;
+  cursor: pointer;
+
+  width: var(--connector-point-size);
+  height: var(--connector-point-size);
+  border: var(--connector-border-size) solid var(--color-fill-body);
+  border-radius: var(--connector-point-size);
+}
+.OperationNodeConnector .point:hover {
+  background: var(--color-primary) !important;
+}
+.OperationNodeConnector.input .point {
+  margin-left: calc(-1 * var(--connector-point-size));
+  margin-right: 0.25rem;
+}
+.OperationNodeConnector.output .point {
+  margin-left: 0.25rem;
+  margin-right: calc(-1 * var(--connector-point-size));
+}

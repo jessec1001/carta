@@ -1,5 +1,6 @@
 /** The simple types that a JSON schema can specify. */
 type JsonSchemaBasicTypename =
+  | "file"
   | "object"
   | "array"
   | "string"
@@ -34,7 +35,16 @@ interface JsonBaseTypedSchema<
 }
 
 const anySchema: JsonBaseSchema = {
-  type: ["object", "array", "string", "integer", "number", "boolean", "null"],
+  type: [
+    "file",
+    "object",
+    "array",
+    "string",
+    "integer",
+    "number",
+    "boolean",
+    "null",
+  ],
 };
 const neverSchema: JsonBaseSchema = {
   type: [],

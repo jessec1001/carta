@@ -539,7 +539,7 @@ namespace CartaCore.Operations
             return typeof(object);
         }
 
-        public bool IsMultiplexLike(Guid operationId, WorkflowOperationConnection pending)
+        public bool IsMultiplexLike(string operationId, WorkflowOperationConnection pending)
         {
             Operation sourceOperation = Operations.First(operation => operation.Identifier == pending.Source.Operation);
             Operation targetOperation = Operations.First(operation => operation.Identifier == pending.Target.Operation);

@@ -18,6 +18,11 @@ namespace CartaWeb.Models.DocumentItem
         /// </summary>
         public string Subtype { get; set; }
 
+        /// <summary>
+        /// The name of the operation. By default, this matches the display name of the operation type.
+        /// </summary>
+        public string Name { get; set; }
+
         // TODO: Prevent overposting to non-valid fields in defaults.
         /// <summary>
         /// The default input values specified for the operation.
@@ -37,11 +42,11 @@ namespace CartaWeb.Models.DocumentItem
         {
             // Get a description of the operation.
             OperationDescription description = OperationDescription.FromInstance(operation);
-            
+
             // Set the values from the description.
             Type = description.Type;
             Subtype = description.Subtype;
-            
+
             Default = operation.Default;
         }
         /// <summary>
@@ -50,17 +55,11 @@ namespace CartaWeb.Models.DocumentItem
         /// </summary>
         /// <param name="operationId">The operation instance.</param>
         public OperationItem(string operationId)
-            : base(operationId) { }
+            : base(null, operationId) { }
 
         /// <inheritdoc />
-        public override string PartitionKeyPrefix => "OPERATION#";
+        public override string PartitionKeyPrefix => "OPERATION#ALL";
         /// <inheritdoc />
         public override string SortKeyPrefix => "OPERATION#";
-
-        /// <inheritdoc />
-        public override string GetSortKey()
-        {
-            return SortKeyPrefix;
-        }
     }
 }

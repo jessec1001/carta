@@ -6,7 +6,7 @@ import {
   useState,
 } from "react";
 import { useAPI, useMounted } from "hooks";
-import { WorkspaceContext } from "context";
+import { useWorkspace } from "components/workspace";
 import { Accordian } from "components/accordian";
 import { BlockButton, ButtonGroup } from "components/buttons";
 import { Link } from "components/common";
@@ -128,7 +128,7 @@ const DatasetAddView: FunctionComponent = () => {
           if (!mountedRef.current) return;
           setGroupedResources((groupedResources) => ({
             ...groupedResources,
-            [source]: error,
+            [source]: error as ApiException,
           }));
         } else throw error;
       }

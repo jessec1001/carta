@@ -1,15 +1,14 @@
 import { FunctionComponent, HTMLProps } from "react";
 import { Modify } from "types";
 import classNames from "classnames";
+import { IBaseInputProps } from "components/input";
 
 import "components/form/form.css";
 
 /** The props used for the {@link TextFieldInput} component. */
-interface TextFieldInputProps {
+interface TextFieldInputProps extends IBaseInputProps<string> {
+  /** Whether the text represents a password and should be obfuscated. */
   password?: boolean;
-
-  value?: string;
-  onChange?: (value: string) => void;
 }
 
 /** A component that defines a single-line text input. */

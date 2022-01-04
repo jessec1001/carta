@@ -5,7 +5,6 @@ import {
   useMemo,
   useState,
 } from "react";
-import { WorkspaceContext } from "context";
 import { DataNode, GraphData, Property } from "library/api";
 import { ObjectFilter } from "library/search";
 import { Accordian } from "components/accordian";

@@ -8,7 +8,6 @@ import React, {
   useState,
 } from "react";
 import classNames from "classnames";
-import { WorkspaceContext } from "context";
 import { ObjectFilter } from "library/search";
 import { Text, Loading } from "components/text";
 import { IconButtonAdd } from "components/buttons";

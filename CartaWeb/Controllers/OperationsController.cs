@@ -161,7 +161,7 @@ namespace CartaWeb.Controllers
             JobItem jobItem = new(null, operationId);
             IEnumerable<Item> items = await _persistence.LoadItemsAsync(jobItem);
             List<JobItem> jobItems = items.Cast<JobItem>().ToList();
-            return jobItems; 
+            return jobItems;
         }
         #endregion
 
@@ -266,6 +266,7 @@ namespace CartaWeb.Controllers
             // Create the operation instance.
             // The defaults for this instance should be automatically generated when constructed.
             Type operationType = Operation.TypeFromName(operationItem.Type);
+            OperationDescription description = OperationDescription.FromType(operationType);
 
             // If we did not find an operation type, we return a bad request error.
             if (operationType is null)
@@ -275,6 +276,21 @@ namespace CartaWeb.Controllers
                     Error = "Operation type could not be found.",
                     Type = operationItem.Type
                 });
+            }
+
+            // Check if the operation is a workflow.
+            WorkflowItem workflowItem = null;
+            if (operationType.IsAssignableTo(typeof(WorkflowOperation)))
+            {
+                workflowItem = await WorkflowsController.LoadWorkflowAsync(operationItem.Subtype, _persistence);
+                if (workflowItem is null)
+                {
+                    return BadRequest(new
+                    {
+                        Error = "Operation workflow type could not be found.",
+                        Subtype = operationItem.Subtype
+                    });
+                }
             }
 
             // Set a new identifier.
@@ -287,6 +303,12 @@ namespace CartaWeb.Controllers
                     Parameter = nameof(OperationItem.Id)
                 });
             }
+            // Make sure to set a default name if one was not specified.
+            if (operationItem.Name is null)
+            {
+                operationItem.Name = workflowItem is null ? description.Display : workflowItem.Name;
+            }
+
             operationItem.Id = NUlid.Ulid.NewUlid().ToString();
             operationItem.Default ??= new Dictionary<string, object>();
 
@@ -501,17 +523,37 @@ namespace CartaWeb.Controllers
             // We return the ID for the result.
             return Ok(job);
         }
-        [HttpGet("{operationId}/results/{result}/{field?}/{selector?}")]
-        public async Task<ActionResult<JobItem>> RetrieveOperationResult(
+        [HttpGet("{operationId}/jobs")]
+        public async Task<ActionResult<List<JobItem>>> RetrieveOperationJobs(
+            [FromRoute] string operationId
+        )
+        {
+            // We get the operation item from store.
+            OperationItem operationItem = await LoadOperationAsync(operationId, _persistence);
+
+            if (operationItem is null)
+            {
+                return NotFound(new
+                {
+                    Error = "Operation with specified identifier could not be found.",
+                    Id = operationId
+                });
+            }
+
+            // Get the jobs for the operation.
+            List<JobItem> jobs = await LoadJobsAsync(operationId, _persistence);
+            return jobs;
+        }
+        [HttpGet("{operationId}/jobs/{jobId}/{field?}/{selector?}")]
+        public async Task<ActionResult<JobItem>> RetrieveOperationJob(
             [FromRoute] string operationId,
-            [FromRoute] string result,
+            [FromRoute] string jobId,
             [FromRoute] string field,
             [FromRoute] string selector
         )
         {
             // We get the operation item from store.
             OperationItem operationItem = await LoadOperationAsync(operationId, _persistence);
-            Operation operation = await InstantiateOperation(operationItem, _persistence);
 
             // We return not found if the operation item does not exist.
             if (operationItem is null)
@@ -524,8 +566,7 @@ namespace CartaWeb.Controllers
             }
 
             // Get the result if it exists.
-            OperationContext context = new();
-            JobItem job = await LoadJobAsync(result, operationId, _persistence);
+            JobItem job = await LoadJobAsync(jobId, operationId, _persistence);
 
             if (job is null)
             {

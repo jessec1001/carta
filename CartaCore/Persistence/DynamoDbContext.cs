@@ -134,7 +134,7 @@ namespace CartaCore.Persistence
             QueryResponse response = await Client.QueryAsync(request);
 
             // Parse query into a list of documents and return
-            List<DbDocument> dbDocuments= new() { };
+            List<DbDocument> dbDocuments = new() { };
             if (response == null)
             {
                 return dbDocuments;
@@ -198,7 +198,7 @@ namespace CartaCore.Persistence
         {
             // Build the list of transaction items
             List<TransactWriteItem> transactWriteItems = new() { };
-            foreach(DbDocument dbDocument in dbDocuments)
+            foreach (DbDocument dbDocument in dbDocuments)
             {
                 TransactWriteItem transactWriteItem = new TransactWriteItem();
                 if (dbDocument.DbOperation == DbOperationEnumeration.Read) return false;

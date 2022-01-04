@@ -477,6 +477,56 @@ namespace CartaWeb.Controllers
         }
 
         /// <summary>
+        /// Retrieves information on operations that are accessible by workspace members.
+        /// </summary>
+        /// <param name="workspaceId">The workspace identifier.</param>
+        /// <returns status="200">
+        /// Occurs when the operation is successful. The workflow information will be attached to the response object.
+        /// </returns>
+        [Authorize]
+        [HttpGet("{workspaceId}/operations")]
+        public async Task<ActionResult<List<OperationAccessItem>>> GetWorkspaceOperations(
+            [FromRoute] string workspaceId
+        )
+        {
+            // Retrieve the operation access items.
+            List<OperationAccessItem> operationAccessItems = new();
+            OperationAccessItem readOperationAccessItem = new(workspaceId, null);
+            IEnumerable<Item> readOperationAccessItems = await _persistence.LoadItemsAsync(readOperationAccessItem);
+            foreach (OperationAccessItem operationAccessItem in readOperationAccessItems)
+            {
+                operationAccessItems.Add(operationAccessItem);
+            }
+
+            // Return the list of items.
+            return Ok(operationAccessItems);
+        }
+
+        #region Operations CRUD
+        /// <summary>
+        /// Retrieves information on the specified operation that is accessible by workspace members..
+        /// </summary>
+        /// <param name="workspaceId">The workspace identifier.</param>
+        /// <param name="operationId">The operation identifier.</param>
+        /// <returns status="200">
+        /// Occurs when the operation is successful. The operation information will be attached to the response object.
+        /// </returns>
+        /// <returns status="404">
+        /// Occurs when no operation information could be found.
+        /// </returns>
+        [Authorize]
+        [HttpGet("{workspaceId}/operations/{operationId}")]
+        public async Task<ActionResult<OperationAccessItem>> GetWorkspaceOperation(
+            [FromRoute] string workspaceId,
+            [FromRoute] string operationId
+        )
+        {
+            OperationAccessItem operationAccessItem = await LoadOperationAccessAsync(workspaceId, operationId);
+            if (operationAccessItem is null) return NotFound();
+            else return Ok(operationAccessItem);
+        }
+
+        /// <summary>
         /// Allows members of a workspace to access a specified operation.
         /// </summary>
         /// <param name="workspaceId">The workspace identifier.</param>
@@ -492,7 +542,7 @@ namespace CartaWeb.Controllers
         /// </returns>
         [Authorize]
         [HttpPost("{workspaceId}/operations/{operationId}")]
-        public async Task<ActionResult<OperationAccessItem>> PostWorkspaceOperation(
+        public async Task<ActionResult<OperationAccessItem>> AddWorkspaceOperation(
             [FromRoute] string workspaceId,
             [FromRoute] string operationId
         )
@@ -530,55 +580,6 @@ namespace CartaWeb.Controllers
         }
 
         /// <summary>
-        /// Retrieves information on operations that are accessible by workspace members.
-        /// </summary>
-        /// <param name="workspaceId">The workspace identifier.</param>
-        /// <returns status="200">
-        /// Occurs when the operation is successful. The workflow information will be attached to the response object.
-        /// </returns>
-        [Authorize]
-        [HttpGet("{workspaceId}/operations")]
-        public async Task<ActionResult<List<OperationAccessItem>>> GetWorkspaceOperations(
-            [FromRoute] string workspaceId
-        )
-        {
-            // Retrieve the operation access items.
-            List<OperationAccessItem> operationAccessItems = new();
-            OperationAccessItem readOperationAccessItem = new(workspaceId, null);
-            IEnumerable<Item> readOperationAccessItems = await _persistence.LoadItemsAsync(readOperationAccessItem);
-            foreach (OperationAccessItem operationAccessItem in readOperationAccessItems)
-            {
-                operationAccessItems.Add(operationAccessItem);
-            }
-
-            // Return the list of items.
-            return Ok(operationAccessItems);
-        }
-
-        /// <summary>
-        /// Retrieves information on the specified operation that is accessible by workspace members..
-        /// </summary>
-        /// <param name="workspaceId">The workspace identifier.</param>
-        /// <param name="operationId">The operation identifier.</param>
-        /// <returns status="200">
-        /// Occurs when the operation is successful. The operation information will be attached to the response object.
-        /// </returns>
-        /// <returns status="404">
-        /// Occurs when no operation information could be found.
-        /// </returns>
-        [Authorize]
-        [HttpGet("{workspaceId}/operations/{operationId}")]
-        public async Task<ActionResult<OperationAccessItem>> GetWorkspaceOperation(
-            [FromRoute] string workspaceId,
-            [FromRoute] string operationId
-        )
-        {
-            OperationAccessItem operationAccessItem = await LoadOperationAccessAsync(workspaceId, operationId);
-            if (operationAccessItem is null) return NotFound();
-            else return Ok(operationAccessItem);
-        }
-
-        /// <summary>
         /// Disallows members of a workspace to access a specified operation.
         /// </summary>
         /// <param name="workspaceId">The workspace identifier.</param>
@@ -594,7 +595,7 @@ namespace CartaWeb.Controllers
         /// </returns>
         [Authorize]
         [HttpDelete("{workspaceId}/operations/{operationId}")]
-        public async Task<ActionResult<OperationAccessItem>> DeleteWorkspaceOperation(
+        public async Task<ActionResult<OperationAccessItem>> RemoveWorkspaceOperation(
             [FromRoute] string workspaceId,
             [FromRoute] string operationId
         )
@@ -626,6 +627,7 @@ namespace CartaWeb.Controllers
                 return Conflict();
             }
         }
+        #endregion
 
         /// <summary>
         /// Retrieve a summary of changes made to a workspace.

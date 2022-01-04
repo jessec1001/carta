@@ -1,0 +1,8 @@
+.Menu {
+  position: absolute;
+  z-index: 100;
+
+  background-color: var(--color-fill-element);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-offset);
+}

@@ -1,38 +1,30 @@
-import { FunctionComponent } from "react";
+import { ComponentProps, FunctionComponent } from "react";
 import { useControllableState } from "hooks";
+import { Modify } from "types";
 import { SearchIcon } from "components/icons";
 import {
   InputAugment,
   InputAugmentContainer,
   TextFieldInput,
+  IBaseInputProps,
 } from "components/input";
 import { JoinContainer, JoinInputButton } from "components/join";
 
 /** The props used for the {@link SearchboxInput} component. */
-interface SearchboxInputProps {
+interface SearchboxInputProps extends IBaseInputProps<string> {
   /** Whether the searchbox is clearable via an augment. */
   clearable?: boolean;
   /** Whether the searchbox is searcheable via a search button. */
   searchable?: boolean;
 
-  /** The search text currently inside the searchbox. */
-  value?: string;
-
-  /** The event handler for when the text entered by the user has changed. */
-  onChange?: (value: string) => void;
   /** The event handler for when the search button has been clicked. */
   onSearch?: (value: string) => void;
 }
 
 /** A searchbox component that can be cleared and searched by the click of special inserted buttons. */
-const SearchboxInput: FunctionComponent<SearchboxInputProps> = ({
-  clearable,
-  searchable,
-  value,
-  onChange,
-  onSearch,
-  children,
-}) => {
+const SearchboxInput: FunctionComponent<
+  Modify<ComponentProps<typeof TextFieldInput>, SearchboxInputProps>
+> = ({ clearable, searchable, value, onChange, onSearch, ...props }) => {
   // We allow this component to be optionally controlled.
   const [actualValue, setValue] = useControllableState("", value, onChange);
 
@@ -44,6 +36,7 @@ const SearchboxInput: FunctionComponent<SearchboxInputProps> = ({
           value={actualValue}
           placeholder="Search"
           onChange={(value) => setValue(value)}
+          {...props}
         />
         {clearable && (
           <InputAugment interactive onClick={() => setValue("")}>

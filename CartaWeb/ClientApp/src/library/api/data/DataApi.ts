@@ -1,7 +1,7 @@
 import Logging, { LogSeverity, LogWidget } from "library/logging";
 import { HyperthoughtAuthenticationWidget } from "library/logging/widgets";
 import { Graph } from "library/api/data";
-import { Selector } from "library/api/workflow";
+import { Selector } from "library/api/workflows";
 import GeneralApi from "library/api/general";
 import { ApiException } from "library/exceptions";
 

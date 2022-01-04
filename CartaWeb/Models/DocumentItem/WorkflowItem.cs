@@ -34,7 +34,7 @@ namespace CartaWeb.Models.DocumentItem
         /// The target point of the connection.
         /// </summary>
         public WorkflowConnectionPoint Target { get; set; }
-        
+
         /// <summary>
         /// Whether this connection should multiplex from source to target.
         /// </summary>
@@ -87,14 +87,14 @@ namespace CartaWeb.Models.DocumentItem
         /// </summary>
         /// <param name="workflowId">The unique identifier of the workflow.</param>
         public WorkflowItem(string workflowId)
-            : base(workflowId)
+            : base(null, workflowId)
         {
             Operations = Array.Empty<string>();
             Connections = Array.Empty<WorkflowConnection>();
         }
 
         /// <inheritdoc />
-        public override string PartitionKeyPrefix => "WORKFLOW#";
+        public override string PartitionKeyPrefix => "WORKFLOW#ALL";
         /// <inheritdoc />
         public override string SortKeyPrefix => "WORKFLOW#";
     }

@@ -6,8 +6,10 @@ import JsonNumberSchema from "./JsonNumberSchema";
 import JsonObjectSchema from "./JsonObjectSchema";
 import JsonStringSchema from "./JsonStringSchema";
 import JsonMultitypeSchema from "./JsonMultitypeSchema";
+import JsonFileSchema from "./JsonFileSchema";
 
 export type {
+  JsonFileSchema,
   JsonObjectSchema,
   JsonArraySchema,
   JsonNumberSchema,
@@ -17,6 +19,7 @@ export type {
   JsonNullSchema,
   JsonMultitypeSchema,
 };
+export * from "./JsonFileSchema";
 export * from "./JsonBooleanSchema";
 export * from "./JsonArraySchema";
 export * from "./JsonEnumSchema";

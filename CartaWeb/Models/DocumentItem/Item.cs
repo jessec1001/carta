@@ -111,8 +111,8 @@ namespace CartaWeb.Models.DocumentItem
         public virtual DbDocument CreateDbDocument()
         {
             string docId = Ulid.NewUlid().ToString();
-            string sortKey = SortKeyPrefix + docId;
             if (Id is null) Id = docId;
+            string sortKey = SortKeyPrefix + Id;
             DbDocument dbDocument = new DbDocument
             (
                 GetPartitionKey(),

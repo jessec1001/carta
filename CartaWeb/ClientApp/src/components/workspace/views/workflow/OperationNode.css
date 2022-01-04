@@ -1,0 +1,42 @@
+.OperationNode {
+  margin: 0rem;
+  margin-bottom: 0.5rem;
+  width: 16rem;
+
+  font-size: 0.9em;
+
+  border-radius: 2px;
+  background-color: var(--color-fill-element);
+
+  /* border: 1px solid var(--color-stroke-hairline); */
+  box-shadow: var(--shadow);
+}
+.OperationNode.selected {
+  box-shadow: 0px 0px 2px 2px var(--color-primary);
+}
+.OperationNode:last-child {
+  margin-bottom: 0rem;
+}
+
+.OperationNode .title {
+  display: flex;
+
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0.25rem;
+  cursor: pointer;
+
+  border-radius: 2px 2px 0px 0px;
+}
+.OperationNode.collapsed .title {
+  border-radius: 2px;
+}
+
+.OperationNode .body {
+  padding: 0.25rem;
+}
+.OperationNode.collapsed .body {
+  display: none;
+}
