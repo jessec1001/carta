@@ -1,6 +1,7 @@
 using System;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using CartaCore.Operations.Attributes;
 
 namespace CartaCore.Operations
 {
@@ -65,6 +66,8 @@ namespace CartaCore.Operations
     /// <summary>
     /// Computes a simple arithmetic expression with a binary operation operating on two operands.
     /// </summary>
+    [OperationName(Display = "Arithmetic", Type = "arithmetic")]
+    [OperationTag(OperationTags.Arithmetic)]
     public class ArithmeticOperation : TypedOperation
     <
         ArithmeticOperationIn,

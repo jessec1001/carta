@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using CartaCore.Operations.Attributes;
 using CartaCore.Utilities;
 
 namespace CartaCore.Operations
@@ -34,6 +35,8 @@ namespace CartaCore.Operations
     /// <summary>
     /// Splits a string into parts based on a pattern.
     /// </summary>
+    [OperationName(Display = "Text Split", Type = "textSplit")]
+    [OperationTag(OperationTags.Text)]
     public class TextSplitOperation : TypedOperation
     <
         TextSplitOperationIn,

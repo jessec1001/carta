@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using CartaCore.Operations.Attributes;
 using CartaCore.Statistics;
 
 namespace CartaCore.Operations
@@ -27,6 +28,8 @@ namespace CartaCore.Operations
     /// <summary>
     /// Calculates the central kurtosis of a set of numeric values.
     /// </summary>
+    [OperationName(Display = "Statistical Kurtosis", Type = "statsSkew")]
+    [OperationTag(OperationTags.Statistics)]
     public class KurtosisOperation : TypedOperation
     <
         KurtosisOperationIn,
@@ -36,7 +39,9 @@ namespace CartaCore.Operations
         /// <inheritdoc />
         public override Task<KurtosisOperationOut> Perform(KurtosisOperationIn input)
         {
-            return Task.FromResult(new KurtosisOperationOut()
+            return Task.FromResult
+            (
+                new KurtosisOperationOut()
                 { Kurtosis = StatisticsUtils.ComputeNormalizedMoment(input.Values, 4) }
             );
         }

@@ -1,6 +1,7 @@
 using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
+using CartaCore.Operations.Attributes;
 
 namespace CartaCore.Operations
 {
@@ -28,6 +29,8 @@ namespace CartaCore.Operations
     /// <summary>
     /// Retrieves a stream of data from a specified URL.
     /// </summary>
+    [OperationName(Display = "Stream Data from URL", Type = "streamUrl")]
+    [OperationTag(OperationTags.Loading)]
     public class StreamUrlOperation : TypedOperation
     <
         StreamUrlOperationIn,

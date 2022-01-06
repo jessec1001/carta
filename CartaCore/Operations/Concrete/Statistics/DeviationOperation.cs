@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using CartaCore.Operations.Attributes;
 
 namespace CartaCore.Operations
 {
@@ -32,6 +33,8 @@ namespace CartaCore.Operations
     /// <summary>
     /// Calculates the standard deviation of a set of numeric values.
     /// </summary>
+    [OperationName(Display = "Statistical Deviation", Type = "statsDeviation")]
+    [OperationTag(OperationTags.Statistics)]
     public class DeviationOperation : TypedOperation
     <
         DeviationOperationIn,

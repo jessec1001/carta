@@ -35,6 +35,8 @@ namespace CartaCore.Operations
     /// <summary>
     /// Includes the vertices of a graph by matching their identifier.
     /// </summary>
+    [OperationName(Display = "Include Vertices by ID", Type = "includeVertexById")]
+    [OperationTag(OperationTags.Graph)]
     [OperationSelector("include")]
     public class IncludeVertexByIdOperation : TypedOperation
     <

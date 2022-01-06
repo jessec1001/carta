@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using CartaCore.Data;
+using CartaCore.Operations.Attributes;
 
 namespace CartaCore.Operations
 {
@@ -28,6 +29,9 @@ namespace CartaCore.Operations
     /// Generates an undirected complete graph with the specified number of vertices. The complete graph contains all
     /// possible edges between each pair of vertices.
     /// </summary>
+    [OperationName(Display = "Generate Complete Graph", Type = "generateCompleteGraph")]
+    [OperationTag(OperationTags.Graph)]
+    [OperationTag(OperationTags.Synthetic)]
     public class CompleteGraphOperation : TypedOperation
     <
         CompleteGraphOperationIn,

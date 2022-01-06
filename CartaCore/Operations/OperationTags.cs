@@ -32,12 +32,20 @@ namespace CartaCore.Operations
         /// </summary>
         public const string Parsing = "Parsing";
         /// <summary>
+        /// Related to converting between equivalent data formats.
+        /// </summary>
+        public const string Conversion = "Conversion";
+        /// <summary>
         /// Related to visualizing the structure data.
         /// </summary>
         public const string Visualization = "Visualization";
         #endregion
 
         #region Data Structures
+        /// <summary>
+        /// Related to text data.
+        /// </summary>
+        public const string Text = "Text";
         /// <summary>
         /// Related to an array data structure. 
         /// </summary>
@@ -46,6 +54,13 @@ namespace CartaCore.Operations
         /// Related to a graph data structure.
         /// </summary>
         public const string Graph = "Graph";
+        #endregion
+
+        #region Integration
+        /// <summary>
+        /// Related to HyperThought integration.
+        /// </summary>
+        public const string Hyperthought = "HyperThought";
         #endregion
 
         #region Mathematics Fields

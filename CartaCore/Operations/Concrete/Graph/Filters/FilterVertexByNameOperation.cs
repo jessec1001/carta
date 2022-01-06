@@ -38,6 +38,8 @@ namespace CartaCore.Operations
     /// <summary>
     /// Filters the vertices of a graph by their name. Can utilize a regular expression to match the name.
     /// </summary>
+    [OperationName(Display = "Filter Vertices by Name", Type = "filterVertexByName")]
+    [OperationTag(OperationTags.Graph)]
     [OperationSelector("name")]
     public class FilterVertexByNameOperation : TypedOperation
     <

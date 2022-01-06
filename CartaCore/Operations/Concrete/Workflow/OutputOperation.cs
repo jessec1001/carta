@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using CartaCore.Operations.Attributes;
 
 namespace CartaCore.Operations
 {
@@ -25,6 +26,8 @@ namespace CartaCore.Operations
     /// <summary>
     /// Specifies an expected output from the workflow that contains this operation.
     /// </summary>
+    [OperationName(Display = "Output", Type = "workflowOutput")]
+    [OperationTag(OperationTags.Workflow)]
     public class OutputOperation : TypedOperation
     <
         OutputOperationIn,

@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using CartaCore.Operations.Attributes;
 
 namespace CartaCore.Operations
 {
@@ -44,6 +45,9 @@ namespace CartaCore.Operations
     /// The random numbers are generated using the
     /// [Box-Muller transformation](https://en.wikipedia.org/wiki/Box%E2%80%93Muller_transform)
     /// </summary>
+    [OperationName(Display = "Sample Normal Distribution", Type = "sampleNormal")]
+    [OperationTag(OperationTags.Statistics)]
+    [OperationTag(OperationTags.Synthetic)]
     public class SampleNormalOperation : TypedOperation
     <
         SampleNormalOperationIn,

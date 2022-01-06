@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using CartaCore.Operations.Attributes;
 
 namespace CartaCore.Operations
 {
@@ -42,6 +43,9 @@ namespace CartaCore.Operations
     /// Generates a sample of numbers selected from a
     /// [continuous uniform distribution](https://en.wikipedia.org/wiki/Continuous_uniform_distribution).
     /// </summary>
+    [OperationName(Display = "Sample Uniform Distribution", Type = "sampleUniform")]
+    [OperationTag(OperationTags.Statistics)]
+    [OperationTag(OperationTags.Synthetic)]
     public class SampleUniformOperation : TypedOperation
     <
         SampleUniformOperationIn,

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using CartaCore.Operations.Attributes;
 
 namespace CartaCore.Operations
 {
@@ -27,6 +28,8 @@ namespace CartaCore.Operations
     /// <summary>
     /// Specifies an expected input to the workflow that contains this operation.
     /// </summary>
+    [OperationName(Display = "Input", Type = "workflowInput")]
+    [OperationTag(OperationTags.Workflow)]
     public class InputOperation : TypedOperation
     <
         InputOperationIn,

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using CartaCore.Data;
+using CartaCore.Operations.Attributes;
 
 namespace CartaCore.Operations
 {
@@ -29,6 +30,9 @@ namespace CartaCore.Operations
     /// Generates an undirected path graph of the specified number of vertices. The path graph contains edges between
     /// vertices completing a non-cyclic path that touches each vertex exactly once.
     /// </summary>
+    [OperationName(Display = "Generate Path Graph", Type = "generatePathGraph")]
+    [OperationTag(OperationTags.Graph)]
+    [OperationTag(OperationTags.Synthetic)]
     public class PathGraphOperation : TypedOperation
     <
         PathGraphOperationIn,

@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using CartaCore.Operations.Attributes;
 
 namespace CartaCore.Operations
 {
@@ -26,6 +27,8 @@ namespace CartaCore.Operations
     /// <summary>
     /// Measures the length of some text in characters.
     /// </summary>
+    [OperationName(Display = "Text Length", Type = "textLength")]
+    [OperationTag(OperationTags.Text)]
     public class TextLengthOperation : TypedOperation
     <
         TextLengthOperationIn,

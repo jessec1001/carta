@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using CartaCore.Data;
+using CartaCore.Operations.Attributes;
 
 namespace CartaCore.Operations
 {
@@ -33,11 +34,13 @@ namespace CartaCore.Operations
     /// <summary>
     /// Locates a property on all vertices in a graph. Yields a list of all values of the property.
     /// </summary>
+    [OperationName(Display = "Find Graph Property", Type = "findGraphProperty")]
+    [OperationTag(OperationTags.Graph)]
     public class FindPropertyOperation : TypedOperation
     <
         FindPropertyOperationIn,
         FindPropertyOperationOut
-    > 
+    >
     {
         /// <inheritdoc />
         public override async Task<FindPropertyOperationOut> Perform(FindPropertyOperationIn input)
@@ -59,7 +62,7 @@ namespace CartaCore.Operations
                     .ToArrayAsync();
             }
             else values = Array.Empty<object>();
-            
+
             return await Task.FromResult(new FindPropertyOperationOut() { Values = values });
         }
     }

@@ -53,6 +53,8 @@ namespace CartaCore.Operations
     /// <summary>
     /// Filters the vertices of a graph to only include the descendants of a specified vertex.
     /// </summary>
+    [OperationName(Display = "Filter Descendant Vertices", Type = "filterDescendants")]
+    [OperationTag(OperationTags.Graph)]
     [OperationSelector("descendants")]
     public class FilterDescendantsOperation : TypedOperation
     <

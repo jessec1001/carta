@@ -2,6 +2,7 @@ using System;
 using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
+using CartaCore.Operations.Attributes;
 using CartaCore.Operations.Visualization;
 
 namespace CartaCore.Operations
@@ -45,6 +46,9 @@ namespace CartaCore.Operations
     /// <summary>
     /// Visualizes a histogram plot of a set of values. 
     /// </summary>
+    [OperationName(Display = "Histogram Plot", Type = "visualizeHistogramPlot")]
+    [OperationTag(OperationTags.Visualization)]
+    [OperationVisualizer("histogram")]
     public class PlotHistogramOperation : TypedOperation
     <
         PlotHistogramOperationIn,

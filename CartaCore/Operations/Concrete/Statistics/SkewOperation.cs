@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using CartaCore.Operations.Attributes;
 using CartaCore.Statistics;
 
 namespace CartaCore.Operations
@@ -27,6 +28,8 @@ namespace CartaCore.Operations
     /// <summary>
     /// Calculates the central skewness of a set of numeric values.
     /// </summary>
+    [OperationName(Display = "Statistical Skew", Type = "statsSkew")]
+    [OperationTag(OperationTags.Statistics)]
     public class SkewOperation : TypedOperation
     <
         SkewOperationIn,
@@ -36,7 +39,9 @@ namespace CartaCore.Operations
         /// <inheritdoc />
         public override Task<SkewOperationOut> Perform(SkewOperationIn input)
         {
-            return Task.FromResult(new SkewOperationOut()
+            return Task.FromResult
+            (
+                new SkewOperationOut()
                 { Skew = StatisticsUtils.ComputeNormalizedMoment(input.Values, 3) }
             );
         }

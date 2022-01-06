@@ -12,7 +12,7 @@ using System.Linq;
 namespace CartaTest.Operations
 {
     /// <summary>
-    /// Tests the <see cref="HyperthoughtProcessUpdateOperation"/> class helper methods
+    /// Tests the <see cref="UpdateHyperthoughtProcessOperation"/> class helper methods
     /// </summary>
     [TestFixture]
     public class UpdateHyperthoughtWorkflowMetaData
@@ -26,7 +26,7 @@ namespace CartaTest.Operations
         {
             HyperthoughtProcess process = new HyperthoughtProcess();
             List<HyperthoughtMetadata> metaDataList =
-                HyperthoughtProcessUpdateOperation.UpdateHyperthoughtMetaData(null, process);
+                UpdateHyperthoughtProcessOperation.UpdateHyperthoughtMetaData(null, process);
             Assert.IsTrue(metaDataList.Count == 0);
         }
 
@@ -38,9 +38,9 @@ namespace CartaTest.Operations
         {
             HyperthoughtProcess process = new HyperthoughtProcess();
             List<HyperthoughtProperty> properties = new();
-            properties.Add(new HyperthoughtProperty { Key = "test_property", Value = "test_value"});
+            properties.Add(new HyperthoughtProperty { Key = "test_property", Value = "test_value" });
             List<HyperthoughtMetadata> metaDataList =
-                HyperthoughtProcessUpdateOperation.UpdateHyperthoughtMetaData(properties, process);
+                UpdateHyperthoughtProcessOperation.UpdateHyperthoughtMetaData(properties, process);
             Assert.IsTrue(metaDataList.Count == 1);
             foreach (HyperthoughtMetadata metadata in metaDataList)
             {
@@ -64,7 +64,7 @@ namespace CartaTest.Operations
             properties.Add(property);
 
             List<HyperthoughtMetadata> metaDataList =
-                HyperthoughtProcessUpdateOperation.UpdateHyperthoughtMetaData(properties, process);
+                UpdateHyperthoughtProcessOperation.UpdateHyperthoughtMetaData(properties, process);
             Assert.IsTrue(metaDataList.Count == 1);
             foreach (HyperthoughtMetadata metadata in metaDataList)
             {
@@ -92,9 +92,9 @@ namespace CartaTest.Operations
             property.Unit = "cm";
             property.Annotation = "test_annotation";
             properties.Add(property);
- 
+
             List<HyperthoughtMetadata> metaDataList =
-                HyperthoughtProcessUpdateOperation.UpdateHyperthoughtMetaData(properties, process);
+                UpdateHyperthoughtProcessOperation.UpdateHyperthoughtMetaData(properties, process);
             Assert.IsTrue(metaDataList.Count == 1);
             foreach (HyperthoughtMetadata metadata in metaDataList)
             {
@@ -125,7 +125,7 @@ namespace CartaTest.Operations
             properties.Add(property2);
 
             List<HyperthoughtMetadata> metaDataList =
-                HyperthoughtProcessUpdateOperation.UpdateHyperthoughtMetaData(properties, process);
+                UpdateHyperthoughtProcessOperation.UpdateHyperthoughtMetaData(properties, process);
             Assert.IsTrue(metaDataList.Count == 2);
             int count = 0;
             foreach (HyperthoughtMetadata metadata in metaDataList)
@@ -168,7 +168,7 @@ namespace CartaTest.Operations
             metadata.Value.Type = HyperthoughtDataType.String;
             process.Metadata.Add(metadata);
             List<HyperthoughtMetadata> metaDataList =
-                HyperthoughtProcessUpdateOperation.UpdateHyperthoughtMetaData(properties, process);
+                UpdateHyperthoughtProcessOperation.UpdateHyperthoughtMetaData(properties, process);
             Assert.IsTrue(metaDataList.Count == 1);
             foreach (HyperthoughtMetadata updatedMetadata in metaDataList)
             {
@@ -197,7 +197,7 @@ namespace CartaTest.Operations
             HyperthoughtProperty property = new HyperthoughtProperty { Key = "new_key", Value = "new_value" };
             properties.Add(property);
             List<HyperthoughtMetadata> metaDataList =
-                HyperthoughtProcessUpdateOperation.UpdateHyperthoughtMetaData(properties, process);
+                UpdateHyperthoughtProcessOperation.UpdateHyperthoughtMetaData(properties, process);
             Assert.IsTrue(metaDataList.Count == 2);
             int count = 0;
             foreach (HyperthoughtMetadata updatedMetadata in metaDataList)
@@ -238,7 +238,7 @@ namespace CartaTest.Operations
             HyperthoughtProperty property = new HyperthoughtProperty { Key = "existing_key", Value = "new_value" };
             properties.Add(property);
             List<HyperthoughtMetadata> metaDataList =
-                HyperthoughtProcessUpdateOperation.UpdateHyperthoughtMetaData(properties, process);
+                UpdateHyperthoughtProcessOperation.UpdateHyperthoughtMetaData(properties, process);
             Assert.IsTrue(metaDataList.Count == 1);
             foreach (HyperthoughtMetadata updatedMetadata in metaDataList)
             {
@@ -269,7 +269,7 @@ namespace CartaTest.Operations
             property.Annotation = "test_annotation";
             properties.Add(property);
             List<HyperthoughtMetadata> metaDataList =
-                HyperthoughtProcessUpdateOperation.UpdateHyperthoughtMetaData(properties, process);
+                UpdateHyperthoughtProcessOperation.UpdateHyperthoughtMetaData(properties, process);
             Assert.IsTrue(metaDataList.Count == 1);
             foreach (HyperthoughtMetadata updatedMetadata in metaDataList)
             {
@@ -307,7 +307,7 @@ namespace CartaTest.Operations
             HyperthoughtProperty property = new HyperthoughtProperty { Key = "existing_key", Value = "new_value" };
             properties.Add(property);
             List<HyperthoughtMetadata> metaDataList =
-                HyperthoughtProcessUpdateOperation.UpdateHyperthoughtMetaData(properties, process);
+                UpdateHyperthoughtProcessOperation.UpdateHyperthoughtMetaData(properties, process);
             Assert.IsTrue(metaDataList.Count == 1);
             foreach (HyperthoughtMetadata updatedMetadata in metaDataList)
             {
@@ -343,7 +343,7 @@ namespace CartaTest.Operations
             property.Annotation = "test_annotation";
             properties.Add(property);
             List<HyperthoughtMetadata> metaDataList =
-                HyperthoughtProcessUpdateOperation.UpdateHyperthoughtMetaData(properties, process);
+                UpdateHyperthoughtProcessOperation.UpdateHyperthoughtMetaData(properties, process);
             Assert.IsTrue(metaDataList.Count == 1);
             foreach (HyperthoughtMetadata updatedMetadata in metaDataList)
             {
@@ -383,7 +383,7 @@ namespace CartaTest.Operations
             property.Annotation = "new_annotation";
             properties.Add(property);
             List<HyperthoughtMetadata> metaDataList =
-                HyperthoughtProcessUpdateOperation.UpdateHyperthoughtMetaData(properties, process);
+                UpdateHyperthoughtProcessOperation.UpdateHyperthoughtMetaData(properties, process);
             Assert.IsTrue(metaDataList.Count == 1);
             foreach (HyperthoughtMetadata updatedMetadata in metaDataList)
             {

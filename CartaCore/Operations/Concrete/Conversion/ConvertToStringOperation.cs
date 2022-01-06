@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using CartaCore.Operations.Attributes;
 
 namespace CartaCore.Operations
 {
@@ -20,12 +21,14 @@ namespace CartaCore.Operations
         /// <summary>
         /// The string representation.
         /// </summary>
-        public string Text { get; set; } 
+        public string Text { get; set; }
     }
 
     /// <summary>
     /// Formats a number into a text string.
     /// </summary>
+    [OperationName(Display = "Convert to String", Type = "convertToString")]
+    [OperationTag(OperationTags.Conversion)]
     public class ConvertToStringOperation : TypedOperation
     <
         ConvertToStringOperationIn,

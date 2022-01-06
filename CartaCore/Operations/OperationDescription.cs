@@ -22,6 +22,11 @@ namespace CartaCore.Operations
         /// </summary>
         public string Subtype { get; set; }
         /// <summary>
+        /// The name of this operation when used as a visualization. If the operation is not a visualizer, this will be
+        /// null.
+        /// </summary>
+        public string Visualization { get; set; }
+        /// <summary>
         /// The name of this operation when used as a selector for a graph. If the operation is not a selector, this
         /// value will be null.
         /// </summary>

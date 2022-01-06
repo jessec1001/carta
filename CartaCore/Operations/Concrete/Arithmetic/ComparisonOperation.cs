@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using CartaCore.Operations.Attributes;
 
 namespace CartaCore.Operations
 {
@@ -66,6 +67,8 @@ namespace CartaCore.Operations
     /// <summary>
     /// Computes a simple comparison expression with a binary operator on two operands.
     /// </summary>
+    [OperationName(Display = "Comparison", Type = "comparison")]
+    [OperationTag(OperationTags.Arithmetic)]
     public class ComparisonOperation : TypedOperation
     <
         ComparisonOperationIn,

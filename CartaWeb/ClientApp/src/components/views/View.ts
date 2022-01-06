@@ -45,18 +45,27 @@ interface TabView extends BaseView<"tab"> {
   /** The unique identifiers for each child of the view. */
   childIds: number[];
 }
+interface ModalView extends BaseView<"modal"> {
+  /** The position of the modal. */
+  position: { x: number; y: number };
+
+  /** The unique identifiers for each child of the view. */
+  childIds: number[];
+}
 
 /**
  * Determines whether the specified view is a container view.
  * @param view The view to check.
  * @returns Whether the view is a container.
  */
-const isContainerView = (view: View): view is SplitView | TabView => {
-  return view.type === "split" || view.type === "tab";
+const isContainerView = (
+  view: View
+): view is SplitView | TabView | ModalView => {
+  return view.type === "split" || view.type === "tab" || view.type === "modal";
 };
 
 /** The type that a view is allowed to be. */
-type View = ElementView | SplitView | TabView;
+type View = ElementView | SplitView | TabView | ModalView;
 
 export default View;
 export { isContainerView };

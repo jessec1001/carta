@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using CartaCore.Operations.Attributes;
 
 namespace CartaCore.Operations
 {
@@ -30,6 +31,8 @@ namespace CartaCore.Operations
     /// <summary>
     /// Calculates the minimum and maximum values of a set of numeric values.
     /// </summary>
+    [OperationName(Display = "Statistical Extent", Type = "statsExtent")]
+    [OperationTag(OperationTags.Statistics)]
     public class ExtentOperation : TypedOperation
     <
         ExtentOperationIn,
@@ -47,10 +50,14 @@ namespace CartaCore.Operations
                 if (!minimum.HasValue || value < minimum) minimum = value;
                 if (!maximum.HasValue || value > maximum) maximum = value;
             }
-            return Task.FromResult(new ExtentOperationOut() {
-                Minimum = minimum.Value,
-                Maximum = maximum.Value
-            });
+            return Task.FromResult
+            (
+                new ExtentOperationOut()
+                {
+                    Minimum = minimum.Value,
+                    Maximum = maximum.Value
+                }
+            );
         }
     }
 }

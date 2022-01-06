@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using CartaCore.Operations.Attributes;
 
 namespace CartaCore.Operations
 {
@@ -26,6 +27,8 @@ namespace CartaCore.Operations
     /// <summary>
     /// Counts the number of items in an array.
     /// </summary>
+    [OperationName(Display = "Array Length", Type = "arrayLength")]
+    [OperationTag(OperationTags.Array)]
     public class ArrayLengthOperation : TypedOperation
     <
         ArrayLengthOperationIn,

@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using CartaCore.Data;
+using CartaCore.Operations.Attributes;
 
 namespace CartaCore.Operations
 {
@@ -28,6 +29,9 @@ namespace CartaCore.Operations
     /// Generates an undirected null graph of the specified number of vertices. The null graph contains no edges between
     /// any of the vertices.
     /// </summary>
+    [OperationName(Display = "Generate Null Graph", Type = "generateNullGraph")]
+    [OperationTag(OperationTags.Graph)]
+    [OperationTag(OperationTags.Synthetic)]
     public class NullGraphOperation : TypedOperation
     <
         NullGraphOperationIn,

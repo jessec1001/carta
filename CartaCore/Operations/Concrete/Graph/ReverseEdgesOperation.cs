@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CartaCore.Data;
+using CartaCore.Operations.Attributes;
 using MorseCode.ITask;
 
 namespace CartaCore.Operations
@@ -31,6 +32,8 @@ namespace CartaCore.Operations
     /// <summary>
     /// Reverses the edges of a graph.
     /// </summary>
+    [OperationName(Display = "Reverse Graph Edges", Type = "reverseEdges")]
+    [OperationTag(OperationTags.Graph)]
     public class ReverseEdgesOperation : TypedOperation
     <
         ReverseEdgesOperationIn,

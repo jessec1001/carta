@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using CartaCore.Operations.Attributes;
 using CartaCore.Statistics;
 
 namespace CartaCore.Operations
@@ -27,6 +28,8 @@ namespace CartaCore.Operations
     /// <summary>
     /// Calculates the mean of a set of numeric values.
     /// </summary>
+    [OperationName(Display = "Statistical Mean", Type = "statsMean")]
+    [OperationTag(OperationTags.Statistics)]
     public class MeanOperation : TypedOperation
     <
         MeanOperationIn,

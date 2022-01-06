@@ -29,7 +29,7 @@ namespace CartaCore.Operations
         /// <param name="graph">The graph to filter.</param>
         /// <param name="vertexFilter">A filter to use to select included vertices.</param>
         public FilterGraph(Graph graph, Func<IVertex, Task<bool>> vertexFilter)
-            : base(graph.Identifier, graph.Properties) 
+            : base(graph.Identifier, graph.Properties)
         {
             Filter = vertexFilter;
         }
@@ -39,10 +39,30 @@ namespace CartaCore.Operations
         {
             if (((IGraph)Graph).TryProvide(out IEntireGraph entireGraph))
             {
-                // TODO: Make sure that edges are filtered as well.
                 return entireGraph
                     .GetVertices()
-                    .WhereAwait(async vertex => await Filter(vertex));
+                    .WhereAwait(async vertex => await Filter(vertex))
+                    .SelectAwait(
+                        async vertex =>
+                        {
+                            return vertex;
+
+                            // // TODO: We make sure that edges are filtered as well.
+                            // if (vertex is Vertex vertexElement)
+                            // {
+                            //     return new Vertex(vertexElement.Identifier, vertexElement.Properties,
+                            //         await vertexElement.Edges
+                            //             .Where(async edge => await Filter(edge))
+                            //             .ToArrayAsync()
+                            //     )
+                            //     {
+                            //         Label = vertexElement.Label,
+                            //         Description = vertexElement.Description
+                            //     };
+                            // }
+                            // else return vertex;
+                        }
+                    );
             }
             else throw new NotSupportedException();
         }

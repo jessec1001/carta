@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using CartaCore.Operations.Attributes;
 
 namespace CartaCore.Operations
 {
@@ -30,6 +31,8 @@ namespace CartaCore.Operations
     /// <summary>
     /// Retrieves an item from an array located at a specified index.
     /// </summary>
+    [OperationName(Display = "Array Item", Type = "arrayItem")]
+    [OperationTag(OperationTags.Array)]
     public class ArrayItemOperation : TypedOperation
     <
         ArrayItemOperationIn,

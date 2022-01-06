@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CartaCore.Data;
+using CartaCore.Operations.Attributes;
 
 namespace CartaCore.Operations
 {
@@ -35,6 +36,8 @@ namespace CartaCore.Operations
     /// <summary>
     /// Collects properties of ancestors of a vertex onto the descendant vertex.
     /// </summary>
+    [OperationName(Display = "Propagate Graph Properties", Type = "propagateProperties")]
+    [OperationTag(OperationTags.Graph)]
     public class PropagatePropertiesOperation : TypedOperation
     <
         PropagatePropertiesOperationIn,

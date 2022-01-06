@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using CartaCore.Data;
+using CartaCore.Operations.Attributes;
 
 namespace CartaCore.Operations
 {
@@ -28,6 +29,9 @@ namespace CartaCore.Operations
     /// Generates an undirected cyclic graph with the specified number of vertices. The cyclic graph contains edges
     /// between vertices completing a circuit that touches each vertex once.
     /// </summary>
+    [OperationName(Display = "Generate Cyclic Graph", Type = "generateCyclicGraph")]
+    [OperationTag(OperationTags.Graph)]
+    [OperationTag(OperationTags.Synthetic)]
     public class CyclicGraphOperation : TypedOperation
     <
         CyclicGraphOperationIn,

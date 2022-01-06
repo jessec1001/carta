@@ -35,6 +35,8 @@ namespace CartaCore.Operations
     /// <summary>
     /// Excludes the vertices of a graph by matching their identifier.
     /// </summary>
+    [OperationName(Display = "Exclude Vertices by ID", Type = "excludeVertexById")]
+    [OperationTag(OperationTags.Graph)]
     [OperationSelector("exclude")]
     public class ExcludeVertexByIdOperation : TypedOperation
     <

@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using CartaCore.Operations.Attributes;
 
 namespace CartaCore.Operations
 {
@@ -43,6 +44,9 @@ namespace CartaCore.Operations
     /// <summary>
     /// Generates a sequence of values linearly from a range of numbers.
     /// </summary>
+    [OperationName(Display = "Linear Array", Type = "linearArray")]
+    [OperationTag(OperationTags.Arithmetic)]
+    [OperationTag(OperationTags.Array)]
     public class LinearArrayOperation : TypedOperation
     <
         LinearArrayOperationIn,

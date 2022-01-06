@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using CartaCore.Operations.Attributes;
 using CartaCore.Utilities;
 
 namespace CartaCore.Operations
@@ -40,6 +41,8 @@ namespace CartaCore.Operations
     /// <summary>
     /// Replaces a pattern in a text with a replacement.
     /// </summary>
+    [OperationName(Display = "Text Replace", Type = "textReplace")]
+    [OperationTag(OperationTags.Text)]
     public class TextReplaceOperation : TypedOperation
     <
         TextReplaceOperationIn,

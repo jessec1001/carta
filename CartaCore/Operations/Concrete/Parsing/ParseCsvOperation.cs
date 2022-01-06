@@ -3,6 +3,7 @@ using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
 using CartaCore.Data;
+using CartaCore.Operations.Attributes;
 using CsvHelper;
 using CsvHelper.Configuration;
 
@@ -47,6 +48,8 @@ namespace CartaCore.Operations
     /// <summary>
     /// Reads a data stream to be interpretted as a CSV-formatted file and converts it into a graph dataset.
     /// </summary>
+    [OperationName(Display = "Parse CSV", Type = "parseCsv")]
+    [OperationTag(OperationTags.Parsing)]
     public class ParseCsvOperation : TypedOperation
     <
         ParseCsvOperationIn,

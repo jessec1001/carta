@@ -168,7 +168,7 @@ const OperationNode: FunctionComponent<OperationNodeProps> = ({
         >
           <span>{type.display}</span>
           {/* TODO: Reimplement (workflow locked symbol) */}
-          {false && <LockIcon size="small" />}
+          {false && <LockIcon />}
         </div>
         <div className="body">
           {operation.input &&

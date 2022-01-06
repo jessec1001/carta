@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using CartaCore.Operations.Attributes;
 
 namespace CartaCore.Operations
 {
@@ -25,6 +26,8 @@ namespace CartaCore.Operations
     /// <summary>
     /// Tests that a condition is satisfied and throws an error if it is not.
     /// </summary>
+    [OperationName(Display = "Test", Type = "workflowTest")]
+    [OperationTag(OperationTags.Workflow)]
     public class TestOperation : TypedOperation
     <
         TestOperationIn,

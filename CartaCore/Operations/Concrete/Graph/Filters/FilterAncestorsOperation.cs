@@ -52,6 +52,8 @@ namespace CartaCore.Operations
     /// <summary>
     /// Filters the vertices of a graph to only include the ancestors of a specified vertex.
     /// </summary>
+    [OperationName(Display = "Filter Ancestor Vertices", Type = "filterAncestors")]
+    [OperationTag(OperationTags.Graph)]
     [OperationSelector("ancestors")]
     public class FilterAncestorsOperation : TypedOperation
     <

@@ -4,20 +4,45 @@ import { WorkspaceOperation } from "library/api";
 import { ObjectFilter } from "library/search";
 import { Loading, Text } from "components/text";
 import { useViews, Views } from "components/views";
-import { CaretIcon, OperationIcon } from "components/icons";
+import { CaretIcon, OperationIcon, WorkflowIcon } from "components/icons";
 import { Column, Row } from "components/structure";
 import { SearchboxInput } from "components/input";
 import { useWorkspace } from "../WorkspaceContext";
 import { useAPI } from "hooks";
 import { Operation } from "library/api/operations";
+import { IconButton } from "components/buttons";
+import WorkflowEditorView from "./WorkflowEditorView";
 
 /** A component that renders a single operation in the current workspace. */
-const OperationsListItem: FC<{ operation: Operation }> = ({ operation }) => {
+const OperationsListItem: FC<{
+  operation: Operation;
+  onWorkflow?: () => void;
+}> = ({ operation, onWorkflow = () => null }) => {
   return (
-    <li className={classNames("OperationListView-OperationsListItem")}>
+    <li
+      className={classNames("OperationListView-OperationsListItem")}
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        cursor: "pointer",
+      }}
+    >
       <Text align="middle">
         <OperationIcon padded />
-        {operation.name ?? "OPERATION"}
+        {operation.name ?? <Text color="muted">(Unnamed)</Text>}
+      </Text>
+      <Text align="middle">
+        {operation.type === "workflow" && (
+          <span
+            style={{
+              margin: "0rem 0.5rem",
+            }}
+          >
+            <IconButton title="Workflow" onClick={onWorkflow}>
+              <WorkflowIcon />
+            </IconButton>
+          </span>
+        )}
       </Text>
     </li>
   );
@@ -43,6 +68,7 @@ const OperationsListView: FC = () => {
 
   // FIXME: Temporarily store information for the dropdown menu.
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState<null | "blank" | "data">(null);
 
   // We load the operations.
   const { workspace, operations } = useWorkspace();
@@ -73,6 +99,10 @@ const OperationsListView: FC = () => {
         // TODO: Implement.
         break;
     }
+  };
+  const handleCompleteBlankDialog = () => {
+    setDialogOpen(null);
+    handleAddOperation("blankWorkflow");
   };
 
   // Create the view title component.
@@ -156,6 +186,8 @@ const OperationsListView: FC = () => {
                   width: "8em",
                   borderRadius: "4px 0px 4px 4px",
                   border: "1px solid var(--color-stroke-hairline)",
+                  background: "white",
+                  zIndex: 100,
                   boxShadow: "var(--shadow)",
                 }}
               >
@@ -203,7 +235,20 @@ const OperationsListView: FC = () => {
       {operations.value && (
         <ul role="presentation">
           {operationsFilter.filter(operations.value).map((operation) => (
-            <OperationsListItem key={operation.id} operation={operation} />
+            <OperationsListItem
+              key={operation.id}
+              operation={operation}
+              onWorkflow={() => {
+                if (!operation.subtype) return;
+                viewActions.addElementToContainer(
+                  rootId,
+                  <WorkflowEditorView
+                    operation={operation}
+                    workflowId={operation.subtype}
+                  />
+                );
+              }}
+            />
           ))}
         </ul>
       )}

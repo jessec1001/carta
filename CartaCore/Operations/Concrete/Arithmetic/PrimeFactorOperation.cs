@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using CartaCore.Operations.Attributes;
 
 namespace CartaCore.Operations
 {
@@ -31,6 +32,9 @@ namespace CartaCore.Operations
     /// The prime factorization of a negative integer starts with a factor of -1.
     /// There is a zero prime factorization of zero.
     /// </summary>
+    [OperationName(Display = "Prime Factorization", Type = "primeFactor")]
+    [OperationTag(OperationTags.Arithmetic)]
+    [OperationTag(OperationTags.NumberTheory)]
     public class PrimeFactorOperation : TypedOperation
     <
         PrimeFactorOperationIn,
@@ -43,7 +47,7 @@ namespace CartaCore.Operations
             // Deal with the case of zero and one.
             long value = input.Integer;
             if (value == 0)
-                return Task.FromResult(new PrimeFactorOperationOut { Factors = new long[] { 0 }});
+                return Task.FromResult(new PrimeFactorOperationOut { Factors = new long[] { 0 } });
             if (value == 1)
                 return Task.FromResult(new PrimeFactorOperationOut { Factors = Array.Empty<long>() });
 

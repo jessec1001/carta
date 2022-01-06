@@ -43,6 +43,8 @@ namespace CartaCore.Operations
     /// <summary>
     /// Filters the vertices of a graph by the number of edges into and out of them.
     /// </summary>
+    [OperationName(Display = "Filter Vertices by Degree", Type = "filterVertexByDegree")]
+    [OperationTag(OperationTags.Graph)]
     [OperationSelector("degree")]
     public class FilterVertexByDegreeOperation : TypedOperation
     <
@@ -59,7 +61,8 @@ namespace CartaCore.Operations
                     Graph = new FilterGraph
                     (
                         input.Graph,
-                        (vertex) => {
+                        (vertex) =>
+                        {
                             if (vertex is not Vertex vertexInstance) return Task.FromResult(false);
                             if (input.InDegree is not null && vertexInstance.InEdges.Count() != input.InDegree)
                                 return Task.FromResult(false);

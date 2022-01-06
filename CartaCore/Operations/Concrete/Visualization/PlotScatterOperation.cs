@@ -1,6 +1,7 @@
 using System;
 using System.Drawing;
 using System.Threading.Tasks;
+using CartaCore.Operations.Attributes;
 using CartaCore.Operations.Visualization;
 
 namespace CartaCore.Operations
@@ -51,6 +52,9 @@ namespace CartaCore.Operations
     /// <summary>
     /// Visualizes a scatter plot of 2D or 3D data.
     /// </summary>
+    [OperationName(Display = "Scatter Plot", Type = "visualizeScatterPlot")]
+    [OperationTag(OperationTags.Visualization)]
+    [OperationVisualizer("scatter")]
     public class ScatterPlotOperation : TypedOperation
     <
         ScatterPlotOperationIn,

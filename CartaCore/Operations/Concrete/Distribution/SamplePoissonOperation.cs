@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using CartaCore.Operations.Attributes;
 
 namespace CartaCore.Operations
 {
@@ -40,6 +41,9 @@ namespace CartaCore.Operations
     /// The random numbers are generated using an exponential simulation detailed in
     /// [this article](https://www.johndcook.com/blog/csharp_poisson/).
     /// </summary>
+    [OperationName(Display = "Sample Poisson Distribution", Type = "samplePoisson")]
+    [OperationTag(OperationTags.Statistics)]
+    [OperationTag(OperationTags.Synthetic)]
     public class SamplePoissonOperation : TypedOperation
     <
         SamplePoissonOperationIn,
