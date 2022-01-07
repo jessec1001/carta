@@ -186,7 +186,7 @@ namespace CartaCore.Persistence
                     await DbTable.PutItemAsync(item, new PutItemOperationConfig { ConditionalExpression = expression });
                     return true;
                 }
-                catch (ConditionalCheckFailedException)
+                catch (ConditionalCheckFailedException ex)
                 {
                     return false;
                 }

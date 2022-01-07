@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using CartaWeb.Models.Data;
 
 namespace CartaWeb.Models.DocumentItem
@@ -26,8 +27,10 @@ namespace CartaWeb.Models.DocumentItem
             : base(workspaceId, operationId) { }
 
         /// <inheritdoc />
+        [JsonIgnore]
         public override string PartitionKeyPrefix => "WORKSPACE#";
         /// <inheritdoc />
+        [JsonIgnore]
         public override string SortKeyPrefix => "OPERATIONACCESS#";
     }
 

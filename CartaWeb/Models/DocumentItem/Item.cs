@@ -3,6 +3,7 @@ using System.Text.Json;
 using NUlid;
 using CartaCore.Persistence;
 using CartaCore.Serialization.Json;
+using System.Text.Json.Serialization;
 
 namespace CartaWeb.Models.DocumentItem
 {
@@ -31,7 +32,7 @@ namespace CartaWeb.Models.DocumentItem
         /// <summary>
         /// The partition key identifier, sans prefix. 
         /// </summary>
-        [NonSerialized()] protected string PartitionKeyId;
+        protected string PartitionKeyId;
 
         /// <summary>
         /// The unique identifier of the item.
@@ -77,12 +78,14 @@ namespace CartaWeb.Models.DocumentItem
         /// Codifies the partition key prefix to use for the document.
         /// </summary>
         /// <returns>The partition key prefix.</returns>
+        [JsonIgnore]
         public abstract string PartitionKeyPrefix { get; }
 
         /// <summary>
         /// Codifies the sort key prefix to use for the document.
         /// </summary>
         /// <returns>The sort key prefix.</returns>
+        [JsonIgnore]
         public abstract string SortKeyPrefix { get; }
 
 
@@ -113,8 +116,7 @@ namespace CartaWeb.Models.DocumentItem
             string docId = Ulid.NewUlid().ToString();
             if (Id is null) Id = docId;
             string sortKey = SortKeyPrefix + Id;
-            DbDocument dbDocument = new DbDocument
-            (
+            DbDocument dbDocument = new(
                 GetPartitionKey(),
                 sortKey,
                 JsonSerializer.Serialize(this, GetType(), JsonOptions),

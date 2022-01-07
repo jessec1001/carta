@@ -62,6 +62,7 @@ const SchemaBaseInput: FunctionComponent<SchemaBaseInputProps> = ({
     if ("enum" in schema) {
       // Having the enum property indicates an enumeration type value.
       const enumSchema = schema as JsonEnumSchema;
+      console.log(enumSchema);
       return (
         <SchemaEnumInput
           schema={enumSchema}

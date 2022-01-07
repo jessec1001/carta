@@ -56,6 +56,11 @@ namespace CartaWeb.Controllers
             DbDocument document = workflowItem.CreateDbDocument();
             return await _persistence.WriteDbDocumentAsync(document);
         }
+        public static async Task<bool> UpdateWorkflowAsync(WorkflowItem workflowItem, Persistence _persistence)
+        {
+            DbDocument document = workflowItem.UpdateDbDocument();
+            return await _persistence.WriteDbDocumentAsync(document);
+        }
         public static async Task<bool> DeleteWorkflowAsync(string workflowId, Persistence _persistence)
         {
             WorkflowItem workflowItem = new WorkflowItem(workflowId);
@@ -154,7 +159,7 @@ namespace CartaWeb.Controllers
             mergingWorkflowItem.Connections ??= workflowItem.Connections;
 
             // Save the updated workflow item and return its internal representation.
-            await SaveWorkflowAsync(workflowItem, _persistence);
+            await UpdateWorkflowAsync(workflowItem, _persistence);
             return Ok(workflowItem);
         }
         [HttpDelete("{workflowId}")]
@@ -227,7 +232,7 @@ namespace CartaWeb.Controllers
             workflowItem.Operations = workflowItem.Operations
                 .Append(suboperationItem.Id)
                 .ToArray();
-            await SaveWorkflowAsync(workflowItem, _persistence);
+            await UpdateWorkflowAsync(workflowItem, _persistence);
             return Ok();
         }
         [HttpDelete("{workflowId}/operations/{suboperationId}")]
@@ -276,7 +281,7 @@ namespace CartaWeb.Controllers
                 }
             }
 
-            await SaveWorkflowAsync(workflowItem, _persistence);
+            await UpdateWorkflowAsync(workflowItem, _persistence);
             return Ok();
         }
         #endregion
@@ -370,7 +375,7 @@ namespace CartaWeb.Controllers
             workflowItem.Connections = workflowItem.Connections
                 .Append(connection)
                 .ToArray();
-            await SaveWorkflowAsync(workflowItem, _persistence);
+            await UpdateWorkflowAsync(workflowItem, _persistence);
             return connection;
         }
         [HttpPatch("{workflowId}/connections/{connectionId}")]
@@ -456,7 +461,7 @@ namespace CartaWeb.Controllers
             mergingConnection.Source = connection.Source;
             mergingConnection.Target = connection.Target;
             workflowItem.Connections[connectionIndex] = mergingConnection;
-            await SaveWorkflowAsync(workflowItem, _persistence);
+            await UpdateWorkflowAsync(workflowItem, _persistence);
             return connection;
         }
         [HttpDelete("{workflowId}/connections/{connectionId}")]
@@ -489,7 +494,7 @@ namespace CartaWeb.Controllers
             workflowItem.Connections = workflowItem.Connections
                 .Where(connection => connection.Id != connectionId)
                 .ToArray();
-            await SaveWorkflowAsync(workflowItem, _persistence);
+            await UpdateWorkflowAsync(workflowItem, _persistence);
             return Ok();
         }
 

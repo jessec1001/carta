@@ -250,8 +250,7 @@ namespace CartaCore.Operations
                 }
 
                 // We store the output as a new result on the results dictionary.
-                // TODO: Perhaps unnecessary conversion.
-                Results.TryAdd(operationId, result.AsDictionary(result.GetType()));
+                Results.TryAdd(operationId, result);
                 return operationId;
             }
 

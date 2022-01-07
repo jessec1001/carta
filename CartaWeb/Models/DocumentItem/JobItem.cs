@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 using CartaCore.Operations;
 
 namespace CartaWeb.Models.DocumentItem
@@ -38,8 +39,10 @@ namespace CartaWeb.Models.DocumentItem
             : base(operationId, jobId) { }
 
         /// <inheritdoc />
+        [JsonIgnore]
         public override string PartitionKeyPrefix => "OPERATION#";
         /// <inheritdoc />
+        [JsonIgnore]
         public override string SortKeyPrefix => "JOB#";
     }
 }

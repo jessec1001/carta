@@ -86,6 +86,12 @@ namespace CartaWeb.Controllers
             bool isSaved = await _persistence.WriteDbDocumentAsync(document);
             return isSaved;
         }
+        public static async Task<bool> UpdateOperationAsync(OperationItem operationItem, Persistence _persistence)
+        {
+            DbDocument document = operationItem.UpdateDbDocument();
+            bool isSaved = await _persistence.WriteDbDocumentAsync(document);
+            return isSaved;
+        }
         /// <summary>
         /// Deletes the specified operation from the database.
         /// </summary>
@@ -121,6 +127,12 @@ namespace CartaWeb.Controllers
         public static async Task<bool> SaveJobAsync(JobItem jobItem, Persistence _persistence)
         {
             DbDocument document = jobItem.CreateDbDocument();
+            bool isSaved = await _persistence.WriteDbDocumentAsync(document);
+            return isSaved;
+        }
+        public static async Task<bool> UpdateJobAsync(JobItem jobItem, Persistence _persistence)
+        {
+            DbDocument document = jobItem.UpdateDbDocument();
             bool isSaved = await _persistence.WriteDbDocumentAsync(document);
             return isSaved;
         }
@@ -379,7 +391,7 @@ namespace CartaWeb.Controllers
             mergingOperationItem.Default ??= operationItem.Default;
 
             // Save the updated operation item and return its internal representation.
-            await SaveOperationAsync(mergingOperationItem, _persistence);
+            await UpdateOperationAsync(mergingOperationItem, _persistence);
             return Ok(mergingOperationItem);
         }
         /// <summary>

@@ -28,7 +28,7 @@ namespace CartaCore.Operations
     /// <summary>
     /// Calculates the central kurtosis of a set of numeric values.
     /// </summary>
-    [OperationName(Display = "Statistical Kurtosis", Type = "statsSkew")]
+    [OperationName(Display = "Statistical Kurtosis", Type = "statsKurtosis")]
     [OperationTag(OperationTags.Statistics)]
     public class KurtosisOperation : TypedOperation
     <

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text.Json.Serialization;
 using CartaWeb.Models.Data;
 
 namespace CartaWeb.Models.DocumentItem
@@ -27,7 +28,7 @@ namespace CartaWeb.Models.DocumentItem
         /// </summary>
         /// <param name="partitionKeyId">The partition key identifier.</param>
         /// <param name="userInformation">User information.</param>
-        public UserItem (string partitionKeyId, UserInformation userInformation)
+        public UserItem(string partitionKeyId, UserInformation userInformation)
         {
             PartitionKeyId = partitionKeyId;
             Id = userInformation.Id;
@@ -53,13 +54,14 @@ namespace CartaWeb.Models.DocumentItem
         /// Codifies the partition key prefix to use for the document.
         /// </summary>
         /// <returns>The partition key prefix.</returns>
-        public override string PartitionKeyPrefix { get { return "WORKSPACE#"; } }
+        [JsonIgnore]
+        public override string PartitionKeyPrefix => "WORKSPACE#";
 
         /// <summary>
         /// Codifies the sort key prefix to use for the document.
         /// </summary>
         /// <returns>The sort key prefix.</returns>
-        public override string SortKeyPrefix { get { return "USER#"; } }
+        [JsonIgnore]
+        public override string SortKeyPrefix => "USER#";
     }
 }
- 

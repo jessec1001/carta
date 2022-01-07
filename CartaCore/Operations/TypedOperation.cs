@@ -36,7 +36,7 @@ namespace CartaCore.Operations
         public override async Task Perform(OperationContext context)
         {
             TInput input = context.Input.AsTyped<TInput>();
-            TOutput output = await Perform(input);
+            TOutput output = await Perform(input, context.Parent);
             context.Output = output.AsDictionary();
         }
 

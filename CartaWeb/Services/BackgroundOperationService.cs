@@ -36,7 +36,7 @@ namespace Carta.Api.Services
             {
                 Func<IServiceScopeFactory, (JobItem jobItem, Operation operation, OperationContext context)> item = await TaskCollection.Pop();
 
-                    (JobItem jobItem, Operation operation, OperationContext context) = item(ServiceScopeFactory);
+                (JobItem jobItem, Operation operation, OperationContext context) = item(ServiceScopeFactory);
                 try
                 {
                     if (operation is WorkflowOperation workflow)
@@ -51,14 +51,14 @@ namespace Carta.Api.Services
                         }
                     }
                     await operation.Perform(context);
-                   
+
 
                     jobItem.Completed = true;
                     jobItem.Result = context.Output;
 
-                    await OperationsController.SaveJobAsync(jobItem, _persistence);
+                    await OperationsController.UpdateJobAsync(jobItem, _persistence);
                 }
-                catch(Exception exception)
+                catch (Exception exception)
                 {
                     Logger.LogError(exception, "Unrecoverable operations error occurred.");
                 }

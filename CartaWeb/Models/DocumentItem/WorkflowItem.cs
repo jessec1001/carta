@@ -1,4 +1,5 @@
 using System;
+using System.Text.Json.Serialization;
 
 namespace CartaWeb.Models.DocumentItem
 {
@@ -94,8 +95,10 @@ namespace CartaWeb.Models.DocumentItem
         }
 
         /// <inheritdoc />
+        [JsonIgnore]
         public override string PartitionKeyPrefix => "WORKFLOW#ALL";
         /// <inheritdoc />
+        [JsonIgnore]
         public override string SortKeyPrefix => "WORKFLOW#";
     }
 }

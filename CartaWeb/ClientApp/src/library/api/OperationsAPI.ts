@@ -1,5 +1,5 @@
 import queryString from "query-string";
-import { JsonSchema } from "library/schema";
+import { flattenSchema, JsonSchema } from "library/schema";
 import BaseAPI from "./BaseAPI";
 import { Job, Operation, OperationType } from "./operations";
 
@@ -183,7 +183,7 @@ class OperationsAPI extends BaseAPI {
       "Error occurred while trying to fetch operation input schema."
     );
 
-    return await this.readJSON<JsonSchema>(response);
+    return flattenSchema(await this.readJSON<JsonSchema>(response));
   }
   public async getOperationOutputSchema(
     operationId: string
@@ -199,7 +199,7 @@ class OperationsAPI extends BaseAPI {
       "Error occurred while trying to fetch operation output schema."
     );
 
-    return await this.readJSON<JsonSchema>(response);
+    return flattenSchema(await this.readJSON<JsonSchema>(response));
   }
   // #endregion
 }
