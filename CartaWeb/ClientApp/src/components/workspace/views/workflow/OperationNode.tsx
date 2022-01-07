@@ -13,12 +13,12 @@ import { Theme, ThemeContext } from "context";
 import { useWorkflow } from "./WorkflowContext";
 import classNames from "classnames";
 import { OperationGridContext } from "./OperationGrid";
+import { useDelayCallback } from "hooks";
 
 interface OperationNodeProps {
   operation: Operation;
   type: OperationType;
   data?: any;
-  onModify?: (defaults: any) => void;
 }
 
 const Visualizer: FunctionComponent<{ data: any; type: string }> = ({
@@ -104,14 +104,21 @@ const Visualizer: FunctionComponent<{ data: any; type: string }> = ({
 const OperationNode: FunctionComponent<OperationNodeProps> = ({
   type,
   operation,
-  onModify,
   data,
 }) => {
+  const [defaults, setDefaults] = useState<Record<string, any>>(
+    operation.default ?? {}
+  );
   const { workflow, selected, select, updateOperation, input } = useWorkflow();
 
   const { setVerticalPosition } = useContext(OperationGridContext)!;
   const [startPosition, setStartPosition] = useState<number | null>(null);
   const elementRef = useRef<HTMLDivElement>(null);
+
+  // If the operation defaults have changed, update them within the state.
+  useEffect(() => {
+    setDefaults(operation.default ?? {});
+  }, [operation.default]);
 
   useEffect(() => {
     const handleMouseMove = (event: MouseEvent) => {
@@ -135,10 +142,18 @@ const OperationNode: FunctionComponent<OperationNodeProps> = ({
 
   const { theme } = useContext(ThemeContext);
 
+  // When any of the operation inputs is changed, we wait for inputs to stop before dispatching the update.
+  const handleUpdate = useDelayCallback(updateOperation, 2500);
   const handleModify = (key: string, value: any) => {
-    const defaults = { ...operation.default, [key]: value };
-    onModify && onModify(defaults);
-    updateOperation(operation.id, defaults);
+    setDefaults((defaults) => {
+      const newDefaults = {
+        ...defaults,
+        [key]: value,
+      };
+
+      handleUpdate(operation.id, newDefaults);
+      return newDefaults;
+    });
   };
 
   return (
@@ -199,7 +214,7 @@ const OperationNode: FunctionComponent<OperationNodeProps> = ({
                     <div style={{ flexGrow: 1 }}>
                       <SchemaBaseInput
                         schema={value}
-                        value={operation.default![key]}
+                        value={defaults![key]}
                         onChange={(value: any) => handleModify(key, value)}
                       />
                     </div>

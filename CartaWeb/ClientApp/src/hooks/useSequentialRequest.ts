@@ -9,7 +9,7 @@ import { useCallback, useRef } from "react";
  */
 const useSequentialRequest = <T>(
   callback: (value: T) => void,
-  cancels?: boolean
+  cancels: boolean = true
 ) => {
   // This tracks current requests to make sure that the previous request is executed fully before the next.
   // Additionally, if canceling is enabled, the identifier allows us to check if the callback should be called.
