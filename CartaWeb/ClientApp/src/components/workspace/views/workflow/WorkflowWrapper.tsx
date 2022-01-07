@@ -47,6 +47,27 @@ const WorkflowWrapper: FunctionComponent<WorkflowWrapperProps> = ({
       .then((operationTypes) => setOperationTypes(operationTypes));
   }, [operationsAPI]);
 
+  // Get the operations for the workflow.
+  useEffect(() => {
+    const fetchNewOperations = async () => {
+      // Notice that if no operations are added, the state is not updated.
+      let newOperations = operations;
+      for (const operationId of workflow.operations) {
+        // Check if the operation is already in the list.
+        if (operations.find((op) => op.id === operationId)) continue;
+
+        // Get the operation if it's not in the list.
+        const operation = await operationsAPI.getOperation(operationId);
+        newOperations = [...newOperations, operation];
+      }
+
+      // Update the state.
+      setOperations(newOperations);
+    };
+
+    fetchNewOperations();
+  }, [operations, operationsAPI, workflow.operations]);
+
   // TODO: Add delay and synchronicity to this.
   const handleExecuteWorkflow = async (): Promise<Job | null> => {
     let job = await operationsAPI.executeOperation(operation.id, input ?? {});
