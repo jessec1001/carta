@@ -205,13 +205,13 @@ namespace CartaWeb.Controllers
             // TODO: Reimplement workflow types.
             // Get the descriptions for all of the operations.
             OperationDescription[] descriptionsSimple = OperationDescription.FromOperationTypes();
-            // OperationDescription[] descriptionsWorkflow = await WorkflowsController.LoadWorkflowDescriptionsAsync();
+            OperationDescription[] descriptionsWorkflow = await WorkflowsController.LoadWorkflowDescriptionsAsync(_persistence);
             OperationDescription[] descriptions = new OperationDescription
             [
-                descriptionsSimple.Length // + descriptionsWorkflow.Length
+                descriptionsSimple.Length + descriptionsWorkflow.Length
             ];
             descriptionsSimple.CopyTo(descriptions, 0);
-            // descriptionsWorkflow.CopyTo(descriptions, descriptionsSimple.Length);
+            descriptionsWorkflow.CopyTo(descriptions, descriptionsSimple.Length);
 
             // If the tags filter was specified, we filter operations based on the union of tags specified.
             // That is, if any of the specified tags exist on the operation description, that operation is included.

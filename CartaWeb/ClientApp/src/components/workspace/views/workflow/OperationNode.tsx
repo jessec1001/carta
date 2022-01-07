@@ -106,6 +106,7 @@ const OperationNode: FunctionComponent<OperationNodeProps> = ({
   operation,
   data,
 }) => {
+  console.log(operation);
   const [defaults, setDefaults] = useState<Record<string, any>>(
     operation.default ?? {}
   );
@@ -237,10 +238,11 @@ const OperationNode: FunctionComponent<OperationNodeProps> = ({
             })}
         </div>
       </div>
-      {operation.type === "plotScatter" && (
+      {/* TODO: Transition to using visualization names provided by the server. */}
+      {operation.type === "visualizeScatterPlot" && (
         <Visualizer data={data} type="scatter" />
       )}
-      {operation.type === "plotHistogram" && (
+      {operation.type === "visualizeHistogramPlot" && (
         <Visualizer data={data} type="histogram" />
       )}
       {operation.type === "workflowOutput" && (

@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using CartaCore.Typing.Conversion;
 
 namespace CartaCore.Utilities
 {
@@ -19,69 +20,59 @@ namespace CartaCore.Utilities
         /// </summary>
         /// <param name="fields">The dictionary of fields.</param>
         /// <param name="type">The type of value.</param>
+        /// <param name="context">The type conversion context. Optional.</param>
         /// <returns>The converted value.</returns>
-        public static object AsTyped(this Dictionary<string, object> fields, Type type)
+        public static object AsTyped(
+            this Dictionary<string, object> fields,
+            Type type,
+            TypeConverterContext context = null)
         {
-            // Initialize the value.
-            object value = Activator.CreateInstance(type);
-
-            // Foreach field in the dictionary, find a corresponding property in the value if it exists and set it.
-            foreach (KeyValuePair<string, object> entry in fields)
-            {
-                PropertyInfo property = type.GetProperty(
-                    entry.Key,
-                    BindingFlags.Instance |
-                    BindingFlags.Public |
-                    BindingFlags.IgnoreCase
-                );
-
-                if (property is null) continue;
-                else property.SetValue(value, entry.Value);
-            }
-            return value;
+            TypeConverter converter = (TypeConverter)context ?? new DictionaryTypeConverter();
+            if (converter.TryConvert(type, fields, out object result)) return result;
+            throw new InvalidOperationException($"Could not convert dictionary to type {type.Name}.");
         }
         /// <summary>
         /// Converts a dictionary into a typed value.
         /// </summary>
         /// <param name="fields">The dictionary of fields.</param>
+        /// <param name="context">The type conversion context. Optional.</param>
         /// <typeparam name="T">The type of value.</typeparam>
         /// <returns>The converted value.</returns>
-        public static T AsTyped<T>(this Dictionary<string, object> fields)
+        public static T AsTyped<T>(this Dictionary<string, object> fields, TypeConverterContext context = null)
         {
-            return (T)AsTyped(fields, typeof(T));
+            return (T)AsTyped(fields, typeof(T), context);
         }
         /// <summary>
         /// Converts a value into a field dictionary.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <param name="type">The type of value.</param>
+        /// <param name="context">The type conversion context. Optional.</param>
         /// <returns>The converted dictionary.</returns>
-        public static Dictionary<string, object> AsDictionary(this object value, Type type)
+        public static Dictionary<string, object> AsDictionary(
+            this object value,
+            Type type,
+            TypeConverterContext context = null)
         {
-            // Foreach property of the type, convert to a dictionary entry.
-            Dictionary<string, object> fields = type
-                .GetProperties(
-                    BindingFlags.Instance |
-                    BindingFlags.Public |
-                    BindingFlags.IgnoreCase
-                )
-                .ToDictionary(
-                    property => property.Name,
-                    property => property.GetValue(value)
-                );
-            return fields;
+            TypeConverter converter = (TypeConverter)context ?? new DictionaryTypeConverter();
+            if (converter.TryConvert(value, out Dictionary<string, object> result)) return result;
+            throw new InvalidOperationException($"Could not convert value to dictionary.");
         }
         /// <summary>
         /// Converts a value into a field dictionary.
         /// </summary>
         /// <param name="value">The value.</param>
+        /// <param name="context">The type conversion context. Optional.</param>
         /// <typeparam name="T">The type of value.</typeparam>
         /// <returns>The converted dictionary.</returns>
-        public static Dictionary<string, object> AsDictionary<T>(this T value)
+        public static Dictionary<string, object> AsDictionary<T>(this T value, TypeConverterContext context = null)
         {
-            return AsDictionary(value, typeof(T));
+            return AsDictionary(value, typeof(T), context);
         }
 
+        /// <summary>
+        /// Provides utilities for hashing dictionaries and their contents.
+        /// </summary>
         private static class DictionaryHashing
         {
             /// <summary>
@@ -142,7 +133,7 @@ namespace CartaCore.Utilities
                     _ => BitConverter.GetBytes(value.GetHashCode()),
                 };
             }
-        
+
             /// <summary>
             /// Creates a hash of a key in the field dictionary.
             /// </summary>

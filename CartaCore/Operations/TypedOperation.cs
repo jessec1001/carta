@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using CartaCore.Typing.Conversion;
 using CartaCore.Utilities;
 
 namespace CartaCore.Operations
@@ -35,9 +36,9 @@ namespace CartaCore.Operations
         /// <inheritdoc />
         public override async Task Perform(OperationContext context)
         {
-            TInput input = context.Input.AsTyped<TInput>();
+            TInput input = context.Input.AsTyped<TInput>(TypeConverterContext.Default);
             TOutput output = await Perform(input, context.Parent);
-            context.Output = output.AsDictionary();
+            context.Output = output.AsDictionary(TypeConverterContext.Default);
         }
 
         /// <summary>
@@ -50,7 +51,7 @@ namespace CartaCore.Operations
         /// <inheritdoc />
         public override bool IsDeterministic(OperationContext context)
         {
-            TInput input = context.Input.AsTyped<TInput>();
+            TInput input = context.Input.AsTyped<TInput>(TypeConverterContext.Default);
             return IsDeterministic(input);
         }
 
@@ -59,7 +60,7 @@ namespace CartaCore.Operations
         /// </summary>
         public TInput DefaultTyped
         {
-            get => Default.AsTyped<TInput>();
+            get => Default.AsTyped<TInput>(TypeConverterContext.Default);
             set => Default = value.AsDictionary();
         }
 

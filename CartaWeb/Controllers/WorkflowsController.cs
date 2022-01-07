@@ -18,30 +18,30 @@ namespace CartaWeb.Controllers
         private readonly ILogger<WorkflowsController> _logger;
         private readonly Persistence _persistence;
 
-        // public static async Task<OperationDescription[]> LoadWorkflowDescriptionsAsync()
-        // {
-        //     // Get all of the workflows.
-        //     WorkflowItem[] workflowItems = await LoadWorkflowsAsync();
+        public static async Task<OperationDescription[]> LoadWorkflowDescriptionsAsync(Persistence _persistence)
+        {
+            // Get all of the workflows.
+            List<WorkflowItem> workflowItems = await LoadWorkflowsAsync(_persistence);
 
-        //     // Convert the workflow items into descriptions.
-        //     return workflowItems
-        //         .Select(workflowItem =>
-        //         {
-        //             // TODO: We should make the "workflow" type a constant somewhere.
-        //             // TODO: Allow tags to be assigned to workflows in front-end and back-end.
-        //             // TODO: Allow description of the workflow to be assigned in front-end.
-        //             return new OperationDescription()
-        //             {
-        //                 Type = "workflow",
-        //                 Subtype = workflowItem.Id.ToString(),
+            // Convert the workflow items into descriptions.
+            return workflowItems
+                .Select(workflowItem =>
+                {
+                    // TODO: We should make the "workflow" type a constant somewhere.
+                    // TODO: Allow tags to be assigned to workflows in front-end and back-end.
+                    // TODO: Allow description of the workflow to be assigned in front-end.
+                    return new OperationDescription()
+                    {
+                        Type = "workflow",
+                        Subtype = workflowItem.Id.ToString(),
 
-        //                 Display = workflowItem.Name,
-        //                 Description = workflowItem.Description,
-        //                 Tags = Array.Empty<string>(),
-        //             };
-        //         })
-        //         .ToArray();
-        // }
+                        Display = workflowItem.Name,
+                        Description = workflowItem.Description,
+                        Tags = Array.Empty<string>(),
+                    };
+                })
+                .ToArray();
+        }
 
         /// <inheritdoc />
         public WorkflowsController(ILogger<WorkflowsController> logger, INoSqlDbContext noSqlDbContext)
@@ -72,6 +72,12 @@ namespace CartaWeb.Controllers
             WorkflowItem workflowItem = new WorkflowItem(workflowId);
             Item item = await _persistence.LoadItemAsync(workflowItem);
             return (WorkflowItem)item;
+        }
+        public static async Task<List<WorkflowItem>> LoadWorkflowsAsync(Persistence _persistence)
+        {
+            WorkflowItem workflowItem = new WorkflowItem();
+            IEnumerable<Item> items = await _persistence.LoadItemsAsync(workflowItem);
+            return items.Select(item => (WorkflowItem)item).ToList();
         }
         #endregion
 

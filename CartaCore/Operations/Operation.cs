@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using CartaCore.Data;
 using CartaCore.Operations.Attributes;
+using CartaCore.Typing.Conversion;
 using CartaCore.Utilities;
 
 namespace CartaCore.Operations
@@ -39,7 +40,7 @@ namespace CartaCore.Operations
         /// Nothing. The implementation is expected to set values on the input or output of the context.
         /// </returns>
         public abstract Task Perform(OperationContext context);
-    
+
         /// <summary>
         /// Determines whether the operation is deterministic or non-deterministic on a specified context. This allows
         /// for operations to be memoized. By default, operations are assumed to be deterministic, and thus, memoized.
@@ -148,7 +149,7 @@ namespace CartaCore.Operations
             for (int k = 0; k < operationTypes.Length; k++)
             {
                 descriptions[k] = OperationDescription.FromType(operationTypes[k]);
-                
+
                 // Find the operation type corresponding to the specified type.
                 if (descriptions[k].Type == type)
                 {
@@ -217,7 +218,7 @@ namespace CartaCore.Operations
             for (int k = 0; k < operationTypes.Length; k++)
             {
                 descriptions[k] = OperationDescription.FromType(operationTypes[k]);
-                
+
                 // Find the operation type corresponding to the specified selector.
                 if (descriptions[k].Selector == selector)
                 {
@@ -280,9 +281,9 @@ namespace CartaCore.Operations
             // TODO: We need to inherit execution settings from the calling API.
             // Execute the operation.
             OperationContext context = new() { Operation = operation };
-            context.Input = input.AsDictionary(inputType);
+            context.Input = input.AsDictionary(inputType, TypeConverterContext.Default);
             await operation.Perform(context);
-            object output = context.Output.AsTyped(outputType);
+            object output = context.Output.AsTyped(outputType, TypeConverterContext.Default);
 
             // Find the field on the output object that corresponds to the selector graph.
             foreach (PropertyInfo property in output.GetType().GetProperties())
