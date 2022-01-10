@@ -40,7 +40,7 @@ namespace CartaCore.Operations
         public override Task<MeanOperationOut> Perform(MeanOperationIn input)
         {
             return Task.FromResult(
-                new MeanOperationOut() { Mean = StatisticsUtils.ComputeMean(input.Values) }
+                new MeanOperationOut() { Mean = StatisticsUtility.ComputeMean(input.Values) }
             );
         }
     }

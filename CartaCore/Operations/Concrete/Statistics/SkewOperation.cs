@@ -42,7 +42,7 @@ namespace CartaCore.Operations
             return Task.FromResult
             (
                 new SkewOperationOut()
-                { Skew = StatisticsUtils.ComputeNormalizedMoment(input.Values, 3) }
+                { Skew = StatisticsUtility.ComputeNormalizedMoment(input.Values, 3) }
             );
         }
     }

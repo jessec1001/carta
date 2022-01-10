@@ -40,7 +40,7 @@ namespace CartaCore.Operations
         public override Task<MedianOperationOut> Perform(MedianOperationIn input)
         {
             return Task.FromResult(
-                new MedianOperationOut() { Median = StatisticsUtils.ComputeMedian(input.Values) }
+                new MedianOperationOut() { Median = StatisticsUtility.ComputeMedian(input.Values) }
             );
         }
     }

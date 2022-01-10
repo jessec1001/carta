@@ -5,7 +5,7 @@ namespace CartaCore.Statistics
     /// <summary>
     /// Contains some simple utilities for computing statistical quantities.
     /// </summary>
-    public static class StatisticsUtils
+    public static class StatisticsUtility
     {
         /// <summary>
         /// Computes the mean of a list of values.
@@ -64,6 +64,17 @@ namespace CartaCore.Statistics
             double moment = ComputeMoment(values, order);
             double variance = ComputeMoment(values, 2);
             return moment / Math.Pow(variance, order / 2);
+        }
+        /// <summary>
+        /// Computes the Jarque-Bera test statistic (Chi-squared distributed) for a list of values. 
+        /// </summary>
+        /// <param name="values">The values,</param>
+        /// <returns>The Jarque-Bera test statistic.</returns>
+        public static double ComputeJarqueBera(double[] values)
+        {
+            double skewness = ComputeNormalizedMoment(values, 3);
+            double kurtosis = ComputeNormalizedMoment(values, 4);
+            return values.Length / 6 * (Math.Pow(skewness, 2) + Math.Pow(kurtosis - 3, 2) / 4);
         }
     }
 }

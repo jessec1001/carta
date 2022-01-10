@@ -42,7 +42,7 @@ namespace CartaCore.Operations
             return Task.FromResult
             (
                 new KurtosisOperationOut()
-                { Kurtosis = StatisticsUtils.ComputeNormalizedMoment(input.Values, 4) }
+                { Kurtosis = StatisticsUtility.ComputeNormalizedMoment(input.Values, 4) }
             );
         }
     }

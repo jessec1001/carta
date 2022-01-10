@@ -8,7 +8,7 @@ using NUnit.Framework;
 using CartaCore.Data;
 using CartaCore.Integration.Synthetic;
 
-namespace CartaTest.Data.Synthetic
+namespace CartaTest.Integration.Synthetic
 {
     /// <summary>
     /// Tests the generation of the <see cref="InfiniteDirectedGraph"/> object.

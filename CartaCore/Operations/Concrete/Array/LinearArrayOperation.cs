@@ -56,19 +56,18 @@ namespace CartaCore.Operations
         /// <inheritdoc />
         public override Task<LinearArrayOperationOut> Perform(LinearArrayOperationIn input)
         {
-            // If there are no steps specified, return an empty array.
-            if (input.Steps <= 0)
+            // If the number of steps is negative, flip the range.
+            if (input.Steps < 0)
             {
-                return Task.FromResult(new LinearArrayOperationOut()
-                {
-                    Values = Array.Empty<double>()
-                });
+                input.Steps = -input.Steps;
+                (input.Maximum, input.Minimum) = (input.Minimum, input.Maximum);
+                (input.ExclusiveMaximum, input.ExclusiveMinimum) = (input.ExclusiveMinimum, input.ExclusiveMaximum);
             }
 
             // Generate the values by stepping upwards from minimum to maximum.
             // Notice that if the max and min are swapped, this algorithm still performs but in the opposite direction.
             double[] values = new double[input.Steps];
-            int stepCount = (input.ExclusiveMinimum ? 1 : 0) + (input.ExclusiveMaximum ? 1 : 0);
+            int stepCount = (input.ExclusiveMinimum ? 1 : 0) + (input.ExclusiveMaximum ? 1 : 0) + input.Steps;
             double stepValue = (input.Maximum - input.Minimum) / (stepCount <= 1 ? 1 : stepCount - 1);
             double currentValue = input.Minimum + (input.ExclusiveMinimum ? 1 : 0) * stepValue;
             for (int k = 0; k < input.Steps; k++)

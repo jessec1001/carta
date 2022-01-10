@@ -6,7 +6,7 @@ using NUnit.Framework;
 using CartaCore.Data;
 using CartaCore.Integration.Synthetic;
 
-namespace CartaTest
+namespace CartaTest.Integration.Synthetic
 {
     /// <summary>
     /// Tests the generation of the <see cref="FiniteUndirectedGraph"/> object.
