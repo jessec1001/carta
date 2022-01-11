@@ -1,7 +1,7 @@
 import { SchemaBaseInput } from "components/form/schema";
 import { Operation, OperationType } from "library/api";
 import { JsonObjectSchema } from "library/schema";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { FunctionComponent } from "react";
 import LockIcon from "components/icons/LockIcon";
 import "./OperationNode.css";
@@ -14,6 +14,9 @@ import { useWorkflow } from "./WorkflowContext";
 import classNames from "classnames";
 import { OperationGridContext } from "./OperationGrid";
 import { useDelayCallback } from "hooks";
+import { VisualizeIcon } from "components/icons";
+import { useViews } from "components/views";
+import VisualizerView from "../VisualizerView";
 
 interface OperationNodeProps {
   operation: Operation;
@@ -113,7 +116,12 @@ const OperationNode: FunctionComponent<OperationNodeProps> = ({
   operation,
   data,
 }) => {
-  console.log(operation);
+  const [updater, setUpdater] = useState<null | ((data: any) => void)>(() => {
+    console.log("INIT");
+    return null;
+  });
+  console.log(updater);
+  const { rootId, actions: viewActions } = useViews();
   const [defaults, setDefaults] = useState<Record<string, any>>(
     operation.default ?? {}
   );
@@ -148,6 +156,12 @@ const OperationNode: FunctionComponent<OperationNodeProps> = ({
     };
   }, [startPosition]);
 
+  useEffect(() => {
+    if (updater) {
+      updater(data);
+    }
+  }, [data, updater]);
+
   const { theme } = useContext(ThemeContext);
 
   // When any of the operation inputs is changed, we wait for inputs to stop before dispatching the update.
@@ -163,6 +177,13 @@ const OperationNode: FunctionComponent<OperationNodeProps> = ({
       return newDefaults;
     });
   };
+
+  const handleVisualizer = useCallback((fn: null | ((data: any) => void)) => {
+    setUpdater(() => {
+      console.log(fn);
+      return fn;
+    });
+  }, []);
 
   return (
     <>
@@ -190,6 +211,34 @@ const OperationNode: FunctionComponent<OperationNodeProps> = ({
           }}
         >
           <span>{type.display}</span>
+          {/* TODO: It would be nice if icons were clickable. */}
+          {/* TODO: Allow for multiple visualizers to be opened. */}
+          {/* For visualizer types, a visualize button should be displayed. */}
+          {type.visualization && (
+            <span
+              style={{
+                display: "flex",
+                alignItems: "center",
+              }}
+              // TODO: Figure out some better way to forward data.
+              onClick={() => {
+                viewActions.addElementToContainer(
+                  rootId,
+                  <VisualizerView
+                    type={type.visualization!}
+                    name={operation.default!["Name"]}
+                    onUpdate={handleVisualizer}
+                    onClose={() => {
+                      console.log("HERE");
+                      setUpdater(null);
+                    }}
+                  />
+                );
+              }}
+            >
+              <VisualizeIcon />
+            </span>
+          )}
           {/* TODO: Reimplement (workflow locked symbol) */}
           {false && <LockIcon />}
         </div>
@@ -246,19 +295,19 @@ const OperationNode: FunctionComponent<OperationNodeProps> = ({
         </div>
       </div>
       {/* TODO: Transition to using visualization names provided by the server. */}
-      {operation.type === "visualizeScatterPlot" && (
+      {!updater && operation.type === "visualizeScatterPlot" && (
         <Visualizer data={data} type="scatter" />
       )}
-      {operation.type === "visualizeHistogramPlot" && (
+      {!updater && operation.type === "visualizeHistogramPlot" && (
         <Visualizer data={data} type="histogram" />
       )}
-      {operation.type === "visualizeGraphPlot" && (
+      {!updater && operation.type === "visualizeGraphPlot" && (
         <Visualizer data={data} type="graph" />
       )}
-      {operation.type === "workflowOutput" && (
+      {!updater && operation.type === "workflowOutput" && (
         <Visualizer data={data} type="output" />
       )}
-      {operation.type === "workflowInput" && (
+      {!updater && operation.type === "workflowInput" && (
         <Visualizer data={operation.default?.Name} type="input" />
       )}
     </>

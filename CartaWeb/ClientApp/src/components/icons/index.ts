@@ -10,8 +10,9 @@ import PropertyIcon from "./PropertyIcon";
 import UserIcon from "./UserIcon";
 import WorkflowIcon from "./WorkflowIcon";
 import LoadingIcon from "./LoadingIcon";
-import VertexIcon from "./VertexIcon";
 import ValueIcon from "./ValueIcon";
+import VisualizeIcon from "./VisualizeIcon";
+import VertexIcon from "./VertexIcon";
 
 export {
   CartaIcon,
@@ -26,6 +27,7 @@ export {
   PropertyIcon,
   UserIcon,
   ValueIcon,
+  VisualizeIcon,
   VertexIcon,
   WorkflowIcon,
 };
