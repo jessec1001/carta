@@ -7,7 +7,7 @@ import LockIcon from "components/icons/LockIcon";
 import "./OperationNode.css";
 import OperationNodeConnector from "./OperationNodeConnector";
 import { useRef } from "react";
-import { ScatterPlot, HistogramPlot } from "visualize-carta";
+import { ScatterPlot, HistogramPlot, GraphPlot } from "visualize-carta";
 import { useContext } from "react";
 import { Theme, ThemeContext } from "context";
 import { useWorkflow } from "./WorkflowContext";
@@ -51,6 +51,13 @@ const Visualizer: FunctionComponent<{ data: any; type: string }> = ({
             ...data,
             size: { width: 400, height: 400 },
           });
+          break;
+        case "graph":
+          GraphPlot(ref.current, {
+            ...data,
+            size: { width: 400, height: 400 },
+          });
+          break;
       }
     }
     // TODO: Revert once re-rendering issue has been solved
@@ -244,6 +251,9 @@ const OperationNode: FunctionComponent<OperationNodeProps> = ({
       )}
       {operation.type === "visualizeHistogramPlot" && (
         <Visualizer data={data} type="histogram" />
+      )}
+      {operation.type === "visualizeGraphPlot" && (
+        <Visualizer data={data} type="graph" />
       )}
       {operation.type === "workflowOutput" && (
         <Visualizer data={data} type="output" />

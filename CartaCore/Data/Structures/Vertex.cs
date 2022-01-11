@@ -11,15 +11,16 @@ namespace CartaCore.Data
         /// <inheritdoc />
         public IEnumerable<Edge> Edges { get; protected init; } = Enumerable.Empty<Edge>();
 
+        // TODO: Fix the long-lasting problem where we cannot use the double equals operator on identifiers.
         /// <summary>
         /// The in-edges pointing from this vertex.
         /// </summary>
-        public IEnumerable<Edge> InEdges => Edges.Where(e => e.Target == Identifier);
+        public IEnumerable<Edge> InEdges => Edges.Where(e => e.Target.Equals(Identifier));
         /// <summary>
         /// The out-edges pointing to this vertex.
         /// </summary>
         /// <returns></returns>
-        public IEnumerable<Edge> OutEdges => Edges.Where(e => e.Source == Identifier);
+        public IEnumerable<Edge> OutEdges => Edges.Where(e => e.Source.Equals(Identifier));
 
         /// <summary>
         /// Initializes an instance of the <see cref="Vertex"/> class with its specified identifier, a set of properties

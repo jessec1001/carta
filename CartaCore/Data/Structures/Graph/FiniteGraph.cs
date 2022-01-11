@@ -295,11 +295,11 @@ namespace CartaCore.Data
             if (VertexSet.TryGetValue(id, out Vertex vertex))
             {
                 // Get the edges for the vertex.
-                IEnumerable<Edge> edges = Enumerable.Empty<Edge>();
+                HashSet<Edge> edges = new();
                 if (InEdgeSet.TryGetValue(id, out HashSet<Edge> inEdges))
-                    edges = edges.Concat(inEdges);
+                    edges.UnionWith(inEdges);
                 if (OutEdgeSet.TryGetValue(id, out HashSet<Edge> outEdges))
-                    edges = edges.Concat(outEdges);
+                    edges.UnionWith(outEdges);
 
                 // Create the vertex.
                 return new Vertex(vertex.Identifier, vertex.Properties, edges)
