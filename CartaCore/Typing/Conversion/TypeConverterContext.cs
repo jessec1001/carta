@@ -27,6 +27,9 @@ namespace CartaCore.Typing.Conversion
         /// <inheritdoc />
         public override bool CanConvert(Type sourceType, Type targetType, TypeConverterContext context = null)
         {
+            // Check the trivial case.
+            if (sourceType.IsAssignableTo(targetType)) return true;
+
             // We check if any of the contained converters can convert the given types.
             // Notice that we pass this context to the contained converters.
             foreach (TypeConverter converter in TypeConverters)
@@ -51,7 +54,7 @@ namespace CartaCore.Typing.Conversion
                 try
                 {
                     // By convention, we need to check if the converter can convert the given type.
-                    if (!converter.CanConvert(type, value.GetType(), this)) continue;
+                    if (!converter.CanConvert(value.GetType(), type, this)) continue;
                     if (converter.TryConvert(type, value, out result, this)) return true;
                 }
                 catch { }
