@@ -12,6 +12,11 @@ namespace CartaCore.Operations
         /// The number to convert to a string.
         /// </summary>
         public double Number { get; set; }
+        /// <summary>
+        /// The format to use when converting the number to a string. See
+        /// [standard numeric format strings](https://docs.microsoft.com/en-us/dotnet/standard/base-types/standard-numeric-format-strings)
+        /// </summary>
+        public string Format { get; set; }
     }
     /// <summary>
     /// The output for the <see cref="ConvertToStringOperation"/> operation.
@@ -38,7 +43,10 @@ namespace CartaCore.Operations
         /// <inheritdoc />
         public override Task<ConvertToStringOperationOut> Perform(ConvertToStringOperationIn input)
         {
-            return Task.FromResult(new ConvertToStringOperationOut() { Text = input.Number.ToString() });
+            string text = input.Format is not null
+                ? input.Number.ToString(input.Format)
+                : input.Number.ToString();
+            return Task.FromResult(new ConvertToStringOperationOut() { Text = text });
         }
     }
 }
