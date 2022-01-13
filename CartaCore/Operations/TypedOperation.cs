@@ -16,6 +16,7 @@ namespace CartaCore.Operations
         where TInput : new()
         where TOutput : new()
     {
+        // TODO: We need to reconfigure these methods to not use the parent context automatically.
         /// <summary>
         /// Operates on a specified operation context containing input and output mappings. Most operations will use the
         /// input mapping to produce an output mapping. This method is implemented by concrete subclasses.

@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using CartaWeb.Controllers;
@@ -34,41 +32,18 @@ namespace Carta.Api.Services
             Logger.LogInformation("Background operations service started.");
             while (!stoppingToken.IsCancellationRequested)
             {
-                Func<IServiceScopeFactory, (JobItem jobItem, Operation operation, OperationContext context)> item = await TaskCollection.Pop();
-
-                (JobItem jobItem, Operation operation, OperationContext context) = item(ServiceScopeFactory);
+                (JobItem jobItem, Operation operation, OperationContext context) = await TaskCollection.Pop();
+                using IServiceScope scope = ServiceScopeFactory.CreateScope();
                 try
                 {
-                    if (operation is WorkflowOperation workflow)
-                    {
-                        foreach (string inputField in workflow.GetInputFields())
-                        {
-                            Type inputType = workflow.GetInputFieldType(inputField);
-                            if (inputType.IsAssignableTo(typeof(Stream)) && context.Input.ContainsKey(inputField) && context.Input[inputField] is bool)
-                            {
-                                context.Input[inputField] = OperationsController.ReadFile();
-                            }
-                        }
-                    }
                     await operation.Perform(context);
-
-
                     jobItem.Completed = true;
                     jobItem.Result = context.Output;
-
                     await OperationsController.UpdateJobAsync(jobItem, _persistence);
                 }
                 catch (Exception exception)
                 {
                     Logger.LogError(exception, "Unrecoverable operations error occurred.");
-                }
-                finally
-                {
-                    foreach (KeyValuePair<string, object> entry in context.Input)
-                    {
-                        if (entry.Value is Stream stream)
-                            stream.Close();
-                    }
                 }
             }
             Logger.LogInformation("Background operations service stopping.");

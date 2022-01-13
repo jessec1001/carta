@@ -527,10 +527,7 @@ namespace CartaWeb.Controllers
             // TODO: Instead of executing the operation, send it to the service that collects a list of executing operations.
             // We wait for the operation to complete and store the results.
             await SaveJobAsync(job, _persistence);
-            TaskCollection.Push((serviceScopeFactory) =>
-            {
-                return (job, operation, context);
-            });
+            TaskCollection.Push((job, operation, context));
 
             // We return the ID for the result.
             return Ok(job);
@@ -602,7 +599,38 @@ namespace CartaWeb.Controllers
             }
             // TODO: Implement selector optional parameter support.
         }
-        [HttpPost("{operationId}/upload/{jobId}/{field}")]
+        [HttpPost("{operationId}/jobs/{jobId}/{field}/{selector}/prioritize")]
+        public async Task<ActionResult> PrioritizeOperationJob(
+            [FromRoute] string operationId,
+            [FromRoute] string jobId,
+            [FromRoute] string field,
+            [FromRoute] string selector
+        )
+        {
+            // Get the job if it exists.
+            (JobItem job, Operation operation, OperationContext context) = TaskCollection.Seek(jobId);
+            if (job is null)
+            {
+                return NotFound(new
+                {
+                    Error = "Result with specified identifier could not be found.",
+                    Id = operationId
+                });
+            }
+
+            // Compute the selector.
+            Operation selectorOperation = Operation.ConstructSelector(selector, out object selectorInput, out object _);
+            await TryUpdateModelAsync(selectorInput, selectorInput.GetType(), "");
+            Selector selectorInstance = new Selector(selectorOperation);
+
+            // Add the selector to the priority queue of the context.
+            context.Selectors.Enqueue(new(selectorInstance, selectorInput));
+
+            return Ok();
+        }
+
+        // TODO: Review API URLs.
+        [HttpPost("{operationId}/jobs/{jobId}/{field}/upload")]
         public async Task<ActionResult<JobItem>> UploadFileIntoOperation(
             [FromRoute] string operationId,
             [FromRoute] string jobId,
@@ -625,14 +653,10 @@ namespace CartaWeb.Controllers
             };
             SaveFile(file.OpenReadStream());
 
-
             jobItem.Tasks = new List<OperationTask>(operation.GetTasks(context));
 
             await SaveJobAsync(jobItem, _persistence);
-            TaskCollection.Push((serviceScopeFactory) =>
-            {
-                return (jobItem, operation, context);
-            });
+            TaskCollection.Push((jobItem, operation, context));
             return Ok(jobItem);
         }
         #endregion

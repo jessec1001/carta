@@ -1,4 +1,5 @@
 using System;
+using System.Text.Json;
 using Amazon.CognitoIdentityProvider;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
@@ -13,16 +14,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
-
+using Carta.Api.Services;
 using CartaCore.Persistence;
-using CartaCore.Serialization.Json;
 using CartaWeb.Formatters;
 using CartaWeb.Models.Binders;
 using CartaWeb.Models.Migration;
 using CartaWeb.Models.Options;
-using System.Text.Json;
 using CartaWeb.Services;
-using Carta.Api.Services;
 
 namespace CartaWeb
 {
@@ -94,7 +92,7 @@ namespace CartaWeb
                         (
                             Amazon.RegionEndpoint.GetBySystemName(awsOptions.RegionEndpoint)
                         ));
-            else 
+            else
                 services.
                     AddSingleton<IAmazonCognitoIdentityProvider>(
                         new AmazonCognitoIdentityProviderClient
@@ -231,7 +229,7 @@ namespace CartaWeb
             // INoSqlDbMigrationBuilder noSqlDbMigrationBuilder =
             //     app.ApplicationServices.GetService<INoSqlDbMigrationBuilder>();
             // if (noSqlDbMigrationBuilder is not null) noSqlDbMigrationBuilder.PerformMigrations();
-                
+
             // Important: this solves a deployment-only issue.
             // Forwards headers from load balancers and proxy servers that terminate SSL.
             app.UseForwardedHeaders();

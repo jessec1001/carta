@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 
 namespace CartaCore.Operations
@@ -7,6 +8,9 @@ namespace CartaCore.Operations
     /// </summary>
     public class OperationContext
     {
+        // Create a queue to store selectors based on priority.
+        public ConcurrentQueue<(Selector, object)> Selectors { get; } = new();
+
         /// <summary>
         /// The parent context of this current context.
         /// </summary>
