@@ -26,7 +26,7 @@ const WorkspacePageDefaultLayout: FunctionComponent = () => {
   useEffect(() => {
     if (!initializedRef.current) {
       initializedRef.current = true;
-      actions.addElementToContainer(rootId, <OperationsListView />);
+      actions.addElementToContainer(rootId, <OperationsListView />, true);
     }
   }, [rootId, actions]);
 

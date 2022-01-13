@@ -117,10 +117,8 @@ const OperationNode: FunctionComponent<OperationNodeProps> = ({
   data,
 }) => {
   const [updater, setUpdater] = useState<null | ((data: any) => void)>(() => {
-    console.log("INIT");
     return null;
   });
-  console.log(updater);
   const { rootId, actions: viewActions } = useViews();
   const [defaults, setDefaults] = useState<Record<string, any>>(
     operation.default ?? {}
@@ -180,7 +178,6 @@ const OperationNode: FunctionComponent<OperationNodeProps> = ({
 
   const handleVisualizer = useCallback((fn: null | ((data: any) => void)) => {
     setUpdater(() => {
-      console.log(fn);
       return fn;
     });
   }, []);
@@ -229,10 +226,10 @@ const OperationNode: FunctionComponent<OperationNodeProps> = ({
                     name={operation.default!["Name"]}
                     onUpdate={handleVisualizer}
                     onClose={() => {
-                      console.log("HERE");
                       setUpdater(null);
                     }}
-                  />
+                  />,
+                  true
                 );
               }}
             >

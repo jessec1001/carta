@@ -53,7 +53,6 @@ const WorkflowEditorView: FC<WorkflowEditorViewProps> = ({
     );
   }, [operation]);
 
-  console.log(freshWorkflow, freshOperation);
   return (
     <Views.Container title={title}>
       {freshWorkflow && freshOperation && (

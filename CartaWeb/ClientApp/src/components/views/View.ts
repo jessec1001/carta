@@ -44,6 +44,9 @@ interface SplitView extends BaseView<"split"> {
 interface TabView extends BaseView<"tab"> {
   /** The unique identifiers for each child of the view. */
   childIds: number[];
+
+  /** The identifier for the currently active child view. */
+  activeId: string | number | null;
 }
 interface ModalView extends BaseView<"modal"> {
   /** The position of the modal. */

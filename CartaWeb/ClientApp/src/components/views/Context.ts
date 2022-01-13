@@ -6,11 +6,7 @@ import React, {
 } from "react";
 import View, { isContainerView } from "./View";
 
-// TODO: We could consider having multiple active views that have a specific type associated to them.
-//       That is, we could use the view tags of focused views to update some global tags mapping.
-//       The rationale here is that we are usually looking for a view of a specific type that was most recently selected.
-
-// TODO: Since we will already expose a method to set a view to be the active view, we will allow the element to do
+// TODO: Since we will already expose a method to add a view to history, we will allow the element to do
 //       this on its own but every element can then use a utility component `View` that automatically implements this
 //       functionality.
 
@@ -30,7 +26,7 @@ interface IViewsContext {
   addView: (view: View) => number;
   removeView: (id: number) => void;
   getView: (id: number) => View | null;
-  setView: (id: number, view: View) => void;
+  setView: (id: number, view: View | ((view: View) => View)) => void;
 
   getHistory: () => number[];
   addHistory: (id: number) => void;
@@ -43,7 +39,7 @@ interface IViewsContext {
 interface IViewsActions {
   /* Actions that retrieve or modify views specifically. */
   getView: (id: number) => View | null;
-  setView: (id: number, view: View) => void;
+  setView: (id: number, view: View | ((view: View) => View)) => void;
   addView: (view: View) => number;
   removeView: (id: number) => void;
   getParentView: (id: number) => View | null;
@@ -70,9 +66,11 @@ interface IViewsActions {
   unsetTag: (id: number, key: string) => void;
 
   /* Utility actions that mutate the hierarchy. */
+  activateView: (id: number) => void;
   addElementToContainer: (
     containerId: number,
     element: ReactElement,
+    active?: boolean,
     tags?: Record<string, any>
   ) => number | null;
 }
@@ -144,21 +142,12 @@ const useViews = (): IViews => {
     }): void => {
       let view = getView(viewId);
       if (view === null) return;
-
-      let changed = false;
-      if (title !== undefined && view.title !== title) {
-        view = { ...view, title };
-        changed = true;
-      }
-      if (closeable !== undefined && view.closeable !== closeable) {
-        view = { ...view, closeable };
-        changed = true;
-      }
-      if (status !== undefined && view.status !== status) {
-        view = { ...view, status };
-        changed = true;
-      }
-      if (changed) setView(viewId, view);
+      if (title !== undefined && view.title !== title)
+        setView(viewId, (view) => ({ ...view, title }));
+      if (closeable !== undefined && view.closeable !== closeable)
+        setView(viewId, (view) => ({ ...view, closeable }));
+      if (status !== undefined && view.status !== status)
+        setView(viewId, (view) => ({ ...view, status }));
     },
     [getView, setView, viewId]
   );
@@ -175,9 +164,13 @@ const useViews = (): IViews => {
     (id: number, key: string, value: any): void => {
       const view = getView(id);
       if (view === null || view.tags[key] === value) return;
-
-      const viewCopy = { ...view, tags: { ...view.tags, [key]: value } };
-      setView(id, viewCopy);
+      setView(id, (view) => {
+        const newView = {
+          ...view,
+          tags: { ...view.tags, [key]: value },
+        };
+        return newView;
+      });
     },
     [getView, setView]
   );
@@ -185,10 +178,14 @@ const useViews = (): IViews => {
     (id: number, key: string): void => {
       const view = getView(id);
       if (view === null || view.tags[key] === undefined) return;
-
-      const viewCopy = { ...view, tags: { ...view.tags } };
-      delete viewCopy.tags[key];
-      setView(id, viewCopy);
+      setView(id, (view) => {
+        const newView = {
+          ...view,
+          tags: { ...view.tags },
+        };
+        delete newView.tags[key];
+        return newView;
+      });
     },
     [getView, setView]
   );
@@ -207,20 +204,32 @@ const useViews = (): IViews => {
 
   // TODO: Ensure a proper hierarchy is maintained when adding elements.
   //       That is, Splits > Tabs > Elements.
-
   // TODO: Also ensure that the sizes of children of split views are properly updated.
-  // TODO: Add an activate action that will set an active view. This action should synergize with tabs to set the active tab.
-
+  const activateView = useCallback(
+    (id: number): void => {
+      const parent = getParentView(id);
+      if (parent !== null && parent.type === "tab") {
+        setView(parent.currentId, (parent) => ({
+          ...parent,
+          activeId: id,
+        }));
+      }
+    },
+    [getParentView, setView]
+  );
   const addElementToContainer = useCallback(
     (
       containerId: number,
       element: ReactElement,
+      active?: boolean,
       tags?: Record<string, any>
     ): number | null => {
+      // Ensure that the container exists.
       const container = getView(containerId);
       if (container === null || !isContainerView(container)) return null;
 
-      return addView({
+      // Create the new view.
+      const newViewId = addView({
         title: "View",
         closeable: true,
         status: "none",
@@ -230,8 +239,20 @@ const useViews = (): IViews => {
         element,
         tags: tags || {},
       });
+
+      // If it has been specified that the element should be active, activate it using its parent.
+      if (active) {
+        if (container.type === "tab") {
+          setView(container.currentId, (container) => ({
+            ...container,
+            activeId: newViewId,
+          }));
+        }
+      }
+
+      return newViewId;
     },
-    [addView, getView]
+    [getView, setView, addView]
   );
 
   return {
@@ -252,6 +273,7 @@ const useViews = (): IViews => {
       getTag,
       setTag,
       unsetTag,
+      activateView,
       addElementToContainer,
     },
   };

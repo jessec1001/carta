@@ -84,8 +84,6 @@ const VisualizerView: FC<VisualizerViewProps> = ({
     }
   }, [type, data, width, height]);
 
-  console.log();
-
   useEffect(() => {
     return () => {
       if (!mounted.current) onClose();

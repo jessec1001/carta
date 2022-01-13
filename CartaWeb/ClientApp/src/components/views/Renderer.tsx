@@ -1,4 +1,4 @@
-import { FunctionComponent } from "react";
+import { FC } from "react";
 import ViewContext, { useViews } from "./Context";
 import { Tabs } from "components/tabs";
 
@@ -16,7 +16,7 @@ interface RendererProps {
   root?: number;
 }
 
-const Renderer: FunctionComponent = () => {
+const Renderer: FC<RendererProps> = () => {
   // Get relevant view information.
   const { viewId, rootId, actions } = useViews();
   const view = actions.getView(viewId);
@@ -78,7 +78,10 @@ const Renderer: FunctionComponent = () => {
         // TODO: Incorporate tab focus.
         // TODO: Try to move the tab bar up into a status bar of the split panels.
         // TODO: Make sure that the view is closed when the tab 'x' button is clicked (if closeable).
-        <Tabs>
+        <Tabs
+          activeTab={view.activeId}
+          onChangeTab={(childId) => actions.activateView(childId as number)}
+        >
           <Tabs.Area direction="horizontal" flex>
             <Tabs.Bar>
               {childViews.map((childView) => {

@@ -245,7 +245,8 @@ const OperationsListView: FC = () => {
                   <WorkflowEditorView
                     operation={operation}
                     workflowId={operation.subtype}
-                  />
+                  />,
+                  true
                 );
               }}
             />

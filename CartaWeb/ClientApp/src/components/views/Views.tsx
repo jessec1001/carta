@@ -2,7 +2,7 @@ import { FunctionComponent, useCallback, useRef, useState } from "react";
 import Container from "./Container";
 import ViewsContext from "./Context";
 import Renderer from "./Renderer";
-import View, { isContainerView } from "./View";
+import View, { isContainerView, TabView } from "./View";
 
 /** The props used for the {@link Views} component. */
 interface ViewsProps {}
@@ -41,9 +41,8 @@ const Views: FunctionComponent<ViewsProps> & ViewsComposition = ({
 
           type: "tab",
           childIds: [],
-          direction: "horizontal",
-          sizes: [],
-        } as View,
+          activeId: null,
+        } as TabView,
       ],
     ])
   );
@@ -56,55 +55,69 @@ const Views: FunctionComponent<ViewsProps> & ViewsComposition = ({
     },
     [views]
   );
-  const setView = useCallback((id: number, view: View) => {
-    // Prepare the view to be set.
-    view = { ...view };
-    view.currentId = id;
-
-    setViews((views) => {
-      // Copy the view map and add the new view.
-      const newViews = new Map(views);
-      newViews.set(id, view);
-
-      // We need to check if the view contains a parent ID and update the parent.
-      if (view.parentId !== null) {
-        // We remove the parent from the new view if not valid.
-        // Otherwise, we also update the parent view.
-        let parent = views.get(view.parentId);
-        if (parent === undefined || !isContainerView(parent))
-          view.parentId = null;
-        else {
-          parent = {
-            ...parent,
-            childIds: parent.childIds.includes(view.currentId)
-              ? parent.childIds
-              : [...parent.childIds, view.currentId],
-          };
-          newViews.set(view.parentId, parent);
+  const setView = useCallback(
+    (id: number, view: View | ((view: View) => View)) => {
+      setViews((views) => {
+        // This allows us to pass in a function to update the view.
+        if (typeof view === "function") {
+          // Get the view if it exists.
+          const existView = views.get(id);
+          if (!existView) return views;
+          view = view(existView);
         }
-      }
 
-      // We need to check if the view contains children IDs and update the children.
-      if (isContainerView(view)) {
-        for (const childId of view.childIds) {
-          // We remove the child from the new view if not valid.
-          // Otherwise, we also update the child view.
-          let child = views.get(childId);
-          if (child === undefined || child.parentId !== null)
-            view.childIds = view.childIds.filter((id) => id !== childId);
+        // Prepare the view to be set.
+        view = { ...view };
+        view.currentId = id;
+
+        // Copy the view map and add the new view.
+        const newViews = new Map(views);
+        newViews.set(id, view);
+
+        // We need to check if the view contains a parent ID and update the parent.
+        if (view.parentId !== null) {
+          // We remove the parent from the new view if not valid.
+          // Otherwise, we also update the parent view.
+          let parent = views.get(view.parentId);
+          if (parent === undefined || !isContainerView(parent))
+            view.parentId = null;
           else {
-            child = {
-              ...child,
-              parentId: view.currentId,
+            parent = {
+              ...parent,
+              childIds: parent.childIds.includes(view.currentId)
+                ? parent.childIds
+                : [...parent.childIds, view.currentId],
             };
-            newViews.set(childId, child);
+            newViews.set(view.parentId, parent);
           }
         }
-      }
 
-      return newViews;
-    });
-  }, []);
+        // We need to check if the view contains children IDs and update the children.
+        if (isContainerView(view)) {
+          for (const childId of view.childIds) {
+            // We remove the child from the new view if not valid.
+            // Otherwise, we also update the child view.
+            let child = views.get(childId);
+            if (
+              child === undefined ||
+              (child.parentId !== null && child.parentId !== view.currentId)
+            ) {
+              view.childIds = view.childIds.filter((id) => id !== childId);
+            } else {
+              child = {
+                ...child,
+                parentId: view.currentId,
+              };
+              newViews.set(childId, child);
+            }
+          }
+        }
+
+        return newViews;
+      });
+    },
+    []
+  );
   const addView = useCallback(
     (view: View) => {
       const id = ++idRef.current;
