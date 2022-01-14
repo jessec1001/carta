@@ -24,6 +24,12 @@
   background-color: var(--color-fill-element);
 }
 
+/* TODO: Eventually we might make the dragging more sophisticated with animated movement. */
+/* Drag target */
+.Tab.drag {
+  background-color: var(--color-fill-overlay);
+}
+
 /* Make the tab content take up as much room as necessary. */
 .Tab .Tab-Content {
   flex-grow: 1;

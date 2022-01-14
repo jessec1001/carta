@@ -4,6 +4,10 @@
   color: var(--color-stroke-lowlight);
 }
 
+.TabBar.drag {
+  background-color: var(--color-fill-overlay);
+}
+
 /* Make the tab bar scrollable without ruining the active tab effect. */
 .TabArea.horizontal .TabBar {
   overflow-x: auto;

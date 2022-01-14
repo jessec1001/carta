@@ -6,6 +6,19 @@ import { createContext, useCallback, useContext } from "react";
  * Additional features are defined in {@link ITabsActions}.
  */
 interface ITabsContext {
+  /** Whether the tabs in the tab bar are draggable. */
+  draggableTabs: boolean;
+  /** The source of a tab drag. */
+  dragSource: string | number | null;
+  /** The target of a tab drag. */
+  dragTarget: string | number | null;
+  /** Sets the source of a tab drag. */
+  setDragSource: (tab: string | number | null) => void;
+  /** Sets the source of a tab drag. */
+  setDragTarget: (tab: string | number | null) => void;
+  /** Finishes a tab drag. */
+  finishDrag: () => void;
+
   /** The currently active tab. A value of `null` represents no tab. */
   activeTab: string | number | null;
   /** Sets the currently active tab. */
@@ -25,6 +38,19 @@ interface ITabsActions {
  * Exposes the state of, and the actions performable on a {@link Tabs}.
  */
 interface ITabs {
+  /** Whether the tabs in the tab bar are draggable. */
+  draggableTabs: boolean;
+  /** The source of a tab drag. */
+  dragSource: string | number | null;
+  /** The target of a tab drag. */
+  dragTarget: string | number | null;
+  /** Sets the source of a tab drag. */
+  setDragSource: (tab: string | number | null) => void;
+  /** Sets the source of a tab drag. */
+  setDragTarget: (tab: string | number | null) => void;
+  /** Finishes a tab drag. */
+  finishDrag: () => void;
+
   /** The currently active tab. A value of `null` represents no tab. */
   activeTab: string | number | null;
   /** Actions that can be performed on the tabs. */
@@ -48,7 +74,16 @@ const useTabs = (): ITabs => {
   }
 
   // We grab the original state from the context.
-  const { activeTab, setActiveTab } = context;
+  const {
+    draggableTabs,
+    dragSource,
+    dragTarget,
+    setDragSource,
+    setDragTarget,
+    finishDrag,
+    activeTab,
+    setActiveTab,
+  } = context;
 
   // From the original context functionality, we provide extensions.
   const set = setActiveTab;
@@ -56,6 +91,12 @@ const useTabs = (): ITabs => {
 
   // We return this modified context.
   return {
+    draggableTabs,
+    dragSource,
+    dragTarget,
+    setDragSource,
+    setDragTarget,
+    finishDrag,
     activeTab,
     actions: {
       set,

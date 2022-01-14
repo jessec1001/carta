@@ -1,4 +1,4 @@
-import { FunctionComponent } from "react";
+import { FunctionComponent, useState } from "react";
 import { useControllableState } from "hooks";
 import TabsContext from "./Context";
 import Panel from "./Panel";
@@ -12,8 +12,17 @@ interface TabsProps {
   activeTab?: string | number | null;
   /** The initially active tab of the tabs. Used for uncontrolled components for setting the initial state. */
   initialTab?: string | number | null;
+
+  /** Whether tabs in the tab bar should be draggable. */
+  draggableTabs?: boolean;
+
   /** The event handler that is called whenever the active tab changes. */
   onChangeTab?: (tab: string | number | null) => void;
+  /** The event handler that is called whenever a tab is dragged to another position. */
+  onDragTab?: (
+    source: string | number | null,
+    target: string | number | null
+  ) => void;
 }
 
 /**
@@ -58,7 +67,9 @@ interface TabsComposition {
 const Tabs: FunctionComponent<TabsProps> & TabsComposition = ({
   activeTab,
   initialTab = null,
-  onChangeTab,
+  draggableTabs = false,
+  onChangeTab = () => {},
+  onDragTab = () => {},
   children,
   ...props
 }) => {
@@ -69,10 +80,29 @@ const Tabs: FunctionComponent<TabsProps> & TabsComposition = ({
     onChangeTab
   );
 
+  // We store some information about the source and target of dragging.
+  const [dragSource, setDragSource] = useState<string | number | null>(null);
+  const [dragTarget, setDragTarget] = useState<string | number | null>(null);
+  const handleDrag = () => {
+    onDragTab(dragSource, dragTarget);
+    setDragSource(null);
+    setDragTarget(null);
+  };
+
   // We wrap the child elements in a tabs context to provide the tabs functionality.
   return (
     <TabsContext.Provider
-      value={{ activeTab: actualActiveTab, setActiveTab: setActiveTab }}
+      value={{
+        draggableTabs: draggableTabs,
+        dragSource: dragSource,
+        dragTarget: dragTarget,
+        setDragSource: setDragSource,
+        setDragTarget: setDragTarget,
+        finishDrag: handleDrag,
+
+        activeTab: actualActiveTab,
+        setActiveTab: setActiveTab,
+      }}
     >
       {children}
     </TabsContext.Provider>

@@ -269,7 +269,7 @@ const Container: FunctionComponent = () => {
                 border: "1px solid #666",
               }}
             >
-              <Tabs>
+              <Tabs draggableTabs>
                 {/* TODO: Make a component that allows these tabs to be moved around. */}
                 <Tabs.Area direction="horizontal">
                   <Tabs.Bar>
