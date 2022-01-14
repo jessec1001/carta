@@ -67,6 +67,7 @@ var ScatterPlot3d = function (container, plot) {
         renderer.render(scene, camera);
     });
     container.appendChild(renderer.domElement);
+    return function () { };
 };
 /**
  * Appends an SVG element containing a generated scatter plot to a container using specified plot data.
@@ -92,9 +93,10 @@ var ScatterPlot = function (container, plot) {
         .select(container)
         .append("svg")
         .attr("viewBox", "0 0 " + width + " " + height);
+    var zoomElement = svgElement.append("g");
     // If the plot has no data, simply return here.
     if (!plot.data)
-        return;
+        return function () { };
     // TODO: Abstract this.
     // TODO: Add labels to the axes.
     // Construct the ranges of values based on the data or ranges specified by the user.
@@ -116,11 +118,11 @@ var ScatterPlot = function (container, plot) {
         .range([height - margin.bottom, margin.top]);
     // TODO: Abstract this.
     // Use the ranges of the values to create axis elements within the plot.
-    svgElement
+    zoomElement
         .append("g")
         .attr("transform", "translate(0, " + (height - margin.bottom) + ")")
         .call(d3.axisBottom(scaleX));
-    svgElement
+    zoomElement
         .append("g")
         .attr("transform", "translate(" + margin.left + ", 0)")
         .call(d3.axisLeft(scaleY));
@@ -129,8 +131,12 @@ var ScatterPlot = function (container, plot) {
     var scaleColor = findColormap(plot.colormap);
     if (typeof extentColor[0] === "number" && typeof extentColor[1] === "number")
         scaleColor.domain(extentColor);
+    var zoom = d3.zoom().on("zoom", function (event) {
+        zoomElement.attr("transform", event.transform);
+    });
+    svgElement.call(zoom).call(zoom.transform, d3.zoomIdentity);
     // Create the actual scatter plot elements as a specific shape.
-    svgElement
+    zoomElement
         .append("g")
         .selectAll("dot")
         .data(plot.data)
@@ -148,6 +154,7 @@ var ScatterPlot = function (container, plot) {
         else
             return c;
     });
+    return function () { };
 };
 var findColormap = function (name) {
     // We use the names of schemes and interpolates directly from D3 to make a mapping from colormap names to colormap

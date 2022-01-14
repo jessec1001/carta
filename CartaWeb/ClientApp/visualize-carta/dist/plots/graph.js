@@ -33,7 +33,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var d3 = __importStar(require("d3"));
 // TODO: Consider using WebCoLa to improve the performance of the visualization.
 // TODO: Make sure to add definitions to the SVG for optimal performance.
-var GraphPlot = function (container, plot) {
+var GraphPlot = function (container, plot, interaction) {
     var _a;
     var _b, _c, _d, _e;
     var width = (_c = (_b = plot.size) === null || _b === void 0 ? void 0 : _b.width) !== null && _c !== void 0 ? _c : 800;
@@ -43,8 +43,9 @@ var GraphPlot = function (container, plot) {
         .select(container)
         .append("svg")
         .attr("viewBox", "0 0 " + width + " " + height);
+    var zoomElement = svgElement.append("g");
     if (!plot.data)
-        return;
+        return function () { };
     var ticked = function () {
         link
             .attr("x1", function (_a) {
@@ -90,7 +91,7 @@ var GraphPlot = function (container, plot) {
         .force("charge", forceNode)
         .force("center", d3.forceCenter(width / 2, height / 2))
         .on("tick", ticked);
-    var link = svgElement
+    var link = zoomElement
         .append("g")
         .attr("stroke", "#999")
         .attr("stroke-opacity", 0.6)
@@ -98,7 +99,7 @@ var GraphPlot = function (container, plot) {
         .selectAll("line")
         .data(linksFlat)
         .join("line");
-    var node = svgElement
+    var node = zoomElement
         .append("g")
         .attr("fill", "#53b853")
         .attr("stroke", "#000000")
@@ -107,6 +108,11 @@ var GraphPlot = function (container, plot) {
         .data(nodes)
         .join("circle")
         .attr("r", 5);
+    var zoom = d3.zoom().on("zoom", function (event) {
+        zoomElement.attr("transform", event.transform);
+    });
+    svgElement.call(zoom).call(zoom.transform, d3.zoomIdentity);
+    return function () { };
 };
 exports.default = GraphPlot;
 //# sourceMappingURL=graph.js.map

@@ -1,7 +1,13 @@
 import * as d3 from "d3";
+import { Plotter } from "types";
 
-interface IPlot<TData> {
-  data: TData;
+interface IGraphDatum {
+  id: string;
+  label: string | null;
+  neighbors: string[];
+}
+interface IGraphPlot {
+  data: IGraphDatum[];
 
   size?: {
     width: number;
@@ -15,18 +21,16 @@ interface IPlot<TData> {
     bottom?: number;
   };
 }
-
-type IGraphData = {
-  id: string;
-  label: string | null;
-
-  neighbors: string[];
-}[];
+interface IGraphInteraction {}
 
 // TODO: Consider using WebCoLa to improve the performance of the visualization.
 // TODO: Make sure to add definitions to the SVG for optimal performance.
 
-const GraphPlot = (container: HTMLElement, plot: IPlot<IGraphData>) => {
+const GraphPlot: Plotter<IGraphPlot, IGraphInteraction> = (
+  container: HTMLElement,
+  plot: IGraphPlot,
+  interaction?: IGraphInteraction
+): ((data: IGraphPlot) => void) => {
   const width = plot.size?.width ?? 800;
   const height = plot.size?.height ?? 640;
 
@@ -42,8 +46,9 @@ const GraphPlot = (container: HTMLElement, plot: IPlot<IGraphData>) => {
     .select(container)
     .append("svg")
     .attr("viewBox", `0 0 ${width} ${height}`);
+  const zoomElement = svgElement.append("g");
 
-  if (!plot.data) return;
+  if (!plot.data) return () => {};
 
   const ticked = () => {
     link
@@ -77,7 +82,7 @@ const GraphPlot = (container: HTMLElement, plot: IPlot<IGraphData>) => {
     .force("center", d3.forceCenter(width / 2, height / 2))
     .on("tick", ticked);
 
-  const link = svgElement
+  const link = zoomElement
     .append("g")
     .attr("stroke", "#999")
     .attr("stroke-opacity", 0.6)
@@ -86,7 +91,7 @@ const GraphPlot = (container: HTMLElement, plot: IPlot<IGraphData>) => {
     .data(linksFlat)
     .join("line");
 
-  const node = svgElement
+  const node = zoomElement
     .append("g")
     .attr("fill", "#53b853")
     .attr("stroke", "#000000")
@@ -95,6 +100,13 @@ const GraphPlot = (container: HTMLElement, plot: IPlot<IGraphData>) => {
     .data(nodes)
     .join("circle")
     .attr("r", 5);
+
+  const zoom = d3.zoom<SVGSVGElement, unknown>().on("zoom", (event) => {
+    zoomElement.attr("transform", event.transform);
+  });
+  svgElement.call(zoom).call(zoom.transform, d3.zoomIdentity);
+
+  return () => {};
 };
 
 export default GraphPlot;

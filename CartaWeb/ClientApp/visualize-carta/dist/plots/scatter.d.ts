@@ -1,3 +1,4 @@
+import { Plotter } from "types";
 /** The various numeric axes for the data. */
 declare type AxisName = "x" | "y" | "z";
 /** The expected type of the plot passed into the plotting function. */
@@ -37,5 +38,5 @@ declare type IScatterData = (Record<AxisName, any> & Record<string, any>)[];
  * @param container The container that will have the SVG element plot appended to it.
  * @param plot The scatter plot information.
  */
-declare const ScatterPlot: (container: HTMLElement, plot: IPlot<IScatterData>) => void;
+declare const ScatterPlot: Plotter<IPlot<IScatterData>, {}>;
 export default ScatterPlot;

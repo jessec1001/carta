@@ -1,5 +1,11 @@
-interface IPlot<TData> {
-    data: TData;
+import { Plotter } from "types";
+interface IGraphDatum {
+    id: string;
+    label: string | null;
+    neighbors: string[];
+}
+interface IGraphPlot {
+    data: IGraphDatum[];
     size?: {
         width: number;
         height: number;
@@ -11,10 +17,7 @@ interface IPlot<TData> {
         bottom?: number;
     };
 }
-declare type IGraphData = {
-    id: string;
-    label: string | null;
-    neighbors: string[];
-}[];
-declare const GraphPlot: (container: HTMLElement, plot: IPlot<IGraphData>) => void;
+interface IGraphInteraction {
+}
+declare const GraphPlot: Plotter<IGraphPlot, IGraphInteraction>;
 export default GraphPlot;

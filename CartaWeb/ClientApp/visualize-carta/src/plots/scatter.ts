@@ -1,6 +1,7 @@
 import * as d3 from "d3";
 import * as three from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import { Plotter } from "types";
 
 // TODO: Different shapes of indicators
 // TODO: Colorbars?
@@ -53,7 +54,10 @@ interface IPlot<TData> {
  */
 type IScatterData = (Record<AxisName, any> & Record<string, any>)[];
 
-const ScatterPlot3d = (container: HTMLElement, plot: IPlot<IScatterData>) => {
+const ScatterPlot3d: Plotter<IPlot<IScatterData>, {}> = (
+  container: HTMLElement,
+  plot: IPlot<IScatterData>
+) => {
   const width = plot.size?.width ?? 800;
   const height = plot.size?.height ?? 640;
 
@@ -100,6 +104,7 @@ const ScatterPlot3d = (container: HTMLElement, plot: IPlot<IScatterData>) => {
   });
 
   container.appendChild(renderer.domElement);
+  return () => {};
 };
 
 /**
@@ -107,7 +112,10 @@ const ScatterPlot3d = (container: HTMLElement, plot: IPlot<IScatterData>) => {
  * @param container The container that will have the SVG element plot appended to it.
  * @param plot The scatter plot information.
  */
-const ScatterPlot = (container: HTMLElement, plot: IPlot<IScatterData>) => {
+const ScatterPlot: Plotter<IPlot<IScatterData>, {}> = (
+  container: HTMLElement,
+  plot: IPlot<IScatterData>
+) => {
   if (plot.axes && plot.axes.x && plot.axes.y && plot.axes.z)
     return ScatterPlot3d(container, plot);
 
@@ -134,9 +142,10 @@ const ScatterPlot = (container: HTMLElement, plot: IPlot<IScatterData>) => {
     .select(container)
     .append("svg")
     .attr("viewBox", `0 0 ${width} ${height}`);
+  const zoomElement = svgElement.append("g");
 
   // If the plot has no data, simply return here.
-  if (!plot.data) return;
+  if (!plot.data) return () => {};
 
   // TODO: Abstract this.
   // TODO: Add labels to the axes.
@@ -161,11 +170,11 @@ const ScatterPlot = (container: HTMLElement, plot: IPlot<IScatterData>) => {
 
   // TODO: Abstract this.
   // Use the ranges of the values to create axis elements within the plot.
-  svgElement
+  zoomElement
     .append("g")
     .attr("transform", `translate(0, ${height - margin.bottom})`)
     .call(d3.axisBottom(scaleX));
-  svgElement
+  zoomElement
     .append("g")
     .attr("transform", `translate(${margin.left}, 0)`)
     .call(d3.axisLeft(scaleY));
@@ -179,8 +188,13 @@ const ScatterPlot = (container: HTMLElement, plot: IPlot<IScatterData>) => {
   if (typeof extentColor[0] === "number" && typeof extentColor[1] === "number")
     scaleColor.domain(extentColor as [number, number]);
 
+  const zoom = d3.zoom<SVGSVGElement, unknown>().on("zoom", (event) => {
+    zoomElement.attr("transform", event.transform);
+  });
+  svgElement.call(zoom).call(zoom.transform, d3.zoomIdentity);
+
   // Create the actual scatter plot elements as a specific shape.
-  svgElement
+  zoomElement
     .append("g")
     .selectAll("dot")
     .data(plot.data)
@@ -195,6 +209,8 @@ const ScatterPlot = (container: HTMLElement, plot: IPlot<IScatterData>) => {
         return scaleColor(c);
       } else return c;
     });
+
+  return () => {};
 };
 
 const findColormap = (name?: string) => {
