@@ -74,6 +74,31 @@ const GraphPlot: Plotter<IGraphPlot, IGraphInteraction> = (
   const forceNode = d3.forceManyBody();
   const forceLink = d3.forceLink(linksFlat).id(({ index: i }) => nodeIds[i!]);
 
+  const drag = (
+    simulation: d3.Simulation<d3.SimulationNodeDatum, undefined>
+  ) => {
+    const onDragStarted = (event: any) => {
+      if (!event.active) simulation.alphaTarget(0.3).restart();
+      event.subject.fx = event.subject.x;
+      event.subject.fy = event.subject.y;
+    };
+    const onDragEnded = (event: any) => {
+      if (!event.active) simulation.alphaTarget(0.0);
+      event.subject.fx = null;
+      event.subject.fy = null;
+    };
+    const onDragged = (event: any) => {
+      event.subject.fx = event.x;
+      event.subject.fy = event.y;
+    };
+
+    return d3
+      .drag()
+      .on("start", onDragStarted)
+      .on("end", onDragEnded)
+      .on("drag", onDragged);
+  };
+
   // TODO: Change the center of the graph to the center of the container.
   const simulation = d3
     .forceSimulation(nodes as any)
@@ -99,7 +124,8 @@ const GraphPlot: Plotter<IGraphPlot, IGraphInteraction> = (
     .selectAll("circle")
     .data(nodes)
     .join("circle")
-    .attr("r", 5);
+    .attr("r", 5)
+    .call(drag(simulation) as any);
 
   const zoom = d3.zoom<SVGSVGElement, unknown>().on("zoom", (event) => {
     zoomElement.attr("transform", event.transform);

@@ -84,6 +84,29 @@ var GraphPlot = function (container, plot, interaction) {
         var i = _a.index;
         return nodeIds[i];
     });
+    var drag = function (simulation) {
+        var onDragStarted = function (event) {
+            if (!event.active)
+                simulation.alphaTarget(0.3).restart();
+            event.subject.fx = event.subject.x;
+            event.subject.fy = event.subject.y;
+        };
+        var onDragEnded = function (event) {
+            if (!event.active)
+                simulation.alphaTarget(0.0);
+            event.subject.fx = null;
+            event.subject.fy = null;
+        };
+        var onDragged = function (event) {
+            event.subject.fx = event.x;
+            event.subject.fy = event.y;
+        };
+        return d3
+            .drag()
+            .on("start", onDragStarted)
+            .on("end", onDragEnded)
+            .on("drag", onDragged);
+    };
     // TODO: Change the center of the graph to the center of the container.
     var simulation = d3
         .forceSimulation(nodes)
@@ -107,7 +130,8 @@ var GraphPlot = function (container, plot, interaction) {
         .selectAll("circle")
         .data(nodes)
         .join("circle")
-        .attr("r", 5);
+        .attr("r", 5)
+        .call(drag(simulation));
     var zoom = d3.zoom().on("zoom", function (event) {
         zoomElement.attr("transform", event.transform);
     });
