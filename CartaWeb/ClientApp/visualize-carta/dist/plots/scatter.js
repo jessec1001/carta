@@ -87,13 +87,32 @@ var ScatterPlot = function (container, plot) {
     // TODO: Abstract this into a set of defaults.
     // Compute the margin of the plot by assigning defaults if not specified.
     var margin = __assign({ left: 60, right: 20, top: 20, bottom: 40 }, plot.margin);
+    // Assign the background color if specified.
+    var styles = {};
+    if (plot.background)
+        styles.background = plot.background;
+    // Convert the styles to a string.
+    var styleString = Object.entries(styles)
+        .map(function (_a) {
+        var key = _a[0], value = _a[1];
+        return key + ": " + value + ";";
+    })
+        .join(" ");
     // TODO: Abstract this.
     // Create an SVG element with the correct viewbox size.
     var svgElement = d3
         .select(container)
         .append("svg")
-        .attr("viewBox", "0 0 " + width + " " + height);
+        .attr("viewBox", "0 0 " + width + " " + height)
+        .attr("style", styleString);
     var zoomElement = svgElement.append("g");
+    if (plot.background) {
+        svgElement
+            .append("rect")
+            .attr("width", width)
+            .attr("height", height)
+            .attr("fill", plot.background);
+    }
     // If the plot has no data, simply return here.
     if (!plot.data)
         return function () { };

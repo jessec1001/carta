@@ -23,6 +23,8 @@ interface IPlot<TData> {
         minimum?: number;
         maximum?: number;
     }>>;
+    /** The background color/gradient of the plot. */
+    background?: string;
     /** The key of the data where the color information is located. */
     color?: string;
     /** The colormap to use for mapping values to colors. */

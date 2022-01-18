@@ -97,7 +97,7 @@ namespace CartaCore.Operations
             double stepSize = (maximum - minimum) / input.Bins;
 
             // Generate the data for the histogram.
-            PlotData<HistogramPlotValue> histogramPlot = new()
+            Plot<HistogramPlotValue> histogramPlot = new()
             {
                 Data = Enumerable
                     .Range(0, input.Bins)

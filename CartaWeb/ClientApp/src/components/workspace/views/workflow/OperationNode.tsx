@@ -73,7 +73,7 @@ const Visualizer: FunctionComponent<{ data: any; type: string }> = ({
       style={
         type === "output" || type === "input"
           ? { padding: "0.5rem" }
-          : { width: "400px", height: "400px" }
+          : { width: "400px", height: "400px", overflow: "hidden" }
       }
     >
       {type === "output" && <pre>{JSON.stringify(data, null, 2)}</pre>}

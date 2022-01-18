@@ -5,7 +5,7 @@
 
   font-size: 0.9em;
 
-  border-radius: 2px;
+  border-radius: var(--border-radius);
   background-color: var(--color-fill-element);
 
   /* border: 1px solid var(--color-stroke-hairline); */
@@ -28,10 +28,10 @@
   padding: 0.25rem;
   cursor: pointer;
 
-  border-radius: 2px 2px 0px 0px;
+  border-radius: var(--border-radius) var(--border-radius) 0px 0px;
 }
 .OperationNode.collapsed .title {
-  border-radius: 2px;
+  border-radius: var(--border-radius);
 }
 
 .OperationNode .body {

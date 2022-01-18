@@ -9,6 +9,20 @@ namespace CartaCore.Operations.Visualization
         /// The label of the axis.
         /// </summary>
         public string Label { get; init; }
+
+        /// <summary>
+        /// Whether to display grid lines on the axis.
+        /// </summary>
+        public bool ShowLines { get; set; }
+
+        /// <summary>
+        /// The minimum value of the axis. If not specified, defaults to the minimum extent of the data.
+        /// </summary>
+        public double? Minimum { get; set; }
+        /// <summary>
+        /// The maximum value of the axis. If not specified, defaults to the maximum extent of the data.
+        /// </summary>
+        public double? Maximum { get; set; }
     }
 
     /// <summary>

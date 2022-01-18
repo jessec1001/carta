@@ -86,7 +86,7 @@ namespace CartaCore.Operations
                 // Add the data for this vertex to the graph plot.
                 graphPlotValues.Add(graphPlotValue);
             }
-            PlotData<GraphPlotValue> graphPlot = new()
+            Plot<GraphPlotValue> graphPlot = new()
             {
                 Data = graphPlotValues.ToArray()
             };

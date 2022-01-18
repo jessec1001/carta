@@ -28,10 +28,28 @@ const Views: FunctionComponent<ViewsProps> & ViewsComposition = ({
   const [views, setViews] = useState<Map<number, View>>(
     new Map([
       [
+        -1,
+        {
+          currentId: -1,
+          parentId: null,
+
+          title: "root",
+          closeable: false,
+          status: "none",
+
+          tags: {},
+
+          type: "split",
+          direction: "horizontal",
+          sizes: [1],
+          childIds: [0],
+        },
+      ],
+      [
         0,
         {
           currentId: 0,
-          parentId: null,
+          parentId: -1,
 
           title: "root",
           closeable: false,
@@ -42,7 +60,7 @@ const Views: FunctionComponent<ViewsProps> & ViewsComposition = ({
           type: "tab",
           childIds: [],
           activeId: null,
-        } as TabView,
+        },
       ],
     ])
   );
