@@ -33,148 +33,41 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var d3 = __importStar(require("d3"));
 var three = __importStar(require("three"));
 var OrbitControls_1 = require("three/examples/jsm/controls/OrbitControls");
-var ScatterPlot3d = function (container, plot) {
-    var _a, _b, _c, _d;
-    var width = (_b = (_a = plot.size) === null || _a === void 0 ? void 0 : _a.width) !== null && _b !== void 0 ? _b : 800;
-    var height = (_d = (_c = plot.size) === null || _c === void 0 ? void 0 : _c.height) !== null && _d !== void 0 ? _d : 640;
-    var extentX = d3.extent(plot.data, function (d) { return d.x; });
-    var extentY = d3.extent(plot.data, function (d) { return d.y; });
-    var extentZ = d3.extent(plot.data, function (d) { return d.z; });
-    var camera = new three.PerspectiveCamera(70, width / height, 0.01, 10000);
-    camera.lookAt((extentX[0] + extentX[1]) / 2, (extentY[0] + extentY[1]) / 2, (extentZ[0] + extentZ[1]) / 2);
-    camera.position.x = (extentX[0] + extentX[1]) / 2;
-    camera.position.y = (extentY[0] + extentY[1]) / 2;
-    camera.position.z = extentZ[0];
-    camera.frustumCulled = false;
-    var scene = new three.Scene();
-    var material = new three.MeshNormalMaterial();
-    for (var k = 0; k < plot.data.length; k++) {
-        var geometry = new three.DodecahedronGeometry(plot.data[k].radius, 1);
-        geometry.translate(plot.data[k].x, plot.data[k].y, plot.data[k].z);
-        var mesh = new three.Mesh(geometry, material);
-        mesh.frustumCulled = false;
-        scene.add(mesh);
-    }
-    var renderer = new three.WebGLRenderer({ antialias: true });
-    var controls = new OrbitControls_1.OrbitControls(camera, renderer.domElement);
-    controls.target.set((extentX[0] + extentX[1]) / 2, (extentY[0] + extentY[1]) / 2, (extentZ[0] + extentZ[1]) / 2);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.01;
-    controls.rotateSpeed = 0.15;
-    renderer.setSize(width, height);
-    renderer.setAnimationLoop(function (time) {
-        controls.update();
-        renderer.render(scene, camera);
-    });
-    container.appendChild(renderer.domElement);
-    return function () { };
-};
+// #region Utility functions
 /**
- * Appends an SVG element containing a generated scatter plot to a container using specified plot data.
- * @param container The container that will have the SVG element plot appended to it.
- * @param plot The scatter plot information.
+ * Creates an SVG element and attaches it to the specified container based on plot data.
+ * @param container The container to attach the plot to.
+ * @param plot The data of the plot to generate.
+ * @returns The SVG element that was created.
  */
-var ScatterPlot = function (container, plot) {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v;
-    if (plot.axes && plot.axes.x && plot.axes.y && plot.axes.z)
-        return ScatterPlot3d(container, plot);
-    // TODO: Abstract this into a set of defaults.
-    // Compute the size of the plot by assigning defaults if not specified.
-    var width = (_b = (_a = plot.size) === null || _a === void 0 ? void 0 : _a.width) !== null && _b !== void 0 ? _b : 800;
-    var height = (_d = (_c = plot.size) === null || _c === void 0 ? void 0 : _c.height) !== null && _d !== void 0 ? _d : 640;
-    // TODO: Try to automatically compute margins using canvas context (https://stackoverflow.com/questions/29031659/calculate-width-of-text-before-drawing-the-text).
-    //       This requires an additional 'canvas' package. We could also use 'string-pixel-width'.
-    // TODO: Abstract this into a set of defaults.
-    // Compute the margin of the plot by assigning defaults if not specified.
-    var margin = __assign({ left: 60, right: 20, top: 20, bottom: 40 }, plot.margin);
-    // Assign the background color if specified.
-    var styles = {};
-    if (plot.background)
-        styles.background = plot.background;
-    // Convert the styles to a string.
-    var styleString = Object.entries(styles)
-        .map(function (_a) {
-        var key = _a[0], value = _a[1];
-        return key + ": " + value + ";";
-    })
-        .join(" ");
-    // TODO: Abstract this.
-    // Create an SVG element with the correct viewbox size.
-    var svgElement = d3
+var createSvg = function (container, plot) {
+    // We define some default values for the SVG element.
+    var defaultSize = { width: 800, height: 600 };
+    // We find the size and style of the container.
+    var size = __assign(__assign({}, defaultSize), plot.size);
+    var style = plot.style
+        ? Object.entries(plot.style)
+            .map(function (_a) {
+            var key = _a[0], value = _a[1];
+            return key + ": " + value + ";";
+        })
+            .join(" ")
+        : "";
+    // TODO: Use the d3.style function to set the style of the SVG element.
+    // Construct the SVG element.
+    var svg = d3
         .select(container)
         .append("svg")
-        .attr("viewBox", "0 0 " + width + " " + height)
-        .attr("style", styleString);
-    var zoomElement = svgElement.append("g");
-    if (plot.background) {
-        svgElement
-            .append("rect")
-            .attr("width", width)
-            .attr("height", height)
-            .attr("fill", plot.background);
-    }
-    // If the plot has no data, simply return here.
-    if (!plot.data)
-        return function () { };
-    // TODO: Abstract this.
-    // TODO: Add labels to the axes.
-    // Construct the ranges of values based on the data or ranges specified by the user.
-    var extentX = d3.extent(plot.data, function (value) { return value.x; });
-    var scaleX = d3
-        .scaleLinear()
-        .domain([
-        (_h = (_g = (_f = (_e = plot.axes) === null || _e === void 0 ? void 0 : _e.x) === null || _f === void 0 ? void 0 : _f.minimum) !== null && _g !== void 0 ? _g : extentX[0]) !== null && _h !== void 0 ? _h : 0,
-        (_m = (_l = (_k = (_j = plot.axes) === null || _j === void 0 ? void 0 : _j.x) === null || _k === void 0 ? void 0 : _k.maximum) !== null && _l !== void 0 ? _l : extentX[1]) !== null && _m !== void 0 ? _m : 0,
-    ])
-        .range([margin.left, width - margin.right]);
-    var extentY = d3.extent(plot.data, function (value) { return value.y; });
-    var scaleY = d3
-        .scaleLinear()
-        .domain([
-        (_r = (_q = (_p = (_o = plot.axes) === null || _o === void 0 ? void 0 : _o.y) === null || _p === void 0 ? void 0 : _p.minimum) !== null && _q !== void 0 ? _q : extentY[0]) !== null && _r !== void 0 ? _r : 0,
-        (_v = (_u = (_t = (_s = plot.axes) === null || _s === void 0 ? void 0 : _s.y) === null || _t === void 0 ? void 0 : _t.maximum) !== null && _u !== void 0 ? _u : extentY[1]) !== null && _v !== void 0 ? _v : 0,
-    ])
-        .range([height - margin.bottom, margin.top]);
-    // TODO: Abstract this.
-    // Use the ranges of the values to create axis elements within the plot.
-    zoomElement
-        .append("g")
-        .attr("transform", "translate(0, " + (height - margin.bottom) + ")")
-        .call(d3.axisBottom(scaleX));
-    zoomElement
-        .append("g")
-        .attr("transform", "translate(" + margin.left + ", 0)")
-        .call(d3.axisLeft(scaleY));
-    // Get the colormap that is used for this plot.
-    var extentColor = d3.extent(plot.data, function (value) { return plot.color && value[plot.color]; });
-    var scaleColor = findColormap(plot.colormap);
-    if (typeof extentColor[0] === "number" && typeof extentColor[1] === "number")
-        scaleColor.domain(extentColor);
-    var zoom = d3.zoom().on("zoom", function (event) {
-        zoomElement.attr("transform", event.transform);
-    });
-    svgElement.call(zoom).call(zoom.transform, d3.zoomIdentity);
-    // Create the actual scatter plot elements as a specific shape.
-    zoomElement
-        .append("g")
-        .selectAll("dot")
-        .data(plot.data)
-        .enter()
-        .append("circle")
-        .attr("cx", function (d) { return scaleX(d.x); })
-        .attr("cy", function (d) { return scaleY(d.y); })
-        .attr("r", 5)
-        .style("fill", function (d) {
-        var _a;
-        var c = (_a = d.color) !== null && _a !== void 0 ? _a : plot.color;
-        if (typeof c === "number") {
-            return scaleColor(c);
-        }
-        else
-            return c;
-    });
-    return function () { };
+        .attr("viewBox", "0 0 " + size.width + " " + size.height)
+        .attr("style", style);
+    // Return the SVG element and relevant computed information.
+    return { svg: svg, size: size };
 };
+/**
+ * Finds a colormap specified by name.
+ * @param name The name of the colormap.
+ * @returns The colormap.
+ */
 var findColormap = function (name) {
     // We use the names of schemes and interpolates directly from D3 to make a mapping from colormap names to colormap
     // ranges. We also add some additonal mappings for more sensible naming conventions especially for creating
@@ -305,5 +198,153 @@ var findColormap = function (name) {
     // Default.
     return d3.scaleSequential(defaultColors);
 };
-exports.default = ScatterPlot;
+/**
+ * Creates a 3D scatter plot and attaches it to the specified container.
+ * @param container The container to attach the plot to.
+ * @param plot The data of the plot to generate.
+ * @param events The events to attach to the plot.
+ * @returns An updater function to update the plot.
+ */
+var PlotScatter3d = function (container, plot, events) {
+    var _a, _b, _c, _d;
+    var width = (_b = (_a = plot.size) === null || _a === void 0 ? void 0 : _a.width) !== null && _b !== void 0 ? _b : 800;
+    var height = (_d = (_c = plot.size) === null || _c === void 0 ? void 0 : _c.height) !== null && _d !== void 0 ? _d : 640;
+    var extentX = d3.extent(plot.data, function (d) { return d.x; });
+    var extentY = d3.extent(plot.data, function (d) { return d.y; });
+    var extentZ = d3.extent(plot.data, function (d) { return d.z; });
+    var camera = new three.PerspectiveCamera(70, width / height, 0.01, 10000);
+    camera.lookAt((extentX[0] + extentX[1]) / 2, (extentY[0] + extentY[1]) / 2, (extentZ[0] + extentZ[1]) / 2);
+    camera.position.x = (extentX[0] + extentX[1]) / 2;
+    camera.position.y = (extentY[0] + extentY[1]) / 2;
+    camera.position.z = extentZ[0];
+    camera.frustumCulled = false;
+    var scene = new three.Scene();
+    var material = new three.MeshNormalMaterial();
+    // TODO: Render an axis in the scene.
+    // TODO: Take into consideration distance-based scaling of radii.
+    // TODO: Use the point style or colormap to color the points.
+    // TODO: Make the background transparent and apply the axis style.
+    for (var k = 0; k < plot.data.length; k++) {
+        var geometry = new three.DodecahedronGeometry(plot.data[k].radius, 1);
+        geometry.translate(plot.data[k].x, plot.data[k].y, plot.data[k].z);
+        var mesh = new three.Mesh(geometry, material);
+        mesh.frustumCulled = false;
+        scene.add(mesh);
+    }
+    var renderer = new three.WebGLRenderer({ antialias: true });
+    var controls = new OrbitControls_1.OrbitControls(camera, renderer.domElement);
+    controls.target.set((extentX[0] + extentX[1]) / 2, (extentY[0] + extentY[1]) / 2, (extentZ[0] + extentZ[1]) / 2);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.01;
+    controls.rotateSpeed = 0.15;
+    renderer.setSize(width, height);
+    renderer.setAnimationLoop(function (time) {
+        controls.update();
+        renderer.render(scene, camera);
+    });
+    container.appendChild(renderer.domElement);
+    return function () { };
+};
+/**
+ * Creates a 2D scatter plot and attaches it to the specified container.
+ * @param container The container to attach the plot to.
+ * @param plot The data of the plot to generate.
+ * @param events The events to attach to the plot.
+ * @returns An updater function to update the plot.
+ */
+var PlotScatter2d = function (container, plot, events) {
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r;
+    // Create the SVG element.
+    var _s = createSvg(container, plot), svg = _s.svg, size = _s.size;
+    // TODO: Try to automatically compute margins using canvas context (https://stackoverflow.com/questions/29031659/calculate-width-of-text-before-drawing-the-text).
+    //       This requires an additional 'canvas' package. We could also use 'string-pixel-width'.
+    // TODO: Abstract this into a set of defaults.
+    // Compute the margin of the plot by assigning defaults if not specified.
+    var margin = __assign({ left: 60, right: 20, top: 20, bottom: 40 }, plot.margin);
+    var zoomElement = svg.append("g");
+    // If the plot has no data, simply return here.
+    if (!plot.data)
+        return function () { };
+    // TODO: Abstract this.
+    // TODO: Add labels to the axes.
+    // Construct the ranges of values based on the data or ranges specified by the user.
+    var extentX = d3.extent(plot.data, function (value) { return value.x; });
+    var scaleX = d3
+        .scaleLinear()
+        .domain([
+        (_d = (_c = (_b = (_a = plot.axes) === null || _a === void 0 ? void 0 : _a.x) === null || _b === void 0 ? void 0 : _b.minimum) !== null && _c !== void 0 ? _c : extentX[0]) !== null && _d !== void 0 ? _d : 0,
+        (_h = (_g = (_f = (_e = plot.axes) === null || _e === void 0 ? void 0 : _e.x) === null || _f === void 0 ? void 0 : _f.maximum) !== null && _g !== void 0 ? _g : extentX[1]) !== null && _h !== void 0 ? _h : 0,
+    ])
+        .range([margin.left, size.width - margin.right]);
+    var extentY = d3.extent(plot.data, function (value) { return value.y; });
+    var scaleY = d3
+        .scaleLinear()
+        .domain([
+        (_m = (_l = (_k = (_j = plot.axes) === null || _j === void 0 ? void 0 : _j.y) === null || _k === void 0 ? void 0 : _k.minimum) !== null && _l !== void 0 ? _l : extentY[0]) !== null && _m !== void 0 ? _m : 0,
+        (_r = (_q = (_p = (_o = plot.axes) === null || _o === void 0 ? void 0 : _o.y) === null || _p === void 0 ? void 0 : _p.maximum) !== null && _q !== void 0 ? _q : extentY[1]) !== null && _r !== void 0 ? _r : 0,
+    ])
+        .range([size.height - margin.bottom, margin.top]);
+    // TODO: Abstract this.
+    // Use the ranges of the values to create axis elements within the plot.
+    var xAxisElement = svg.append("g");
+    var yAxisElement = svg.append("g");
+    var xAxisCreate = function (g, scale) {
+        g.attr("transform", "translate(0, " + (size.height - margin.bottom) + ")").call(d3.axisBottom(scale));
+    };
+    var yAxisCreate = function (g, scale) {
+        g.attr("transform", "translate(" + margin.left + ", 0)").call(d3.axisLeft(scale));
+    };
+    // Get the colormap that is used for this plot.
+    var extentColor = d3.extent(plot.data, function (value) { return value.value; });
+    var scaleColor = findColormap(plot.colormap);
+    if (extentColor[0] !== undefined && extentColor[1] !== undefined)
+        scaleColor.domain(extentColor);
+    // Create the actual scatter plot elements as a specific shape.
+    var dotsElement = zoomElement.append("g");
+    var dots = dotsElement
+        .selectAll("dot")
+        .data(plot.data)
+        .enter()
+        .append("circle")
+        .attr("cx", function (d) { return scaleX(d.x); })
+        .attr("cy", function (d) { return scaleY(d.y); })
+        .attr("r", 5)
+        .style("fill", function (d) {
+        return plot.colormap && d.value ? scaleColor(d.value) : "currentColor";
+    });
+    var zoom = d3.zoom().on("zoom", function (_a) {
+        var transform = _a.transform;
+        var scaleXZoom = transform.rescaleX(scaleX);
+        var scaleYZoom = transform.rescaleY(scaleY);
+        xAxisCreate(xAxisElement, scaleXZoom);
+        yAxisCreate(yAxisElement, scaleYZoom);
+        zoomElement.attr("transform", transform);
+    });
+    svg.call(zoom).call(zoom.transform, d3.zoomIdentity);
+    return function () { };
+};
+/**
+ * Creates a scatter plot and attaches it to the specified container.
+ * @param container The container to attach the plot to.
+ * @param plot The data of the plot to generate.
+ * @param events The events to attach to the plot.
+ * @returns An updater function to update the plot.
+ */
+var PlotScatter = function (container, plot, events) {
+    // Check if the data has all values in each component.
+    var allX = plot.data.every(function (value) { return value.x !== undefined; });
+    var allY = plot.data.every(function (value) { return value.y !== undefined; });
+    var allZ = plot.data.every(function (value) { return value.z !== undefined; });
+    // If the data has 3 components, use the 3d scatter plot.
+    // If the data has 2 components, use the 2d scatter plot.
+    if (allX && allY && allZ) {
+        return PlotScatter3d(container, plot);
+    }
+    if (allX && allY) {
+        return PlotScatter2d(container, plot);
+    }
+    // Otherwise, throw an error.
+    throw new Error("The data does not have all values in each datum. Please specify the data as an array of objects with x, y, and, optionally, z properties.");
+};
+exports.default = PlotScatter;
 //# sourceMappingURL=scatter.js.map

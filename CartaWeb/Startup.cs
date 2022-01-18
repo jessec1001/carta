@@ -21,6 +21,7 @@ using CartaWeb.Models.Binders;
 using CartaWeb.Models.Migration;
 using CartaWeb.Models.Options;
 using CartaWeb.Services;
+using CartaCore.Serialization.Json;
 
 namespace CartaWeb
 {
@@ -138,6 +139,7 @@ namespace CartaWeb
                     options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
                     options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
                     options.JsonSerializerOptions.IgnoreNullValues = true;
+                    options.JsonSerializerOptions.Converters.Add(new JsonObjectConverter());
                 });
 
             // Important: this solves a deployment only issue.

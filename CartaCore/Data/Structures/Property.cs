@@ -28,7 +28,6 @@ namespace CartaCore.Data
         public Property(Identity id, object value)
             : base(id)
         {
-            if (value is null) throw new ArgumentNullException(nameof(value));
             Value = value;
         }
         /// <summary>

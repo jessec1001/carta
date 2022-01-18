@@ -1,3 +1,12 @@
+/**
+ * A function used to update data in a plot.
+ * @template TPlot The type of the plot data.
+ */
 declare type PlotterUpdate<TPlot> = (plot: TPlot) => void;
-declare type Plotter<TPlot, TInteraction> = (container: HTMLElement, plot: TPlot, interaction?: TInteraction) => PlotterUpdate<TPlot>;
+/**
+ * A function used to plot data.
+ * @template TPlot The type of the plot data.
+ * @template TEvents The type of event listeners that the plot emits.
+ */
+declare type Plotter<TPlot, TEvents> = (container: HTMLElement, plot: TPlot, events?: TEvents) => PlotterUpdate<TPlot>;
 export type { Plotter, PlotterUpdate };

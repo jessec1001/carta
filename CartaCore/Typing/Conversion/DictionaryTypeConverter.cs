@@ -2,6 +2,8 @@ using System;
 using System.Collections;
 using System.Linq;
 using System.Reflection;
+using CartaCore.Operations.Attributes;
+using Namotion.Reflection;
 
 namespace CartaCore.Typing.Conversion
 {
@@ -91,6 +93,37 @@ namespace CartaCore.Typing.Conversion
 
                     // We set the value of the property.
                     property.SetValue(result, convertedValue);
+                }
+                foreach (PropertyInfo property in type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase))
+                {
+                    // TODO: Generalize this so that it is the attribute that provides this extension.
+                    OperationAuthenticationAttribute attribute = property.GetCustomAttribute<OperationAuthenticationAttribute>();
+                    if (attribute is not null)
+                    {
+                        // Check for the prefix entry in the dictionary.
+                        if (dictionary.Contains(attribute.Prefix))
+                        {
+                            object authField = dictionary[attribute.Prefix];
+                            IDictionary authDict = authField as IDictionary;
+
+                            // Look inside the authentication dictionary for the specified entry.
+                            if (authDict is not null && authDict.Contains(attribute.Key))
+                            {
+                                // We need to take the authentication value and initialize the corresponding property
+                                // of the target type from a constructor.
+                                object authValue = authDict[attribute.Key];
+                                object[] parameters = { authValue };
+                                ConstructorInfo constructor = property.PropertyType.GetConstructor
+                                (
+                                    new Type[] { authValue.GetType() }
+                                );
+                                if (constructor is not null) property.SetValue(result, constructor.Invoke(parameters));
+                            }
+                        }
+
+                        // This prevents any other value from being assigned to the authentication property.
+                        continue;
+                    }
                 }
                 return true;
             }

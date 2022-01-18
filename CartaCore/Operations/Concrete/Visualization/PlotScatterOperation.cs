@@ -6,7 +6,7 @@ using CartaCore.Operations.Attributes;
 using CartaCore.Operations.Visualization;
 
 // TODO Move operations to their appropriate subnamespace.
-namespace CartaCore.Operations
+namespace CartaCore.Operations.Visualization
 {
     /// <summary>
     /// A single datum in a scatter plot.
@@ -33,21 +33,24 @@ namespace CartaCore.Operations
 
         // TODO: Figure out how to temporarily allow for color and colormap value until colormaps are handled backend.
         /// <summary>
-        /// The style of the scatter plot point.
-        /// </summary>
-        public PlotStyle? Style { get; set; }
-        /// <summary>
         /// The value of the scatter plot point. Used for coloring if a colormap is specified.
         /// </summary>
         public double? Value { get; set; }
+        /// <summary>
+        /// The style of the scatter plot point.
+        /// </summary>
+        public PlotStyle? Style { get; set; }
     }
+    // TODO: Remove the data from the abstract parent class.
     /// <summary>
     /// The data for a scatter plot.
     /// </summary>
-    public class ScatterPlot : Plot<ScatterPlotDatum>
+    public class ScatterPlot : Plot
     {
         /// <inheritdoc />
         public override string Type => "scatter";
+
+        public ScatterPlotDatum[] Data { get; set; }
 
         /// <summary>
         /// The name of the colormap to use for mapping numeric data to colors. If not specified, a default color will

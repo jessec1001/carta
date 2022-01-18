@@ -41,5 +41,16 @@ namespace CartaCore.Data
         {
             return new ConstantIdentity<T>(obj);
         }
+
+        /// <inheritdoc />
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as Identity);
+        }
+        /// <inheritdoc />
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
     }
 }

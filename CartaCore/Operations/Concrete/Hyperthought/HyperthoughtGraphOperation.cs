@@ -13,6 +13,7 @@ namespace CartaCore.Operations
         /// <summary>
         /// The reference to the authenticated HyperThought API. 
         /// </summary>
+        [OperationAuthentication("hyperthought")]
         public HyperthoughtApi Api { get; set; }
         /// <summary>
         /// The dot-separated path to the HyperThought workflow.

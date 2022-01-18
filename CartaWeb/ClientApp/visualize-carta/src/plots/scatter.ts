@@ -22,6 +22,7 @@ const createSvg = <TPlot extends Plot>(container: HTMLElement, plot: TPlot) => {
         .join(" ")
     : "";
 
+  // TODO: Use the d3.style function to set the style of the SVG element.
   // Construct the SVG element.
   const svg = d3
     .select(container)
@@ -337,14 +338,25 @@ const PlotScatter2d = <TDatum extends ScatterPlotDatum2d>(
 
   // TODO: Abstract this.
   // Use the ranges of the values to create axis elements within the plot.
-  zoomElement
-    .append("g")
-    .attr("transform", `translate(0, ${size.height - margin.bottom})`)
-    .call(d3.axisBottom(scaleX));
-  zoomElement
-    .append("g")
-    .attr("transform", `translate(${margin.left}, 0)`)
-    .call(d3.axisLeft(scaleY));
+  const xAxisElement = svg.append("g");
+  const yAxisElement = svg.append("g");
+
+  const xAxisCreate = (
+    g: d3.Selection<SVGGElement, unknown, null, any>,
+    scale: d3.ScaleLinear<number, number, never>
+  ) => {
+    g.attr("transform", `translate(0, ${size.height - margin.bottom})`).call(
+      d3.axisBottom(scale)
+    );
+  };
+  const yAxisCreate = (
+    g: d3.Selection<SVGGElement, unknown, null, any>,
+    scale: d3.ScaleLinear<number, number, never>
+  ) => {
+    g.attr("transform", `translate(${margin.left}, 0)`).call(
+      d3.axisLeft(scale)
+    );
+  };
 
   // Get the colormap that is used for this plot.
   const extentColor = d3.extent(plot.data, (value) => value.value);
@@ -352,14 +364,9 @@ const PlotScatter2d = <TDatum extends ScatterPlotDatum2d>(
   if (extentColor[0] !== undefined && extentColor[1] !== undefined)
     scaleColor.domain(extentColor as [number, number]);
 
-  const zoom = d3.zoom<SVGSVGElement, unknown>().on("zoom", (event) => {
-    zoomElement.attr("transform", event.transform);
-  });
-  svg.call(zoom).call(zoom.transform, d3.zoomIdentity);
-
   // Create the actual scatter plot elements as a specific shape.
-  zoomElement
-    .append("g")
+  const dotsElement = zoomElement.append("g");
+  const dots = dotsElement
     .selectAll("dot")
     .data(plot.data)
     .enter()
@@ -370,6 +377,17 @@ const PlotScatter2d = <TDatum extends ScatterPlotDatum2d>(
     .style("fill", (d) =>
       plot.colormap && d.value ? scaleColor(d.value) : "currentColor"
     );
+
+  const zoom = d3.zoom<SVGSVGElement, unknown>().on("zoom", ({ transform }) => {
+    const scaleXZoom = transform.rescaleX(scaleX);
+    const scaleYZoom = transform.rescaleY(scaleY);
+
+    xAxisCreate(xAxisElement, scaleXZoom);
+    yAxisCreate(yAxisElement, scaleYZoom);
+
+    zoomElement.attr("transform", transform);
+  });
+  svg.call(zoom).call(zoom.transform, d3.zoomIdentity);
 
   return () => {};
 };

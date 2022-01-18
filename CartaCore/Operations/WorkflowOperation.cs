@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using CartaCore.Data;
 using CartaCore.Operations.Attributes;
-using CartaCore.Utilities;
 
 namespace CartaCore.Operations
 {
@@ -289,6 +288,12 @@ namespace CartaCore.Operations
                         input.Add(connection.Target.Field, output[connection.Source.Field]);
                     }
                 }
+
+                // TODO: Temporary.
+                // Forward the authentication settings.
+                if (Context.Input.TryGetValue("authentication", out object authentication))
+                    input.Add("authentication", authentication);
+
                 return input;
             }
             /// <summary>

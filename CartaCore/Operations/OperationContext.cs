@@ -8,6 +8,7 @@ namespace CartaCore.Operations
     /// </summary>
     public class OperationContext
     {
+        // TODO: We need to be able to hash and compare selectors so that they are not duplicated on the queue.
         // Create a queue to store selectors based on priority.
         public ConcurrentQueue<(Selector, object)> Selectors { get; } = new();
 

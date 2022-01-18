@@ -1,44 +1,33 @@
-import { Plotter } from "types";
-/** The various numeric axes for the data. */
-declare type AxisName = "x" | "y" | "z";
-/** The expected type of the plot passed into the plotting function. */
-interface IPlot<TData> {
+import { Plot, Plotter } from "types";
+/** The type of datum for each scatter plot point. */
+interface ScatterPlotDatum {
+    /** The x-component of the datum. */
+    x?: number;
+    /** The y-component of the datum. */
+    y?: number;
+    /** The z-component of the datum. */
+    z?: number;
+    /** The radius of the datum. Defaults to 1.0 if not specified. */
+    radius?: number;
+    /** The value of the datum. Defaults to 0.0 if not specified. */
+    value?: number;
+    /** The optional styles to apply to the datum point. */
+    style?: Partial<CSSStyleDeclaration>;
+}
+/** The type of the combined data for the scatter plot. */
+interface ScatterPlot<TDatum extends ScatterPlotDatum = ScatterPlotDatum> extends Plot {
+    type: "scatter";
     /** The data to display in the plot itself. */
-    data: TData;
-    /** The size of the plot rectangle. */
-    size?: {
-        width: number;
-        height: number;
-    };
-    /** The margins inside the plot rectangle between the edges and the plot. */
-    margin?: {
-        left?: number;
-        right?: number;
-        top?: number;
-        bottom?: number;
-    };
-    /** The properties of the axes for the scatter plot. */
-    axes?: Partial<Record<AxisName, {
-        label?: string;
-        minimum?: number;
-        maximum?: number;
-    }>>;
-    /** The background color/gradient of the plot. */
-    background?: string;
-    /** The key of the data where the color information is located. */
-    color?: string;
+    data: TDatum[];
     /** The colormap to use for mapping values to colors. */
     colormap?: string;
 }
 /**
- * The data in the axis dimensions of the data are expected to be numbers. Any other specified field may be of any type.
- * For instance, colors may be strings.
+ * Creates a scatter plot and attaches it to the specified container.
+ * @param container The container to attach the plot to.
+ * @param plot The data of the plot to generate.
+ * @param events The events to attach to the plot.
+ * @returns An updater function to update the plot.
  */
-declare type IScatterData = (Record<AxisName, any> & Record<string, any>)[];
-/**
- * Appends an SVG element containing a generated scatter plot to a container using specified plot data.
- * @param container The container that will have the SVG element plot appended to it.
- * @param plot The scatter plot information.
- */
-declare const ScatterPlot: Plotter<IPlot<IScatterData>, {}>;
-export default ScatterPlot;
+declare const PlotScatter: Plotter<ScatterPlot, {}>;
+export default PlotScatter;

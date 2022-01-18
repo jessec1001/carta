@@ -5,8 +5,7 @@ namespace CartaCore.Operations.Visualization
     /// <summary>
     /// Represents a plot with some arbitrary type of data.
     /// </summary>
-    /// <typeparam name="TData">The type of data in the plot.</typeparam>
-    public abstract class Plot<TData>
+    public abstract class Plot
     {
         /// <summary>
         /// The type of plot. This should be consistent with the types of plots that are supported by the visualization
@@ -14,10 +13,6 @@ namespace CartaCore.Operations.Visualization
         /// </summary>
         public abstract string Type { get; }
 
-        /// <summary>
-        /// The list of data points in the plot.
-        /// </summary>
-        public TData[] Data { get; init; }
         /// <summary>
         /// The axes of the plot.
         /// </summary>

@@ -38,7 +38,7 @@ namespace CartaCore.Data
         private bool TryParse<U>(string source, out U result)
         {
             // Set default result in case we cannot convert.
-            result = default(U);
+            result = default;
 
             // If source is null, simply return false.
             if (source is null) return false;
@@ -49,7 +49,7 @@ namespace CartaCore.Data
                 nameof(TryParse),
                 new[] { typeof(string), typeof(U).MakeByRefType() }
             );
-            if (!(tryparse is null) && tryparse.ReturnType == typeof(bool))
+            if (tryparse is not null && tryparse.ReturnType == typeof(bool))
             {
                 object[] args = new object[] { source, null };
                 bool success = (bool)tryparse.Invoke(null, args);
@@ -114,7 +114,7 @@ namespace CartaCore.Data
             }
             else
             {
-                result = default(U);
+                result = default;
                 return false;
             }
         }

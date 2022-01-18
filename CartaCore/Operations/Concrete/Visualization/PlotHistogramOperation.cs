@@ -96,39 +96,40 @@ namespace CartaCore.Operations
             double maximum = input.Values.Max();
             double stepSize = (maximum - minimum) / input.Bins;
 
-            // Generate the data for the histogram.
-            Plot<HistogramPlotValue> histogramPlot = new()
-            {
-                Data = Enumerable
-                    .Range(0, input.Bins)
-                    .Select((index) =>
-                        {
-                            double minimumBin = minimum + stepSize * (index + 0);
-                            double maximumBin = minimum + stepSize * (index + 1);
-                            int frequency = input.Values
-                                .Where(value => value >= minimumBin && value < maximumBin)
-                                .Count();
-                            return new HistogramPlotValue()
-                            {
-                                Frequency = input.Normalize
-                                    ? frequency / (double)input.Values.Length
-                                    : frequency,
-                                Min = minimumBin,
-                                Max = maximumBin
-                            };
-                        }
-                    )
-                    .ToArray(),
-                Axes = new PlotAxes()
-                {
-                    X = new PlotAxis() { Label = "Values" },
-                    Y = new PlotAxis() { Label = input.Normalize ? "Frequencies" : "Occurrences" }
-                },
-                Color = ColorTranslator.ToHtml(color)
-            };
+            // TODO: Reimplement.
+            // // Generate the data for the histogram.
+            // Plot<HistogramPlotValue> histogramPlot = new()
+            // {
+            //     Data = Enumerable
+            //         .Range(0, input.Bins)
+            //         .Select((index) =>
+            //             {
+            //                 double minimumBin = minimum + stepSize * (index + 0);
+            //                 double maximumBin = minimum + stepSize * (index + 1);
+            //                 int frequency = input.Values
+            //                     .Where(value => value >= minimumBin && value < maximumBin)
+            //                     .Count();
+            //                 return new HistogramPlotValue()
+            //                 {
+            //                     Frequency = input.Normalize
+            //                         ? frequency / (double)input.Values.Length
+            //                         : frequency,
+            //                     Min = minimumBin,
+            //                     Max = maximumBin
+            //                 };
+            //             }
+            //         )
+            //         .ToArray(),
+            //     Axes = new PlotAxes()
+            //     {
+            //         X = new PlotAxis() { Label = "Values" },
+            //         Y = new PlotAxis() { Label = input.Normalize ? "Frequencies" : "Occurrences" }
+            //     },
+            //     Color = ColorTranslator.ToHtml(color)
+            // };
 
             // Output the visualization data to the calling context.
-            if (callingContext is not null && callingContext.Output.TryAdd(input.Name, histogramPlot))
+            if (callingContext is not null && callingContext.Output.TryAdd(input.Name, null))
                 return Task.FromResult(new PlotHistogramOperationOut());
             else
                 throw new ArgumentException($"Cannot set visualization '{input.Name}'.");

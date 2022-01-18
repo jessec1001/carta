@@ -3,10 +3,46 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using CartaCore.Data;
 using CartaCore.Operations.Attributes;
-using CartaCore.Operations.Visualization;
 
-namespace CartaCore.Operations
+namespace CartaCore.Operations.Visualization
 {
+    public enum GraphColorStrategy
+    {
+        Hierarchical,
+        Random,
+        Connectedness
+    }
+
+    // TODO: Make this consistent with VisJS format if possible.
+    public struct GraphPlotVertex
+    {
+        public string Id { get; set; }
+        public string Label { get; set; }
+
+        public double? Value { get; set; }
+
+        public PlotStyle? Style { get; set; }
+    }
+    // TODO: Make this consistent with VisJS format if possible.
+    public struct GraphPlotEdge
+    {
+        public string Source { get; set; }
+        public string Target { get; set; }
+        public bool Directed { get; set; }
+
+        public PlotStyle? Style { get; set; }
+    }
+    public class GraphPlot : Plot
+    {
+        public override string Type => "graph";
+
+        public GraphPlotVertex[] Vertices { get; set; }
+        public GraphPlotEdge[] Edges { get; set; }
+
+        // TODO: Port colormap code to backend.
+        public string Colormap { get; init; }
+    }
+
     /// <summary>
     /// The input for the <see cref="PlotGraphOperation" /> operation.
     /// </summary>
@@ -21,11 +57,21 @@ namespace CartaCore.Operations
         /// The graph to visualize.
         /// </summary>
         public Graph Graph { get; set; }
+
+        public GraphColorStrategy ColorStrategy { get; set; }
+        public string ColorMap { get; set; }
+
+        public PlotStyle? VertexStyle { get; set; }
+        public PlotStyle? EdgeStyle { get; set; }
+        public PlotStyle? AxesStyle { get; set; }
     }
     /// <summary>
     /// The output for the <see cref="PlotGraphOperation" /> operation.
     /// </summary>
-    public struct PlotGraphOperationOut { }
+    public struct PlotGraphOperationOut
+    {
+        public GraphPlot Plot { get; set; }
+    }
 
     /// <summary>
     /// Visualizes a graph plot of a network graph.
@@ -39,27 +85,6 @@ namespace CartaCore.Operations
         PlotGraphOperationOut
     >
     {
-        // TODO: Make this consistent with VisJS format if possible.
-        /// <summary>
-        /// The value of a vertex in a graph plot.
-        /// </summary>
-        private struct GraphPlotValue
-        {
-            /// <summary>
-            /// The unique identifier of the vertex.
-            /// </summary>
-            public string Id { get; set; }
-            /// <summary>
-            /// The label of the vertex.
-            /// </summary>
-            public string Label { get; set; }
-
-            /// <summary>
-            /// The unique identifiers of the vertices that this vertex is connected to.
-            /// </summary>
-            public List<string> Neighbors { get; set; }
-        }
-
         /// <inheritdoc />
         public override async Task<PlotGraphOperationOut> Perform(
             PlotGraphOperationIn input,
@@ -70,30 +95,46 @@ namespace CartaCore.Operations
                 throw new ArgumentException("The graph must be a finite graph.");
 
             // Generate the data for the graph plot.
-            List<GraphPlotValue> graphPlotValues = new();
+            List<GraphPlotVertex> graphPlotVertices = new();
+            List<GraphPlotEdge> graphPlotEdges = new();
             await foreach (Vertex vertex in entireGraph.GetVertices())
             {
-                // Create the data for this vertex.
-                GraphPlotValue graphPlotValue = new()
+                // Create the data for the vertex.
+                GraphPlotVertex graphPlotVertex = new()
                 {
                     Id = vertex.Identifier.ToString(),
                     Label = vertex.Label,
-                    Neighbors = new()
+                    // Value = vertex.Value,
+                    Style = input.VertexStyle
                 };
-                foreach (Edge edge in vertex.OutEdges)
-                    graphPlotValue.Neighbors.Add(edge.Target.ToString());
+                graphPlotVertices.Add(graphPlotVertex);
 
-                // Add the data for this vertex to the graph plot.
-                graphPlotValues.Add(graphPlotValue);
+                // Create the data for the edges.
+                foreach (Edge edge in vertex.Edges)
+                {
+                    GraphPlotEdge graphPlotEdge = new()
+                    {
+                        Source = edge.Source.ToString(),
+                        Target = edge.Target.ToString(),
+                        Directed = edge.Directed,
+                        Style = input.EdgeStyle
+                    };
+                    graphPlotEdges.Add(graphPlotEdge);
+                }
             }
-            Plot<GraphPlotValue> graphPlot = new()
+
+            // Create a new graph plot structure.
+            GraphPlot graphPlot = new()
             {
-                Data = graphPlotValues.ToArray()
+                Vertices = graphPlotVertices.ToArray(),
+                Edges = graphPlotEdges.ToArray(),
+                Colormap = input.ColorMap
             };
 
+            // TODO: Remove this and replace with a plot output to this operation.
             // Output the visualization data to the calling context.
-            if (callingContext is not null && callingContext.Output.TryAdd(input.Name, graphPlot))
-                return new PlotGraphOperationOut();
+            if (callingContext is not null && callingContext.Output.TryAdd(input.Name, null))
+                return new PlotGraphOperationOut { Plot = graphPlot };
             else
                 throw new ArgumentException($"Cannot set visualization '{input.Name}'.");
         }

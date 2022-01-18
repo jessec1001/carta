@@ -11,6 +11,22 @@ class OperationsAPI extends BaseAPI {
     return `${this.getApiUrl()}/${operationId}`;
   }
 
+  // TODO: Temporary and should be generalized by asking the server for the appropriate authentication to send.
+  private static retrieveAuthentication(): Record<string, string> {
+    // These designate the known authenatication pairings.
+    const knownEntries: Record<string, string> = {
+      hyperthought: "hyperthoughtKey",
+    };
+
+    // Check the local storage for each entry and add them to the authentication record.
+    const authentication: Record<string, string> = {};
+    for (const [auth, key] of Object.entries(knownEntries)) {
+      const entry = localStorage.getItem(key);
+      if (entry) authentication[auth] = JSON.parse(entry);
+    }
+    return authentication;
+  }
+
   public async getOperationTypes(
     filterName?: string,
     filterTags?: string[]
@@ -104,10 +120,15 @@ class OperationsAPI extends BaseAPI {
     operationId: string,
     inputs: Record<string, any>
   ): Promise<Job> {
+    const authentication = OperationsAPI.retrieveAuthentication();
+
     const url = this.getOperationUrl(operationId);
     const response = await fetch(
       `${url}/execute`,
-      this.defaultFetcher("POST", inputs)
+      this.defaultFetcher("POST", {
+        ...inputs,
+        authentication: authentication,
+      })
     );
 
     await this.ensureSuccess(

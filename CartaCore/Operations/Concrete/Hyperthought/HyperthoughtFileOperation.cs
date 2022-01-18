@@ -18,6 +18,7 @@ namespace CartaCore.Operations.Hyperthought
         /// <summary>
         /// The reference to the authenticated HyperThought API.
         /// </summary>
+        [OperationAuthentication("hyperthought")]
         public HyperthoughtApi Api { get; set; }
 
         /// <summary>
