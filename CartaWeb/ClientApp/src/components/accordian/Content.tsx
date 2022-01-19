@@ -1,17 +1,13 @@
-import { FunctionComponent, HTMLAttributes } from "react";
+import { ComponentProps, FC } from "react";
 import classNames from "classnames";
 import { useAccordian } from "./Context";
 import styles from "./Accordian.module.css";
 
 /** The props used for the {@link Content} component. */
-interface ContentProps extends HTMLAttributes<HTMLDivElement> {}
+interface ContentProps extends ComponentProps<"div"> {}
 
 /** A component that contains the content for an {@link Accordian} component. */
-const Content: FunctionComponent<ContentProps> = ({
-  children,
-  className,
-  ...props
-}) => {
+const Content: FC<ContentProps> = ({ children, className, ...props }) => {
   // Get the state of the accordian and the actions to operate on it.
   const { toggled } = useAccordian();
 

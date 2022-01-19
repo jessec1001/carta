@@ -1,0 +1,29 @@
+.primary {
+  color: var(--color-fill-primary);
+  border-color: var(--color-fill-primary);
+}
+.secondary {
+  color: var(--color-fill-secondary);
+  border-color: var(--color-fill-secondary);
+}
+
+.notify {
+  color: var(--color-notify);
+  border-color: var(--color-notify);
+}
+.info {
+  color: var(--color-info);
+  border-color: var(--color-info);
+}
+.warning {
+  color: var(--color-warning);
+  border-color: var(--color-warning);
+}
+.error {
+  color: var(--color-error);
+  border-color: var(--color-error);
+}
+.muted {
+  color: var(--color-muted);
+  border-color: var(--color-muted);
+}

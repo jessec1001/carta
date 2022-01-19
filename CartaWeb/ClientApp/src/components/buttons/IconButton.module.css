@@ -1,0 +1,48 @@
+.iconButton {
+  /* Use same width and height to produce a equal aspect ratio. Notice, size is relative to font size. */
+  font-size: 1em;
+  width: 2em;
+  height: 2em;
+
+  /* Center the contents of the button. */
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+
+  /* Make the button elevated and pop out of the page. */
+  border: 1px solid var(--color-stroke-hairline);
+  color: var(--color-stroke-lowlight);
+  box-shadow: var(--shadow-offset);
+}
+.iconButton:disabled {
+  /* Lower opacity and disable interactivity when disabled. */
+  pointer-events: none;
+  user-select: none;
+  opacity: 0.75;
+}
+.iconButton:hover {
+  /* Darken the button when hovered over. */
+  filter: brightness(90%);
+}
+
+/* We can vary the shape of these buttons. */
+.iconButton.square {
+  border-radius: var(--border-radius);
+}
+.iconButton.circle {
+  border-radius: 2em;
+}
+
+/* Styling for specific types of buttons. */
+.iconButton.scaled::after {
+  font-size: 2em;
+}
+.iconButton.typeAdd::after {
+  content: "+";
+  color: #2bb038;
+}
+.iconButton.typeRemove::after {
+  content: "×";
+  color: #d83c3c;
+}

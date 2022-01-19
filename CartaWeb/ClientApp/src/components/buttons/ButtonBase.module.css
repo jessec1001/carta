@@ -1,0 +1,10 @@
+.button:disabled {
+  /* Lower opacity and disable interactivity when disabled. */
+  pointer-events: none;
+  user-select: none;
+  opacity: 0.75;
+}
+.button:hover {
+  /* Darken the button when hovered over. */
+  filter: brightness(90%);
+}

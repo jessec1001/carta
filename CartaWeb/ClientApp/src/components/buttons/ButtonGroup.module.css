@@ -1,0 +1,23 @@
+.buttonGroup {
+  display: flex;
+  flex-direction: row;
+}
+.buttonGroup > * {
+  flex-grow: 1;
+  margin: 0rem;
+}
+
+.buttonGroup:not(.connected) > *:not(:last-child) {
+  margin: 0rem 0.5rem 0rem 0rem;
+}
+
+.buttonGroup.connected > *:not(:first-child) {
+  /* When connected, middle buttons should not have rounded edges. */
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+.buttonGroup.connected > *:not(:last-child) {
+  /* When connected, middle buttons should not have rounded edges. */
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}

@@ -1,7 +1,8 @@
 import { Accordian } from "components/accordian";
 import {
-  BlockButton,
+  Button,
   ButtonGroup,
+  CloseButton,
   IconButton,
   IconButtonAdd,
   IconButtonRemove,
@@ -208,35 +209,108 @@ const Container: FunctionComponent = () => {
             <section>
               <Title>Buttons</Title>
               <section>
-                <Title size="medium">Block Buttons</Title>
+                <Title size="medium">Close Button</Title>
+                <div>
+                  <CloseButton />
+                  <CloseButton disabled />
+                </div>
+                <Title size="medium">Buttons</Title>
                 <p>Ungrouped:</p>
                 <div>
-                  <BlockButton color="notify">Notify</BlockButton>
-                  <BlockButton color="info">Info</BlockButton>
-                  <BlockButton color="warning">Warning</BlockButton>
-                  <BlockButton color="error">Error</BlockButton>
-                  <BlockButton color="muted">Muted</BlockButton>
+                  <Button color="notify">Notify</Button>
+                  <Button color="info">Info</Button>
+                  <Button color="warning">Warning</Button>
+                  <Button color="error">Error</Button>
+                  <Button color="muted">Muted</Button>
                 </div>
                 <div>
-                  <BlockButton color="primary">Primary</BlockButton>
-                  <BlockButton color="secondary">Secondary</BlockButton>
+                  <Button color="primary">Primary</Button>
+                  <Button color="secondary">Secondary</Button>
+                </div>
+                <div>
+                  <Button disabled color="notify">
+                    Notify
+                  </Button>
+                  <Button disabled color="info">
+                    Info
+                  </Button>
+                  <Button disabled color="warning">
+                    Warning
+                  </Button>
+                  <Button disabled color="error">
+                    Error
+                  </Button>
+                  <Button disabled color="muted">
+                    Muted
+                  </Button>
+                </div>
+                <div>
+                  <Button disabled color="primary">
+                    Primary
+                  </Button>
+                  <Button disabled color="secondary">
+                    Secondary
+                  </Button>
+                </div>
+                <div>
+                  <Button outline color="notify">
+                    Notify
+                  </Button>
+                  <Button outline color="info">
+                    Info
+                  </Button>
+                  <Button outline color="warning">
+                    Warning
+                  </Button>
+                  <Button outline color="error">
+                    Error
+                  </Button>
+                  <Button outline color="muted">
+                    Muted
+                  </Button>
+                </div>
+                <div>
+                  <Button outline color="primary">
+                    Primary
+                  </Button>
+                  <Button outline color="secondary">
+                    Secondary
+                  </Button>
                 </div>
                 <p>Grouped:</p>
-                <div style={{ width: "100%", padding: "0.5rem" }}>
+                <div>
                   <ButtonGroup>
-                    <BlockButton color="notify">Notify</BlockButton>
-                    <BlockButton color="info">Info</BlockButton>
-                    <BlockButton color="warning">Warning</BlockButton>
-                    <BlockButton color="error">Error</BlockButton>
-                    <BlockButton color="muted">Muted</BlockButton>
+                    <Button color="notify">Notify</Button>
+                    <Button color="info">Info</Button>
+                    <Button color="warning">Warning</Button>
+                    <Button color="error">Error</Button>
+                    <Button color="muted">Muted</Button>
                   </ButtonGroup>
-                  <div style={{ height: "1rem" }} />
+                  <div style={{ height: "0.5rem" }} />
                   <ButtonGroup connected>
-                    <BlockButton color="notify">Notify</BlockButton>
-                    <BlockButton color="info">Info</BlockButton>
-                    <BlockButton color="warning">Warning</BlockButton>
-                    <BlockButton color="error">Error</BlockButton>
-                    <BlockButton color="muted">Muted</BlockButton>
+                    <Button color="notify">Notify</Button>
+                    <Button color="info">Info</Button>
+                    <Button color="warning">Warning</Button>
+                    <Button color="error">Error</Button>
+                    <Button color="muted">Muted</Button>
+                  </ButtonGroup>
+                  <div style={{ height: "0.5rem" }} />
+                  <ButtonGroup connected>
+                    <Button outline color="notify">
+                      Notify
+                    </Button>
+                    <Button outline color="info">
+                      Info
+                    </Button>
+                    <Button outline color="warning">
+                      Warning
+                    </Button>
+                    <Button outline color="error">
+                      Error
+                    </Button>
+                    <Button outline color="muted">
+                      Muted
+                    </Button>
                   </ButtonGroup>
                 </div>
               </section>
@@ -244,12 +318,16 @@ const Container: FunctionComponent = () => {
                 <Title size="medium">Icon Buttons</Title>
                 <p>
                   Add: <IconButtonAdd />
+                  <IconButtonAdd shape="square" />
+                  <IconButtonAdd disabled />
                 </p>
                 <p>
                   Remove: <IconButtonRemove />
+                  <IconButtonRemove shape="square" />
+                  <IconButtonRemove disabled />
                 </p>
                 <p>
-                  Arbitrary: <IconButton>&sum;</IconButton>{" "}
+                  Arbitrary: <IconButton>&sum;</IconButton>
                   <IconButton>ab</IconButton>
                 </p>
               </section>

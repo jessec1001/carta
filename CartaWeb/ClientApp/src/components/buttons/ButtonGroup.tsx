@@ -1,21 +1,33 @@
+import { ComponentProps, FC } from "react";
 import classNames from "classnames";
-import { FunctionComponent } from "react";
-
-import "./ButtonGroup.css";
+import styles from "./ButtonGroup.module.css";
 
 /** The props used for the {@link ButtonGroup} component. */
-interface ButtonGroupProps {
+interface ButtonGroupProps extends ComponentProps<"div"> {
   /** Whether the buttons in the group should be connected together. */
   connected?: boolean;
 }
 
 /** A component that renders a collection of buttons as a group. */
-const ButtonGroup: FunctionComponent<ButtonGroupProps> = ({
+const ButtonGroup: FC<ButtonGroupProps> = ({
   connected,
+  className,
   children,
+  ...props
 }) => {
   return (
-    <div className={classNames("ButtonGroup", { connected })}>{children}</div>
+    <div
+      className={classNames(
+        styles.buttonGroup,
+        {
+          [styles.connected]: connected,
+        },
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </div>
   );
 };
 

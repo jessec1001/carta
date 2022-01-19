@@ -1,0 +1,4 @@
+.button:hover:not(:disabled) {
+  /* Give the button a close-like color when hovered over. */
+  color: #ad1414;
+}

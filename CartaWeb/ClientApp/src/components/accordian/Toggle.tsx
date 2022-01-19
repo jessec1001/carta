@@ -1,17 +1,18 @@
-import { FunctionComponent, HTMLAttributes } from "react";
+import { ComponentProps, FC } from "react";
 import classNames from "classnames";
 import { CaretIcon } from "components/icons";
 import { useAccordian } from "./Context";
 import styles from "./Accordian.module.css";
 
 /** The props used for the {@link Toggle} component. */
-interface ToggleProps extends HTMLAttributes<HTMLButtonElement> {
+interface ToggleProps extends ComponentProps<"button"> {
   /** Whether or not the toggler should include a standard caret icon. */
   caret?: boolean;
 }
 
 /** A component that toggles an accordian component and can optionally display as a caret icon. */
-const Toggle: FunctionComponent<ToggleProps> = ({
+const Toggle: FC<ToggleProps> = ({
+  type = "button",
   caret,
   children,
   className,
@@ -23,6 +24,7 @@ const Toggle: FunctionComponent<ToggleProps> = ({
 
   return (
     <button
+      type={type}
       className={classNames(styles.toggle, className)}
       onClick={(e) => {
         onClick(e);

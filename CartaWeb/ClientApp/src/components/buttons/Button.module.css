@@ -1,0 +1,16 @@
+.button {
+  /* Make the button appear elevated and rounded. */
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-offset);
+
+  /* Give a decent amount of padding internally. */
+  padding: 0.5rem;
+
+  /* Add a slight transition delay for the button hover effect to take place. */
+  transition: filter 0.1s ease-in-out;
+}
+.button.outline {
+  /* Make outlined buttons have their text and border color change instead. */
+  background: none;
+  border: 1px solid;
+}

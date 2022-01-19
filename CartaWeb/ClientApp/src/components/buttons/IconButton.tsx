@@ -1,22 +1,31 @@
-import { FunctionComponent, HTMLProps } from "react";
+import { ComponentProps, FC } from "react";
 import classNames from "classnames";
-
-import "./IconButton.css";
+import baseStyles from "./ButtonBase.module.css";
+import styles from "./IconButton.module.css";
 
 /** The props used for the {@link IconButton} component. */
-interface IconButtonProps {
+interface IconButtonProps extends ComponentProps<"button"> {
   /** How the icon button should be shaped. By default, a circle. */
   shape?: "circle" | "square";
 }
 
 /** A component that represents a small round button with an icon in its center. */
-const IconButton: FunctionComponent<
-  HTMLProps<HTMLButtonElement> & IconButtonProps
-> = ({ shape = "circle", children, type, className, ...props }) => {
+const IconButton: FC<IconButtonProps> = ({
+  type = "button",
+  shape = "circle",
+  children,
+  className,
+  ...props
+}) => {
   return (
     <button
-      type={(type ?? "button") as any}
-      className={classNames("IconButton", shape, className)}
+      type={type}
+      className={classNames(
+        baseStyles.button,
+        styles.iconButton,
+        styles[shape],
+        className
+      )}
       {...props}
     >
       {children}

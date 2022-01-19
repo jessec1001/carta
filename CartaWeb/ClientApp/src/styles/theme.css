@@ -16,7 +16,7 @@ body {
   --color-stroke-normal: #000000;
   --color-stroke-primary: #141414;
   --color-stroke-secondary: #141414;
-  --color-stroke-hairline: #22222244;
+  --color-stroke-hairline: #22222233;
 
   /* TODO: Standardize this. */
   --color-fill-elevated: var(--color-fill-element);
@@ -27,7 +27,7 @@ body {
   --color-stroke-normal: #222222;
   --color-stroke-muted: #808080;
   --color-stroke-hairline: #f6f6f6;
-  --color-stroke-hairline: #22222244;
+  --color-stroke-hairline: #22222233;
 
   /* TODO: Is this stroke color necessary and what should it be named? */
   --color-stroke-lowlight: #404040;
@@ -50,7 +50,7 @@ body {
   --color-stroke-normal: #dddddd;
   --color-stroke-muted: #606060;
   --color-stroke-hairline: #3b3b3b;
-  --color-stroke-hairline: #dddddd44;
+  --color-stroke-hairline: #dddddd33;
 
   /* TODO: Is this stroke color necessary and what should it be named? */
   --color-stroke-lowlight: #a4a4a4;

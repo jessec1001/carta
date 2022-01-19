@@ -35,11 +35,6 @@
   flex-grow: 1;
 }
 
-/* Make the tab close button red. */
-.Tab-Close:hover {
-  color: #ad1414;
-}
-
 /* Tab Indicators */
 .Tab.status-modified {
   --status-color: var(--color-notify);

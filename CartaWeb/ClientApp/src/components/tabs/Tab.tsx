@@ -3,6 +3,7 @@ import classNames from "classnames";
 import { Modify } from "types";
 import { useTabs } from "./Context";
 import "./Tab.css";
+import { CloseButton } from "components/buttons";
 
 /**
  * The props used for the {@link Tab} component.
@@ -110,11 +111,7 @@ const Tab: FunctionComponent<
       {...props}
     >
       <div className="Tab-Content">{children}</div>
-      {closeable && (
-        <span className="Tab-Close" onClick={handleClose}>
-          ×
-        </span>
-      )}
+      {closeable && <CloseButton onClick={handleClose} />}
     </div>
   );
 };

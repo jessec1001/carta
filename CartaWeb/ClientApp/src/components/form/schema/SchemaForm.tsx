@@ -9,7 +9,7 @@ import {
   ValidationError,
 } from "library/schema";
 import Logging, { LogSeverity } from "library/logging";
-import { BlockButton, ButtonGroup } from "components/buttons";
+import { Button, ButtonGroup } from "components/buttons";
 import FormGroup from "../FormGroup";
 import SchemaBaseInput from "./SchemaBaseInput";
 
@@ -128,13 +128,13 @@ const SchemaForm: FunctionComponent<
 
       {/* Submit and cancel buttons go down here. */}
       <ButtonGroup>
-        <BlockButton type="submit" color="primary">
+        <Button type="submit" color="primary">
           {submitText}
-        </BlockButton>
+        </Button>
         {cancelable && (
-          <BlockButton color="secondary" onClick={handleCancel}>
+          <Button color="secondary" onClick={handleCancel}>
             {cancelText}
-          </BlockButton>
+          </Button>
         )}
       </ButtonGroup>
     </form>

@@ -1,7 +1,7 @@
 import { FunctionComponent, useEffect, useMemo, useState } from "react";
 import { useAPI, useMounted } from "hooks";
 import { Accordian } from "components/accordian";
-import { BlockButton, ButtonGroup } from "components/buttons";
+import { Button, ButtonGroup } from "components/buttons";
 import { Link } from "components/common";
 import { ApiException } from "library/exceptions";
 import { FormGroup } from "components/form";
@@ -253,17 +253,17 @@ const DatasetAddView: FunctionComponent = () => {
 
       {/* Render a set of buttons to perform or cancel the add dataset operation. */}
       <ButtonGroup>
-        <BlockButton
+        <Button
           color="primary"
           type="submit"
           onClick={handleAdd}
           disabled={selected === null}
         >
           Add
-        </BlockButton>
-        <BlockButton color="secondary" type="button" onClick={handleCancel}>
+        </Button>
+        <Button color="secondary" type="button" onClick={handleCancel}>
           Cancel
-        </BlockButton>
+        </Button>
       </ButtonGroup>
     </Views.Container>
   );

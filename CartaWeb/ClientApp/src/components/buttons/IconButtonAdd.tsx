@@ -1,15 +1,18 @@
-import { ComponentProps, FunctionComponent } from "react";
+import { ComponentProps, FC } from "react";
+import classNames from "classnames";
 import IconButton from "./IconButton";
+import styles from "./IconButton.module.css";
 
 /** An icon-based button that represents adding or creating an object. */
-const IconButtonAdd: FunctionComponent<ComponentProps<typeof IconButton>> = ({
-  style,
+const IconButtonAdd: FC<ComponentProps<typeof IconButton>> = ({
+  className,
   ...props
 }) => {
   return (
-    <IconButton style={{ color: "#2bb038", ...style }} {...props}>
-      +
-    </IconButton>
+    <IconButton
+      className={classNames(styles.scaled, styles.typeAdd, className)}
+      {...props}
+    />
   );
 };
 

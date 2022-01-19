@@ -1,4 +1,4 @@
-import { BlockButton } from "components/buttons";
+import { Button } from "components/buttons";
 import { FormGroup } from "components/form";
 import { TextFieldInput } from "components/input";
 import { Text } from "components/text";
@@ -43,12 +43,12 @@ const WorkspaceCreateView: FunctionComponent = () => {
         <TextFieldInput value={name} onChange={setName} />
       </FormGroup>
       <div className="form-spaced-group">
-        <BlockButton color="primary" onClick={handleCreate}>
+        <Button color="primary" onClick={handleCreate}>
           Create
-        </BlockButton>
-        <BlockButton color="secondary" onClick={handleClose}>
+        </Button>
+        <Button color="secondary" onClick={handleClose}>
           Cancel
-        </BlockButton>
+        </Button>
       </div>
     </div>
     // </Tabs.Tab>
