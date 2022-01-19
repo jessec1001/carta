@@ -2,7 +2,7 @@ import { FunctionComponent, useCallback, useRef, useState } from "react";
 import Container from "./Container";
 import ViewsContext from "./Context";
 import Renderer from "./Renderer";
-import View, { isContainerView, TabView } from "./View";
+import View, { isContainerView } from "./View";
 
 /** The props used for the {@link Views} component. */
 interface ViewsProps {}

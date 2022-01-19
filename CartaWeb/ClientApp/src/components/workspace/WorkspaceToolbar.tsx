@@ -10,12 +10,7 @@ import { useViews } from "components/views";
 import { useWorkspace } from "./WorkspaceContext";
 import { GraphData } from "library/api";
 import MetaApi, { MetaTypeEntry } from "library/api/meta";
-import React, {
-  FunctionComponent,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import React, { FunctionComponent, useEffect, useState } from "react";
 import { DatasetAddView, DatasetListView } from ".";
 import { WorkspaceSettingsView } from "./views";
 import VisualizerOperationView from "./views/VisualizerOperationView";

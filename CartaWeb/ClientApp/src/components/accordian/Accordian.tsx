@@ -1,14 +1,12 @@
-import { FunctionComponent } from "react";
+import { FunctionComponent, HTMLAttributes } from "react";
 import { useControllableState } from "hooks";
 import Content from "./Content";
 import Header from "./Header";
 import Toggle from "./Toggle";
 import AccordianContext from "./Context";
 
-import "./Accordian.css";
-
 /** The props used for the {@link Accordian} component. */
-interface AccordianProps {
+interface AccordianProps extends HTMLAttributes<HTMLDivElement> {
   /** Whether the accordian is toggled. If not specified, the component is uncontrolled. */
   toggled?: boolean;
   /** Whether the accordian is toggled initially. Used for uncontrolled components and their initial state. */
@@ -53,6 +51,7 @@ const Accordian: FunctionComponent<AccordianProps> & AccordianComposition = ({
   initialToggled = true,
   onToggle,
   children,
+  ...props
 }) => {
   // We use an optionally controlled toggled state.
   const [actualToggled, setToggled] = useControllableState(
@@ -66,7 +65,7 @@ const Accordian: FunctionComponent<AccordianProps> & AccordianComposition = ({
     <AccordianContext.Provider
       value={{ toggled: actualToggled, setToggled: setToggled }}
     >
-      <div className={"Accordian"}>{children}</div>
+      <div {...props}>{children}</div>
     </AccordianContext.Provider>
   );
 };

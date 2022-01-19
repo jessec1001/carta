@@ -1,13 +1,21 @@
-import { FunctionComponent } from "react";
-
-import "./Accordian.css";
+import { FunctionComponent, HTMLAttributes } from "react";
+import classNames from "classnames";
+import styles from "./Accordian.module.css";
 
 /** The props used for the {@link Header} component. */
-interface HeaderProps {}
+interface HeaderProps extends HTMLAttributes<HTMLDivElement> {}
 
 /** The header for an accordian. */
-const Header: FunctionComponent<HeaderProps> = ({ children }) => {
-  return <div className={"Accordian-Header"}>{children}</div>;
+const Header: FunctionComponent<HeaderProps> = ({
+  children,
+  className,
+  ...props
+}) => {
+  return (
+    <div className={classNames(styles.header, className)} {...props}>
+      {children}
+    </div>
+  );
 };
 
 export default Header;

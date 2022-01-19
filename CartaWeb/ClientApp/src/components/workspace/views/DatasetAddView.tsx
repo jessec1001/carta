@@ -1,12 +1,5 @@
-import {
-  FunctionComponent,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { FunctionComponent, useEffect, useMemo, useState } from "react";
 import { useAPI, useMounted } from "hooks";
-import { useWorkspace } from "components/workspace";
 import { Accordian } from "components/accordian";
 import { BlockButton, ButtonGroup } from "components/buttons";
 import { Link } from "components/common";
@@ -21,7 +14,6 @@ import {
 import { Text, Loading } from "components/text";
 import { Column, Row } from "components/structure";
 import { useViews, Views } from "components/views";
-import DatasetGraphView from "./DatasetGraphView";
 
 import "./DatasetAddView.css";
 

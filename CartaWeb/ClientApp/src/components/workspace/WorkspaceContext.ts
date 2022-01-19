@@ -1,7 +1,6 @@
 import { createContext, useContext } from "react";
 import { DataCRUD, DataValue } from "hooks";
-import { Workspace, WorkspaceOperation } from "library/api";
-import { Operation } from "library/api/operations";
+import { Workspace, Operation } from "library/api";
 
 /** Represents CRUD operations and a collection of data for a particular data type. */
 interface DataCRUDWithValue<TData> {

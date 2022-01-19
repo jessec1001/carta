@@ -1,8 +1,7 @@
 import { FunctionComponent, useEffect, useMemo, useState } from "react";
 import { DataCRUD, useAPI, useCRUD } from "hooks";
-import { Workspace, WorkspaceOperation } from "library/api";
+import { Workspace, Operation } from "library/api";
 import WorkspaceContext from "./WorkspaceContext";
-import { Operation } from "library/api/operations";
 
 /** The props used for the {@link WorkspaceWrapper} component. */
 interface WorkspaceWrapperProps {
