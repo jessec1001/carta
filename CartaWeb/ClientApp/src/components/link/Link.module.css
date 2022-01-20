@@ -1,0 +1,14 @@
+.link {
+  /* Remove any obnoxious default styles. */
+  text-decoration: none;
+}
+.link:disabled {
+  /* Lower opacity and disable interactivity when disabled. */
+  pointer-events: none;
+  user-select: none;
+  opacity: 0.75;
+}
+.link:hover {
+  /* Darken the link when hovered over. */
+  filter: brightness(90%);
+}

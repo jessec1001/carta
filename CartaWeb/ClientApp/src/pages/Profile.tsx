@@ -2,7 +2,7 @@ import { FunctionComponent, useContext } from "react";
 import { useStoredState } from "hooks";
 import { UserContext } from "context";
 import { PageLayout } from "components/layout";
-import { Link } from "components/common";
+import { Link } from "components/link";
 import { Text, Section, Subsection, Title } from "components/text";
 import { FormGroup } from "components/form";
 import { DropdownInput, TextFieldInput, OptionInput } from "components/input";

@@ -5,7 +5,7 @@ import { ApiDocs } from "./ApiDocs";
 import { Text, Title } from "components/text";
 import { useParams } from "react-router-dom";
 import { Mainbar, Sidebar, SidebarLayout } from "components/ui/layout";
-import { Link } from "components/common";
+import { Link } from "components/link";
 
 /** The type of topic parameter used for the {@link DocsPage}. */
 enum Topic {

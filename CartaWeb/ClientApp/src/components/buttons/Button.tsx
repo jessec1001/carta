@@ -10,7 +10,7 @@ import bgStyles from "styles/background.module.css";
 interface BlockButtonProps extends ComponentProps<"button"> {
   /** The color of the button. Defaults to primary. */
   color?: AppColors;
-  /** Whether the button should be rendered as an outline. */
+  /** Whether the button should be rendered as an outline. Defaults to false. */
   outline?: boolean;
 }
 

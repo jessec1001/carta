@@ -1,4 +1,4 @@
-import { Link } from "components/common";
+import { Link } from "components/link";
 import { Text } from "components/text";
 import { FunctionComponent } from "react";
 import { UserSignIn } from ".";

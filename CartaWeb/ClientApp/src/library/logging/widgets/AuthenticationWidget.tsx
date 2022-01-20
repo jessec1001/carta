@@ -1,4 +1,4 @@
-import { Link } from "components/common";
+import { Link } from "components/link";
 import { UserSignIn } from "components/user";
 
 function AuthenticationWidget() {

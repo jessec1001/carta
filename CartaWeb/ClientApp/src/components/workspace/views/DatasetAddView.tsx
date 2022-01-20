@@ -2,7 +2,7 @@ import { FunctionComponent, useEffect, useMemo, useState } from "react";
 import { useAPI, useMounted } from "hooks";
 import { Accordian } from "components/accordian";
 import { Button, ButtonGroup } from "components/buttons";
-import { Link } from "components/common";
+import { Link } from "components/link";
 import { ApiException } from "library/exceptions";
 import { FormGroup } from "components/form";
 import { DatabaseIcon } from "components/icons";

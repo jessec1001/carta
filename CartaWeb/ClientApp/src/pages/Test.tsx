@@ -10,6 +10,7 @@ import {
 import { Card } from "components/card";
 import { CheckboxInput } from "components/input";
 import { PageLayout } from "components/layout";
+import { Link } from "components/link";
 import { Tabs } from "components/tabs";
 import { Text, Title } from "components/text";
 import React, { FunctionComponent, useState } from "react";
@@ -376,6 +377,38 @@ const Container: FunctionComponent = () => {
                   </Text>
                 </Card.Footer>
               </Card>
+            </section>
+            <section>
+              <Title>Links</Title>
+              <div>
+                <Link to="https://www.google.com" color="notify">
+                  Notify
+                </Link>
+                &nbsp;
+                <Link to="https://www.google.com" color="info">
+                  Info
+                </Link>
+                &nbsp;
+                <Link to="https://www.google.com" color="warning">
+                  Warning
+                </Link>
+                &nbsp;
+                <Link to="https://www.google.com" color="error">
+                  Error
+                </Link>
+                &nbsp;
+                <Link to="https://www.google.com" color="muted">
+                  Muted
+                </Link>
+                &nbsp;
+                <Link to="https://www.google.com" color="primary">
+                  Primary
+                </Link>
+                &nbsp;
+                <Link to="https://www.google.com" color="secondary">
+                  Secondary
+                </Link>
+              </div>
             </section>
             <section>
               <Title>Tabs</Title>
