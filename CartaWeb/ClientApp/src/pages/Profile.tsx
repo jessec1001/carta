@@ -1,6 +1,6 @@
 import { FunctionComponent, useContext } from "react";
 import { useStoredState } from "hooks";
-import { UserContext } from "context";
+import { UserContext } from "components/user";
 import { PageLayout } from "components/layout";
 import { Link } from "components/link";
 import { Text, Section, Subsection, Title } from "components/text";

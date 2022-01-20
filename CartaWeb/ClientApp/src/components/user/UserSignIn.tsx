@@ -1,5 +1,5 @@
 import { FunctionComponent, useContext } from "react";
-import { UserContext } from "context";
+import { UserContext } from "components/user";
 
 /** A component that signs in the user when its children are clicked. */
 const UserSignIn: FunctionComponent = ({ children }) => {

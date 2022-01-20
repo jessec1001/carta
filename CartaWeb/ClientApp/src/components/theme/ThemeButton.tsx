@@ -1,5 +1,5 @@
 import { FunctionComponent, useContext } from "react";
-import { Theme, ThemeContext } from "context";
+import { Theme, ThemeContext } from "components/theme";
 
 /** A theme button component that cycles through themes when clicked. */
 const ThemeButton: FunctionComponent = () => {

@@ -1,7 +1,7 @@
 import { FunctionComponent, useCallback, useContext, useState } from "react";
 import { useHistory } from "react-router";
 import { useAPI, useLoader, useStoredState } from "hooks";
-import { UserContext } from "context";
+import { UserContext } from "components/user";
 import { Workspace } from "library/api";
 import { ObjectFilter } from "library/search";
 import { IconButtonAdd } from "components/buttons";

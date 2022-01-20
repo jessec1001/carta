@@ -1,6 +1,6 @@
 import { FunctionComponent, useEffect, useState } from "react";
 import { useAPI, useStoredState } from "hooks";
-import { UserContext } from "context";
+import { UserContext } from "components/user";
 import { User } from "library/api";
 
 /** A component that wraps a user context around its children components. */

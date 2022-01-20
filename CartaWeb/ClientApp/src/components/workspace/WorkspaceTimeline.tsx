@@ -1,5 +1,5 @@
 import { FunctionComponent, useContext } from "react";
-import { UserContext } from "context";
+import { UserContext } from "components/user";
 import {
   User,
   WorkspaceActionType,

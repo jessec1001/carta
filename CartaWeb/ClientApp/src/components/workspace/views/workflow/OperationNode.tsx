@@ -9,7 +9,7 @@ import OperationNodeConnector from "./OperationNodeConnector";
 import { useRef } from "react";
 import { ScatterPlot, HistogramPlot, GraphPlot } from "visualize-carta";
 import { useContext } from "react";
-import { Theme, ThemeContext } from "context";
+import { Theme, ThemeContext } from "components/theme";
 import { useWorkflow } from "./WorkflowContext";
 import classNames from "classnames";
 import { OperationGridContext } from "./OperationGrid";

@@ -9,6 +9,7 @@ import "prismjs/components/prism-json";
 import "prismjs/components/prism-python";
 import "prismjs/plugins/line-numbers/prism-line-numbers";
 
+// TODO: Change to using prism-react-renderer library.
 export interface PrismWrapperProps extends React.HTMLProps<HTMLPreElement> {
   code: string;
   language: string;
@@ -39,22 +40,13 @@ export default class PrismWrapper extends Component<PrismWrapperProps> {
   }
 
   render() {
-    const {
-      code,
-      language,
-      plugins,
-      children,
-      className,
-      ...rest
-    } = this.props;
+    const { code, language, plugins, children, className, ...rest } =
+      this.props;
 
     return (
       <pre
         {...rest}
-        className={classNames(
-          className,
-          ...(plugins ? plugins : [])
-        )}
+        className={classNames(className, ...(plugins ? plugins : []))}
       >
         <code className={`language-${language}`} ref={this.ref}>
           {code}

@@ -1,5 +1,5 @@
 import React, { FunctionComponent, useContext } from "react";
-import { UserContext } from "context";
+import { UserContext } from "components/user";
 
 /** A component that only displays its children if the user is not authenticated. */
 const UserIsNotAuthenticated: FunctionComponent = ({ children }) => {

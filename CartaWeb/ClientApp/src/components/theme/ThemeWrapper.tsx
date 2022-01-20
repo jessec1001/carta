@@ -1,6 +1,6 @@
 import { FunctionComponent, useEffect } from "react";
 import { useStoredState } from "hooks";
-import { Theme, ThemeContext } from "context";
+import { Theme, ThemeContext } from "components/theme";
 
 /** A component that wraps a theme context around its children components. */
 const ThemeWrapper: FunctionComponent = ({ children }) => {

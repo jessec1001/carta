@@ -4,8 +4,10 @@ import UserIsNotAuthenticated from "./UserIsNotAuthenticated";
 import UserNeedsAuthentication from "./UserNeedsAuthentication";
 import UserSignIn from "./UserSignIn";
 import UserSignOut from "./UserSignOut";
+import UserContext from "./UserContext";
 
 export {
+  UserContext,
   UserWrapper,
   UserIsAuthenticated,
   UserIsNotAuthenticated,
