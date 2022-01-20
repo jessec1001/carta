@@ -1,10 +1,17 @@
-import { FunctionComponent } from "react";
+import { ComponentProps, FC } from "react";
+import classNames from "classnames";
+import styles from "./Card.module.css";
 
-import "./card.css";
+/** The props used for the {@link Header} component. */
+interface HeaderProps extends ComponentProps<"div"> {}
 
 /** A component that renders the header of a {@link Card} component. */
-const Header: FunctionComponent = ({ children }) => {
-  return <div className="card-header">{children}</div>;
+const Header: FC<HeaderProps> = ({ className, children, ...props }) => {
+  return (
+    <div className={classNames(styles.header, className)} {...props}>
+      {children}
+    </div>
+  );
 };
 
 export default Header;

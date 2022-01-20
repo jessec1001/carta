@@ -1,4 +1,4 @@
-import { ComponentProps, FC } from "react";
+import { FC } from "react";
 import { useControllableState } from "hooks";
 import Content from "./Content";
 import Header from "./Header";
@@ -6,7 +6,7 @@ import Toggle from "./Toggle";
 import AccordianContext from "./Context";
 
 /** The props used for the {@link Accordian} component. */
-interface AccordianProps extends ComponentProps<"div"> {
+interface AccordianProps {
   /** Whether the accordian is toggled. If not specified, the component is uncontrolled. */
   toggled?: boolean;
   /** Whether the accordian is toggled initially. Used for uncontrolled components and their initial state. */
@@ -65,7 +65,7 @@ const Accordian: FC<AccordianProps> & AccordianComposition = ({
     <AccordianContext.Provider
       value={{ toggled: actualToggled, setToggled: setToggled }}
     >
-      <div {...props}>{children}</div>
+      {children}
     </AccordianContext.Provider>
   );
 };

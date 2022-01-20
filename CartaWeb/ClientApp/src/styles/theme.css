@@ -42,7 +42,7 @@ body {
 
   --color-fill-body: #fafafa;
   --color-fill-element: #ffffff;
-  --color-fill-element-lowlight: #e8e8e8;
+  --color-fill-element-lowlight: #f4f4f4;
   --color-fill-overlay: #ffffff80;
 }
 .theme-dark {
@@ -65,7 +65,7 @@ body {
 
   --color-fill-body: #181818;
   --color-fill-element: #101010;
-  --color-fill-element-lowlight: #202020;
+  --color-fill-element-lowlight: #131313;
   --color-fill-overlay: #000000a0;
 }
 /* #endregion */

@@ -5,25 +5,29 @@
   height: 100%;
 
   /* Add a styling that pops the card element out from the rest of the page. */
-  background-color: var(--color-fill-elevated);
+  background-color: var(--color-fill-element);
+  border: 1px solid var(--color-stroke-hairline);
   border-radius: var(--border-radius);
   box-shadow: var(--shadow-offset);
+  overflow: hidden;
 }
-.card-header {
+.header {
   /* Give some spacing so that elements are not forced into the edges/corners of the card. */
-  padding: 1rem 1rem 0.5rem;
+  padding: 0.5em 1em;
 
   /* Put a border at the bottom separating the header from the rest of the card. */
+  background-color: var(--color-fill-element-lowlight);
   border-bottom: 1px solid var(--color-stroke-hairline);
 }
-.card-footer {
+.footer {
   /* Give some spacing so that elements are not forced into the edges/corners of the card. */
-  padding: 0.5rem 1rem 1rem;
+  padding: 0.5em 1em;
 
   /* Put a border at the top separating the footer from the rest of the card. */
+  background-color: var(--color-fill-element-lowlight);
   border-top: 1px solid var(--color-stroke-hairline);
 }
-.card-body {
+.body {
   /* We make the body stretch to fill the height. */
   flex-grow: 1;
 

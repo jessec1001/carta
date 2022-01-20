@@ -7,6 +7,7 @@ import {
   IconButtonAdd,
   IconButtonRemove,
 } from "components/buttons";
+import { Card } from "components/card";
 import { CheckboxInput } from "components/input";
 import { PageLayout } from "components/layout";
 import { Tabs } from "components/tabs";
@@ -333,12 +334,55 @@ const Container: FunctionComponent = () => {
               </section>
             </section>
             <section>
+              <Title>Cards</Title>
+              <Card>
+                <Card.Body>
+                  <Title size="medium">Card</Title>
+                  <p>
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
+                    do eiusmod tempor incididunt ut labore et dolore magna
+                    aliqua. Ut enim ad minim veniam, quis nostrud exercitation.
+                  </p>
+                </Card.Body>
+              </Card>
+              <div style={{ height: "1rem" }} />
+              <Card>
+                <Card.Header>
+                  <Title size="medium">Card Header</Title>
+                </Card.Header>
+                <Card.Body>
+                  <p>
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
+                    do eiusmod tempor incididunt ut labore et dolore magna
+                    aliqua. Ut enim ad minim veniam, quis nostrud exercitation.
+                  </p>
+                </Card.Body>
+              </Card>
+              <div style={{ height: "1rem" }} />
+              <Card>
+                <Card.Header>
+                  <Title size="medium">Card Header</Title>
+                </Card.Header>
+                <Card.Body>
+                  <p>
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
+                    do eiusmod tempor incididunt ut labore et dolore magna
+                    aliqua. Ut enim ad minim veniam, quis nostrud exercitation.
+                  </p>
+                </Card.Body>
+                <Card.Footer>
+                  <Text color="muted">
+                    <time>Monday, Nov. 7th</time>
+                  </Text>
+                </Card.Footer>
+              </Card>
+            </section>
+            <section>
               <Title>Tabs</Title>
               <div
                 style={{
-                  width: "calc(100% - 2rem)",
-                  height: "16rem",
-                  margin: "1rem",
+                  width: "100%",
+                  height: "32rem",
                   border: "1px solid #666",
                 }}
               >
@@ -365,11 +409,11 @@ const Container: FunctionComponent = () => {
                   </Tabs.Area>
                 </Tabs>
               </div>
+              <div style={{ margin: "1rem 0rem" }} />
               <div
                 style={{
-                  width: "calc(100% - 2rem)",
+                  width: "100%",
                   height: "32rem",
-                  margin: "1rem",
                   border: "1px solid #666",
                 }}
               >
