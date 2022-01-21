@@ -7,7 +7,7 @@ import {
   schemaDefault,
 } from "library/schema";
 import { toTitleCase } from "library/utility";
-import { DropdownInput, OptionInput } from "components/input";
+import { CheckboxInput, DropdownInput, OptionInput } from "components/input";
 import SchemaBaseInput, { SchemaTypedInputProps } from "./SchemaBaseInput";
 
 /** The props used for the {@link SchemaMultitypeInput} component. */
@@ -95,7 +95,9 @@ const SchemaMultitypeInput: FunctionComponent<SchemaMultitypeInputProps> = ({
 
   // By default, we should display this input with a dropdown menu for the type.
   let uiWidget: JsonMultitypeSchemaWidgets =
-    widget ?? JsonMultitypeSchemaWidgets.Dropdown;
+    widget ?? (schema.type.length === 2 && schema.type.includes("null"))
+      ? JsonMultitypeSchemaWidgets.Checkbox
+      : JsonMultitypeSchemaWidgets.Dropdown;
   if (schema["ui:widget"] !== undefined) uiWidget = schema["ui:widget"];
 
   // Display based on decided upon widget.
@@ -121,6 +123,33 @@ const SchemaMultitypeInput: FunctionComponent<SchemaMultitypeInputProps> = ({
               ))}
             </DropdownInput>
           </label>
+        </div>
+      );
+    case JsonMultitypeSchemaWidgets.Checkbox:
+      const otherType = schema.type.find((type) => type !== "null");
+      return (
+        <div
+          className="form-spaced-group"
+          style={{ display: "flex", alignItems: "center" }}
+        >
+          <CheckboxInput
+            value={actualValue !== null}
+            onChange={(value) =>
+              setValue(
+                value ? schemaDefault({ ...schema, type: otherType }) : null
+              )
+            }
+          />
+          <div style={{ width: "0.5em" }} />
+          {actualValue !== null && (
+            <SchemaBaseInput
+              schema={{ ...schema, type: otherType }}
+              error={error}
+              value={actualValue}
+              onChange={setValue}
+              {...props}
+            />
+          )}
         </div>
       );
     default:

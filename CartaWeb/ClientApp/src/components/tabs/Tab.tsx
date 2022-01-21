@@ -2,8 +2,8 @@ import React, { FunctionComponent, HTMLAttributes } from "react";
 import classNames from "classnames";
 import { Modify } from "types";
 import { useTabs } from "./Context";
-import "./Tab.css";
 import { CloseButton } from "components/buttons";
+import "./Tab.css";
 
 /**
  * The props used for the {@link Tab} component.

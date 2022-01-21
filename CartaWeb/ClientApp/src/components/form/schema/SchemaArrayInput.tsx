@@ -14,6 +14,7 @@ import {
   IconButtonRemove,
 } from "components/buttons";
 import { EmptySymbol } from "components/symbols";
+import { Text } from "components/text";
 import FormGroup from "../FormGroup";
 import SchemaBaseInput, { SchemaTypedInputProps } from "./SchemaBaseInput";
 
@@ -182,8 +183,10 @@ const SchemaArrayItemInput: FunctionComponent<SchemaArrayItemInputProps> = ({
       <div>{children}</div>
       {(addable || removeable) && (
         <div style={{ flexGrow: 0 }}>
-          {addable && <IconButtonAdd onClick={onAdd} />}
-          {removeable && <IconButtonRemove onClick={onRemove} />}
+          <Text size="small">
+            {addable && <IconButtonAdd onClick={onAdd} />}
+            {removeable && <IconButtonRemove onClick={onRemove} />}
+          </Text>
         </div>
       )}
     </ButtonGroup>

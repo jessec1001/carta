@@ -37,8 +37,8 @@
   /* Tabs should have an indicator border at the top to display a status. */
   border-top: 2px solid var(--status-color);
 }
-.TabArea.horizontal .Tab-Close {
-  margin-left: 0.5em;
+.TabArea.horizontal .Tab-Content {
+  margin-right: 0.25em;
 }
 .TabArea.vertical .Tab {
   /* Force tabs to have some minimum size. */
@@ -56,8 +56,8 @@
   writing-mode: vertical-lr;
   transform: rotate(180deg);
 }
-.TabArea.vertical .Tab-Close {
-  margin-bottom: 0.5em;
+.TabArea.vertical .Tab-Content {
+  margin-top: 0.25em;
 }
 
 /* Active tabs need to have their overlay (blends with tab area) correctly positioned based on orientation. */
