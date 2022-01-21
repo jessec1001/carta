@@ -13,6 +13,7 @@ import { Operation } from "library/api/operations";
 import { ButtonDropdown, IconButton } from "components/buttons";
 import { WorkflowEditorView } from "components/workspace/views";
 import styles from "./OperationsListView.module.css";
+import DatasetAddView from "../DatasetAddView";
 
 /** A component that renders a single operation in the current workspace. */
 const OperationsListItem: FC<{
@@ -74,11 +75,12 @@ const OperationsListView: FC = () => {
   // We load the operations.
   const { workspace, operations } = useWorkspace();
 
+  // TODO: Have a tab history system so when the active tab is closed, the previous tab is activated.
   // FIXME: We need to handle adding a new operation.
-  const { operationsAPI, workflowsAPI, workspaceAPI } = useAPI();
-  const handleAddOperation = async (type: "blankWorkflow" | "dataWorkflow") => {
+  const { dataAPI, operationsAPI, workflowsAPI, workspaceAPI } = useAPI();
+  const handleAddOperation = async (type: "blank" | "data") => {
     switch (type) {
-      case "blankWorkflow":
+      case "blank":
         // TODO: Use a dialog to prompt for the name of the new workflow.
 
         // Create a blank workflow.
@@ -95,15 +97,69 @@ const OperationsListView: FC = () => {
         // Add the operation to the workspace.
         operations.CRUD.add(operation);
         break;
-      case "dataWorkflow":
+      case "data":
         // TODO: Use a dialog to prompt for the name of the new workflow and the data to use.
         // TODO: Implement.
+        viewActions.addElementToContainer(
+          rootId,
+          <DatasetAddView
+            onPick={async (
+              data: { source: string; resource: string }[],
+              name: string
+            ) => {
+              // Create a new workflow.
+              const workflow = await workflowsAPI.createWorkflow({
+                name: name.length > 0 ? name : "New Workflow",
+              });
+
+              // Create a graph visualization operation.
+              const visOperation = await operationsAPI.createOperation(
+                "visualizeGraphPlot",
+                null,
+                { Name: "Network Visualization" }
+              );
+              await workflowsAPI.addWorkflowOperation(
+                workflow.id,
+                visOperation.id
+              );
+
+              // TODO: We need to make a combine graph operation and place it inbetween the data and visualization operations.
+
+              // Create each of the data operations.
+              for (let k = 0; k < data.length; k++) {
+                const datum = data[k];
+                const datumTemplate = await dataAPI.getOperation(
+                  datum.source,
+                  datum.resource
+                );
+                const datumOperation = await operationsAPI.createOperation(
+                  datumTemplate.type,
+                  datumTemplate.subtype,
+                  datumTemplate.default
+                );
+                await workflowsAPI.addWorkflowOperation(
+                  workflow.id,
+                  datumOperation.id
+                );
+                await workflowsAPI.addWorkflowConnection(workflow.id, {
+                  source: { field: "Graph", operation: datumOperation.id },
+                  target: { field: "Graph", operation: visOperation.id },
+                });
+              }
+
+              // TODO: We need to add an output operation for the output of the visualizer.
+
+              const workflowOperation = await operationsAPI.createOperation(
+                "workflow",
+                workflow.id
+              );
+              operations.CRUD.add(workflowOperation);
+            }}
+          />,
+          true
+        );
         break;
     }
-  };
-  const handleCompleteBlankDialog = () => {
-    setDialogOpen(null);
-    handleAddOperation("blankWorkflow");
   };
 
   // Create the view title component.
@@ -139,6 +195,7 @@ const OperationsListView: FC = () => {
           options={{ blank: "From Blank", data: "From Data" }}
           auto="blank"
           className={classNames(styles.workflowButton)}
+          onPick={(value) => handleAddOperation(value as any)}
         >
           New
         </ButtonDropdown>

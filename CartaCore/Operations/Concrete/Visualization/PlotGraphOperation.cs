@@ -133,7 +133,7 @@ namespace CartaCore.Operations.Visualization
 
             // TODO: Remove this and replace with a plot output to this operation.
             // Output the visualization data to the calling context.
-            if (callingContext is not null && callingContext.Output.TryAdd(input.Name, null))
+            if (callingContext is not null && callingContext.Output.TryAdd(input.Name, graphPlot))
                 return new PlotGraphOperationOut { Plot = graphPlot };
             else
                 throw new ArgumentException($"Cannot set visualization '{input.Name}'.");

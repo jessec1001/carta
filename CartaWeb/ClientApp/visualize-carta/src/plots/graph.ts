@@ -1,13 +1,18 @@
 import * as d3 from "d3";
 import { Plotter } from "types";
 
-interface IGraphDatum {
+interface IGraphVertex {
   id: string;
-  label: string | null;
-  neighbors: string[];
+  label: string;
+}
+interface IGraphEdge {
+  directed: boolean;
+  source: string;
+  target: string;
 }
 interface IGraphPlot {
-  data: IGraphDatum[];
+  vertices: IGraphVertex[];
+  edges: IGraphEdge[];
 
   size?: {
     width: number;
@@ -48,7 +53,7 @@ const GraphPlot: Plotter<IGraphPlot, IGraphInteraction> = (
     .attr("viewBox", `0 0 ${width} ${height}`);
   const zoomElement = svgElement.append("g");
 
-  if (!plot.data) return () => {};
+  if (!plot.vertices || !plot.edges) return () => {};
 
   const ticked = () => {
     link
@@ -57,22 +62,17 @@ const GraphPlot: Plotter<IGraphPlot, IGraphInteraction> = (
       .attr("x2", ({ target }) => (target as any).x)
       .attr("y2", ({ target }) => (target as any).y);
 
-    node.attr("cx", ({ x }) => x).attr("cy", ({ y }) => y);
+    (node as any)
+      .attr("cx", ({ x }: { x: any }) => x)
+      .attr("cy", ({ y }: { y: any }) => y);
   };
 
-  const nodes: any[] = d3.map(plot.data, (d) => ({ id: d.id }));
-  const links = plot.data.map((d) =>
-    d.neighbors.map((n) => ({ source: d.id, target: n }))
-  );
-  const linksFlat = ([] as { source: string; target: string }[]).concat(
-    ...links
-  );
-
-  const nodeIds = d3.map(plot.data, (d) => d.id);
-  const nodeLabels = d3.map(plot.data, (d) => d.label);
+  const nodes = d3.map(plot.vertices, (d) => ({ id: d.id }));
+  const links = d3.map(plot.edges, (d) => ({ ...d }));
+  const nodeLabels = d3.map(plot.vertices, (d) => d.label);
 
   const forceNode = d3.forceManyBody();
-  const forceLink = d3.forceLink(linksFlat).id(({ index: i }) => nodeIds[i!]);
+  const forceLink = d3.forceLink(links);
 
   const drag = (
     simulation: d3.Simulation<d3.SimulationNodeDatum, undefined>
@@ -113,7 +113,7 @@ const GraphPlot: Plotter<IGraphPlot, IGraphInteraction> = (
     .attr("stroke-opacity", 0.6)
     .attr("stroke-width", 1)
     .selectAll("line")
-    .data(linksFlat)
+    .data(links)
     .join("line");
 
   const node = zoomElement
@@ -125,7 +125,9 @@ const GraphPlot: Plotter<IGraphPlot, IGraphInteraction> = (
     .data(nodes)
     .join("circle")
     .attr("r", 5)
-    .call(drag(simulation) as any);
+    .call(drag(simulation) as any)
+    .append("title")
+    .text((({ index }: { index: number }) => nodeLabels[index] ?? "") as any);
 
   const zoom = d3.zoom<SVGSVGElement, unknown>().on("zoom", (event) => {
     zoomElement.attr("transform", event.transform);

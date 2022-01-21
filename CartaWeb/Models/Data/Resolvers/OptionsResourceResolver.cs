@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 
 using CartaCore.Data;
+using CartaCore.Operations;
 
 namespace CartaWeb.Models.Data
 {
@@ -24,6 +25,8 @@ namespace CartaWeb.Models.Data
         /// <param name="controller">The controller generating the request.</param>
         /// <returns>The freeform graph data.</returns>
         public abstract Task<Graph> GenerateAsync(ControllerBase controller);
+        public OperationTemplate Operation { get; set; }
+
     }
     /// <summary>
     /// Represents an object that can convert a controllers parameters to an options object for a resource.

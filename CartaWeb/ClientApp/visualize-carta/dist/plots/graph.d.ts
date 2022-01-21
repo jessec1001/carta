@@ -1,11 +1,16 @@
 import { Plotter } from "types";
-interface IGraphDatum {
+interface IGraphVertex {
     id: string;
-    label: string | null;
-    neighbors: string[];
+    label: string;
+}
+interface IGraphEdge {
+    directed: boolean;
+    source: string;
+    target: string;
 }
 interface IGraphPlot {
-    data: IGraphDatum[];
+    vertices: IGraphVertex[];
+    edges: IGraphEdge[];
     size?: {
         width: number;
         height: number;

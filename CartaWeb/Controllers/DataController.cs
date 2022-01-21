@@ -54,9 +54,11 @@ namespace CartaWeb.Controllers
                             new Dictionary<string, OptionsResourceResolver>
                             {
                                 [nameof(FiniteUndirectedGraph)] = new OptionsResourceResolver<FiniteUndirectedGraphParameters>
-                                    (options => new FiniteUndirectedGraph(options)),
+                                    (options => new FiniteUndirectedGraph(options))
+                                    { Operation = new FiniteUndirectedGraphOperation().GetTemplate(new FiniteUndirectedGraphOperationIn()) },
                                 [nameof(InfiniteDirectedGraph)] = new OptionsResourceResolver<InfiniteDirectedGraphParameters>
-                                    (options => new InfiniteDirectedGraph(options)),
+                                    (options => new InfiniteDirectedGraph(options))
+                                    { Operation = new InfiniteDirectedGraphOperation().GetTemplate(new InfiniteDirectedGraphOperationIn()) },
                             },
                             StringComparer.OrdinalIgnoreCase
                         )
@@ -163,7 +165,7 @@ namespace CartaWeb.Controllers
         private async Task<Graph> LookupData(DataSource source, string resource)
         {
             if (resource is not null && DataResolvers.TryGetValue(source, out IDataResolver resolver))
-                return await resolver.GenerateAsync(this, resource);
+                return await resolver.GenerateGraphAsync(this, resource);
             return null;
         }
 
@@ -368,6 +370,30 @@ namespace CartaWeb.Controllers
             catch (HttpRequestException requestException)
             {
                 // Forward the HTTP exception to the caller.
+                return StatusCode
+                (
+                    (int)requestException.StatusCode,
+                    new { Source = source, Resource = resource }
+                );
+            }
+        }
+
+        [Authorize]
+        [HttpGet("{source}/{resource}/operation")]
+        public async Task<ActionResult<OperationTemplate>> GetDataOperation(
+            [FromRoute] DataSource source,
+            [FromRoute] string resource
+        )
+        {
+            try
+            {
+                if (!DataResolvers.ContainsKey(source)) return NotFound();
+
+                OperationTemplate template = await DataResolvers[source].GenerateOperationAsync(this, resource);
+                return Ok(template);
+            }
+            catch (HttpRequestException requestException)
+            {
                 return StatusCode
                 (
                     (int)requestException.StatusCode,

@@ -34,17 +34,16 @@ var d3 = __importStar(require("d3"));
 // TODO: Consider using WebCoLa to improve the performance of the visualization.
 // TODO: Make sure to add definitions to the SVG for optimal performance.
 var GraphPlot = function (container, plot, interaction) {
-    var _a;
-    var _b, _c, _d, _e;
-    var width = (_c = (_b = plot.size) === null || _b === void 0 ? void 0 : _b.width) !== null && _c !== void 0 ? _c : 800;
-    var height = (_e = (_d = plot.size) === null || _d === void 0 ? void 0 : _d.height) !== null && _e !== void 0 ? _e : 640;
+    var _a, _b, _c, _d;
+    var width = (_b = (_a = plot.size) === null || _a === void 0 ? void 0 : _a.width) !== null && _b !== void 0 ? _b : 800;
+    var height = (_d = (_c = plot.size) === null || _c === void 0 ? void 0 : _c.height) !== null && _d !== void 0 ? _d : 640;
     var margin = __assign({ left: 60, right: 20, top: 20, bottom: 40 }, plot.margin);
     var svgElement = d3
         .select(container)
         .append("svg")
         .attr("viewBox", "0 0 " + width + " " + height);
     var zoomElement = svgElement.append("g");
-    if (!plot.data)
+    if (!plot.vertices || !plot.edges)
         return function () { };
     var ticked = function () {
         link
@@ -64,26 +63,21 @@ var GraphPlot = function (container, plot, interaction) {
             var target = _a.target;
             return target.y;
         });
-        node.attr("cx", function (_a) {
+        node
+            .attr("cx", function (_a) {
             var x = _a.x;
             return x;
-        }).attr("cy", function (_a) {
+        })
+            .attr("cy", function (_a) {
             var y = _a.y;
             return y;
         });
     };
-    var nodes = d3.map(plot.data, function (d) { return ({ id: d.id }); });
-    var links = plot.data.map(function (d) {
-        return d.neighbors.map(function (n) { return ({ source: d.id, target: n }); });
-    });
-    var linksFlat = (_a = []).concat.apply(_a, links);
-    var nodeIds = d3.map(plot.data, function (d) { return d.id; });
-    var nodeLabels = d3.map(plot.data, function (d) { return d.label; });
+    var nodes = d3.map(plot.vertices, function (d) { return ({ id: d.id }); });
+    var links = d3.map(plot.edges, function (d) { return (__assign({}, d)); });
+    var nodeLabels = d3.map(plot.vertices, function (d) { return d.label; });
     var forceNode = d3.forceManyBody();
-    var forceLink = d3.forceLink(linksFlat).id(function (_a) {
-        var i = _a.index;
-        return nodeIds[i];
-    });
+    var forceLink = d3.forceLink(links);
     var drag = function (simulation) {
         var onDragStarted = function (event) {
             if (!event.active)
@@ -120,7 +114,7 @@ var GraphPlot = function (container, plot, interaction) {
         .attr("stroke-opacity", 0.6)
         .attr("stroke-width", 1)
         .selectAll("line")
-        .data(linksFlat)
+        .data(links)
         .join("line");
     var node = zoomElement
         .append("g")
@@ -131,7 +125,13 @@ var GraphPlot = function (container, plot, interaction) {
         .data(nodes)
         .join("circle")
         .attr("r", 5)
-        .call(drag(simulation));
+        .call(drag(simulation))
+        .append("title")
+        .text((function (_a) {
+        var _b;
+        var index = _a.index;
+        return (_b = nodeLabels[index]) !== null && _b !== void 0 ? _b : "";
+    }));
     var zoom = d3.zoom().on("zoom", function (event) {
         zoomElement.attr("transform", event.transform);
     });

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 using CartaCore.Data;
 using CartaWeb.Controllers;
+using CartaCore.Operations;
 
 namespace CartaWeb.Models.Data
 {
@@ -23,10 +24,21 @@ namespace CartaWeb.Models.Data
         }
 
         /// <inheritdoc />
-        public async Task<Graph> GenerateAsync(ControllerBase controller, string resource)
+        public async Task<Graph> GenerateGraphAsync(ControllerBase controller, string resource)
         {
             if (!int.TryParse(resource, out int id)) return null;
             return await DataController.LoadGraphAsync(id);
+        }
+
+        public async Task<OperationTemplate> GenerateOperationAsync(ControllerBase controller, string resource)
+        {
+            return new CartaGraphOperation().GetTemplate
+            (
+                new CartaGraphOperationIn()
+                {
+                    Id = resource
+                }
+            );
         }
     }
 }

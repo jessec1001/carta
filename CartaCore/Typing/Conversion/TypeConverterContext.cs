@@ -40,7 +40,7 @@ namespace CartaCore.Typing.Conversion
         public override bool TryConvert(Type type, object value, out object result, TypeConverterContext context = null)
         {
             // Check the trivial case.
-            if (value.GetType().IsAssignableTo(type))
+            if ((value is null && type.IsClass) || value.GetType().IsAssignableTo(type))
             {
                 result = value;
                 return true;

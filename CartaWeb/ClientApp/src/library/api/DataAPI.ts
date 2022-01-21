@@ -90,6 +90,32 @@ class DataAPI extends BaseAPI {
 
     return await this.readJSON<string[]>(response);
   }
+
+  public async getOperation(
+    source: string,
+    resource: string
+  ): Promise<{
+    type: string;
+    subtype: string | null;
+    default: Record<string, any>;
+  }> {
+    const url = queryString.stringifyUrl({
+      url: `${this.getResourceUrl(source, resource)}/operation`,
+      query: Object.fromEntries(this.getParameters(source, resource)),
+    });
+    const response = await fetch(url, this.defaultFetcher());
+
+    await this.ensureSuccess(
+      response,
+      "Error occurred while trying to fetch data operation."
+    );
+
+    return await this.readJSON<{
+      type: string;
+      subtype: string | null;
+      default: Record<string, any>;
+    }>(response);
+  }
 }
 
 export default DataAPI;

@@ -81,7 +81,9 @@ const renderResource = (
 };
 
 /** A component that renders a view to add datasets to a workspace. */
-const DatasetAddView: FunctionComponent = () => {
+const DatasetAddView: FunctionComponent<{
+  onPick?: (data: { source: string; resource: string }[], name: string) => void;
+}> = ({ onPick = () => {} }) => {
   // We need the data API to make calls to get the data resources.
   const { dataAPI } = useAPI();
 
@@ -154,7 +156,11 @@ const DatasetAddView: FunctionComponent = () => {
       setSelected(null);
     else setSelected({ source, resource });
   };
-  const handleAdd = () => {};
+  const handleAdd = () => {
+    if (selected === null) return;
+    onPick([selected], name);
+    actions.removeView(viewId);
+  };
   const handleCancel = () => {
     actions.removeView(viewId);
   };

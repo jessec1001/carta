@@ -78,7 +78,7 @@ class OperationsAPI extends BaseAPI {
     const operation = {
       type: operationType,
       subtype: operationSubtype,
-      defaults: defaults,
+      default: defaults,
     };
 
     const url = this.getApiUrl();

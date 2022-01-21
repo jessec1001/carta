@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 
 using CartaCore.Data;
+using CartaCore.Operations;
 
 namespace CartaWeb.Models.Data
 {
@@ -28,7 +29,7 @@ namespace CartaWeb.Models.Data
         }
 
         /// <inheritdoc />
-        public async Task<Graph> GenerateAsync(ControllerBase controller, string resource)
+        public async Task<Graph> GenerateGraphAsync(ControllerBase controller, string resource)
         {
             if (Resolvers.TryGetValue(resource, out OptionsResourceResolver resolver))
                 return await resolver.GenerateAsync(controller);
@@ -39,6 +40,13 @@ namespace CartaWeb.Models.Data
         public Task<IList<string>> FindResourcesAsync(ControllerBase controller)
         {
             return Task.FromResult((IList<string>)Resolvers.Keys.ToList());
+        }
+
+        public async Task<OperationTemplate> GenerateOperationAsync(ControllerBase controller, string resource)
+        {
+            if (Resolvers.TryGetValue(resource, out OptionsResourceResolver resolver))
+                return resolver.Operation;
+            return null;
         }
     }
 }

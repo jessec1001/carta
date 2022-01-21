@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using CartaCore.Operations.Attributes;
 using CartaCore.Typing.Conversion;
 using CartaCore.Utilities;
 
@@ -113,6 +114,19 @@ namespace CartaCore.Operations
                 BindingFlags.IgnoreCase |
                 BindingFlags.Public |
                 BindingFlags.Instance).PropertyType;
+        }
+
+        public OperationTemplate GetTemplate(TInput defaults)
+        {
+            // Get the operation name attribute assosicated with this operation.
+            OperationNameAttribute attr = GetType().GetCustomAttribute<OperationNameAttribute>();
+            if (attr is null) return null;
+            else return new OperationTemplate()
+            {
+                Type = attr.Type,
+                Subtype = null,
+                Default = defaults.AsDictionary()
+            };
         }
     }
 }

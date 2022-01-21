@@ -10,6 +10,7 @@ using CartaCore.Data;
 using CartaCore.Integration.Hyperthought;
 using CartaCore.Integration.Hyperthought.Api;
 using CartaCore.Integration.Hyperthought.Data;
+using CartaCore.Operations;
 
 namespace CartaWeb.Models.Data
 {
@@ -32,7 +33,7 @@ namespace CartaWeb.Models.Data
         }
 
         /// <inheritdoc />
-        public async Task<Graph> GenerateAsync(ControllerBase controller, string resource)
+        public async Task<Graph> GenerateGraphAsync(ControllerBase controller, string resource)
         {
             // We check that an API key was specified.
             if (!controller.Request.Query.ContainsKey("api"))
@@ -64,6 +65,22 @@ namespace CartaWeb.Models.Data
             HyperthoughtWorkflowGraph graph = new HyperthoughtWorkflowGraph(api, uuid);
             await graph.EnsureValidity();
             return graph;
+        }
+
+        public async Task<OperationTemplate> GenerateOperationAsync(ControllerBase controller, string resource)
+        {
+            // We check that an API key was specified.
+            if (!controller.Request.Query.ContainsKey("api"))
+                throw new HttpRequestException("HyperThought API key must be non-null.", null, HttpStatusCode.Unauthorized);
+
+            // TODO: Use something more like `new HyperthoughtGraphOperation().Template(defaults)` where defaults is typed for typed operations.
+            return new HyperthoughtGraphOperation().GetTemplate
+            (
+                new HyperthoughtGraphOperationIn()
+                {
+                    Path = resource
+                }
+            );
         }
 
         /// <inheritdoc />
