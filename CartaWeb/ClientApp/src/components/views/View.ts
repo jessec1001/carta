@@ -22,6 +22,7 @@ interface BaseView<T extends string> {
   tags: Record<string, any>;
 }
 
+// TODO: Implement a basic container view that has no special rendering.
 /** The specification of a view element. */
 interface ElementView extends BaseView<"element"> {
   /** The element to render in the view. */
