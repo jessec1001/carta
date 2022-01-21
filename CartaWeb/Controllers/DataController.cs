@@ -10,12 +10,12 @@ using Microsoft.Extensions.Logging;
 using CartaCore.Data;
 using CartaCore.Integration.Synthetic;
 using CartaCore.Persistence;
-using CartaCore.Serialization;
 using CartaCore.Serialization.Json;
 using CartaWeb.Models.Data;
 using CartaWeb.Models.DocumentItem;
 using CartaWeb.Serialization.Json;
 using CartaCore.Operations;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CartaWeb.Controllers
 {
@@ -31,7 +31,6 @@ namespace CartaWeb.Controllers
     public class DataController : ControllerBase
     {
         private readonly ILogger<DataController> _logger;
-
         private readonly Persistence _persistence;
 
         private static readonly Dictionary<DataSource, IDataResolver> DataResolvers;
@@ -229,6 +228,7 @@ namespace CartaWeb.Controllers
         /// they are automatically assigned defaults.
         /// </returns>
         /// <returns status="400">Occurs when the specified data source does not allow data creation.</returns>
+        [Authorize]
         [HttpPost("{source}")]
         public async Task<ActionResult<FiniteGraph>> PostGraph(
             [FromRoute] DataSource source,
@@ -263,6 +263,7 @@ namespace CartaWeb.Controllers
         /// <returns status="200">Nothing.</returns>
         /// <returns status="400">Occurs when the specified data source does not allow data creation.</returns>
         /// <returns status="404">Occurs when the specified resource could not be found.</returns>
+        [Authorize]
         [HttpDelete("{source}/{resource}")]
         public async Task<ActionResult> DeleteGraph(
             [FromRoute] DataSource source,
@@ -341,6 +342,7 @@ namespace CartaWeb.Controllers
         /// Occurs if the data resource or source could not be found or cannot be accessed with the provided
         /// authentication.
         /// </returns>
+        [Authorize]
         [HttpGet("{source}/{resource}/{selector}")]
         public async Task<ActionResult<Graph>> GetGraphSelection(
             [FromRoute] DataSource source,
@@ -375,3 +377,9 @@ namespace CartaWeb.Controllers
         }
     }
 }
+
+// TODO: Make constructing selectors more robust.
+// TODO: Implement an endpoint to retrieve an operation (configured with defaults but not instantiated) from a source, resource pair.
+//       This should be implemented within each data resolver.
+// TODO: Allow user-uploaded graphs to have aliases assigned to them.
+// TODO: Optimize loading of user-uploaded graphs so that the aliases and identifiers are loaded but not the graph itself.
