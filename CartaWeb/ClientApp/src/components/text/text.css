@@ -10,6 +10,9 @@
 }
 
 /* Text sizes */
+.text.size-reset {
+  font-size: 1rem;
+}
 .text.size-small {
   font-size: var(--font-small);
 }

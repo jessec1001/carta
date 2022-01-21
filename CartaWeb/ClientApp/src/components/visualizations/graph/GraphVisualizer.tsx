@@ -4,8 +4,9 @@ import { GraphData } from "library/api/data";
 import { DataNode } from "library/api/data/types";
 import { Options } from "vis-network/standalone";
 import { VisWrapper } from "components/wrappers";
-import { Theme } from "context";
+import { Theme } from "components/theme";
 
+// TODO: Deprecate this component.
 export interface GraphVisualizerProps {
   graph: GraphData;
   onPropertiesChanged?: (properties: Property[]) => void;

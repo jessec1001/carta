@@ -6,5 +6,5 @@
 }
 .button:hover {
   /* Darken the button when hovered over. */
-  filter: brightness(90%);
+  filter: brightness(75%);
 }

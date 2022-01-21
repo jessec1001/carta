@@ -89,7 +89,9 @@ const WorkspacesAuthenticated: FunctionComponent = () => {
         <Column>
           <Title level={2} size="large" align="middle">
             Workspaces &nbsp;
-            <IconButtonAdd onClick={navigateNewWorkspace} />
+            <Text size="reset">
+              <IconButtonAdd onClick={navigateNewWorkspace} />
+            </Text>
           </Title>
         </Column>
         <Column>

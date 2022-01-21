@@ -7,6 +7,10 @@
   color: var(--color-stroke-secondary);
 }
 
+.normal {
+  background-color: var(--color-fill-normal);
+  color: var(--color-stroke-normal);
+}
 .notify {
   background-color: var(--color-notify);
   color: var(--color-stroke-dark);

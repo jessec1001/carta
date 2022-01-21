@@ -1,9 +1,12 @@
 import { FunctionComponent, HTMLAttributes } from "react";
+import queryString from "query-string";
 import { useStoredState } from "hooks";
 import { Workspace } from "library/api";
 import { Card } from "components/card";
 import { Text } from "components/text";
 import WorkspaceTimeline from "./WorkspaceTimeline";
+import { Link } from "components/link";
+import { CaretIcon } from "components/icons";
 
 /** The props used for the {@link WorkspaceCard} component. */
 interface WorkspaceCardProps {
@@ -38,10 +41,19 @@ const WorkspaceCard: FunctionComponent<
     ? `${modifyDate.toLocaleDateString()} at ${modifyDate.toLocaleTimeString()}`
     : "never";
 
+  const workspaceLink = queryString.stringifyUrl({
+    url: "/workspace",
+    query: { id: workspace.id },
+  });
   return (
     <Card {...props} style={{ width: "16rem", flexShrink: 0 }}>
       <Card.Header>
-        <Text size="medium">{workspace.name}</Text>
+        <Link to={workspaceLink} color="normal">
+          <Text size="medium" align="middle">
+            {workspace.name}
+            <CaretIcon direction="right" />
+          </Text>
+        </Link>
       </Card.Header>
       <Card.Body>
         {/* Render a timeline section for the workspace changes. */}

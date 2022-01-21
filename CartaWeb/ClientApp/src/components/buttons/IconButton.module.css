@@ -21,10 +21,6 @@
   user-select: none;
   opacity: 0.75;
 }
-.iconButton:hover {
-  /* Darken the button when hovered over. */
-  filter: brightness(90%);
-}
 
 /* We can vary the shape of these buttons. */
 .iconButton.square {

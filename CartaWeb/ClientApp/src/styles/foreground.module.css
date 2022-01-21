@@ -7,6 +7,10 @@
   border-color: var(--color-fill-secondary);
 }
 
+.normal {
+  color: var(--color-stroke-normal);
+  border-color: var(--color-stroke-normal);
+}
 .notify {
   color: var(--color-notify);
   border-color: var(--color-notify);

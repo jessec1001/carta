@@ -1,5 +1,6 @@
 /** Represents available colors to the application. */
 type AppColors =
+  | "normal"
   | "notify"
   | "info"
   | "warning"

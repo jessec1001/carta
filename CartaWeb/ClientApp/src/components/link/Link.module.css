@@ -10,5 +10,5 @@
 }
 .link:hover {
   /* Darken the link when hovered over. */
-  filter: brightness(90%);
+  filter: brightness(75%);
 }

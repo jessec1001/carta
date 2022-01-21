@@ -11,7 +11,7 @@ interface TextProps {
   component?: React.ComponentType<any>;
 
   /** The size of the text to render. If not specified, defaults to the inherited style. */
-  size?: "small" | "normal" | "medium" | "large" | "title";
+  size?: "reset" | "small" | "normal" | "medium" | "large" | "title";
   /** The color of the text to render. If not specified, defaults to the inherited style. */
   // TODO: Make this some standard color type.
   color?: "normal" | "notify" | "info" | "warning" | "error" | "muted";

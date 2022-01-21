@@ -564,7 +564,8 @@ namespace CartaWeb.Controllers
                 userInformation.Name,
                 WorkspaceActionEnumeration.Added,
                 operationAccessItem
-            );
+            )
+            { Name = operationItem.Name };
 
             bool isSaved = await _persistence.WriteDbDocumentsAsync(new List<DbDocument>
             {
@@ -604,12 +605,14 @@ namespace CartaWeb.Controllers
             UserInformation currentUser = new(User);
             if (operationAccessItem is null) return NotFound();
             if (operationAccessItem.DocumentHistory.AddedBy.Id != currentUser.Id) return Forbid();
+            OperationItem operationItem = await OperationsController.LoadOperationAsync(operationId, _persistence);
             WorkspaceChangeItem workspaceChangeItem = new(
                 workspaceId,
                 currentUser.Name,
                 WorkspaceActionEnumeration.Removed,
                 operationAccessItem
-            );
+            )
+            { Name = operationItem.Name };
 
             operationAccessItem.SetPartitionKeyId(workspaceId);
             bool isSaved = await _persistence.WriteDbDocumentsAsync(new List<DbDocument>

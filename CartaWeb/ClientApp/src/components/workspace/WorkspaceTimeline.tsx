@@ -42,7 +42,7 @@ const WorkspaceChangeItem: FunctionComponent<WorkspaceChangeItemProps> = ({
   const performingUserName = change.workspaceAction.userName;
 
   // Computes a string representing the change applied to a workspace.
-  let performedAction: string = "[UNKNOWN]";
+  let performedAction = "[UNKNOWN]";
   switch (change.changeType) {
     case WorkspaceChangeType.Workspace:
       switch (change.workspaceAction.type) {
@@ -65,7 +65,18 @@ const WorkspaceChangeItem: FunctionComponent<WorkspaceChangeItemProps> = ({
       break;
 
     case WorkspaceChangeType.Operation:
-      // TODO: Implement.
+      switch (change.workspaceAction.type) {
+        case WorkspaceActionType.Added:
+          performedAction = change.name
+            ? `added the "${change.name}" operation to the workspace.`
+            : `added an operation to the workspace.`;
+          break;
+        case WorkspaceActionType.Removed:
+          performedAction = change.name
+            ? `removed the "${change.name}" operation from the workspace.`
+            : `removed an operation from the workspace.`;
+          break;
+      }
       break;
   }
 
