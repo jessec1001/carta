@@ -6,8 +6,8 @@ import baseStyles from "./ButtonBase.module.css";
 import fgStyles from "styles/foreground.module.css";
 import bgStyles from "styles/background.module.css";
 
-/** The props used for the {@link BlockButton} component. */
-interface BlockButtonProps extends ComponentProps<"button"> {
+/** The props used for the {@link Button} component. */
+interface ButtonProps extends ComponentProps<"button"> {
   /** The color of the button. Defaults to primary. */
   color?: AppColors;
   /** Whether the button should be rendered as an outline. Defaults to false. */
@@ -15,7 +15,7 @@ interface BlockButtonProps extends ComponentProps<"button"> {
 }
 
 /** A simple button component that is filled visually. */
-const BlockButton: FC<BlockButtonProps> = ({
+const Button: FC<ButtonProps> = ({
   type = "button",
   color = "primary",
   outline = false,
@@ -43,5 +43,5 @@ const BlockButton: FC<BlockButtonProps> = ({
   );
 };
 
-export default BlockButton;
-export type { BlockButtonProps };
+export default Button;
+export type { ButtonProps };

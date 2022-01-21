@@ -1,22 +1,26 @@
 .buttonGroup {
-  display: flex;
+  display: inline-flex;
   flex-direction: row;
 }
-.buttonGroup > * {
+
+.buttonGroup.stretch {
+  display: flex;
+}
+.buttonGroup.stretch > * {
   flex-grow: 1;
   margin: 0rem;
 }
 
-.buttonGroup:not(.connected) > *:not(:last-child) {
+.buttonGroup:not(.connected) > button:not(:last-of-type) {
   margin: 0rem 0.5rem 0rem 0rem;
 }
 
-.buttonGroup.connected > *:not(:first-child) {
+.buttonGroup.connected > button:not(:first-of-type) {
   /* When connected, middle buttons should not have rounded edges. */
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
 }
-.buttonGroup.connected > *:not(:last-child) {
+.buttonGroup.connected > button:not(:last-of-type) {
   /* When connected, middle buttons should not have rounded edges. */
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;

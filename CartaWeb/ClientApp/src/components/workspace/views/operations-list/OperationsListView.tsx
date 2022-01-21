@@ -7,11 +7,12 @@ import { useViews, Views } from "components/views";
 import { CaretIcon, OperationIcon, WorkflowIcon } from "components/icons";
 import { Column, Row } from "components/structure";
 import { SearchboxInput } from "components/input";
-import { useWorkspace } from "../WorkspaceContext";
+import { useWorkspace } from "components/workspace";
 import { useAPI } from "hooks";
 import { Operation } from "library/api/operations";
-import { IconButton } from "components/buttons";
-import WorkflowEditorView from "./WorkflowEditorView";
+import { ButtonDropdown, IconButton } from "components/buttons";
+import { WorkflowEditorView } from "components/workspace/views";
+import styles from "./OperationsListView.module.css";
 
 /** A component that renders a single operation in the current workspace. */
 const OperationsListItem: FC<{
@@ -134,97 +135,13 @@ const OperationsListView: FC = () => {
           <SearchboxInput onChange={setQuery} value={query} clearable />
         </Column>
         &nbsp;
-        <div>
-          <div
-            style={{
-              display: "flex",
-              position: "relative",
-            }}
-          >
-            <button
-              style={{
-                display: "flex",
-                alignItems: "center",
-                outline: "none",
-                border: "none",
-                borderRadius: dropdownOpen
-                  ? "4px 0px 0px 0px"
-                  : "4px 0px 0px 4px",
-                borderRight: "1px solid var(--color-stroke-hairline)",
-                padding: "0.3rem",
-                backgroundColor: "var(--color-fill-primary)",
-                color: "var(--color-stroke-primary)",
-              }}
-              onClick={() => handleAddOperation("blankWorkflow")}
-            >
-              New
-            </button>
-            <button
-              style={{
-                fontSize: "0.6rem",
-                display: "flex",
-                alignItems: "center",
-                outline: "none",
-                border: "none",
-                borderRadius: dropdownOpen
-                  ? "0px 4px 0px 0px"
-                  : "0px 4px 4px 0px",
-                padding: "0.3rem",
-                backgroundColor: "var(--color-fill-primary)",
-                color: "var(--color-stroke-primary)",
-              }}
-              onClick={() => setDropdownOpen((open) => !open)}
-            >
-              <CaretIcon direction="down" />
-            </button>
-            {dropdownOpen && (
-              <div
-                style={{
-                  position: "absolute",
-                  top: "100%",
-                  right: "0px",
-                  width: "8em",
-                  borderRadius: "4px 0px 4px 4px",
-                  border: "1px solid var(--color-stroke-hairline)",
-                  background: "white",
-                  zIndex: 100,
-                  boxShadow: "var(--shadow)",
-                }}
-              >
-                <ul
-                  style={{
-                    listStyle: "none",
-                    margin: "0px",
-                    padding: "0px",
-                    cursor: "pointer",
-                  }}
-                >
-                  <li
-                    style={{
-                      listStyle: "none",
-                      margin: "0px",
-                      padding: "0px 0.25em",
-                    }}
-                    onClick={() => handleAddOperation("blankWorkflow")}
-                  >
-                    Blank Workflow
-                  </li>
-                  <li
-                    style={{
-                      listStyle: "none",
-                      margin: "0px",
-                      padding: "0px 0.25em",
-                    }}
-                    onClick={() => handleAddOperation("dataWorkflow")}
-                  >
-                    Data Workflow
-                  </li>
-                </ul>
-              </div>
-            )}
-          </div>
-        </div>
-        {/* TODO: Add a dropdown button component for adding new views. */}
+        <ButtonDropdown
+          options={{ blank: "From Blank", data: "From Data" }}
+          auto="blank"
+          className={classNames(styles.workflowButton)}
+        >
+          New
+        </ButtonDropdown>
       </Row>
 
       {/* Check if the operations are still loading. */}

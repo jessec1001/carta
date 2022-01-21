@@ -1,4 +1,5 @@
 import React, {
+  ComponentProps,
   FunctionComponent,
   ReactElement,
   useCallback,
@@ -9,7 +10,7 @@ import classNames from "classnames";
 import OptionInput, { OptionInputProps } from "./OptionInput";
 
 /** The props used for the {@link OptionSelectorInput} component. */
-interface OptionSelectorInputProps {
+interface OptionSelectorInputProps extends ComponentProps<"div"> {
   /** Whether the option selector menu is toggled to be visible. */
   toggled?: boolean;
   // TODO: Allow for multiple selection.
@@ -23,7 +24,9 @@ interface OptionSelectorInputProps {
 const OptionSelectorInput: FunctionComponent<OptionSelectorInputProps> = ({
   toggled,
   onSelect,
+  className,
   children,
+  ...props
 }) => {
   // We use an index to determine which option in the array is currently hovered over.
   const [index, setIndex] = useState(0);
@@ -72,7 +75,10 @@ const OptionSelectorInput: FunctionComponent<OptionSelectorInputProps> = ({
   }, [toggled, index, handleSelect, optionArray]);
 
   return (
-    <div className={classNames("input-option-selector", { toggled })}>
+    <div
+      className={classNames("input-option-selector", { toggled }, className)}
+      {...props}
+    >
       {headerArray}
       {toggled && (
         // The set of options is only displayed if toggled is set.
@@ -88,6 +94,7 @@ const OptionSelectorInput: FunctionComponent<OptionSelectorInputProps> = ({
                 selected: childIndex === index,
               })}
             >
+              {console.log(child)}
               {child}
             </li>
           ))}

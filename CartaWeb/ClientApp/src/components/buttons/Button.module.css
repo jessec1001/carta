@@ -4,6 +4,8 @@
   box-shadow: var(--shadow-offset);
 
   /* Give a decent amount of padding internally. */
+  display: inline-flex;
+  align-items: center;
   padding: 0.5rem;
 
   /* Add a slight transition delay for the button hover effect to take place. */
