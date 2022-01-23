@@ -222,11 +222,6 @@ namespace CartaCore.Operations.Visualization
             };
 
             // TODO: Remove this and replace with a plot output to this operation.
-            // Output the visualization data to the calling context.
-            if (callingContext is not null && callingContext.Output.TryAdd(input.Name, plot))
-                return Task.FromResult(new ScatterPlotOperationOut { Plot = plot });
-            else
-                throw new ArgumentException($"Cannot set visualization '{input.Name}'.");
         }
     }
 }

@@ -1,18 +1,18 @@
 using System;
 
-namespace CartaCore.Statistics
+namespace CartaCore.Extensions.Statistics
 {
     /// <summary>
     /// Contains some simple utilities for computing statistical quantities.
     /// </summary>
-    public static class StatisticsUtility
+    public static class StatisticsExtensions
     {
         /// <summary>
         /// Computes the mean of a list of values.
         /// </summary>
         /// <param name="values">The values.</param>
         /// <returns>The mean.</returns>
-        public static double ComputeMean(double[] values)
+        public static double ComputeMean(this double[] values)
         {
             double sum = 0.0;
             foreach (double value in values)
@@ -24,11 +24,11 @@ namespace CartaCore.Statistics
         /// </summary>
         /// <param name="values">The values.</param>
         /// <returns>The median.</returns>
-        public static double ComputeMedian(double[] values)
+        public static double ComputeMedian(this double[] values)
         {
             // Sort the array of values.
             double[] sorted = (double[])values.Clone();
-            Array.Sort(sorted);
+            System.Array.Sort(sorted);
 
             // If the number of values is zero, return zero.
             // If the number of values is even, return the mean of the two middle values.
@@ -45,7 +45,7 @@ namespace CartaCore.Statistics
         /// <param name="values">The values.</param>
         /// <param name="order">The order of the moment.</param>
         /// <returns>The moment.</returns>
-        public static double ComputeMoment(double[] values, double order)
+        public static double ComputeMoment(this double[] values, double order)
         {
             double mean = ComputeMean(values);
             double sumDiffs = 0.0;
@@ -59,7 +59,7 @@ namespace CartaCore.Statistics
         /// <param name="values">The values.</param>
         /// <param name="order">The order of the moment.</param>
         /// <returns>The normalized moment.</returns>
-        public static double ComputeNormalizedMoment(double[] values, double order)
+        public static double ComputeNormalizedMoment(this double[] values, double order)
         {
             double moment = ComputeMoment(values, order);
             double variance = ComputeMoment(values, 2);
@@ -70,7 +70,7 @@ namespace CartaCore.Statistics
         /// </summary>
         /// <param name="values">The values,</param>
         /// <returns>The Jarque-Bera test statistic.</returns>
-        public static double ComputeJarqueBera(double[] values)
+        public static double ComputeJarqueBera(this double[] values)
         {
             double skewness = ComputeNormalizedMoment(values, 3);
             double kurtosis = ComputeNormalizedMoment(values, 4);

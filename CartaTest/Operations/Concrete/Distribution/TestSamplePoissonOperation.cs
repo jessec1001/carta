@@ -34,7 +34,7 @@ namespace CartaTest.Operations
             SamplePoissonOperationOut output = await operation.Perform(input);
 
             double[] samples = Array.ConvertAll<int, double>(output.Samples, x => x);
-            double sampleMean = StatisticsUtility.ComputeMean(samples);
+            double sampleMean = StatisticsExtensions.ComputeMean(samples);
             Assert.AreEqual(rate, sampleMean, 4 * Math.Sqrt((double)1 / sampleCount));
         }
         /// <summary>
@@ -60,7 +60,7 @@ namespace CartaTest.Operations
             SamplePoissonOperationOut output = await operation.Perform(input);
 
             double[] samples = Array.ConvertAll<int, double>(output.Samples, x => x);
-            double sampleDeviation = Math.Sqrt(StatisticsUtility.ComputeMoment(samples, 2));
+            double sampleDeviation = Math.Sqrt(StatisticsExtensions.ComputeMoment(samples, 2));
             Assert.AreEqual(Math.Sqrt(rate), sampleDeviation, 4 * Math.Sqrt((double)4 / sampleCount));
         }
 
@@ -87,7 +87,7 @@ namespace CartaTest.Operations
             SamplePoissonOperationOut output = await operation.Perform(input);
 
             double[] samples = Array.ConvertAll<int, double>(output.Samples, x => x);
-            double sampleSkewness = StatisticsUtility.ComputeNormalizedMoment(samples, 3);
+            double sampleSkewness = StatisticsExtensions.ComputeNormalizedMoment(samples, 3);
             Assert.AreEqual(1.0 / Math.Sqrt(rate), sampleSkewness, 4 * Math.Sqrt((double)6 / sampleCount));
         }
 
@@ -114,7 +114,7 @@ namespace CartaTest.Operations
             SamplePoissonOperationOut output = await operation.Perform(input);
 
             double[] samples = Array.ConvertAll<int, double>(output.Samples, x => x);
-            double sampleKurtosis = StatisticsUtility.ComputeNormalizedMoment(samples, 4);
+            double sampleKurtosis = StatisticsExtensions.ComputeNormalizedMoment(samples, 4);
             Assert.AreEqual(3 + 1.0 / rate, sampleKurtosis, 4 * Math.Sqrt((double)24 / sampleCount));
         }
 

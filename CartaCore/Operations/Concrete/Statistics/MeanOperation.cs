@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
+using CartaCore.Extensions.Statistics;
 using CartaCore.Operations.Attributes;
-using CartaCore.Statistics;
 
 namespace CartaCore.Operations
 {
@@ -39,9 +39,7 @@ namespace CartaCore.Operations
         /// <inheritdoc />
         public override Task<MeanOperationOut> Perform(MeanOperationIn input)
         {
-            return Task.FromResult(
-                new MeanOperationOut() { Mean = StatisticsUtility.ComputeMean(input.Values) }
-            );
+            return Task.FromResult(new MeanOperationOut() { Mean = input.Values.ComputeMean() });
         }
     }
 }

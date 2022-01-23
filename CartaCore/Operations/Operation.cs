@@ -5,9 +5,9 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using CartaCore.Data;
+using CartaCore.Extensions.Typing;
 using CartaCore.Operations.Attributes;
 using CartaCore.Typing.Conversion;
-using CartaCore.Utilities;
 
 namespace CartaCore.Operations
 {

@@ -1,9 +1,9 @@
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using CartaCore.Extensions.String;
 using CartaCore.Operations.Attributes;
-using CartaCore.Utilities;
 
-namespace CartaCore.Operations
+namespace CartaCore.Operations.Text
 {
     /// <summary>
     /// The input for the <see cref="TextReplaceOperation"/> operation.

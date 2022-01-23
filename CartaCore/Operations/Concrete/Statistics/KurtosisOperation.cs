@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
+using CartaCore.Extensions.Statistics;
 using CartaCore.Operations.Attributes;
-using CartaCore.Statistics;
 
 namespace CartaCore.Operations
 {
@@ -39,11 +39,7 @@ namespace CartaCore.Operations
         /// <inheritdoc />
         public override Task<KurtosisOperationOut> Perform(KurtosisOperationIn input)
         {
-            return Task.FromResult
-            (
-                new KurtosisOperationOut()
-                { Kurtosis = StatisticsUtility.ComputeNormalizedMoment(input.Values, 4) }
-            );
+            return Task.FromResult(new KurtosisOperationOut() { Kurtosis = input.Values.ComputeNormalizedMoment(4) });
         }
     }
 }

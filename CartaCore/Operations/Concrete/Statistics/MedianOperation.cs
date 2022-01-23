@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
+using CartaCore.Extensions.Statistics;
 using CartaCore.Operations.Attributes;
-using CartaCore.Statistics;
 
 namespace CartaCore.Operations
 {
@@ -39,9 +39,7 @@ namespace CartaCore.Operations
         /// <inheritdoc />
         public override Task<MedianOperationOut> Perform(MedianOperationIn input)
         {
-            return Task.FromResult(
-                new MedianOperationOut() { Median = StatisticsUtility.ComputeMedian(input.Values) }
-            );
+            return Task.FromResult(new MedianOperationOut() { Median = input.Values.ComputeMedian() });
         }
     }
 }

@@ -35,9 +35,10 @@ namespace CartaCore.Operations
     >
     {
         /// <inheritdoc />
-        public override Task<OutputOperationOut> Perform(OutputOperationIn input, OperationContext callingContext)
+        public override Task<OutputOperationOut> Perform(OutputOperationIn input, OperationContext context)
         {
-            if (callingContext is not null && callingContext.Output.TryAdd(input.Name, input.Value))
+            OperationContext parentContext = context?.Parent;
+            if (parentContext is not null && parentContext.Output.TryAdd(input.Name, input.Value))
                 return Task.FromResult(new OutputOperationOut());
             else
                 throw new ArgumentException($"Workflow output '{input.Name}' was duplicated or has an invalid name.");

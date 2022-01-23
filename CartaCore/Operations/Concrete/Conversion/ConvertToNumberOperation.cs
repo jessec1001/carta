@@ -2,7 +2,7 @@ using System;
 using System.Threading.Tasks;
 using CartaCore.Operations.Attributes;
 
-namespace CartaCore.Operations
+namespace CartaCore.Operations.Conversion
 {
     /// <summary>
     /// The input for the <see cref="ConvertToNumberOperation"/> operation.

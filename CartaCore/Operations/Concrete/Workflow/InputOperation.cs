@@ -37,9 +37,10 @@ namespace CartaCore.Operations
     >
     {
         /// <inheritdoc />
-        public override Task<InputOperationOut> Perform(InputOperationIn input, OperationContext callingContext)
+        public override Task<InputOperationOut> Perform(InputOperationIn input, OperationContext context)
         {
-            if (callingContext is not null && callingContext.Input.TryGetValue(input.Name, out object value))
+            OperationContext parentContext = context?.Parent;
+            if (parentContext is not null && parentContext.Input.TryGetValue(input.Name, out object value))
                 return Task.FromResult(new InputOperationOut { Value = value });
             else
                 throw new KeyNotFoundException($"Workflow input '{input.Name}' was expected but not provided.");

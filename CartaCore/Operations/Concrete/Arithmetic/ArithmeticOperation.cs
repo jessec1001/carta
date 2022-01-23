@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using CartaCore.Operations.Attributes;
 
-namespace CartaCore.Operations
+namespace CartaCore.Operations.Arithmetic
 {
     /// <summary>
     /// The type of arithmetic operation that may be performed in the <see cref="ArithmeticOperation" /> operation.

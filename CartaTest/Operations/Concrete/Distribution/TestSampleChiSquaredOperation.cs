@@ -34,7 +34,7 @@ namespace CartaTest.Operations
             SampleChiSquaredOperationOut output = await operation.Perform(input);
 
             double[] samples = output.Samples;
-            double sampleMean = StatisticsUtility.ComputeMean(samples);
+            double sampleMean = StatisticsExtensions.ComputeMean(samples);
             Assert.AreEqual(degreesOfFreedom, sampleMean, 4 * Math.Sqrt((double)1 / sampleCount));
         }
 
@@ -61,7 +61,7 @@ namespace CartaTest.Operations
             SampleChiSquaredOperationOut output = await operation.Perform(input);
 
             double[] samples = output.Samples;
-            double sampleDeviation = Math.Sqrt(StatisticsUtility.ComputeMoment(samples, 2));
+            double sampleDeviation = Math.Sqrt(StatisticsExtensions.ComputeMoment(samples, 2));
             Assert.AreEqual(Math.Sqrt(2.0 * degreesOfFreedom), sampleDeviation, 4 * Math.Sqrt((double)4 / sampleCount));
         }
 
@@ -88,7 +88,7 @@ namespace CartaTest.Operations
             SampleChiSquaredOperationOut output = await operation.Perform(input);
 
             double[] samples = output.Samples;
-            double sampleSkewness = StatisticsUtility.ComputeNormalizedMoment(samples, 3);
+            double sampleSkewness = StatisticsExtensions.ComputeNormalizedMoment(samples, 3);
             Assert.AreEqual(Math.Sqrt(8.0 / degreesOfFreedom), sampleSkewness, 4 * Math.Sqrt((double)6 / sampleCount));
         }
 
@@ -115,7 +115,7 @@ namespace CartaTest.Operations
             SampleChiSquaredOperationOut output = await operation.Perform(input);
 
             double[] samples = output.Samples;
-            double sampleKurtosis = StatisticsUtility.ComputeNormalizedMoment(samples, 4);
+            double sampleKurtosis = StatisticsExtensions.ComputeNormalizedMoment(samples, 4);
             Assert.AreEqual(12.0 / degreesOfFreedom, sampleKurtosis, 4 * Math.Sqrt((double)24 / sampleCount));
         }
 

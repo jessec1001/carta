@@ -127,12 +127,6 @@ namespace CartaCore.Operations
             //     },
             //     Color = ColorTranslator.ToHtml(color)
             // };
-
-            // Output the visualization data to the calling context.
-            if (callingContext is not null && callingContext.Output.TryAdd(input.Name, null))
-                return Task.FromResult(new PlotHistogramOperationOut());
-            else
-                throw new ArgumentException($"Cannot set visualization '{input.Name}'.");
         }
     }
 }

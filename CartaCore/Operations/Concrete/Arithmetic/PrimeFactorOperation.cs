@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using CartaCore.Operations.Attributes;
 
-namespace CartaCore.Operations
+namespace CartaCore.Operations.Arithmetic
 {
     /// <summary>
     /// The input for the <see cref="PrimeFactorOperation" /> operation.
@@ -49,7 +49,7 @@ namespace CartaCore.Operations
             if (value == 0)
                 return Task.FromResult(new PrimeFactorOperationOut { Factors = new long[] { 0 } });
             if (value == 1)
-                return Task.FromResult(new PrimeFactorOperationOut { Factors = Array.Empty<long>() });
+                return Task.FromResult(new PrimeFactorOperationOut { Factors = System.Array.Empty<long>() });
 
             // Store the factors in a list and convert later.
             List<long> factors = new();

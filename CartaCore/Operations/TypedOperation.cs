@@ -2,9 +2,9 @@ using System;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using CartaCore.Extensions.Typing;
 using CartaCore.Operations.Attributes;
 using CartaCore.Typing.Conversion;
-using CartaCore.Utilities;
 
 namespace CartaCore.Operations
 {
@@ -17,7 +17,6 @@ namespace CartaCore.Operations
         where TInput : new()
         where TOutput : new()
     {
-        // TODO: We need to reconfigure these methods to not use the parent context automatically.
         /// <summary>
         /// Operates on a specified operation context containing input and output mappings. Most operations will use the
         /// input mapping to produce an output mapping. This method is implemented by concrete subclasses.
@@ -30,16 +29,17 @@ namespace CartaCore.Operations
         /// input mapping to produce an output mapping. This method is implemented by concrete subclasses.
         /// </summary>
         /// <param name="input">The typed input to the operation.</param>
-        /// <param name="callingContext">
-        /// If the operation is being called from within a workflow, this is a reference to the workflow context.
+        /// <param name="context">
+        /// This is a reference to the operation context that contains the input and output mappings. Additionally,
+        /// ff the operation is being called from within a workflow, this is a reference to the workflow context.
         /// </param>
         /// <returns>The typed output from the operation.</returns>
-        public virtual Task<TOutput> Perform(TInput input, OperationContext callingContext) => Perform(input);
+        public virtual Task<TOutput> Perform(TInput input, OperationContext context = null) => Perform(input);
         /// <inheritdoc />
         public override async Task Perform(OperationContext context)
         {
             TInput input = context.Input.AsTyped<TInput>(TypeConverterContext.Default);
-            TOutput output = await Perform(input, context.Parent);
+            TOutput output = await Perform(input, context);
             context.Output = output.AsDictionary(TypeConverterContext.Default);
         }
 

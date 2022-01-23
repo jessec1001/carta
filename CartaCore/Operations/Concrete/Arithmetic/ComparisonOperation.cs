@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using CartaCore.Operations.Attributes;
 
-namespace CartaCore.Operations
+namespace CartaCore.Operations.Arithmetic
 {
     /// <summary>
     /// The type of comparison operation that may be performed in the <see cref="ComparisonOperation" /> operation.

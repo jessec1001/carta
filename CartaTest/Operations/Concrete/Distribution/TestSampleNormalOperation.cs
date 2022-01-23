@@ -38,7 +38,7 @@ namespace CartaTest.Operations
             SampleNormalOperationOut output = await operation.Perform(input);
 
             // Test the normality of the samples.
-            double jbStatistic = StatisticsUtility.ComputeJarqueBera(output.Samples);
+            double jbStatistic = StatisticsExtensions.ComputeJarqueBera(output.Samples);
             Assert.AreEqual(0.0, jbStatistic, 10.0);
         }
 
@@ -67,7 +67,7 @@ namespace CartaTest.Operations
             };
             SampleNormalOperationOut output = await operation.Perform(input);
 
-            double sampleMean = StatisticsUtility.ComputeMean(output.Samples);
+            double sampleMean = StatisticsExtensions.ComputeMean(output.Samples);
             Assert.AreEqual(mean, sampleMean, deviation * Math.Sqrt((double)1 / sampleCount));
         }
         /// <summary>
@@ -95,7 +95,7 @@ namespace CartaTest.Operations
             };
             SampleNormalOperationOut output = await operation.Perform(input);
 
-            double sampleDeviation = Math.Sqrt(StatisticsUtility.ComputeMoment(output.Samples, 2));
+            double sampleDeviation = Math.Sqrt(StatisticsExtensions.ComputeMoment(output.Samples, 2));
             Assert.AreEqual(deviation, sampleDeviation, 4 * Math.Sqrt((double)4 / sampleCount));
         }
 
@@ -124,7 +124,7 @@ namespace CartaTest.Operations
             };
             SampleNormalOperationOut output = await operation.Perform(input);
 
-            double sampleSkewness = StatisticsUtility.ComputeNormalizedMoment(output.Samples, 3);
+            double sampleSkewness = StatisticsExtensions.ComputeNormalizedMoment(output.Samples, 3);
             Assert.AreEqual(0.0, sampleSkewness, 4 * Math.Sqrt((double)6 / sampleCount));
         }
 
@@ -153,7 +153,7 @@ namespace CartaTest.Operations
             };
             SampleNormalOperationOut output = await operation.Perform(input);
 
-            double sampleKurtosis = StatisticsUtility.ComputeNormalizedMoment(output.Samples, 4);
+            double sampleKurtosis = StatisticsExtensions.ComputeNormalizedMoment(output.Samples, 4);
             Assert.AreEqual(3.0, sampleKurtosis, 4 * Math.Sqrt((double)24 / sampleCount));
         }
 

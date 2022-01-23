@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
+using CartaCore.Extensions.Statistics;
 using CartaCore.Operations.Attributes;
-using CartaCore.Statistics;
 
 namespace CartaCore.Operations
 {
@@ -39,11 +39,7 @@ namespace CartaCore.Operations
         /// <inheritdoc />
         public override Task<SkewOperationOut> Perform(SkewOperationIn input)
         {
-            return Task.FromResult
-            (
-                new SkewOperationOut()
-                { Skew = StatisticsUtility.ComputeNormalizedMoment(input.Values, 3) }
-            );
+            return Task.FromResult(new SkewOperationOut() { Skew = input.Values.ComputeNormalizedMoment(3) });
         }
     }
 }

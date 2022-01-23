@@ -37,7 +37,7 @@ namespace CartaTest.Operations
             SampleUniformOperationOut output = await operation.Perform(input);
 
             double[] samples = output.Samples;
-            double sampleMean = StatisticsUtility.ComputeMean(samples);
+            double sampleMean = StatisticsExtensions.ComputeMean(samples);
             Assert.AreEqual((min + max) / 2.0, sampleMean, 4 * Math.Sqrt((double)1 / sampleCount));
         }
 
@@ -67,7 +67,7 @@ namespace CartaTest.Operations
             SampleUniformOperationOut output = await operation.Perform(input);
 
             double[] samples = output.Samples;
-            double sampleMean = Math.Sqrt(StatisticsUtility.ComputeMoment(samples, 2));
+            double sampleMean = Math.Sqrt(StatisticsExtensions.ComputeMoment(samples, 2));
             Assert.AreEqual((max - min) / Math.Sqrt(12.0), sampleMean, 4 * Math.Sqrt((double)4 / sampleCount));
         }
 
@@ -97,7 +97,7 @@ namespace CartaTest.Operations
             SampleUniformOperationOut output = await operation.Perform(input);
 
             double[] samples = output.Samples;
-            double sampleSkewness = StatisticsUtility.ComputeNormalizedMoment(samples, 3);
+            double sampleSkewness = StatisticsExtensions.ComputeNormalizedMoment(samples, 3);
             Assert.AreEqual(0.0, sampleSkewness, 4 * Math.Sqrt((double)6 / sampleCount));
         }
 
@@ -127,7 +127,7 @@ namespace CartaTest.Operations
             SampleUniformOperationOut output = await operation.Perform(input);
 
             double[] samples = output.Samples;
-            double sampleKurtosis = StatisticsUtility.ComputeNormalizedMoment(samples, 4);
+            double sampleKurtosis = StatisticsExtensions.ComputeNormalizedMoment(samples, 4);
             Assert.AreEqual(3.0 - 6.0 / 5.0, sampleKurtosis, 4 * Math.Sqrt((double)24 / sampleCount));
         }
 
