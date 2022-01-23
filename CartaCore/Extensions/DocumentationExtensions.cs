@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Serialization;
 
-namespace CartaCore.Documentation
+namespace CartaCore.Extensions.Documentation
 {
     /// <summary>
     /// A set of extensions used to retrieve XML documentation for the source code.
@@ -21,7 +21,7 @@ namespace CartaCore.Documentation
         /// <summary>
         /// Stores loaded members after they have been used.
         /// </summary>
-        private static readonly Dictionary<string, XmlNode> LoadedMembers = new();
+        private static readonly Dictionary<string, (Assembly assembly, XmlNode node)> LoadedMembers = new();
 
         /// <summary>
         /// Gets the default path to the XML documentation of an assembly.
@@ -45,14 +45,43 @@ namespace CartaCore.Documentation
         /// <returns>The XML document representing the documentation.</returns>
         public static XmlDocument LoadDocumentation(this Assembly assembly, string path = null)
         {
+            // Check if the assembly has already been loaded.
+            if (LoadedAssemblies.TryGetValue(assembly, out XmlDocument xmlDocument))
+                return xmlDocument;
+
             // Use default path if necessary.
             path ??= assembly.GetDocumentationPath();
 
             // Load the XML documentation file.
-            XmlDocument xmlDocument = new();
+            xmlDocument = new();
             xmlDocument.PreserveWhitespace = false;
             xmlDocument.Load(path);
+
+            // Store the loaded XML document.
+            LoadedAssemblies.Add(assembly, xmlDocument);
+
+            // Store each of the members.
+            foreach (XmlNode node in xmlDocument.SelectNodes("//member"))
+                LoadedMembers.Add(node.Attributes["name"].Value, (assembly, node));
+
             return xmlDocument;
+        }
+        /// <summary>
+        /// Unloads the XML documentation of an assembly.
+        /// </summary>
+        /// <param name="assembly">The assembly.</param>
+        public static void UnloadDocumentation(this Assembly assembly)
+        {
+            // Unload the XML documentation file.
+            LoadedAssemblies.Remove(assembly);
+
+            // Unload all associated members in the assembly.
+            List<string> removeableKeys = LoadedMembers
+                .Where(pair => pair.Value.assembly == assembly)
+                .Select(pair => pair.Key)
+                .ToList();
+            foreach (string key in removeableKeys)
+                LoadedMembers.Remove(key);
         }
 
         /// <summary>
@@ -102,7 +131,7 @@ namespace CartaCore.Documentation
         {
             string paramsKey = string.Join(',', method
                 .GetParameters()
-                .Select(param => 
+                .Select(param =>
                     DocumentationKeyFormatter(DocumentationTypeFormatter(param.ParameterType), null)
                 )
             );
@@ -122,8 +151,8 @@ namespace CartaCore.Documentation
         {
             // Load the XML node for the specified member.
             // Will try to load from a cache if possible.
-            if (LoadedMembers.TryGetValue(memberName, out XmlNode cachedNode))
-                return cachedNode;
+            if (LoadedMembers.TryGetValue(memberName, out (Assembly assembly, XmlNode node) cachedNode))
+                return cachedNode.node;
             else
             {
                 // Load the XML document for the specified assembly.
@@ -132,10 +161,7 @@ namespace CartaCore.Documentation
                 if (LoadedAssemblies.TryGetValue(assembly, out XmlDocument cachedDocument))
                     xmlDocument = cachedDocument;
                 else
-                {
                     xmlDocument = assembly.LoadDocumentation();
-                    LoadedAssemblies.Add(assembly, xmlDocument);
-                }
 
                 // Get the specified node by its member name.
                 return xmlDocument.SelectSingleNode($"//member[@name='{memberName}']");

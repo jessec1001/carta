@@ -1,6 +1,5 @@
-using System.Text.RegularExpressions;
 using System.Xml.Serialization;
-using CartaCore.Utilities;
+using CartaCore.Extensions.String;
 
 namespace CartaCore.Documentation
 {

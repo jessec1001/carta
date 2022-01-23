@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace CartaCore.Utilities
+namespace CartaCore.Extensions.Array
 {
     /// <summary>
     /// Extensions provided for working with arrays with common applications.
@@ -14,11 +14,23 @@ namespace CartaCore.Utilities
         /// </summary>
         /// <param name="bytes">The array of bytes.</param>
         /// <returns>The hexadecimal string.</returns>
-        public static string ToHexString(this byte[] bytes)
+        public static string ToHexadecimalString(this byte[] bytes)
         {
             StringBuilder stringBuilder = new(bytes.Length * 2);
             foreach (byte b in bytes)
                 stringBuilder.AppendFormat("{0:x2}", b);
+            return stringBuilder.ToString();
+        }
+        /// <summary>
+        /// Converts an array of bytes into a binary string.
+        /// </summary>
+        /// <param name="bytes">The array of bytes.</param>
+        /// <returns>The binary string.</returns>
+        public static string ToBinaryString(this byte[] bytes)
+        {
+            StringBuilder stringBuilder = new(bytes.Length * 8);
+            foreach (byte b in bytes)
+                stringBuilder.AppendFormat("{0:b}", b);
             return stringBuilder.ToString();
         }
     }

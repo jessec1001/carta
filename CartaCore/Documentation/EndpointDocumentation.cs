@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Xml.Serialization;
-using CartaCore.Utilities;
+using CartaCore.Extensions.String;
 
 namespace CartaCore.Documentation
 {

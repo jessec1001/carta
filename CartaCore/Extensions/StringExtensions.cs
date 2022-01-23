@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace CartaCore.Utilities
+namespace CartaCore.Extensions.String
 {
     /// <summary>
     /// Extensions provided for working with strings with common applications.
@@ -58,6 +60,41 @@ namespace CartaCore.Utilities
         }
 
         /// <summary>
+        /// Calculates the n-grams of a string.
+        /// </summary>
+        /// <param name="str">The string.</param>
+        /// <param name="n">The size of each n-gram.</param>
+        /// <returns>An array of n-grams.</returns>
+        public static string[] NGrams(this string str, int n)
+        {
+            // Check the n-gram size.
+            if (n < 1) throw new ArgumentException("Size of n-grams must be at least 1");
+            if (n > str.Length) return System.Array.Empty<string>();
+
+            string[] ngrams = new string[str.Length - n + 1];
+            for (int i = 0; i < ngrams.Length; i++)
+                ngrams[i] = str.Substring(i, n);
+            return ngrams;
+        }
+
+        /// <summary>
+        /// Computes the [Hamming distnace](https://en.wikipedia.org/wiki/Hamming_distance) between two strings.
+        /// Captures the number of character replacements between two strings where the order of characters is retained.
+        /// </summary>
+        /// <param name="source">The source string.</param>
+        /// <param name="target">The target string.</param>
+        /// <returns>The Hamming distance between strings.</returns>
+        public static int HammingDistance(this string source, string target)
+        {
+            // We modify the traditional hamming distance to extend to strings of different lengths.
+            int length = Math.Min(source.Length, target.Length);
+            int distance = 0;
+            for (int i = 0; i < length; i++)
+                if (source[i] != target[i]) distance++;
+            distance += Math.Abs(source.Length - target.Length);
+            return distance;
+        }
+        /// <summary>
         /// Computes the [Levenshtein distance](https://en.wikipedia.org/wiki/Levenshtein_distance) between two strings.
         /// This distance measures the number of atomic string actions that must be performed to transform a source
         /// string into a target string. These atomic actions include character insertion, deletion, and substitution.
@@ -110,6 +147,79 @@ namespace CartaCore.Utilities
             return distanceMatrix[source.Length, target.Length];
         }
 
+        /// <summary>
+        /// Computes the bag intersection of the n-grams of two strings. The bag intersection is the number of n-grams
+        /// that are common to both strings, one per occurrence in both strings.
+        /// </summary>
+        /// <param name="source">The source string.</param>
+        /// <param name="target">The target string.</param>
+        /// <param name="sourceCount">The number of n-grams in the source string.</param>
+        /// <param name="targetCount">The number of n-grams in the target string.</param>
+        /// <param name="n">The size of n-grams.</param>
+        /// <returns>The number of overlapping n-grams in both strings.</returns>
+        public static int NGramOverlap(
+            string source,
+            string target,
+            out int sourceCount,
+            out int targetCount,
+            int n = 1
+        )
+        {
+            // Calculate the n-grams of the source and target strings.
+            List<string> sourceNGrams = new(source.NGrams(n));
+            List<string> targetNGrams = new(target.NGrams(n));
+            sourceCount = sourceNGrams.Count;
+            targetCount = targetNGrams.Count;
+
+            // Count the number of n-grams that are shared between the source and target strings.
+            // Notice that we avoid counting duplicates so that:
+            // - "banana" and "na" have 1 shared bigram (rather than 2).
+            // - "banana" and "nan" have 2 shared bigrams (rather than 4).
+            // - "banana" and "nana" have 3 shared bigrams (rather than 9).
+            int sharedNGrams = 0;
+            foreach (string ngram in sourceNGrams)
+            {
+                if (targetNGrams.Remove(ngram))
+                    sharedNGrams++;
+            }
+
+            // Return the Sorensen-Dice similarity.
+            return sharedNGrams;
+        }
+        /// <summary>
+        /// Computes the [Overlap Similarity](https://en.wikipedia.org/wiki/Overlap_coefficient) between two strings.
+        /// Measures the overlap of bags of n-grams between the strings relative to the size of the smaller string.
+        /// </summary>
+        /// <param name="source">The source string.</param>
+        /// <param name="target">The target string.</param>
+        /// <param name="n">The size of n-grams.</param>
+        /// <returns>The Overlap Similarity.</returns>
+        public static double OverlapSimilarity(this string source, string target, int n = 1)
+        {
+            // We compute |X|, |Y|, and |X and Y|.
+            int sharedNGrams = NGramOverlap(source, target, out int sourceNGrams, out int targetNGrams, n);
+
+            // Return the Overlap similarity: |X and Y| / min(|X|, |Y|).
+            return (double)sharedNGrams / Math.Min(sourceNGrams, targetNGrams);
+        }
+        /// <summary>
+        /// Computes the [Sorensen-Dice Similarity](https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient)
+        /// between two strings. Measures the overlap of the bags of n-grams between the strings where the size of
+        /// n-grams is configurable.
+        /// </summary>
+        /// <param name="source">The source string.</param>
+        /// <param name="target">The target string.</param>
+        /// <param name="n">The size of n-grams.</param>
+        /// <returns>The Sorensen-Dice similarity.</returns>
+        public static double SorensenDiceSimilarity(this string source, string target, int n = 1)
+        {
+            // We compute |X and Y|, |X|, |Y|, and |X| + |Y|.
+            int sharedNGrams = NGramOverlap(source, target, out int sourceNGrams, out int targetNGrams, n);
+            int totalNGrams = sourceNGrams + targetNGrams;
+
+            // Return the Sorensen-Dice similarity:  2|X and Y| / (|X| + |Y|).
+            return 2.0 * sharedNGrams / totalNGrams;
+        }
         /// <summary>
         /// Measures the similarity between two strings by measuring contiguous subsequences between them. A multiplier
         /// is used to make longer matching subsequences indicate more similarity.
@@ -184,6 +294,40 @@ namespace CartaCore.Utilities
                 maximum = Math.Max(maximum, similarity);
             }
             return maximum;
+        }
+
+        /// <summary>
+        /// Calculates the [Term Frequency - Inverse Document Frequency](https://en.wikipedia.org/wiki/Tf%E2%80%93idf)
+        /// measure for a given string among a corpus of documents.
+        /// </summary>
+        /// <param name="str">The string.</param>
+        /// <param name="corpus">The corpus.</param>
+        /// <returns>The TF-IDF for the string for each document.</returns>
+        public static double[] TermFrequencyInverseDocumentFrequency(this string str, string[] corpus)
+        {
+            // We store the term frequency and document frequency for the word in the corpus.
+            double[] tf = new double[corpus.Length];
+            double df = 1;
+
+            // Calculate frequencies for each document.
+            for (int k = 0; k < corpus.Length; k++)
+            {
+                // Compute the words in the document.
+                string document = corpus[k];
+                string[] words = Regex.Split(document, @"\W+");
+
+                // Count the number of times each word occurs in the document.
+                int count = words.Count(word => word.Equals(str, StringComparison.OrdinalIgnoreCase));
+                tf[k] = count / words.Length;
+                df += count > 0 ? 1 : 0;
+            }
+
+            // Calculate tf-idf for each document.
+            double idf = Math.Log(corpus.Length / df);
+            double[] tfidf = new double[corpus.Length];
+            for (int k = 0; k < corpus.Length; k++)
+                tfidf[k] = tf[k] * idf;
+            return tfidf;
         }
     }
 }
