@@ -8,7 +8,11 @@ namespace CartaCore.Operations
         /// <summary>
         /// A file needs to be uploaded to the operation.
         /// </summary>
-        File
+        File,
+        /// <summary>
+        /// A user needs to be authenticated for an operation.
+        /// </summary>
+        Authenticate,
     }
 
     // TODO: We will need to rework this to work with operations that exist mid-workflow.
@@ -23,7 +27,11 @@ namespace CartaCore.Operations
         public OperationTaskType Type { get; set; }
 
         /// <summary>
-        /// The field that the task refers to.
+        /// The unique operation that the task is for.
+        /// </summary>
+        public string Operation { get; set; }
+        /// <summary>
+        /// The unique field that the task refers to.
         /// </summary>
         public string Field { get; set; }
     }

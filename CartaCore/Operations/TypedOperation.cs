@@ -35,6 +35,9 @@ namespace CartaCore.Operations
         /// </param>
         /// <returns>The typed output from the operation.</returns>
         public virtual Task<TOutput> Perform(TInput input, OperationContext context = null) => Perform(input);
+
+        /// <inheritdoc />
+        public override Task PrePerform(OperationContext context) => Task.CompletedTask;
         /// <inheritdoc />
         public override async Task Perform(OperationContext context)
         {
@@ -42,6 +45,8 @@ namespace CartaCore.Operations
             TOutput output = await Perform(input, context);
             context.Output = output.AsDictionary(TypeConverterContext.Default);
         }
+        /// <inheritdoc />
+        public override Task PostPerform(OperationContext context) => Task.CompletedTask;
 
         /// <summary>
         /// Determines whether the operation is deterministic or non-deterministic on a specified context. This allows

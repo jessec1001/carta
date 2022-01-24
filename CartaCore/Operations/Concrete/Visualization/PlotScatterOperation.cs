@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Threading.Tasks;
 using CartaCore.Operations.Attributes;
-using CartaCore.Operations.Visualization;
 
 // TODO Move operations to their appropriate subnamespace.
 namespace CartaCore.Operations.Visualization
@@ -41,7 +39,6 @@ namespace CartaCore.Operations.Visualization
         /// </summary>
         public PlotStyle? Style { get; set; }
     }
-    // TODO: Remove the data from the abstract parent class.
     /// <summary>
     /// The data for a scatter plot.
     /// </summary>
@@ -50,6 +47,9 @@ namespace CartaCore.Operations.Visualization
         /// <inheritdoc />
         public override string Type => "scatter";
 
+        /// <summary>
+        /// The data points for this scatter plot.
+        /// </summary>
         public ScatterPlotDatum[] Data { get; set; }
 
         /// <summary>
@@ -64,11 +64,10 @@ namespace CartaCore.Operations.Visualization
     /// </summary>
     public struct ScatterPlotOperationIn
     {
-        // TODO: Replace with a title field and locate near axis fields.
         /// <summary>
-        /// The name of the output visualization.
+        /// The title of the scatter plot visualization.
         /// </summary>
-        public string Name { get; set; }
+        public string Title { get; set; }
 
         /// <summary>
         /// The x-values for the points in the scatter plot. 
@@ -97,7 +96,6 @@ namespace CartaCore.Operations.Visualization
         public PlotAxis? ZAxis { get; set; }
 
         // TODO: Allow for specifying an option for zoom-independent radii instead of being default.
-        // TODO: Make possible to specify single radius to apply to all points or multiple radii to apply to individual points.
         /// <summary>
         /// The radii of the points in the scatter plot.
         /// </summary>
@@ -134,13 +132,11 @@ namespace CartaCore.Operations.Visualization
     }
 
 
-    // TODO: Do we need the [OperationVisualizer] attribute when the plot is being output?
     /// <summary>
     /// Visualizes a scatter plot of 2D or 3D data.
     /// </summary>
     [OperationName(Display = "Scatter Plot", Type = "visualizeScatterPlot")]
     [OperationTag(OperationTags.Visualization)]
-    [OperationVisualizer("scatter")]
     public class ScatterPlotOperation : TypedOperation
     <
         ScatterPlotOperationIn,
@@ -220,8 +216,7 @@ namespace CartaCore.Operations.Visualization
                 Style = styles,
                 Colormap = input.ColorMap,
             };
-
-            // TODO: Remove this and replace with a plot output to this operation.
+            return Task.FromResult(new ScatterPlotOperationOut() { Plot = plot });
         }
     }
 }

@@ -37,12 +37,17 @@ namespace CartaCore.Typing.Conversion
             return false;
         }
         /// <inheritdoc />
-        public override bool TryConvert(Type type, object value, out object result, TypeConverterContext context = null)
+        public override bool TryConvert(
+            Type sourceType,
+            Type targetType,
+            in object input,
+            out object output,
+            TypeConverterContext context = null)
         {
             // Check the trivial case.
-            if ((value is null && type.IsClass) || value.GetType().IsAssignableTo(type))
+            if ((input is null && targetType.IsClass) || sourceType.IsAssignableTo(targetType))
             {
-                result = value;
+                output = input;
                 return true;
             }
 
@@ -51,34 +56,13 @@ namespace CartaCore.Typing.Conversion
             foreach (TypeConverter converter in TypeConverters)
             {
                 // If a converter throws an error, we ignore it.
-                try
-                {
-                    // By convention, we need to check if the converter can convert the given type.
-                    if (!converter.CanConvert(value.GetType(), type, this)) continue;
-                    if (converter.TryConvert(type, value, out result, this)) return true;
-                }
+                try { if (converter.TryConvert(sourceType, targetType, in input, out output, this)) return true; }
                 catch { }
             }
 
             // If none of the contained converters succeeded, we return false.
-            result = null;
+            output = null;
             return false;
-        }
-
-        /// <summary>
-        /// The default type converter that is applicable in most scenarios.
-        /// </summary>
-        public static TypeConverterContext Default
-        {
-            get
-            {
-                return new TypeConverterContext(
-                    new EnumTypeConverter(),
-                    new NumericTypeConverter(),
-                    new ArrayTypeConverter(),
-                    new DictionaryTypeConverter()
-                );
-            }
         }
     }
 }

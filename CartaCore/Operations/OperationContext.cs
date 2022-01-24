@@ -13,9 +13,27 @@ namespace CartaCore.Operations
         public ConcurrentQueue<(Selector, object)> Selectors { get; } = new();
 
         /// <summary>
+        /// The tasks for the operation. 
+        /// </summary>
+        public ConcurrentBag<OperationTask> Tasks { get; } = new();
+
+        /// <summary>
         /// The parent context of this current context.
         /// </summary>
         public OperationContext Parent { get; init; }
+        /// <summary>
+        /// The root context of this current context.
+        /// </summary>
+        public OperationContext Root
+        {
+            get
+            {
+                OperationContext context = this;
+                while (context.Parent != null)
+                    context = context.Parent;
+                return context;
+            }
+        }
         /// <summary>
         /// A reference to the executing operation.
         /// </summary>

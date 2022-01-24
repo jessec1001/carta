@@ -36,18 +36,30 @@ namespace CartaCore.Typing.Conversion
             return IsNumericType(sourceType) && IsNumericType(targetType);
         }
         /// <inheritdoc />
-        public override bool TryConvert(Type type, object value, out object result, TypeConverterContext context = null)
+        public override bool TryConvert(
+            Type sourceType,
+            Type targetType,
+            in object input,
+            out object output,
+            TypeConverterContext context = null)
         {
-            // We perform some special handling for booleans.
-            if (value is bool boolean) return TryConvert(type, boolean ? 1 : 0, out result, context);
-            if (type.IsAssignableTo(typeof(bool)))
+            // Check if the source and target types are compatible.
+            if (!CanConvert(sourceType, targetType, context))
             {
-                result = value.Equals(0);
+                output = null;
+                return false;
+            }
+
+            // We perform some special handling for booleans.
+            if (input is bool boolean) return TryConvert(sourceType, targetType, boolean ? 1 : 0, out output, context);
+            if (targetType.IsAssignableTo(typeof(bool)))
+            {
+                output = input.Equals(0);
                 return true;
             }
 
             // Otherwise, let the built-in converter handle the conversion.
-            result = Convert.ChangeType(value, type);
+            output = Convert.ChangeType(input, targetType);
             return true;
         }
     }

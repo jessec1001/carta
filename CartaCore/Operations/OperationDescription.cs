@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Reflection;
 using CartaCore.Documentation;
+using CartaCore.Extensions.Documentation;
 using CartaCore.Operations.Attributes;
 
 namespace CartaCore.Operations
@@ -21,11 +22,7 @@ namespace CartaCore.Operations
         /// unique per templated operation of a specific <see cref="Type" />.
         /// </summary>
         public string Subtype { get; set; }
-        /// <summary>
-        /// The name of this operation when used as a visualization. If the operation is not a visualizer, this will be
-        /// null.
-        /// </summary>
-        public string Visualization { get; set; }
+
         /// <summary>
         /// The name of this operation when used as a selector for a graph. If the operation is not a selector, this
         /// value will be null.
@@ -59,7 +56,7 @@ namespace CartaCore.Operations
         public static OperationDescription FromType(Type type)
         {
             // Create an operation description. 
-            OperationDescription description = new() { Tags = Array.Empty<string>() };
+            OperationDescription description = new() { Tags = System.Array.Empty<string>() };
 
             // Get the default description from the XML documentation.
             // We ignore errors here because they are more like warnings in this context and will be caught by tests.

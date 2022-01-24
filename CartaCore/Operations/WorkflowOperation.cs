@@ -8,6 +8,8 @@ using CartaCore.Operations.Attributes;
 
 namespace CartaCore.Operations
 {
+    // TODO: We need to tee streams if we want to support multiple outputs.
+
     /// <summary>
     /// Represents an operation that executes as a topologically-sorted graph of sub-operations. Connections determine
     /// how outputs from some operations are bound to inputs for other operations.

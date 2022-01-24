@@ -6,7 +6,6 @@ using System.Reflection;
 using System.Threading.Tasks;
 using CartaCore.Operations;
 using CartaCore.Persistence;
-using CartaCore.Utilities;
 using CartaWeb.Models.DocumentItem;
 using CartaWeb.Services;
 using Microsoft.AspNetCore.Http;
@@ -259,6 +258,7 @@ namespace CartaWeb.Controllers
             return Ok(descriptions);
         }
         #endregion
+
         #region Endpoints (Operation CRUD)
         /// <summary>
         /// Creates a new operation instance. The type of operation must be specified. The operation identifier cannot
@@ -452,6 +452,7 @@ namespace CartaWeb.Controllers
             else return Ok(operationItem);
         }
         #endregion
+
         #region Endpoints (Operation Execution)
         /// <summary>
         /// Executes an operation specified by its unique identifier on a particular input. 
@@ -504,6 +505,7 @@ namespace CartaWeb.Controllers
             };
 
             // TODO: Account for whether the operation is deterministic.
+            // TODO: Account for file uploads in hashes.
             // TODO: Get the hash of these inputs with respect to the input type (the input type matters because it may
             //       have hashing-related annotations such as [UnsortedArray]).
             // TODO: Modifying any operation inside of a workflow means that cached results should be invalid.
@@ -631,7 +633,7 @@ namespace CartaWeb.Controllers
 
         // TODO: Review API URLs.
         [HttpPost("{operationId}/jobs/{jobId}/{field}/upload")]
-        public async Task<ActionResult<JobItem>> UploadFileIntoOperation(
+        public async Task<ActionResult<JobItem>> UploadFileToOperation(
             [FromRoute] string operationId,
             [FromRoute] string jobId,
             [FromRoute] string field,
@@ -659,7 +661,27 @@ namespace CartaWeb.Controllers
             TaskCollection.Push((jobItem, operation, context));
             return Ok(jobItem);
         }
+        public async Task<ActionResult> DownloadFileFromOperation(
+            [FromRoute] string operationId,
+            [FromRoute] string jobId,
+            [FromRoute] string field
+        )
+        {
+            OperationItem operationItem = await LoadOperationAsync(operationId, _persistence);
+            Operation operation = await InstantiateOperation(operationItem, _persistence);
+            JobItem jobItem = await LoadJobAsync(jobId, operationId, _persistence);
+
+            return File(stream, "application/octet-stream", field);
+        }
+        // TODO: Implement.
+        public async Task<ActionResult> AuthenticateOperation(
+
+        )
+        {
+            return Ok();
+        }
         #endregion
+
         #region Endpoints (Schema)
         [HttpGet("{operationId}/schema/{side}")]
         public async Task<ActionResult<JsonSchema>> ComputeOperationSchema(

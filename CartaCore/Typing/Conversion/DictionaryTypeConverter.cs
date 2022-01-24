@@ -2,8 +2,6 @@ using System;
 using System.Collections;
 using System.Linq;
 using System.Reflection;
-using CartaCore.Operations.Attributes;
-using Namotion.Reflection;
 
 namespace CartaCore.Typing.Conversion
 {
@@ -44,13 +42,25 @@ namespace CartaCore.Typing.Conversion
             return false;
         }
         /// <inheritdoc />
-        public override bool TryConvert(Type type, object value, out object result, TypeConverterContext context = null)
+        public override bool TryConvert(
+            Type sourceType,
+            Type targetType,
+            in object input,
+            out object output,
+            TypeConverterContext context = null)
         {
-            // Check if we are converting from a class or struct.
-            if (IsDictionaryType(type))
+            // Check if the source and target types are compatible.
+            if (!CanConvert(sourceType, targetType, context))
             {
-                IDictionary dictionary = value
-                    .GetType()
+                output = null;
+                return false;
+            }
+
+            // Check if we are converting from a class or struct.
+            if (IsDictionaryType(targetType))
+            {
+                object inputCopy = input;
+                IDictionary dictionary = sourceType
                     .GetProperties(
                         BindingFlags.Instance |
                         BindingFlags.Public |
@@ -58,27 +68,28 @@ namespace CartaCore.Typing.Conversion
                     )
                     .ToDictionary(
                         property => property.Name,
-                        property => property.GetValue(value)
+                        property => property.GetValue(inputCopy)
                     );
-                result = dictionary;
+                output = dictionary;
                 return true;
             }
+
             // Otherwise, we are converting from a dictionary.
             else
             {
                 // Check if the value is a dictionary.
-                if (value is not IDictionary dictionary)
+                if (input is not IDictionary dictionary)
                 {
-                    result = null;
+                    output = null;
                     return false;
                 }
 
                 // We create a new instance of the target type.
-                result = Activator.CreateInstance(type);
+                output = Activator.CreateInstance(targetType);
                 foreach (DictionaryEntry entry in dictionary)
                 {
                     // We get the property of the target type.
-                    PropertyInfo property = type.GetProperty(
+                    PropertyInfo property = targetType.GetProperty(
                         entry.Key.ToString(),
                         BindingFlags.Instance |
                         BindingFlags.Public |
@@ -88,42 +99,19 @@ namespace CartaCore.Typing.Conversion
 
                     // We use other converters to convert the value.
                     object convertedValue;
-                    if (context is not null) context.TryConvert(property.PropertyType, entry.Value, out convertedValue);
+                    if (context is not null)
+                    {
+                        context.TryConvert(
+                            entry.Value.GetType(),
+                            property.PropertyType,
+                            entry.Value,
+                            out convertedValue
+                        );
+                    }
                     else convertedValue = entry.Value;
 
                     // We set the value of the property.
-                    property.SetValue(result, convertedValue);
-                }
-                foreach (PropertyInfo property in type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase))
-                {
-                    // TODO: Generalize this so that it is the attribute that provides this extension.
-                    OperationAuthenticationAttribute attribute = property.GetCustomAttribute<OperationAuthenticationAttribute>();
-                    if (attribute is not null)
-                    {
-                        // Check for the prefix entry in the dictionary.
-                        if (dictionary.Contains(attribute.Prefix))
-                        {
-                            object authField = dictionary[attribute.Prefix];
-                            IDictionary authDict = authField as IDictionary;
-
-                            // Look inside the authentication dictionary for the specified entry.
-                            if (authDict is not null && authDict.Contains(attribute.Key))
-                            {
-                                // We need to take the authentication value and initialize the corresponding property
-                                // of the target type from a constructor.
-                                object authValue = authDict[attribute.Key];
-                                object[] parameters = { authValue };
-                                ConstructorInfo constructor = property.PropertyType.GetConstructor
-                                (
-                                    new Type[] { authValue.GetType() }
-                                );
-                                if (constructor is not null) property.SetValue(result, constructor.Invoke(parameters));
-                            }
-                        }
-
-                        // This prevents any other value from being assigned to the authentication property.
-                        continue;
-                    }
+                    property.SetValue(output, convertedValue);
                 }
                 return true;
             }

@@ -28,6 +28,19 @@ namespace CartaCore.Operations
         public Dictionary<string, object> Default { get; set; } = new();
 
         /// <summary>
+        /// Called before the operation is performed. This is where the operation can perform any setup that is required
+        /// and where operation tasks should be added. 
+        /// </summary>
+        /// <param name="context">
+        /// The context for the calling operation. Will be assigned to a value that provides access to inputs, outputs,
+        /// defaults, and configurations for the current operation. When operation inside of a workflow, a parent
+        /// context is also provided.
+        /// </param>
+        /// <returns>
+        /// Nothing. The implementation is expected to perform any necessary side-effects on the context.
+        /// </returns>
+        public abstract Task PrePerform(OperationContext context);
+        /// <summary>
         /// Operates on a specified operation context containing input and output mappings. Most operations will use the
         /// input mapping to produce an output mapping. This method is implemented by concrete subclasses.
         /// </summary>
@@ -40,6 +53,19 @@ namespace CartaCore.Operations
         /// Nothing. The implementation is expected to set values on the input or output of the context.
         /// </returns>
         public abstract Task Perform(OperationContext context);
+        /// <summary>
+        /// Called after the operation is performed. This is where the operation can perform any cleanup that is
+        /// required and where finishing computations can be handled without affecting the operation context.
+        /// </summary>
+        /// <param name="context">
+        /// The context for the calling operation. Will be assigned to a value that provides access to inputs, outputs,
+        /// defaults, and configurations for the current operation. When operation inside of a workflow, a parent
+        /// context is also provided.
+        /// </param>
+        /// <returns>
+        /// Nothing. The implementation is expected to perform any necessary side-effects on the context.
+        /// </returns>
+        public abstract Task PostPerform(OperationContext context);
 
         /// <summary>
         /// Determines whether the operation is deterministic or non-deterministic on a specified context. This allows

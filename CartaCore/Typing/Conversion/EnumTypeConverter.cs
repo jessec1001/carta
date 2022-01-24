@@ -15,16 +15,29 @@ namespace CartaCore.Typing.Conversion
             return false;
         }
         /// <inheritdoc />
-        public override bool TryConvert(Type type, object value, out object result, TypeConverterContext context = null)
+        public override bool TryConvert(
+            Type sourceType,
+            Type targetType,
+            in object input,
+            out object output,
+            TypeConverterContext context = null)
         {
-            if (value is string representation)
+            // Check if the source and target types are compatible.
+            if (!CanConvert(sourceType, targetType, context))
             {
-                result = Enum.Parse(type, representation);
+                output = null;
+                return false;
+            }
+
+            // Perform the conversion.
+            if (input is string representation)
+            {
+                output = Enum.Parse(targetType, representation);
                 return true;
             }
             else
             {
-                result = Enum.GetName(type, value);
+                output = Enum.GetName(targetType, input);
                 return true;
             }
         }

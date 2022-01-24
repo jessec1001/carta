@@ -61,6 +61,10 @@ namespace CartaCore.Operations
         /// Related to HyperThought integration.
         /// </summary>
         public const string Hyperthought = "HyperThought";
+        /// <summary>
+        /// Related to Carta integration.
+        /// </summary>
+        public const string Carta = "Carta";
         #endregion
 
         #region Mathematics Fields

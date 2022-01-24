@@ -15,7 +15,7 @@ namespace CartaCore.Typing.Conversion
         /// <param name="context">The conversion context.</param>
         /// <returns><c>true</c> if the conversion is possible; otherwise <c>false</c>.</returns>
         public virtual bool CanConvert(Type sourceType, Type targetType, TypeConverterContext context = null)
-            => true;
+            => context is not null && context.CanConvert(sourceType, targetType);
         /// <summary>
         /// Determines whether this instance can convert from a source type to a target type.
         /// </summary>
@@ -27,38 +27,48 @@ namespace CartaCore.Typing.Conversion
             => CanConvert(typeof(TSource), typeof(TTarget), context);
 
         /// <summary>
-        /// Tries to convert the given value to the given type.
+        /// Tries to convert the given value from a source type to a target type.
+        /// Implementations of this method should use <see cref="CanConvert"/> to determine if the conversion is
+        /// possible internally.
         /// </summary>
-        /// <param name="type">The type.</param>
-        /// <param name="value">The value.</param>
-        /// <param name="result">The converted result if successful.</param>
+        /// <param name="sourceType">The source type.</param>
+        /// <param name="targetType">The target type.</param>
+        /// <param name="input">The value to be converted.</param>
+        /// <param name="output">The value that has been converted.</param>
         /// <param name="context">The conversion context.</param>
         /// <returns><c>true</c> if the conversion was successful; otherwise, <c>false</c>.</returns>
-        public virtual bool TryConvert(Type type, object value, out object result, TypeConverterContext context = null)
+        public virtual bool TryConvert(Type sourceType, Type targetType, in object input, out object output, TypeConverterContext context = null)
         {
-            if (CanConvert(value.GetType(), type))
+            if (CanConvert(sourceType, targetType, context) && context is not null)
             {
-                result = Convert.ChangeType(value, type);
-                return true;
+                bool success = context.TryConvert(sourceType, targetType, in input, out output);
+                return success;
             }
             else
             {
-                result = null;
+                output = default;
                 return false;
             }
         }
         /// <summary>
-        /// Tries to convert the given value to the given type.
+        /// Tries to convert the given value from a source type to a target type.
+        /// Implementations of this method should use <see cref="CanConvert"/> to determine if the conversion is
+        /// possible internally.
         /// </summary>
-        /// <param name="value">The value.</param>
-        /// <param name="result">The converted result if successful.</param>
+        /// <param name="input">The value to be converted.</param>
+        /// <param name="output">The value that has been converted.</param>
         /// <param name="context">The conversion context.</param>
-        /// <typeparam name="T">The type</typeparam>
+        /// <typeparam name="TSource">The source type.</typeparam>
+        /// <typeparam name="TTarget">The target type.</typeparam>
         /// <returns><c>true</c> if the conversion was successful; otherwise, <c>false</c>.</returns>
-        public bool TryConvert<T>(object value, out T result, TypeConverterContext context = null)
+        public bool TryConvert<TSource, TTarget>(in TSource input, out TTarget output, TypeConverterContext context = null)
         {
-            bool success = TryConvert(typeof(T), value, out object resultObject, context);
-            result = success ? (T)resultObject : default;
+            // Prepare the input and output values.
+            object untypedInput = input;
+            object untypedOutput;
+
+            bool success = TryConvert(typeof(TSource), typeof(TTarget), in untypedInput, out untypedOutput, context);
+            output = success ? (TTarget)untypedOutput : default;
             return success;
         }
     }

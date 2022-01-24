@@ -12,6 +12,10 @@ namespace CartaCore.Operations.Visualization
         /// - A hex encoded color in the form "#1267bc".
         /// </summary>
         public string FillColor { get; set; }
+        /// <summary>
+        /// The fill radius of the element.
+        /// </summary>
+        public double? FillRadius { get; set; }
 
         /// <summary>
         /// The stroke color of the element.

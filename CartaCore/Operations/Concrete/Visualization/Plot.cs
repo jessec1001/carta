@@ -14,6 +14,10 @@ namespace CartaCore.Operations.Visualization
         public abstract string Type { get; }
 
         /// <summary>
+        /// The title of the plot.
+        /// </summary>
+        public string Title { get; init; }
+        /// <summary>
         /// The axes of the plot.
         /// </summary>
         public PlotAxes Axes { get; init; }
