@@ -32,6 +32,7 @@ const WorkflowWrapper: FunctionComponent<WorkflowWrapperProps> = ({
   const [auto, setAuto] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [fileField, setFileField] = useState<string | null>(null);
+  const [jobId, setJobId] = useState<string | null>(null);
 
   const [selected, setSelected] = useState<Operation[]>([]);
   const [connecting, setConnecting] = useState<{
@@ -76,6 +77,7 @@ const WorkflowWrapper: FunctionComponent<WorkflowWrapperProps> = ({
     }
     job = await operationsAPI.getOperationJobWhenComplete(operation.id, job.id);
     setOutput(job.result!);
+    setJobId(job.id);
     return job;
   };
   const handleAutoUpdate = (value: boolean) => {
@@ -94,6 +96,8 @@ const WorkflowWrapper: FunctionComponent<WorkflowWrapperProps> = ({
         fileField,
         setFile,
         setFileField,
+        jobId,
+        setJobId,
         autoUpdate: auto,
         setInputField: (key: string, value: any) => {
           setInput((input) => ({ ...input, [key]: value }));

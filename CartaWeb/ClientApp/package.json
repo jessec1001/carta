@@ -3,8 +3,10 @@
   "version": "0.3.0",
   "private": true,
   "dependencies": {
+    "axios": "^0.25.0",
     "classnames": "^2.2.6",
     "history": "^5.0.0",
+    "js-file-download": "^0.4.12",
     "merge": "^2.1.1",
     "prismjs": "^1.23.0",
     "query-string": "^6.14.0",

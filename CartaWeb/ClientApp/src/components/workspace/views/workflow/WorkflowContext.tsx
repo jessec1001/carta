@@ -13,6 +13,8 @@ interface IWorkflowContext {
   fileField: string | null;
   setFile: (value: File | null) => void;
   setFileField: (value: string | null) => void;
+  jobId: string | null;
+  setJobId: (value: string | null) => void;
   autoUpdate: boolean;
   setInputField: (key: string, value: any) => void;
   getOutputField: (key: string) => any;

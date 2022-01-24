@@ -72,7 +72,7 @@ namespace CartaWeb.Controllers
             string path = Path.Combine(JobsPath, operationId, jobId, type, field);
 
             // We create the directory if it does not exist.
-            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            _ = Directory.CreateDirectory(Path.GetDirectoryName(path));
 
             // We write the file.
             using FileStream fileStream = new(path, FileMode.Create);
@@ -98,7 +98,9 @@ namespace CartaWeb.Controllers
 
             // We check if the file exists.
             if (!System.IO.File.Exists(path))
+            {
                 return Task.FromResult<Stream>(null);
+            }
 
             // We read the file.
             using FileStream fileStream = new(path, FileMode.Open);
@@ -109,49 +111,49 @@ namespace CartaWeb.Controllers
         /// Saves the specified operation to the database.
         /// </summary>
         /// <param name="operationItem">The operation item.</param>
-        /// <param name="_persistence">A reference to the persistence service.</param>
+        /// <param name="Persistence">A reference to the persistence service.</param>
         /// <returns>Whether the operation was successful or not.</returns>
-        public static async Task<bool> SaveOperationAsync(OperationItem operationItem, Persistence _persistence)
+        public static async Task<bool> SaveOperationAsync(OperationItem operationItem, Persistence Persistence)
         {
             DbDocument document = operationItem.CreateDbDocument();
-            bool isSaved = await _persistence.WriteDbDocumentAsync(document);
+            bool isSaved = await Persistence.WriteDbDocumentAsync(document);
             return isSaved;
         }
         /// <summary>
         /// Updates the specified operation in the database.
         /// </summary>
         /// <param name="operationItem">The operation item.</param>
-        /// <param name="_persistence">A reference to the persistence service.</param>
+        /// <param name="Persistence">A reference to the persistence service.</param>
         /// <returns>Whether the operation was successful or not.</returns>
-        public static async Task<bool> UpdateOperationAsync(OperationItem operationItem, Persistence _persistence)
+        public static async Task<bool> UpdateOperationAsync(OperationItem operationItem, Persistence Persistence)
         {
             DbDocument document = operationItem.UpdateDbDocument();
-            bool isSaved = await _persistence.WriteDbDocumentAsync(document);
+            bool isSaved = await Persistence.WriteDbDocumentAsync(document);
             return isSaved;
         }
         /// <summary>
         /// Deletes the specified operation from the database.
         /// </summary>
         /// <param name="operationId">The identifier of the operation.</param>
-        /// <param name="_persistence">A reference to the persistence service.</param>
+        /// <param name="Persistence">A reference to the persistence service.</param>
         /// <returns>Whether the operation was successful or not.</returns>
-        public static async Task<bool> DeleteOperationAsync(string operationId, Persistence _persistence)
+        public static async Task<bool> DeleteOperationAsync(string operationId, Persistence Persistence)
         {
             OperationItem operationItem = new(operationId);
             DbDocument document = operationItem.DeleteDbDocument();
-            bool isDeleted = await _persistence.WriteDbDocumentAsync(document);
+            bool isDeleted = await Persistence.WriteDbDocumentAsync(document);
             return isDeleted;
         }
         /// <summary>
         /// Loads the specified operation from the database.
         /// </summary>
         /// <param name="operationId">The identifier of the operation.</param>
-        /// <param name="_persistence">A reference to the persistence service.</param>
+        /// <param name="Persistence">A reference to the persistence service.</param>
         /// <returns>The loaded operation item.</returns>
-        public static async Task<OperationItem> LoadOperationAsync(string operationId, Persistence _persistence)
+        public static async Task<OperationItem> LoadOperationAsync(string operationId, Persistence Persistence)
         {
             OperationItem operationItem = new(operationId);
-            Item item = await _persistence.LoadItemAsync(operationItem);
+            Item item = await Persistence.LoadItemAsync(operationItem);
             return (OperationItem)item;
         }
 
@@ -159,24 +161,24 @@ namespace CartaWeb.Controllers
         /// Saves the specified job to the database.
         /// </summary>
         /// <param name="jobItem">The job item.</param>
-        /// <param name="_persistence">A reference to the persistence service.</param>
+        /// <param name="Persistence">A reference to the persistence service.</param>
         /// <returns>Whether the operation was successful or not.</returns>
-        public static async Task<bool> SaveJobAsync(JobItem jobItem, Persistence _persistence)
+        public static async Task<bool> SaveJobAsync(JobItem jobItem, Persistence Persistence)
         {
             DbDocument document = jobItem.CreateDbDocument();
-            bool isSaved = await _persistence.WriteDbDocumentAsync(document);
+            bool isSaved = await Persistence.WriteDbDocumentAsync(document);
             return isSaved;
         }
         /// <summary>
         /// Updates the specified job in the database.
         /// </summary>
         /// <param name="jobItem">The job item.</param>
-        /// <param name="_persistence">A reference to the persistence service.</param>
+        /// <param name="Persistence">A reference to the persistence service.</param>
         /// <returns>Whether the operation was succesfful or not.</returns>
-        public static async Task<bool> UpdateJobAsync(JobItem jobItem, Persistence _persistence)
+        public static async Task<bool> UpdateJobAsync(JobItem jobItem, Persistence Persistence)
         {
             DbDocument document = jobItem.UpdateDbDocument();
-            bool isSaved = await _persistence.WriteDbDocumentAsync(document);
+            bool isSaved = await Persistence.WriteDbDocumentAsync(document);
             return isSaved;
         }
         /// <summary>
@@ -184,37 +186,37 @@ namespace CartaWeb.Controllers
         /// </summary>
         /// <param name="jobId">The job identifier.</param>
         /// <param name="operationId">The operation identifier.</param>
-        /// <param name="_persistence">A reference to the persistence service.</param>
+        /// <param name="Persistence">A reference to the persistence service.</param>
         /// <returns>Whether the operation was successful or not.</returns>
-        public static Task<bool> DeleteJobAsync(string jobId, string operationId, Persistence _persistence)
+        public static Task<bool> DeleteJobAsync(string jobId, string operationId, Persistence Persistence)
         {
             JobItem jobItem = new(jobId, operationId);
             DbDocument document = jobItem.DeleteDbDocument();
-            return _persistence.WriteDbDocumentAsync(document);
+            return Persistence.WriteDbDocumentAsync(document);
         }
         /// <summary>
         /// Loads the specified job from the database.
         /// </summary>
         /// <param name="jobId">The job identifier.</param>
         /// <param name="operationId">The operation identifier.</param>
-        /// <param name="_persistence">A reference to the persistence service.</param>
+        /// <param name="Persistence">A reference to the persistence service.</param>
         /// <returns>The loaded job item.</returns>
-        public static async Task<JobItem> LoadJobAsync(string jobId, string operationId, Persistence _persistence)
+        public static async Task<JobItem> LoadJobAsync(string jobId, string operationId, Persistence Persistence)
         {
             JobItem jobItem = new(jobId, operationId);
-            Item item = await _persistence.LoadItemAsync(jobItem);
+            Item item = await Persistence.LoadItemAsync(jobItem);
             return (JobItem)item;
         }
         /// <summary>
         /// Loads the jobs for the specified operation from the database.
         /// </summary>
         /// <param name="operationId">The operation identifier.</param>
-        /// <param name="_persistence">A reference to the persistence service.</param>
+        /// <param name="Persistence">A reference to the persistence service.</param>
         /// <returns>The loaded job items.</returns>
-        public static async Task<List<JobItem>> LoadJobsAsync(string operationId, Persistence _persistence)
+        public static async Task<List<JobItem>> LoadJobsAsync(string operationId, Persistence Persistence)
         {
             JobItem jobItem = new(null, operationId);
-            IEnumerable<Item> items = await _persistence.LoadItemsAsync(jobItem);
+            IEnumerable<Item> items = await Persistence.LoadItemsAsync(jobItem);
             List<JobItem> jobItems = items.Cast<JobItem>().ToList();
             return jobItems;
         }
@@ -224,21 +226,21 @@ namespace CartaWeb.Controllers
         /// constructing the operation objects.
         /// </summary>
         /// <param name="operationItem">The operation item to use as a constructor.</param>
-        /// <param name="_persistence">A reference to the persistence service.</param>
+        /// <param name="Persistence">A reference to the persistence service.</param>
         /// <returns>The instantiated operation.</returns>
-        public static async Task<Operation> InstantiateOperation(OperationItem operationItem, Persistence _persistence)
+        public static async Task<Operation> InstantiateOperation(OperationItem operationItem, Persistence Persistence)
         {
             // TODO: Cleanup this method.
             if (operationItem.Type == "workflow")
             {
-                WorkflowItem workflowItem = await WorkflowsController.LoadWorkflowAsync(operationItem.Subtype, _persistence);
+                WorkflowItem workflowItem = await WorkflowsController.LoadWorkflowAsync(operationItem.Subtype, Persistence);
                 List<Operation> suboperations = new(workflowItem.Operations.Length);
                 foreach (string suboperationId in workflowItem.Operations)
                 {
                     suboperations.Add(
                         await InstantiateOperation(
-                            await LoadOperationAsync(suboperationId.ToString(), _persistence),
-                            _persistence
+                            await LoadOperationAsync(suboperationId.ToString(), Persistence),
+                            Persistence
                         )
                     );
                 }
@@ -393,7 +395,7 @@ namespace CartaWeb.Controllers
                 return BadRequest(new
                 {
                     Error = "Operation type could not be found.",
-                    Type = operationItem.Type
+                    operationItem.Type
                 });
             }
 
@@ -407,7 +409,7 @@ namespace CartaWeb.Controllers
                     return BadRequest(new
                     {
                         Error = "Operation workflow type could not be found.",
-                        Subtype = operationItem.Subtype
+                        operationItem.Subtype
                     });
                 }
             }
@@ -433,7 +435,7 @@ namespace CartaWeb.Controllers
             operationItem.Default ??= operation.InitialValues;
 
             // Save the created operation item and return its internal representation.
-            await SaveOperationAsync(operationItem, _persistence);
+            _ = await SaveOperationAsync(operationItem, _persistence);
             return Ok(operationItem);
         }
         /// <summary>
@@ -503,7 +505,7 @@ namespace CartaWeb.Controllers
             //       We should validate if this occurs and remove erraneous connections in this case. 
 
             // Save the updated operation item and return its internal representation.
-            await UpdateOperationAsync(mergingOperationItem, _persistence);
+            _ = await UpdateOperationAsync(mergingOperationItem, _persistence);
             return Ok(mergingOperationItem);
         }
         /// <summary>
@@ -531,15 +533,13 @@ namespace CartaWeb.Controllers
             // TODO: Delete connections attached to the operation.
 
             // We return not found if the operation item does not exist.
-            if (!success)
-            {
-                return NotFound(new
+            return !success
+                ? NotFound(new
                 {
                     Error = "Operation with specified identifier could not be found.",
                     Id = operationId
-                });
-            }
-            else return Ok();
+                })
+                : Ok();
         }
         /// <summary>
         /// Gets an operation instance specified by its unique identifier.
@@ -563,15 +563,13 @@ namespace CartaWeb.Controllers
             OperationItem operationItem = await LoadOperationAsync(operationId, _persistence);
 
             // We return not found if the operation item does not exist.
-            if (operationItem is null)
-            {
-                return NotFound(new
+            return operationItem is null
+                ? NotFound(new
                 {
                     Error = "Operation with specified identifier could not be found.",
                     Id = operationId
-                });
-            }
-            else return Ok(operationItem);
+                })
+                : Ok(operationItem);
         }
         #endregion
 
@@ -653,7 +651,7 @@ namespace CartaWeb.Controllers
 
             // We save the job item to the store and push the job onto the job collection.
             // This queues the operation for execution on a separate thread so that we can return the job immediately.
-            await SaveJobAsync(job, _persistence);
+            _ = await SaveJobAsync(job, _persistence);
             _jobCollection.Push((job, operation, context));
 
             return Ok(job);
@@ -745,7 +743,9 @@ namespace CartaWeb.Controllers
             {
                 // Return only the specified field on request.
                 if (field is not null)
+                {
                     job.Result = ((Dictionary<string, object>)job.Result)[field];
+                }
 
                 // TODO: Implement support for applying selectors to graph-like fields.
 
@@ -852,18 +852,20 @@ namespace CartaWeb.Controllers
             // Add back all of the tasks except for the upload task just completed.
             OperationTask currentTask = jobItem.Tasks.Find((task) =>
             {
-                return (
+                return
                     task.Operation == operationId &&
                     task.Field == field &&
                     task.Type == OperationTaskType.File
-                );
+                ;
             });
-            jobItem.Tasks.Remove(currentTask);
+            _ = jobItem.Tasks.Remove(currentTask);
             foreach (OperationTask task in jobItem.Tasks)
+            {
                 context.Tasks.Add(task);
+            }
 
             // Save the job item and requeue the operation.
-            await SaveJobAsync(jobItem, _persistence);
+            _ = await SaveJobAsync(jobItem, _persistence);
             _jobCollection.Push((jobItem, operation, context));
             return Ok(jobItem);
         }
@@ -909,9 +911,7 @@ namespace CartaWeb.Controllers
 
             // Get the file from the job.
             Stream file = await LoadJobFileAsync(operationId, jobId, "download", field);
-            if (file is null) return StatusCode(423, new { Error = "File download is not ready." });
-
-            return File(file, "application/octet-stream", field);
+            return file is null ? StatusCode(423, new { Error = "File download is not ready." }) : File(file, "application/octet-stream", field);
         }
         // // TODO: Implement.
         // public async Task<ActionResult> AuthenticateOperation(

@@ -527,7 +527,8 @@ namespace CartaCore.Operations
                 if (operation is InputOperation inputOperation &&
                     inputOperation.DefaultValues.ContainsKey("Name"))
                 {
-                    inputs.Add((string)inputOperation.DefaultValues["Name"]);
+                    string name = inputOperation.DefaultValues["Name"] as string;
+                    if (name is not null) inputs.Add(name);
                 }
             }
             return inputs.ToArray();
@@ -541,7 +542,8 @@ namespace CartaCore.Operations
                 if (operation is OutputOperation outputOperation &&
                     outputOperation.DefaultValues.ContainsKey("Name"))
                 {
-                    outputs.Add((string)outputOperation.DefaultValues["Name"]);
+                    string name = outputOperation.DefaultValues["Name"] as string;
+                    if (name is not null) outputs.Add(name);
                 }
             }
             return outputs.ToArray();
@@ -586,7 +588,7 @@ namespace CartaCore.Operations
                     {
                         if (
                             connection.Target.Operation == outputOperation.Identifier &&
-                            connection.Source.Field == "Value"
+                            connection.Target.Field == "Value"
                         )
                         {
                             Operation source = Operations.First(operation => operation.Identifier == connection.Source.Operation);

@@ -10,13 +10,14 @@ import { useRef } from "react";
 import { ScatterPlot, HistogramPlot, GraphPlot } from "visualize-carta";
 import { useContext } from "react";
 import { Theme, ThemeContext } from "components/theme";
-import { useWorkflow } from "./WorkflowContext";
+import WorkflowContext, { useWorkflow } from "./WorkflowContext";
 import classNames from "classnames";
 import { OperationGridContext } from "./OperationGrid";
-import { useDelayCallback } from "hooks";
+import { useAPI, useDelayCallback } from "hooks";
 import { VisualizeIcon } from "components/icons";
 import { useViews } from "components/views";
 import VisualizerView from "../VisualizerView";
+import { Link } from "components/link";
 
 interface OperationNodeProps {
   operation: Operation;
@@ -24,18 +25,22 @@ interface OperationNodeProps {
   data?: any;
 }
 
-const Visualizer: FunctionComponent<{ data: any; type: string }> = ({
-  data,
-  type,
-}) => {
+const Visualizer: FunctionComponent<{
+  workflowOperation: Operation;
+  operation: Operation;
+  data: any;
+  type: string;
+}> = ({ workflowOperation: workflow, operation, data, type }) => {
   const ref = useRef<HTMLDivElement>(null);
+  const { operationsAPI } = useAPI();
   const { workflowOperation, setInputField, setFile, setFileField } =
     useWorkflow();
+  const { jobId } = useWorkflow();
 
   useEffect(() => {
     if (!ref.current) return;
 
-    if (data.type) {
+    if (data && data.type) {
       while (ref.current.firstChild) {
         ref.current.removeChild(ref.current.firstChild);
       }
@@ -66,6 +71,20 @@ const Visualizer: FunctionComponent<{ data: any; type: string }> = ({
     // TODO: Revert once re-rendering issue has been solved
   }, [type, data]);
 
+  const inputType =
+    type === "input" &&
+    operation.default &&
+    workflow.schema?.inputs[operation.default["Name"]].type;
+  const inputUpload =
+    inputType && (inputType === "file" || inputType.includes("file"));
+  const outputType =
+    type === "output" &&
+    operation.default &&
+    workflow.schema?.outputs[operation.default["Name"]].type;
+  const outputDownload =
+    outputType && (outputType === "file" || outputType.includes("file"));
+  console.log(jobId);
+
   return (
     <div
       className="OperationNode"
@@ -76,7 +95,23 @@ const Visualizer: FunctionComponent<{ data: any; type: string }> = ({
           : { width: "400px", height: "400px", overflow: "hidden" }
       }
     >
-      {type === "output" && <pre>{JSON.stringify(data, null, 2)}</pre>}
+      {type === "output" &&
+        (outputDownload ? (
+          <Link
+            to="#"
+            onClick={() => {
+              operationsAPI.downloadJobFile(
+                operation.id,
+                jobId!,
+                operation.default!["Name"]
+              );
+            }}
+          >
+            Download
+          </Link>
+        ) : (
+          <pre>{JSON.stringify(data, null, 2)}</pre>
+        ))}
       {/* TODO: Convert into auto form. */}
       {type === "input" &&
         workflowOperation?.schema &&
@@ -117,7 +152,8 @@ const OperationNode: FunctionComponent<OperationNodeProps> = ({
   const [defaults, setDefaults] = useState<Record<string, any>>(
     operation.default ?? {}
   );
-  const { workflow, selected, select, updateOperation, input } = useWorkflow();
+  const { workflow, selected, select, updateOperation, workflowOperation } =
+    useWorkflow();
 
   const { setVerticalPosition } = useContext(OperationGridContext)!;
   const [startPosition, setStartPosition] = useState<number | null>(null);
@@ -287,10 +323,20 @@ const OperationNode: FunctionComponent<OperationNodeProps> = ({
       </div>
       {/* TODO: Transition to using visualization names provided by the server. */}
       {!updater && operation.type === "workflowOutput" && (
-        <Visualizer data={data} type="output" />
+        <Visualizer
+          workflowOperation={workflowOperation}
+          operation={operation}
+          data={data}
+          type="output"
+        />
       )}
       {!updater && operation.type === "workflowInput" && (
-        <Visualizer data={operation.default?.Name} type="input" />
+        <Visualizer
+          workflowOperation={workflowOperation}
+          operation={operation}
+          data={operation.default?.Name}
+          type="input"
+        />
       )}
     </>
   );

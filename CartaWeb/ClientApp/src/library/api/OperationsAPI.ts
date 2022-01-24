@@ -1,7 +1,9 @@
+import axios from "axios";
 import queryString from "query-string";
 import { flattenSchema, JsonSchema } from "library/schema";
 import BaseAPI from "./BaseAPI";
 import { Job, Operation, OperationSchema, OperationType } from "./operations";
+import fileDownload from "js-file-download";
 
 class OperationsAPI extends BaseAPI {
   protected getApiUrl() {
@@ -184,6 +186,21 @@ class OperationsAPI extends BaseAPI {
     onProgress?: (progress: number) => void
   ): Promise<void> {
     // TODO: Use axios to upload file.
+  }
+  public async downloadJobFile(
+    operationId: string,
+    jobId: string,
+    field: string
+  ): Promise<void> {
+    // Use axios to get the file.
+    const response = await axios({
+      url: `${this.getOperationUrl(
+        operationId
+      )}/jobs/${jobId}/${field}/download`,
+      method: "GET",
+      responseType: "blob",
+    });
+    fileDownload(response.data, field);
   }
   // #endregion
 
