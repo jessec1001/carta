@@ -122,7 +122,7 @@ class OperationsAPI extends BaseAPI {
 
     const url = this.getOperationUrl(operationId);
     const response = await fetch(
-      `${url}/execute`,
+      `${url}/jobs`,
       this.defaultFetcher("POST", {
         ...inputs,
         authentication: authentication,

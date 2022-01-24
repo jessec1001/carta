@@ -49,7 +49,8 @@ namespace CartaCore.Extensions.Typing
             TypeConverterContext context = null)
         {
             TypeConverter converter = (TypeConverter)context ?? new DictionaryTypeConverter();
-            if (converter.TryConvert(value, out Dictionary<string, object> result)) return result;
+            if (converter.TryConvert(type, typeof(Dictionary<string, object>), value, out object result))
+                return result as Dictionary<string, object>;
             throw new InvalidOperationException($"Could not convert value to dictionary.");
         }
         /// <summary>

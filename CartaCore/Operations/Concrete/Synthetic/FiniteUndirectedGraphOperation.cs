@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using CartaCore.Data;
 using CartaCore.Integration.Synthetic;
+using CartaCore.Operations.Attributes;
 
 namespace CartaCore.Operations
 {
@@ -10,6 +11,7 @@ namespace CartaCore.Operations
         public Graph Graph { get; set; }
     }
 
+    [OperationName(Display = "Finite Undirected Graph", Type = "syntheticFug")]
     public class FiniteUndirectedGraphOperation : TypedOperation
     <
         FiniteUndirectedGraphOperationIn,

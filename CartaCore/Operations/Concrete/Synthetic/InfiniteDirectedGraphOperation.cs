@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using CartaCore.Data;
 using CartaCore.Integration.Synthetic;
+using CartaCore.Operations.Attributes;
 
 namespace CartaCore.Operations
 {
@@ -10,6 +11,7 @@ namespace CartaCore.Operations
         public Graph Graph { get; set; }
     }
 
+    [OperationName(Display = "Infinite Directed Graph", Type = "syntheticIdg")]
     public class InfiniteDirectedGraphOperation : TypedOperation
     <
         InfiniteDirectedGraphOperationIn,

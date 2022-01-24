@@ -35,14 +35,14 @@ const Visualizer: FunctionComponent<{ data: any; type: string }> = ({
   useEffect(() => {
     if (!ref.current) return;
 
-    if (type !== "output" && type !== "input") {
+    if (data.type) {
       while (ref.current.firstChild) {
         ref.current.removeChild(ref.current.firstChild);
       }
     }
 
     if (data) {
-      switch (type) {
+      switch (data.type) {
         case "scatter":
           ScatterPlot(ref.current, {
             ...data,
@@ -205,7 +205,7 @@ const OperationNode: FunctionComponent<OperationNodeProps> = ({
           {/* TODO: It would be nice if icons were clickable. */}
           {/* TODO: Allow for multiple visualizers to be opened. */}
           {/* For visualizer types, a visualize button should be displayed. */}
-          {/* {type.visualization && (
+          {type.type === "workflowOutput" && data && (
             <span
               style={{
                 display: "flex",
@@ -216,7 +216,7 @@ const OperationNode: FunctionComponent<OperationNodeProps> = ({
                 viewActions.addElementToContainer(
                   rootId,
                   <VisualizerView
-                    type={type.visualization!}
+                    type={data.type}
                     name={operation.default!["Name"]}
                     onUpdate={handleVisualizer}
                     onClose={() => {
@@ -229,7 +229,7 @@ const OperationNode: FunctionComponent<OperationNodeProps> = ({
             >
               <VisualizeIcon />
             </span>
-          )} */}
+          )}
           {/* TODO: Reimplement (workflow locked symbol) */}
           {false && <LockIcon />}
         </div>
@@ -286,15 +286,6 @@ const OperationNode: FunctionComponent<OperationNodeProps> = ({
         </div>
       </div>
       {/* TODO: Transition to using visualization names provided by the server. */}
-      {!updater && operation.type === "visualizeScatterPlot" && (
-        <Visualizer data={data} type="scatter" />
-      )}
-      {!updater && operation.type === "visualizeHistogramPlot" && (
-        <Visualizer data={data} type="histogram" />
-      )}
-      {!updater && operation.type === "visualizeGraphPlot" && (
-        <Visualizer data={data} type="graph" />
-      )}
       {!updater && operation.type === "workflowOutput" && (
         <Visualizer data={data} type="output" />
       )}
