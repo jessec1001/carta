@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using CartaCore.Extensions.Array;
@@ -9,6 +10,7 @@ using CartaCore.Operations;
 using CartaCore.Persistence;
 using CartaWeb.Models.DocumentItem;
 using CartaWeb.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using NUlid;
@@ -46,6 +48,62 @@ namespace CartaWeb.Controllers
         }
 
         #region Persistence
+        // TODO: Convert upload/download file persistence to use S3.
+        private static readonly string JobsPath = @"jobs";
+
+        /// <summary>
+        /// Saves a job file to the file system.
+        /// </summary>
+        /// <param name="stream">The stream to write.</param>
+        /// <param name="operationId">The unique identifier of the operation.</param>
+        /// <param name="jobId">The unique identifier of the job.</param>
+        /// <param name="type">The type of file. For instance: "upload", "download", or "temporary".</param>
+        /// <param name="field">The field/filename to store.</param>
+        public static async Task SaveJobFileAsync(
+            Stream stream,
+            string operationId,
+            string jobId,
+            string type,
+            string field
+        )
+        {
+            // We compute the path to the appropriate directory.
+            string path = Path.Combine(JobsPath, operationId, jobId, type, field);
+
+            // We create the directory if it does not exist.
+            Directory.CreateDirectory(Path.GetDirectoryName(path));
+
+            // We write the file.
+            using FileStream fileStream = new(path, FileMode.Create);
+            await stream.CopyToAsync(fileStream);
+        }
+        /// <summary>
+        /// Loads a job file from the file system.
+        /// </summary>
+        /// <param name="operationId">The unique identifier of the operation.</param>
+        /// <param name="jobId">The unique identifier of the job.</param>
+        /// <param name="type">The type of file. For instance: "upload", "download", or "temporary".</param>
+        /// <param name="field">The field/filename to retrieve.</param>
+        /// <returns>The file stream if the file exists. Otherwise, <c>null</c>.</returns>
+        public static Task<Stream> LoadJobFileAsync(
+            string operationId,
+            string jobId,
+            string type,
+            string field
+        )
+        {
+            // We compute the path to the appropriate directory.
+            string path = Path.Combine(JobsPath, operationId, jobId, type, field);
+
+            // We check if the file exists.
+            if (!System.IO.File.Exists(path))
+                return Task.FromResult<Stream>(null);
+
+            // We read the file.
+            using FileStream fileStream = new(path, FileMode.Open);
+            return Task.FromResult<Stream>(fileStream);
+        }
+
         /// <summary>
         /// Saves the specified operation to the database.
         /// </summary>
@@ -160,8 +218,16 @@ namespace CartaWeb.Controllers
             return jobItems;
         }
 
+        /// <summary>
+        /// Instantiates an instance of an operation by loading all relevant information from the database and
+        /// constructing the operation objects.
+        /// </summary>
+        /// <param name="operationItem">The operation item to use as a constructor.</param>
+        /// <param name="_persistence">A reference to the persistence service.</param>
+        /// <returns>The instantiated operation.</returns>
         public static async Task<Operation> InstantiateOperation(OperationItem operationItem, Persistence _persistence)
         {
+            // TODO: Cleanup this method.
             if (operationItem.Type == "workflow")
             {
                 WorkflowItem workflowItem = await WorkflowsController.LoadWorkflowAsync(operationItem.Subtype, _persistence);
@@ -555,6 +621,8 @@ namespace CartaWeb.Controllers
 
                 Threads = 32,
             };
+            context.SaveFile = SaveJobFileAsync;
+            context.LoadFile = LoadJobFileAsync;
 
             // TODO: Implement memoization of results using the hash of the input.
             //       - Account for whether the operation is deterministic.
@@ -577,6 +645,10 @@ namespace CartaWeb.Controllers
                 Result = null,
                 Tasks = new List<OperationTask>(),
             };
+
+            // Add the identifiers to the context.
+            context.OperationId = operationId;
+            context.JobId = jobId;
 
             // We save the job item to the store and push the job onto the job collection.
             // This queues the operation for execution on a separate thread so that we can return the job immediately.
@@ -664,7 +736,7 @@ namespace CartaWeb.Controllers
             {
                 return NotFound(new
                 {
-                    Error = "Result with specified identifier could not be found.",
+                    Error = "Job with specified identifier could not be found.",
                     Id = operationId
                 });
             }
@@ -697,7 +769,7 @@ namespace CartaWeb.Controllers
         //     {
         //         return NotFound(new
         //         {
-        //             Error = "Result with specified identifier could not be found.",
+        //             Error = "Job with specified identifier could not be found.",
         //             Id = operationId
         //         });
         //     }
@@ -713,54 +785,133 @@ namespace CartaWeb.Controllers
         //     return Ok();
         // }
 
-        // // TODO: Review API URLs.
-        // [HttpPost("{operationId}/jobs/{jobId}/{field}/upload")]
-        // public async Task<ActionResult<JobItem>> UploadFileToOperation(
-        //     [FromRoute] string operationId,
-        //     [FromRoute] string jobId,
-        //     [FromRoute] string field,
-        //     [FromForm] IFormFile file
-        // )
-        // {
-        //     // TODO: (Permissions) This endpoint should only be accessible to someone who has "execute" permissions to
-        //     //       the referenced operation instance.
+        // TODO: Review API URLs.
+        /// <summary>
+        /// Uploads a file to a particular job awaiting a file upload.
+        /// </summary>
+        /// <param name="operationId">The unique identifier of the operation.</param>
+        /// <param name="jobId">The unique identifier of the job.</param>
+        /// <param name="field">The field to upload into.</param>
+        /// <param name="file">The file to upload.</param>
+        /// <returns status="200">The job after the upload task has been completed.</returns>
+        /// <returns status="404">Nothing when either the operation or job could not be found.</returns>
+        [HttpPost("{operationId}/jobs/{jobId}/{field}/upload")]
+        public async Task<ActionResult<JobItem>> UploadFileToOperation(
+            [FromRoute] string operationId,
+            [FromRoute] string jobId,
+            [FromRoute] string field,
+            [FromForm] IFormFile file
+        )
+        {
+            // TODO: (Permissions) This endpoint should only be accessible to someone who has "execute" permissions to
+            //       the referenced operation instance.
 
-        //     OperationItem operationItem = await LoadOperationAsync(operationId, _persistence);
-        //     Operation operation = await InstantiateOperation(operationItem, _persistence);
-        //     JobItem jobItem = await LoadJobAsync(jobId, operationId, _persistence);
+            // Get the job if it exists.
+            OperationItem operationItem = await LoadOperationAsync(operationId, _persistence);
+            if (operationItem is null)
+            {
+                return NotFound(new
+                {
+                    Error = "Operation with specified identifier could not be found.",
+                    Id = operationId
+                });
+            }
 
-        //     OperationContext context = new()
-        //     {
-        //         Parent = null,
-        //         Operation = operation,
+            // Get the job if it exists.
+            JobItem jobItem = await LoadJobAsync(jobId, operationId, _persistence);
+            if (jobItem is null)
+            {
+                return NotFound(new
+                {
+                    Error = "Job with specified identifier could not be found.",
+                    Id = operationId
+                });
+            }
 
-        //         Default = new Dictionary<string, object>(operationItem.Default),
-        //         Input = new Dictionary<string, object>(jobItem.Value),
-        //         Output = new Dictionary<string, object>(),
-        //     };
-        //     SaveFile(file.OpenReadStream());
+            // Save the job file as an upload.
+            await SaveJobFileAsync(file.OpenReadStream(), operationId, jobId, "upload", field);
 
-        //     jobItem.Tasks = new List<OperationTask>(operation.GetTasks(context));
+            // Construct the operation and executing context.
+            Operation operation = await InstantiateOperation(operationItem, _persistence);
+            OperationContext context = new()
+            {
+                Parent = null,
+                Operation = operation,
 
-        //     await SaveJobAsync(jobItem, _persistence);
-        //     _jobCollection.Push((jobItem, operation, context));
-        //     return Ok(jobItem);
-        // }
-        // public async Task<ActionResult> DownloadFileFromOperation(
-        //     [FromRoute] string operationId,
-        //     [FromRoute] string jobId,
-        //     [FromRoute] string field
-        // )
-        // {
-        //     // TODO: (Permissions) This endpoint should only be accessible to someone who has "execute" permissions to
-        //     //       the referenced operation instance.
+                OperationId = operationItem.Id,
+                JobId = jobItem.Id,
 
-        //     OperationItem operationItem = await LoadOperationAsync(operationId, _persistence);
-        //     Operation operation = await InstantiateOperation(operationItem, _persistence);
-        //     JobItem jobItem = await LoadJobAsync(jobId, operationId, _persistence);
+                Default = new Dictionary<string, object>(operationItem.Default),
+                Input = new Dictionary<string, object>(jobItem.Value),
+                Output = new Dictionary<string, object>()
+            };
+            context.SaveFile = SaveJobFileAsync;
+            context.LoadFile = LoadJobFileAsync;
 
-        //     return File(stream, "application/octet-stream", field);
-        // }
+            // Add back all of the tasks except for the upload task just completed.
+            OperationTask currentTask = jobItem.Tasks.Find((task) =>
+            {
+                return (
+                    task.Operation == operationId &&
+                    task.Field == field &&
+                    task.Type == OperationTaskType.File
+                );
+            });
+            jobItem.Tasks.Remove(currentTask);
+            foreach (OperationTask task in jobItem.Tasks)
+                context.Tasks.Add(task);
+
+            // Save the job item and requeue the operation.
+            await SaveJobAsync(jobItem, _persistence);
+            _jobCollection.Push((jobItem, operation, context));
+            return Ok(jobItem);
+        }
+        /// <summary>
+        /// Downloads a file from a particular job that output a file download.
+        /// </summary>
+        /// <param name="operationId">The unique identifier of the operation.</param>
+        /// <param name="jobId">The unique identifier of the job.</param>
+        /// <param name="field">The field to download from.</param>
+        /// <returns status="200">A stream containing the file download.</returns>
+        /// <returns status="404">Nothing when either the operation or job could not be found.</returns>
+        [HttpGet("{operationId}/jobs/{jobId}/{field}/download")]
+        public async Task<ActionResult> DownloadFileFromOperation(
+            [FromRoute] string operationId,
+            [FromRoute] string jobId,
+            [FromRoute] string field
+        )
+        {
+            // TODO: (Permissions) This endpoint should only be accessible to someone who has "execute" permissions to
+            //       the referenced operation instance.
+
+            // Get the operation if it exists.
+            OperationItem operationItem = await LoadOperationAsync(operationId, _persistence);
+            if (operationItem is null)
+            {
+                return NotFound(new
+                {
+                    Error = "Operation with specified identifier could not be found.",
+                    Id = operationId
+                });
+            }
+
+            // Get the job if it exists.
+            JobItem jobItem = await LoadJobAsync(jobId, operationId, _persistence);
+            if (jobItem is null)
+            {
+                return NotFound(new
+                {
+                    Error = "Job with specified identifier could not be found.",
+                    Id = operationId
+                });
+            }
+
+            // Get the file from the job.
+            Stream file = await LoadJobFileAsync(operationId, jobId, "download", field);
+            if (file is null) return StatusCode(423, new { Error = "File download is not ready." });
+
+            return File(file, "application/octet-stream", field);
+        }
         // // TODO: Implement.
         // public async Task<ActionResult> AuthenticateOperation(
 

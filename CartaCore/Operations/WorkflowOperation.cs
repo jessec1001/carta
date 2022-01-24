@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using CartaCore.Data;
@@ -55,8 +56,20 @@ namespace CartaCore.Operations
             /// <returns>Nothing.</returns>
             public async Task Run()
             {
-                // TODO: Formalize
+                // TODO: Formalize and replace with per-context configuration.
                 int operationRunningLimit = 32;
+
+                // TODO: Generalize to all types of operations instead of just workflow operations.
+                // Before starting, we need to load any file streams that are referenced by the workflow.
+                foreach (string inputField in Workflow.GetInputFields())
+                {
+                    Type inputType = Workflow.GetInputFieldType(inputField);
+                    if (inputType.IsAssignableTo(typeof(Stream)))
+                    {
+                        Stream fileUpload = await Context.LoadFile(Context.OperationId, Context.JobId, "upload", inputField);
+                        Context.Input.Add(inputField, fileUpload);
+                    }
+                }
 
                 // Keep a list of currently running operation tasks.
                 // Keep executing operations while there are tasks in this list.
@@ -86,6 +99,21 @@ namespace CartaCore.Operations
                     running.RemoveAt(index);
                     runningIds.RemoveAt(index);
                 } while (true);
+
+                // TODO: Generalize to all types of operations instead of just workflow operations.
+                // After running, we need to save any file streams that are referenced by the workflow.
+                foreach (string outputField in Workflow.GetOutputFields())
+                {
+                    Type outputType = Workflow.GetOutputFieldType(outputField);
+                    if (outputType.IsAssignableTo(typeof(Stream)))
+                    {
+                        if (!Context.Output.ContainsKey(outputField)) continue;
+                        if (Context.Output[outputField] is not Stream fileDownload) continue;
+
+                        await Context.SaveFile(fileDownload, Context.OperationId, Context.JobId, "download", outputField);
+                        Context.Output.Remove(outputField);
+                    }
+                }
             }
 
             /// <summary>

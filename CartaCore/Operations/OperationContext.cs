@@ -1,8 +1,24 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace CartaCore.Operations
 {
+    public delegate Task OperationFileSaveHandler(
+        Stream stream,
+        string operationId,
+        string jobId,
+        string type,
+        string field
+    );
+    public delegate Task<Stream> OperationFileLoadHandler(
+        string operationId,
+        string jobId,
+        string type,
+        string field
+    );
+
     /// <summary>
     /// A context that contains execution information for an operation.
     /// </summary>
@@ -16,6 +32,12 @@ namespace CartaCore.Operations
         /// The tasks for the operation. 
         /// </summary>
         public ConcurrentBag<OperationTask> Tasks { get; } = new();
+
+        public OperationFileSaveHandler SaveFile;
+        public OperationFileLoadHandler LoadFile;
+
+        public string OperationId { get; set; }
+        public string JobId { get; set; }
 
         /// <summary>
         /// The parent context of this current context.
