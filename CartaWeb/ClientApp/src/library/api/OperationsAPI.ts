@@ -1,7 +1,7 @@
 import queryString from "query-string";
 import { flattenSchema, JsonSchema } from "library/schema";
 import BaseAPI from "./BaseAPI";
-import { Job, Operation, OperationType } from "./operations";
+import { Job, Operation, OperationSchema, OperationType } from "./operations";
 
 class OperationsAPI extends BaseAPI {
   protected getApiUrl() {
@@ -63,10 +63,8 @@ class OperationsAPI extends BaseAPI {
 
     const operation = await this.readJSON<Operation>(response);
 
-    if (includeSchema) {
-      operation.input = await this.getOperationInputSchema(operationId);
-      operation.output = await this.getOperationOutputSchema(operationId);
-    }
+    if (includeSchema)
+      operation.schema = await this.getOperationSchema(operationId);
 
     return operation;
   }
@@ -190,37 +188,25 @@ class OperationsAPI extends BaseAPI {
   // #endregion
 
   // #region Operations Schema
-  public async getOperationInputSchema(
+  public async getOperationSchema(
     operationId: string
-  ): Promise<JsonSchema> {
+  ): Promise<OperationSchema> {
     const url = this.getOperationUrl(operationId);
-    const response = await fetch(
-      `${url}/schema/input`,
-      this.defaultFetcher("GET")
-    );
+    const response = await fetch(`${url}/schema`, this.defaultFetcher("GET"));
 
     await this.ensureSuccess(
       response,
       "Error occurred while trying to fetch operation input schema."
     );
 
-    return flattenSchema(await this.readJSON<JsonSchema>(response));
-  }
-  public async getOperationOutputSchema(
-    operationId: string
-  ): Promise<JsonSchema> {
-    const url = this.getOperationUrl(operationId);
-    const response = await fetch(
-      `${url}/schema/output`,
-      this.defaultFetcher("GET")
-    );
-
-    await this.ensureSuccess(
-      response,
-      "Error occurred while trying to fetch operation output schema."
-    );
-
-    return flattenSchema(await this.readJSON<JsonSchema>(response));
+    const schema = await this.readJSON<OperationSchema>(response);
+    Object.keys(schema.inputs).forEach((key) => {
+      schema.inputs[key] = flattenSchema(schema.inputs[key]);
+    });
+    Object.keys(schema.outputs).forEach((key) => {
+      schema.outputs[key] = flattenSchema(schema.outputs[key]);
+    });
+    return schema;
   }
   // #endregion
 }

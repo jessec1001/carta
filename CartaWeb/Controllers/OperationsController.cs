@@ -13,6 +13,7 @@ using CartaWeb.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using NJsonSchema;
 using NUlid;
 
 namespace CartaWeb.Controllers
@@ -932,14 +933,12 @@ namespace CartaWeb.Controllers
         {
             /// <summary>
             /// The schemas for each input field of the operation.
-            /// Notice that the schemas are already converted to JSON.
             /// </summary>
-            public Dictionary<string, string> Inputs { get; init; }
+            public Dictionary<string, JsonSchema> Inputs { get; init; }
             /// <summary>
             /// The schemas for each output field of the operation.
-            /// Notice that the schemas are already converted to JSON.
             /// </summary>
-            public Dictionary<string, string> Outputs { get; init; }
+            public Dictionary<string, JsonSchema> Outputs { get; init; }
         }
 
         /// <summary>
@@ -953,7 +952,7 @@ namespace CartaWeb.Controllers
         /// <returns status="404">
         /// Nothing when the identifier refers to an operation instance that does not exist.
         /// </returns>
-        [HttpGet("{operationId}/schema/{side}")]
+        [HttpGet("{operationId}/schema")]
         public async Task<ActionResult<OperationSchema>> RetrieveOperationSchema(
             [FromRoute] string operationId
         )
@@ -974,17 +973,17 @@ namespace CartaWeb.Controllers
 
             // Instantiate the operation and retrieve each of the field schemas.
             Operation operation = await InstantiateOperation(operationItem, _persistence);
-            Dictionary<string, string> inputSchemas = operation
+            Dictionary<string, JsonSchema> inputSchemas = operation
                 .GetInputFields()
                 .ToDictionary(
                     field => field,
-                    field => operation.GetInputFieldSchema(field).ToJson()
+                    field => operation.GetInputFieldSchema(field)
                 );
-            Dictionary<string, string> outputSchemas = operation
+            Dictionary<string, JsonSchema> outputSchemas = operation
                 .GetOutputFields()
                 .ToDictionary(
                     field => field,
-                    field => operation.GetOutputFieldSchema(field).ToJson()
+                    field => operation.GetOutputFieldSchema(field)
                 );
 
             // Return the operation schema.

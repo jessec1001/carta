@@ -1,4 +1,4 @@
-import { JsonSchema } from "library/schema";
+import { OperationSchema } from ".";
 import { Identifiable } from "../base";
 
 interface Operation extends Identifiable {
@@ -6,8 +6,7 @@ interface Operation extends Identifiable {
   subtype: string | null;
 
   default?: Record<string, any>;
-  input?: JsonSchema;
-  output?: JsonSchema;
+  schema?: OperationSchema;
 }
 
 export default Operation;

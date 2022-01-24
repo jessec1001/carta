@@ -79,18 +79,12 @@ const Visualizer: FunctionComponent<{ data: any; type: string }> = ({
       {type === "output" && <pre>{JSON.stringify(data, null, 2)}</pre>}
       {/* TODO: Convert into auto form. */}
       {type === "input" &&
-        workflowOperation?.input &&
-        (workflowOperation.input as JsonObjectSchema).properties &&
-        (workflowOperation.input as JsonObjectSchema).properties![data] && (
+        workflowOperation?.schema &&
+        workflowOperation.schema.inputs[data] && (
           <SchemaBaseInput
-            schema={
-              (workflowOperation.input as JsonObjectSchema).properties![data]
-            }
+            schema={workflowOperation.schema.inputs[data]}
             onChange={(value) => {
-              if (
-                (workflowOperation.input as JsonObjectSchema).properties![data]
-                  .type === "file"
-              ) {
+              if (workflowOperation.schema?.inputs[data].type === "file") {
                 value = value as File | null;
                 if (value === null) {
                   setFile(null);
@@ -211,7 +205,7 @@ const OperationNode: FunctionComponent<OperationNodeProps> = ({
           {/* TODO: It would be nice if icons were clickable. */}
           {/* TODO: Allow for multiple visualizers to be opened. */}
           {/* For visualizer types, a visualize button should be displayed. */}
-          {type.visualization && (
+          {/* {type.visualization && (
             <span
               style={{
                 display: "flex",
@@ -235,60 +229,60 @@ const OperationNode: FunctionComponent<OperationNodeProps> = ({
             >
               <VisualizeIcon />
             </span>
-          )}
+          )} */}
           {/* TODO: Reimplement (workflow locked symbol) */}
           {false && <LockIcon />}
         </div>
         <div className="body">
-          {operation.input &&
-            Object.entries(
-              (operation.input as JsonObjectSchema).properties ?? {}
-            ).map(([key, value]) => {
-              const displayField = !workflow?.connections.some(
-                (connection) =>
-                  connection.target.operation === operation.id &&
-                  connection.target.field === key
-              );
+          {operation.schema?.inputs &&
+            Object.entries(operation.schema.inputs ?? {}).map(
+              ([key, value]) => {
+                const displayField = !workflow?.connections.some(
+                  (connection) =>
+                    connection.target.operation === operation.id &&
+                    connection.target.field === key
+                );
 
-              return (
-                <div
-                  key={key}
-                  style={{
-                    paddingRight: "0.5rem",
-                    display: "flex",
-                    padding: "0.25rem 0rem",
-                  }}
-                >
+                return (
+                  <div
+                    key={key}
+                    style={{
+                      paddingRight: "0.5rem",
+                      display: "flex",
+                      padding: "0.25rem 0rem",
+                    }}
+                  >
+                    <OperationNodeConnector
+                      operation={operation}
+                      connector={{ name: key, type: value.type as string }}
+                      attachment="input"
+                    />
+                    {displayField && (
+                      <div style={{ flexGrow: 1 }}>
+                        <SchemaBaseInput
+                          schema={value}
+                          value={defaults![key]}
+                          onChange={(value: any) => handleModify(key, value)}
+                        />
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+            )}
+          {operation.schema?.outputs &&
+            Object.entries(operation.schema.outputs ?? {}).map(
+              ([key, value]) => {
+                return (
                   <OperationNodeConnector
                     operation={operation}
+                    key={key}
                     connector={{ name: key, type: value.type as string }}
-                    attachment="input"
+                    attachment="output"
                   />
-                  {displayField && (
-                    <div style={{ flexGrow: 1 }}>
-                      <SchemaBaseInput
-                        schema={value}
-                        value={defaults![key]}
-                        onChange={(value: any) => handleModify(key, value)}
-                      />
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          {operation.output &&
-            Object.entries(
-              (operation.output as JsonObjectSchema).properties ?? {}
-            ).map(([key, value]) => {
-              return (
-                <OperationNodeConnector
-                  operation={operation}
-                  key={key}
-                  connector={{ name: key, type: value.type as string }}
-                  attachment="output"
-                />
-              );
-            })}
+                );
+              }
+            )}
         </div>
       </div>
       {/* TODO: Transition to using visualization names provided by the server. */}

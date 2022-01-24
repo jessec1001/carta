@@ -22,6 +22,9 @@ import {
  * with the default value property-by-property. Optional.
  */
 const schemaObjectDefault = (schema: JsonObjectSchema, value?: any) => {
+  // If the value is null, this is a special case where we want to return null.
+  if (value === null) return null;
+
   // If properties are specified, we will, at minimum, provide those properties even if not required.
   if (schema.properties !== undefined) {
     const def: Record<string, any> = {};

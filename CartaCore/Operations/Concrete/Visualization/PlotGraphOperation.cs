@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using CartaCore.Data;
 using CartaCore.Operations.Attributes;
@@ -14,14 +15,17 @@ namespace CartaCore.Operations.Visualization
         /// <summary>
         /// Color based on hierarchical level and argument.
         /// </summary>
+        [EnumMember(Value = "Hierarchical")]
         Hierarchical,
         /// <summary>
         /// Color based on unique identifiers.
         /// </summary>
+        [EnumMember(Value = "Random")]
         Random,
         /// <summary>
         /// Color based on number of connected nodes.
         /// </summary>
+        [EnumMember(Value = "Connectedness")]
         Connectedness
     }
 

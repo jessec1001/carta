@@ -143,6 +143,12 @@ namespace CartaCore.Operations
             else
                 jsonSchema = JsonSchema.FromType(fieldType, jsonSettings);
 
+            // TODO: Figure out the proper way to handle this schema generation.
+            // For now, we need to make reference types nullable manually at the root level.
+            Type nullableType = Nullable.GetUnderlyingType(fieldType);
+            if (fieldType.IsClass || nullableType != null)
+                jsonSchema.Type |= JsonObjectType.Null;
+
             jsonSchema.Title = field;
             return jsonSchema;
         }
@@ -166,6 +172,13 @@ namespace CartaCore.Operations
                 jsonSchema = new JsonSchema { Type = JsonObjectType.File };
             else
                 jsonSchema = JsonSchema.FromType(fieldType, jsonSettings);
+
+            // TODO: Figure out the proper way to handle this schema generation.
+            // For now, we need to make reference types nullable manually at the root level.
+            // For now, we need to make nullable value types nullable manually at the root level.
+            Type nullableType = Nullable.GetUnderlyingType(fieldType);
+            if (fieldType.IsClass || nullableType != null)
+                jsonSchema.Type |= JsonObjectType.Null;
 
             jsonSchema.Title = field;
             return jsonSchema;
