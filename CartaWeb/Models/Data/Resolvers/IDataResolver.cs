@@ -20,7 +20,13 @@ namespace CartaWeb.Models.Data
         /// <returns>The freeform graph data.</returns>
         Task<Graph> GenerateGraphAsync(ControllerBase controller, string resource);
 
-        Task<OperationTemplate> GenerateOperationAsync(ControllerBase controller, string resource);
+        /// <summary>
+        /// Generates an operation template that may used to construct an operation to retrieve the resource.
+        /// </summary>
+        /// <param name="controller">The controller generating the request.</param>
+        /// <param name="resource">The resource to generate.</param>
+        /// <returns>The operation template.</returns>
+        Task<OperationTemplate> GenerateOperation(ControllerBase controller, string resource);
 
         /// <summary>
         /// Finds all the resources associated with the data resolver.

@@ -2,10 +2,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-
 using CartaCore.Data;
-using CartaWeb.Controllers;
 using CartaCore.Operations;
+using CartaWeb.Controllers;
 
 namespace CartaWeb.Models.Data
 {
@@ -17,6 +16,7 @@ namespace CartaWeb.Models.Data
         /// <inheritdoc />
         public async Task<IList<string>> FindResourcesAsync(ControllerBase controller)
         {
+            // TODO: Optimize loading of user-uploaded graphs so that the aliases and identifiers are loaded but not the graph itself.
             List<FiniteGraph> graphs = await DataController.LoadGraphsAsync();
             return graphs
                 .Select(graph => graph.Identifier.ToString())
@@ -30,14 +30,11 @@ namespace CartaWeb.Models.Data
             return await DataController.LoadGraphAsync(id);
         }
 
-        public async Task<OperationTemplate> GenerateOperationAsync(ControllerBase controller, string resource)
+        /// <inheritdoc />
+        public Task<OperationTemplate> GenerateOperation(ControllerBase controller, string resource)
         {
-            return new CartaGraphOperation().GetTemplate
-            (
-                new CartaGraphOperationIn()
-                {
-                    Id = resource
-                }
+            return Task.FromResult(
+                new CartaGraphOperation().GetTemplate(new CartaGraphOperationIn() { Id = resource })
             );
         }
     }

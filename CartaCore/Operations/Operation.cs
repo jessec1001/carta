@@ -8,6 +8,8 @@ using CartaCore.Data;
 using CartaCore.Extensions.Typing;
 using CartaCore.Operations.Attributes;
 using CartaCore.Typing.Conversion;
+using NJsonSchema;
+using NJsonSchema.Generation;
 
 namespace CartaCore.Operations
 {
@@ -25,7 +27,13 @@ namespace CartaCore.Operations
         /// <summary>
         /// The default values of the operation.
         /// </summary>
-        public Dictionary<string, object> Default { get; set; } = new();
+        public Dictionary<string, object> DefaultValues { get; set; } = new();
+
+        /// <summary>
+        /// The initial values of the operation.
+        /// Concrete operations should override this property to provide the initial values of the operation.
+        /// </summary>
+        public virtual Dictionary<string, object> InitialValues { get => new(); }
 
         /// <summary>
         /// Called before the operation is performed. This is where the operation can perform any setup that is required
@@ -103,6 +111,55 @@ namespace CartaCore.Operations
         /// <param name="field">The name of the field.</param>
         /// <returns>The type of the output field.</returns>
         public abstract Type GetOutputFieldType(string field);
+
+        /// <summary>
+        /// Generates a schema for an input field specified by its name.
+        /// </summary>
+        /// <param name="field">The name of the field.</param>
+        /// <returns>A generated JSON schema.</returns>
+        public virtual JsonSchema GetInputFieldSchema(string field)
+        {
+            Type fieldType = GetInputFieldType(field);
+
+            JsonSchema jsonSchema;
+            JsonSchemaGeneratorSettings jsonSettings = new JsonSchemaGeneratorSettings()
+            {
+                GenerateAbstractSchemas = false,
+                FlattenInheritanceHierarchy = true
+            };
+
+            if (fieldType.IsAssignableTo(typeof(Stream)))
+                jsonSchema = new JsonSchema { Type = JsonObjectType.File };
+            else
+                jsonSchema = JsonSchema.FromType(fieldType, jsonSettings);
+
+            jsonSchema.Title = field;
+            return jsonSchema;
+        }
+        /// <summary>
+        /// Generates a schema for an output field specified by its name.
+        /// </summary>
+        /// <param name="field">The name of the field.</param>
+        /// <returns>A generated JSON schema.</returns>
+        public virtual JsonSchema GetOutputFieldSchema(string field)
+        {
+            Type fieldType = GetOutputFieldType(field);
+
+            JsonSchema jsonSchema;
+            JsonSchemaGeneratorSettings jsonSettings = new JsonSchemaGeneratorSettings()
+            {
+                GenerateAbstractSchemas = false,
+                FlattenInheritanceHierarchy = true
+            };
+
+            if (fieldType.IsAssignableTo(typeof(Stream)))
+                jsonSchema = new JsonSchema { Type = JsonObjectType.File };
+            else
+                jsonSchema = JsonSchema.FromType(fieldType, jsonSettings);
+
+            jsonSchema.Title = field;
+            return jsonSchema;
+        }
 
         /// <summary>
         /// Get the tasks that need to be executed in order for the operation to complete.

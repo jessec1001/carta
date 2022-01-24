@@ -48,7 +48,7 @@ namespace CartaWeb.Models.DocumentItem
             Type = description.Type;
             Subtype = description.Subtype;
 
-            Default = operation.Default;
+            Default = operation.DefaultValues;
         }
         /// <summary>
         /// Initializes a new instance of the <see cref="OperationItem"/> class with specified owning user from an

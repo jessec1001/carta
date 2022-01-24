@@ -1,10 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using CartaCore.Extensions.Typing;
 using CartaCore.Operations.Attributes;
 using CartaCore.Typing.Conversion;
+using NJsonSchema;
 
 namespace CartaCore.Operations
 {
@@ -65,11 +67,18 @@ namespace CartaCore.Operations
         /// <summary>
         /// The typed default values of the operation as specified externally.
         /// </summary>
-        public TInput DefaultTyped
+        public TInput DefaultValuesTyped
         {
-            get => Default.AsTyped<TInput>(TypeConverterContext.Default);
-            set => Default = value.AsDictionary();
+            get => DefaultValues.AsTyped<TInput>(TypeConverterContext.Default);
+            set => DefaultValues = value.AsDictionary();
         }
+
+        /// <summary>
+        /// The typed initial values of the operation.
+        /// </summary>
+        public virtual TInput InitialValuesTyped => default;
+        /// <inheritdoc />
+        public override Dictionary<string, object> InitialValues => InitialValuesTyped.AsDictionary();
 
         // TODO: We need to incorporate the attributes into the following methods.  
         /// <inheritdoc />

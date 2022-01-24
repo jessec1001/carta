@@ -68,16 +68,16 @@ namespace CartaTest.Operations
             #region Operations
             InputOperation opInputSeed = new()
             {
-                DefaultTyped = new() { Name = "Seed" }
+                DefaultValuesTyped = new() { Name = "Seed" }
             };
             InputOperation opInputSampleCount = new()
             {
-                DefaultTyped = new() { Name = "SampleCount" }
+                DefaultValuesTyped = new() { Name = "SampleCount" }
             };
 
             SampleNormalOperation opSampleNormal = new()
             {
-                DefaultTyped = new() { Mean = 1.0, Deviation = 2.0 }
+                DefaultValuesTyped = new() { Mean = 1.0, Deviation = 2.0 }
             };
 
             MeanOperation opMean = new();
@@ -85,11 +85,11 @@ namespace CartaTest.Operations
 
             OutputOperation opOutputMu = new()
             {
-                DefaultTyped = new() { Name = "Mu" }
+                DefaultValuesTyped = new() { Name = "Mu" }
             };
             OutputOperation opOutputSigma = new()
             {
-                DefaultTyped = new() { Name = "Sigma" }
+                DefaultValuesTyped = new() { Name = "Sigma" }
             };
             #endregion
 
@@ -243,16 +243,16 @@ namespace CartaTest.Operations
             #region Operations
             InputOperation opInputSeed = new()
             {
-                DefaultTyped = new() { Name = "Seed" }
+                DefaultValuesTyped = new() { Name = "Seed" }
             };
             InputOperation opInputSampleCount = new()
             {
-                DefaultTyped = new() { Name = "SampleCount" }
+                DefaultValuesTyped = new() { Name = "SampleCount" }
             };
 
             SampleNormalOperation opSampleNormal = new()
             {
-                DefaultTyped = new() { Mean = 0.0, Deviation = 1.0 }
+                DefaultValuesTyped = new() { Mean = 0.0, Deviation = 1.0 }
             };
 
             ArithmeticOperation opAdd = new()
@@ -269,11 +269,11 @@ namespace CartaTest.Operations
 
             OutputOperation opOutputMu = new()
             {
-                DefaultTyped = new() { Name = "Mu" }
+                DefaultValuesTyped = new() { Name = "Mu" }
             };
             OutputOperation opOutputSigma = new()
             {
-                DefaultTyped = new() { Name = "Sigma" }
+                DefaultValuesTyped = new() { Name = "Sigma" }
             };
             #endregion
 

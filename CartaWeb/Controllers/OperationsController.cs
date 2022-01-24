@@ -1,40 +1,25 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
+using CartaCore.Extensions.Array;
+using CartaCore.Extensions.Hashing;
+using CartaCore.Extensions.String;
 using CartaCore.Operations;
 using CartaCore.Persistence;
 using CartaWeb.Models.DocumentItem;
 using CartaWeb.Services;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using NJsonSchema;
-using NJsonSchema.Generation;
+using NUlid;
 
 namespace CartaWeb.Controllers
 {
     // TODO: Make sure that operation defaults are added to the internal representation of operations once created.
+    // TODO: Prevent overposting to the default fields of operations.
     // TODO: Add searching for workflows in search endpoint
     // TODO: Implement destroying results records manually.
-
-    /// <summary>
-    /// Represents the side of an operation that a field exists on.
-    /// This may either be the input or output side.
-    /// </summary>
-    public enum OperationSide
-    {
-        /// <summary>
-        /// The input side of the operation.
-        /// </summary>
-        Input,
-        /// <summary>
-        /// The output side of the operation.
-        /// </summary>
-        Output,
-    }
+    // TODO: Updating an operation causes the containing workflow to become cache invalid.
 
     /// <summary>
     /// A controller that manages creating, updating, retrieving, and deleting operations that can be executed with
@@ -45,34 +30,22 @@ namespace CartaWeb.Controllers
     public class OperationsController : ControllerBase
     {
         // TODO: This singleton service should probably be interface-ified and should be given a better name.
-        private readonly OperationTaskCollection TaskCollection;
+        private readonly OperationJobCollection _jobCollection;
         private readonly ILogger<OperationsController> _logger;
         private readonly Persistence _persistence;
 
-        public OperationsController(ILogger<OperationsController> logger, INoSqlDbContext noSqlDbContext, OperationTaskCollection taskCollection)
+        /// <inheritdoc />
+        public OperationsController(
+            ILogger<OperationsController> logger,
+            INoSqlDbContext noSqlDbContext,
+            OperationJobCollection taskCollection)
         {
-            TaskCollection = taskCollection;
+            _jobCollection = taskCollection;
             _logger = logger;
             _persistence = new Persistence(noSqlDbContext);
         }
 
         #region Persistence
-        // TODO: Redo file storage to store uploads based on index and per-job.
-        public static Stream ReadFile()
-        {
-            if (!System.IO.File.Exists("file")) return null;
-            Stream stream = System.IO.File.Open("file", FileMode.Open);
-            return stream;
-        }
-        public static void SaveFile(Stream stream)
-        {
-            using (FileStream fileStream = System.IO.File.Open("file", FileMode.Create))
-            {
-                stream.CopyTo(fileStream);
-                stream.Close();
-            }
-        }
-
         /// <summary>
         /// Saves the specified operation to the database.
         /// </summary>
@@ -85,6 +58,12 @@ namespace CartaWeb.Controllers
             bool isSaved = await _persistence.WriteDbDocumentAsync(document);
             return isSaved;
         }
+        /// <summary>
+        /// Updates the specified operation in the database.
+        /// </summary>
+        /// <param name="operationItem">The operation item.</param>
+        /// <param name="_persistence">A reference to the persistence service.</param>
+        /// <returns>Whether the operation was successful or not.</returns>
         public static async Task<bool> UpdateOperationAsync(OperationItem operationItem, Persistence _persistence)
         {
             DbDocument document = operationItem.UpdateDbDocument();
@@ -129,6 +108,12 @@ namespace CartaWeb.Controllers
             bool isSaved = await _persistence.WriteDbDocumentAsync(document);
             return isSaved;
         }
+        /// <summary>
+        /// Updates the specified job in the database.
+        /// </summary>
+        /// <param name="jobItem">The job item.</param>
+        /// <param name="_persistence">A reference to the persistence service.</param>
+        /// <returns>Whether the operation was succesfful or not.</returns>
         public static async Task<bool> UpdateJobAsync(JobItem jobItem, Persistence _persistence)
         {
             DbDocument document = jobItem.UpdateDbDocument();
@@ -174,6 +159,57 @@ namespace CartaWeb.Controllers
             List<JobItem> jobItems = items.Cast<JobItem>().ToList();
             return jobItems;
         }
+
+        public static async Task<Operation> InstantiateOperation(OperationItem operationItem, Persistence _persistence)
+        {
+            if (operationItem.Type == "workflow")
+            {
+                WorkflowItem workflowItem = await WorkflowsController.LoadWorkflowAsync(operationItem.Subtype, _persistence);
+                List<Operation> suboperations = new(workflowItem.Operations.Length);
+                foreach (string suboperationId in workflowItem.Operations)
+                {
+                    suboperations.Add(
+                        await InstantiateOperation(
+                            await LoadOperationAsync(suboperationId.ToString(), _persistence),
+                            _persistence
+                        )
+                    );
+                }
+                WorkflowOperationConnection[] connections = workflowItem.Connections.Select(item => new WorkflowOperationConnection()
+                {
+                    Source = new WorkflowOperationConnectionPoint()
+                    {
+                        Operation = item.Source.Operation,
+                        Field = item.Source.Field
+                    },
+                    Target = new WorkflowOperationConnectionPoint()
+                    {
+                        Operation = item.Target.Operation,
+                        Field = item.Target.Field
+                    },
+                    Multiplexer = item.Multiplex
+                }).ToArray();
+
+                WorkflowOperation operation = new(suboperations.ToArray(), connections)
+                {
+                    Identifier = operationItem.Id
+                };
+                operation.DefaultValues = operationItem.Default;
+
+                return operation;
+            }
+            else
+            {
+                // TODO: Clean up and make private init members private init again.
+                Type operationType = Operation.TypeFromName(operationItem.Type);
+
+                Operation operation = (Operation)Activator.CreateInstance(operationType);
+                operation.Identifier = operationItem.Id;
+                operation.DefaultValues = operationItem.Default;
+
+                return operation;
+            }
+        }
         #endregion
 
         #region Endpoints (Operation Types)
@@ -199,9 +235,12 @@ namespace CartaWeb.Controllers
         public async Task<ActionResult<OperationDescription[]>> GetOperationTypes(
             [FromQuery(Name = "name")] string filterName,
             [FromQuery(Name = "tags")] string[] filterTags,
-            [FromQuery(Name = "limit")] int? limit)
+            [FromQuery(Name = "limit")] int? limit
+        )
         {
-            // TODO: Reimplement workflow types.
+            // TODO: (Permissions) This endpoint should be accessible to any user.
+            //       For now, until we add permissions on the toolbox level, every operation type is available.
+
             // Get the descriptions for all of the operations.
             OperationDescription[] descriptionsSimple = OperationDescription.FromOperationTypes();
             OperationDescription[] descriptionsWorkflow = await WorkflowsController.LoadWorkflowDescriptionsAsync(_persistence);
@@ -240,9 +279,7 @@ namespace CartaWeb.Controllers
                         string source = filterName;
                         string target = description.Display.ToLower();
 
-                        double similarity1 = source.SubsequenceSimilarity(target) / target.Length;
-                        double similarity2 = target.SubsequenceSimilarity(source) / source.Length;
-                        return Math.Max(similarity1, similarity2);
+                        return StringExtensions.SorensenDiceSimilarity(source, target, n: 2);
                     })
                     .ToArray();
             }
@@ -270,11 +307,14 @@ namespace CartaWeb.Controllers
         /// <returns status="400">
         /// Nothing if a required property was omitted or invalid or a non-mutable property was specified.
         /// </returns>
+        [HttpPost]
         public async Task<ActionResult<OperationItem>> CreateOperation(
             [FromBody] OperationItem operationItem
         )
         {
-            // TODO: Also incorporate workflow types.
+            // TODO: (Permissions) This endpoint should be accessible to any user.
+            //       For now, until we add permissions on the toolbox level, every operation type is available.
+
             // Create the operation instance.
             // The defaults for this instance should be automatically generated when constructed.
             Type operationType = Operation.TypeFromName(operationItem.Type);
@@ -305,7 +345,6 @@ namespace CartaWeb.Controllers
                 }
             }
 
-            // Set a new identifier.
             // We make sure that the identifier has not already been set by the user otherwise, this is a bad request.
             if (operationItem.Id is not null)
             {
@@ -321,8 +360,10 @@ namespace CartaWeb.Controllers
                 operationItem.Name = workflowItem is null ? description.Display : workflowItem.Name;
             }
 
-            operationItem.Id = NUlid.Ulid.NewUlid().ToString();
-            operationItem.Default ??= new Dictionary<string, object>();
+            // Set a new identifier and defaults for the operation.
+            Operation operation = await InstantiateOperation(operationItem, _persistence);
+            operationItem.Id = Ulid.NewUlid().ToString();
+            operationItem.Default ??= operation.InitialValues;
 
             // Save the created operation item and return its internal representation.
             await SaveOperationAsync(operationItem, _persistence);
@@ -347,10 +388,11 @@ namespace CartaWeb.Controllers
         [HttpPatch("{operationId}")]
         public async Task<ActionResult<OperationItem>> UpdateOperation(
             [FromRoute] string operationId,
-            [FromBody] OperationItem mergingOperationItem)
+            [FromBody] OperationItem mergingOperationItem
+        )
         {
-            // TODO: Updating an operation may cause connections to become invalid (for instance in dynamic fields).
-            // TODO: Updating an operation causes the containing workflow to become cache invalid.
+            // TODO: (Permissions) This endpoint should only be accessible to someone who has "write" permissions to
+            //       the referenced operation instance.
 
             // Get the existing operation instance.
             OperationItem operationItem = await LoadOperationAsync(operationId, _persistence);
@@ -390,6 +432,9 @@ namespace CartaWeb.Controllers
             mergingOperationItem.Subtype = operationItem.Subtype;
             mergingOperationItem.Default ??= operationItem.Default;
 
+            // TODO: Updating an operation may cause connections to become invalid (for instance in dynamic fields).
+            //       We should validate if this occurs and remove erraneous connections in this case. 
+
             // Save the updated operation item and return its internal representation.
             await UpdateOperationAsync(mergingOperationItem, _persistence);
             return Ok(mergingOperationItem);
@@ -406,11 +451,17 @@ namespace CartaWeb.Controllers
         /// </returns>
         [HttpDelete("{operationId}")]
         public async Task<ActionResult> DeleteOperation(
-            [FromRoute] string operationId)
+            [FromRoute] string operationId
+        )
         {
+            // TODO: (Permissions) This endpoint should only be accessible to someone who has "admin" permissions to
+            //       the referenced operation instance.
+
             // Try to delete the operation item from store.
             bool success = await DeleteOperationAsync(operationId, _persistence);
+
             // TODO: Delete results associated with the operation.
+            // TODO: Delete connections attached to the operation.
 
             // We return not found if the operation item does not exist.
             if (!success)
@@ -435,8 +486,12 @@ namespace CartaWeb.Controllers
         /// </returns>
         [HttpGet("{operationId}")]
         public async Task<ActionResult<OperationItem>> GetOperation(
-            [FromRoute] string operationId)
+            [FromRoute] string operationId
+        )
         {
+            // TODO: (Permissions) This endpoint should only be accessible to someone who has "read" permissions to
+            //       the referenced operation instance.
+
             // We get the operation item from store.
             OperationItem operationItem = await LoadOperationAsync(operationId, _persistence);
 
@@ -465,11 +520,15 @@ namespace CartaWeb.Controllers
         /// <returns status="404">
         /// Nothing when the identifier refers to an operation instance that does not exist.
         /// </returns>
-        [HttpPost("{operationId}/execute")]
+        [HttpPost("{operationId}/jobs")]
         public async Task<ActionResult<JobItem>> ExecuteOperation(
             [FromRoute] string operationId,
-            [FromBody] Dictionary<string, object> input)
+            [FromBody] Dictionary<string, object> input
+        )
         {
+            // TODO: (Permissions) This endpoint should only be accessible to someone who has "execute" permissions to
+            //       the referenced operation instance.
+
             // We get the operation item from store.
             OperationItem operationItem = await LoadOperationAsync(operationId, _persistence);
 
@@ -483,14 +542,8 @@ namespace CartaWeb.Controllers
                 });
             }
 
-            // TODO: Perform type conversion here.
-            // TODO: We cannot perform this value conversion on a workflow yet. We need the workflow to expose its
-            //       expected types.
-            // We read in the body object.
-            // We use the operation instance to get input types for each of the fields.
+            // We construct an actual operation instance from the operation item and construct an execution context.
             Operation operation = await InstantiateOperation(operationItem, _persistence);
-
-            // We get the operation instance itself from the item format.
             OperationContext context = new()
             {
                 Parent = null,
@@ -500,48 +553,58 @@ namespace CartaWeb.Controllers
                 Input = input,
                 Output = new Dictionary<string, object>(),
 
-                // TODO: Implement thread limit.
-                // ThreadCount = 32
+                Threads = 32,
             };
 
-            // TODO: Account for whether the operation is deterministic.
-            // TODO: Account for file uploads in hashes.
+            // TODO: Implement memoization of results using the hash of the input.
+            //       - Account for whether the operation is deterministic.
+            //       - Account for file uploads in hashes.
+
             // TODO: Get the hash of these inputs with respect to the input type (the input type matters because it may
             //       have hashing-related annotations such as [UnsortedArray]).
-            // TODO: Modifying any operation inside of a workflow means that cached results should be invalid.
-            // TODO: Reimplement caching for operations and when applicable, their suboperations.
-            // We check if the result already exists before trying to run the operation.
-            // TODO: This caching mechanism should use a sort of hash of the operation to account for changing workflows.
-            //       For instance, this hash could be as simple as the unique identifier of the operation for simple
-            //       operations but constructed from all of the sub-hashes for workflow operations. To do this, we must
-            //       simply implement the hashable interface defined in `Carta.Hashing`.
-            string resultId = (await context.Total.ComputeHashAsync()).ToHexString();
+
+            // TODO: Modifying any operation inside of a workflow means that cached results for the workflow should be
+            //       invalid.
+
 
             // Construct a job item for the executing operation instance.
-            JobItem job = new(resultId, operationId)
+            byte[] hash = await context.Total.ComputeByteArray().ComputeHashAsync();
+            string jobId = hash.ToHexadecimalString();
+            JobItem job = new(jobId, operationId)
             {
                 Completed = false,
                 Value = context.Total,
                 Result = null,
-                Tasks = new List<OperationTask>(operation.GetTasks(context)),
+                Tasks = new List<OperationTask>(),
             };
 
-            // TODO: Instead of executing the operation, send it to the service that collects a list of executing operations.
-            // We wait for the operation to complete and store the results.
+            // We save the job item to the store and push the job onto the job collection.
+            // This queues the operation for execution on a separate thread so that we can return the job immediately.
             await SaveJobAsync(job, _persistence);
-            TaskCollection.Push((job, operation, context));
+            _jobCollection.Push((job, operation, context));
 
-            // We return the ID for the result.
             return Ok(job);
         }
+        /// <summary>
+        /// Gets all of the jobs that have been executed on the operation instance specified by its unique identifier.
+        /// </summary>
+        /// <param name="operationId">The unique identifier of the operation.</param>
+        /// <returns status="200">
+        /// A list of jobs associated with the operation.
+        /// </returns>
+        /// <returns status="404">
+        /// Nothing when the identifier refers to an operation instance that does not exist.
+        /// </returns>
         [HttpGet("{operationId}/jobs")]
         public async Task<ActionResult<List<JobItem>>> RetrieveOperationJobs(
             [FromRoute] string operationId
         )
         {
+            // TODO: (Permissions) This endpoint should only be accessible to someone who has "execute" permissions to
+            //       the referenced operation instance.
+
             // We get the operation item from store.
             OperationItem operationItem = await LoadOperationAsync(operationId, _persistence);
-
             if (operationItem is null)
             {
                 return NotFound(new
@@ -555,6 +618,24 @@ namespace CartaWeb.Controllers
             List<JobItem> jobs = await LoadJobsAsync(operationId, _persistence);
             return jobs;
         }
+        /// <summary>
+        /// Gets a particular job that has been executed on the operation instance specified by its unique identifier.
+        /// </summary>
+        /// <param name="operationId">The unique identifier of the operation.</param>
+        /// <param name="jobId">The unique identifier of the job.</param>
+        /// <param name="field">
+        /// The specific field to return from the results. If not specified, all fields are returned.
+        /// </param>
+        /// <param name="selector">
+        /// The selector to apply to a specific field. This is only applicable when the field is a graph structure.
+        /// If not specified, no data is returned.
+        /// </param>
+        /// <returns status="200">
+        /// A job associated with the operation with the specified result.
+        /// </returns>
+        /// <returns status="404">
+        /// Nothing when the identifier refers to an operation instance that does not exist.
+        /// </returns>
         [HttpGet("{operationId}/jobs/{jobId}/{field?}/{selector?}")]
         public async Task<ActionResult<JobItem>> RetrieveOperationJob(
             [FromRoute] string operationId,
@@ -563,10 +644,11 @@ namespace CartaWeb.Controllers
             [FromRoute] string selector
         )
         {
+            // TODO: (Permissions) This endpoint should only be accessible to someone who has "execute" permissions to
+            //       the referenced operation instance.
+
             // We get the operation item from store.
             OperationItem operationItem = await LoadOperationAsync(operationId, _persistence);
-
-            // We return not found if the operation item does not exist.
             if (operationItem is null)
             {
                 return NotFound(new
@@ -578,7 +660,6 @@ namespace CartaWeb.Controllers
 
             // Get the result if it exists.
             JobItem job = await LoadJobAsync(jobId, operationId, _persistence);
-
             if (job is null)
             {
                 return NotFound(new
@@ -589,282 +670,180 @@ namespace CartaWeb.Controllers
             }
             else
             {
+                // Return only the specified field on request.
                 if (field is not null)
-                {
                     job.Result = ((Dictionary<string, object>)job.Result)[field];
-                    return job;
-                }
-                else
-                {
-                    return job;
-                }
+
+                // TODO: Implement support for applying selectors to graph-like fields.
+
+                return job;
             }
-            // TODO: Implement selector optional parameter support.
         }
-        [HttpPost("{operationId}/jobs/{jobId}/{field}/{selector}/prioritize")]
-        public async Task<ActionResult> PrioritizeOperationJob(
-            [FromRoute] string operationId,
-            [FromRoute] string jobId,
-            [FromRoute] string field,
-            [FromRoute] string selector
-        )
-        {
-            // Get the job if it exists.
-            (JobItem job, Operation operation, OperationContext context) = TaskCollection.Seek(jobId);
-            if (job is null)
-            {
-                return NotFound(new
-                {
-                    Error = "Result with specified identifier could not be found.",
-                    Id = operationId
-                });
-            }
+        // TODO: Reimplement.
+        // [HttpPost("{operationId}/jobs/{jobId}/{field}/{selector}/prioritize")]
+        // public async Task<ActionResult> PrioritizeOperationJob(
+        //     [FromRoute] string operationId,
+        //     [FromRoute] string jobId,
+        //     [FromRoute] string field,
+        //     [FromRoute] string selector
+        // )
+        // {
+        //     // TODO: (Permissions) This endpoint should only be accessible to someone who has "execute" permissions to
+        //     //       the referenced operation instance.
 
-            // Compute the selector.
-            Operation selectorOperation = Operation.ConstructSelector(selector, out object selectorInput, out object _);
-            await TryUpdateModelAsync(selectorInput, selectorInput.GetType(), "");
-            Selector selectorInstance = new Selector(selectorOperation);
+        //     // Get the job if it exists.
+        //     (JobItem job, Operation operation, OperationContext context) = _jobCollection.Seek(jobId);
+        //     if (job is null)
+        //     {
+        //         return NotFound(new
+        //         {
+        //             Error = "Result with specified identifier could not be found.",
+        //             Id = operationId
+        //         });
+        //     }
 
-            // Add the selector to the priority queue of the context.
-            context.Selectors.Enqueue(new(selectorInstance, selectorInput));
+        //     // Compute the selector.
+        //     Operation selectorOperation = Operation.ConstructSelector(selector, out object selectorInput, out object _);
+        //     await TryUpdateModelAsync(selectorInput, selectorInput.GetType(), "");
+        //     Selector selectorInstance = new Selector(selectorOperation);
 
-            return Ok();
-        }
+        //     // Add the selector to the priority queue of the context.
+        //     context.Selectors.Enqueue(new(selectorInstance, selectorInput));
 
-        // TODO: Review API URLs.
-        [HttpPost("{operationId}/jobs/{jobId}/{field}/upload")]
-        public async Task<ActionResult<JobItem>> UploadFileToOperation(
-            [FromRoute] string operationId,
-            [FromRoute] string jobId,
-            [FromRoute] string field,
-            [FromForm] IFormFile file
-        )
-        {
-            OperationItem operationItem = await LoadOperationAsync(operationId, _persistence);
-            Operation operation = await InstantiateOperation(operationItem, _persistence);
-            JobItem jobItem = await LoadJobAsync(jobId, operationId, _persistence);
+        //     return Ok();
+        // }
 
-            OperationContext context = new()
-            {
-                Parent = null,
-                Operation = operation,
+        // // TODO: Review API URLs.
+        // [HttpPost("{operationId}/jobs/{jobId}/{field}/upload")]
+        // public async Task<ActionResult<JobItem>> UploadFileToOperation(
+        //     [FromRoute] string operationId,
+        //     [FromRoute] string jobId,
+        //     [FromRoute] string field,
+        //     [FromForm] IFormFile file
+        // )
+        // {
+        //     // TODO: (Permissions) This endpoint should only be accessible to someone who has "execute" permissions to
+        //     //       the referenced operation instance.
 
-                Default = new Dictionary<string, object>(operationItem.Default),
-                Input = new Dictionary<string, object>(jobItem.Value),
-                Output = new Dictionary<string, object>(),
-            };
-            SaveFile(file.OpenReadStream());
+        //     OperationItem operationItem = await LoadOperationAsync(operationId, _persistence);
+        //     Operation operation = await InstantiateOperation(operationItem, _persistence);
+        //     JobItem jobItem = await LoadJobAsync(jobId, operationId, _persistence);
 
-            jobItem.Tasks = new List<OperationTask>(operation.GetTasks(context));
+        //     OperationContext context = new()
+        //     {
+        //         Parent = null,
+        //         Operation = operation,
 
-            await SaveJobAsync(jobItem, _persistence);
-            TaskCollection.Push((jobItem, operation, context));
-            return Ok(jobItem);
-        }
-        public async Task<ActionResult> DownloadFileFromOperation(
-            [FromRoute] string operationId,
-            [FromRoute] string jobId,
-            [FromRoute] string field
-        )
-        {
-            OperationItem operationItem = await LoadOperationAsync(operationId, _persistence);
-            Operation operation = await InstantiateOperation(operationItem, _persistence);
-            JobItem jobItem = await LoadJobAsync(jobId, operationId, _persistence);
+        //         Default = new Dictionary<string, object>(operationItem.Default),
+        //         Input = new Dictionary<string, object>(jobItem.Value),
+        //         Output = new Dictionary<string, object>(),
+        //     };
+        //     SaveFile(file.OpenReadStream());
 
-            return File(stream, "application/octet-stream", field);
-        }
-        // TODO: Implement.
-        public async Task<ActionResult> AuthenticateOperation(
+        //     jobItem.Tasks = new List<OperationTask>(operation.GetTasks(context));
 
-        )
-        {
-            return Ok();
-        }
+        //     await SaveJobAsync(jobItem, _persistence);
+        //     _jobCollection.Push((jobItem, operation, context));
+        //     return Ok(jobItem);
+        // }
+        // public async Task<ActionResult> DownloadFileFromOperation(
+        //     [FromRoute] string operationId,
+        //     [FromRoute] string jobId,
+        //     [FromRoute] string field
+        // )
+        // {
+        //     // TODO: (Permissions) This endpoint should only be accessible to someone who has "execute" permissions to
+        //     //       the referenced operation instance.
+
+        //     OperationItem operationItem = await LoadOperationAsync(operationId, _persistence);
+        //     Operation operation = await InstantiateOperation(operationItem, _persistence);
+        //     JobItem jobItem = await LoadJobAsync(jobId, operationId, _persistence);
+
+        //     return File(stream, "application/octet-stream", field);
+        // }
+        // // TODO: Implement.
+        // public async Task<ActionResult> AuthenticateOperation(
+
+        // )
+        // {
+        //     // TODO: (Permissions) This endpoint should only be accessible to someone who has "execute" permissions to
+        //     //       the referenced operation instance.
+
+        //     return Ok();
+        // }
         #endregion
 
         #region Endpoints (Schema)
+        /// <summary>
+        /// Represents a schema for an operation.
+        /// </summary>
+        public struct OperationSchema
+        {
+            /// <summary>
+            /// The schemas for each input field of the operation.
+            /// Notice that the schemas are already converted to JSON.
+            /// </summary>
+            public Dictionary<string, string> Inputs { get; init; }
+            /// <summary>
+            /// The schemas for each output field of the operation.
+            /// Notice that the schemas are already converted to JSON.
+            /// </summary>
+            public Dictionary<string, string> Outputs { get; init; }
+        }
+
+        /// <summary>
+        /// Retrieves the JSON schema of the specified operation. The schemas for both the input and output fields are
+        /// generated. Notice that the schemas may be dependent on the current default values of the operation.
+        /// </summary>
+        /// <param name="operationId">The unique identifier of the operation.</param>
+        /// <returns status="200">
+        /// The JSON schema of the specified operation sorted by input and output fields.
+        /// </returns>
+        /// <returns status="404">
+        /// Nothing when the identifier refers to an operation instance that does not exist.
+        /// </returns>
         [HttpGet("{operationId}/schema/{side}")]
-        public async Task<ActionResult<JsonSchema>> ComputeOperationSchema(
-            [FromRoute] string operationId,
-            [FromRoute] OperationSide side
+        public async Task<ActionResult<OperationSchema>> RetrieveOperationSchema(
+            [FromRoute] string operationId
         )
         {
-            // TODO: Reimplement.
+            // TODO: (Permissions) This endpoint should only be accessible to someone who has "read" permissions to
+            //       the referenced operation instance.
+
             // We get the operation item from store.
             OperationItem operationItem = await LoadOperationAsync(operationId, _persistence);
-
-            // We return "Not Found (404)" if the operation item does not exist.
-            if (operationItem is null) return NotFound();
-
-            if (operationItem.Type == "workflow")
+            if (operationItem is null)
             {
-                WorkflowItem workflow = await WorkflowsController.LoadWorkflowAsync(operationItem.Subtype, _persistence);
-                WorkflowOperation workflowOperation = (WorkflowOperation)await InstantiateOperation(operationItem, _persistence);
-                JsonSchema schema = new JsonSchema();
-                schema.Type = JsonObjectType.Object;
-                if (side == OperationSide.Input)
+                return NotFound(new
                 {
-                    foreach (string inputField in workflowOperation.GetInputFields())
-                    {
-                        // TODO: Refactor copying of a schema to another schema object.
-                        // TODO: We will need some more sophisticated schema generation for more complex workflows.
-                        JsonSchemaProperty jsonProperty = new JsonSchemaProperty() { Title = inputField };
-                        JsonSchemaGeneratorSettings jsonSettings = new JsonSchemaGeneratorSettings()
-                        {
-                            GenerateAbstractSchemas = false,
-                            FlattenInheritanceHierarchy = true
-                        };
-                        Type inputType = workflowOperation.GetInputFieldType(inputField);
-                        JsonSchema jsonSchema;
-                        if (inputType.IsAssignableTo(typeof(Stream)))
-                        {
-                            jsonSchema = new JsonSchema();
-                            jsonSchema.Type = JsonObjectType.File;
-                        }
-                        else
-                        {
-                            jsonSchema = JsonSchema.FromType(
-                                workflowOperation.GetInputFieldType(inputField),
-                                jsonSettings
-                            );
-                        }
-
-                        foreach (PropertyInfo property in typeof(JsonSchema).GetProperties())
-                        {
-                            MethodInfo setMethod = property.GetSetMethod();
-                            if (setMethod is not null)
-                                property.SetValue(jsonProperty, property.GetValue(jsonSchema));
-                        }
-
-                        foreach (KeyValuePair<string, JsonSchema> entry in jsonSchema.Definitions)
-                            jsonProperty.Definitions.Add(entry.Key, entry.Value);
-                        foreach (KeyValuePair<string, JsonSchemaProperty> entry in jsonSchema.Properties)
-                            jsonProperty.Properties.Add(entry.Key, entry.Value);
-                        schema.Properties.Add(inputField, jsonProperty);
-                    }
-                }
-                if (side == OperationSide.Output)
-                {
-                    foreach (string outputField in workflowOperation.GetOutputFields())
-                    {
-                        JsonSchemaProperty jsonProperty = new JsonSchemaProperty() { Title = outputField };
-                        JsonSchemaGeneratorSettings jsonSettings = new JsonSchemaGeneratorSettings()
-                        {
-                            GenerateAbstractSchemas = false,
-                            FlattenInheritanceHierarchy = true
-                        };
-                        Type inputType = workflowOperation.GetOutputFieldType(outputField);
-                        JsonSchema jsonSchema;
-                        if (inputType.IsAssignableTo(typeof(Stream)))
-                        {
-                            jsonSchema = new JsonSchema();
-                            jsonSchema.Type = JsonObjectType.File;
-                        }
-                        else
-                        {
-                            jsonSchema = JsonSchema.FromType(
-                                workflowOperation.GetInputFieldType(outputField),
-                                jsonSettings
-                            );
-                        }
-
-                        foreach (PropertyInfo property in typeof(JsonSchema).GetProperties())
-                        {
-                            MethodInfo setMethod = property.GetSetMethod();
-                            if (setMethod is not null)
-                                property.SetValue(jsonProperty, property.GetValue(jsonSchema));
-                        }
-
-                        foreach (KeyValuePair<string, JsonSchema> entry in jsonSchema.Definitions)
-                            jsonProperty.Definitions.Add(entry.Key, entry.Value);
-                        foreach (KeyValuePair<string, JsonSchemaProperty> entry in jsonSchema.Properties)
-                            jsonProperty.Properties.Add(entry.Key, entry.Value);
-                        schema.Properties.Add(outputField, jsonProperty);
-                    }
-                }
-                return new ContentResult
-                {
-                    Content = schema.ToJson(),
-                    ContentType = "application/json",
-                    StatusCode = 200
-                };
+                    Error = "Operation with specified identifier could not be found.",
+                    Id = operationId
+                });
             }
-            else
+
+            // Instantiate the operation and retrieve each of the field schemas.
+            Operation operation = await InstantiateOperation(operationItem, _persistence);
+            Dictionary<string, string> inputSchemas = operation
+                .GetInputFields()
+                .ToDictionary(
+                    field => field,
+                    field => operation.GetInputFieldSchema(field).ToJson()
+                );
+            Dictionary<string, string> outputSchemas = operation
+                .GetOutputFields()
+                .ToDictionary(
+                    field => field,
+                    field => operation.GetOutputFieldSchema(field).ToJson()
+                );
+
+            // Return the operation schema.
+            OperationSchema schema = new()
             {
-                // Get the appropriate type.
-                Type operationType = Operation.TypeFromName(operationItem.Type);
-                Type baseType = operationType.BaseType;
-                Type schemaType = null;
-                switch (side)
-                {
-                    case OperationSide.Input:
-                        schemaType = baseType.GetGenericArguments()[0];
-                        break;
-                    case OperationSide.Output:
-                        schemaType = baseType.GetGenericArguments()[1];
-                        break;
-                }
-
-                JsonSchema schema = JsonSchema.FromType(schemaType);
-                return new ContentResult
-                {
-                    Content = schema.ToJson(),
-                    ContentType = "application/json",
-                    StatusCode = 200
-                };
-            }
+                Inputs = inputSchemas,
+                Outputs = outputSchemas
+            };
+            return Ok(schema);
         }
         #endregion
-
-        public static async Task<Operation> InstantiateOperation(OperationItem operationItem, Persistence _persistence)
-        {
-            if (operationItem.Type == "workflow")
-            {
-                WorkflowItem workflowItem = await WorkflowsController.LoadWorkflowAsync(operationItem.Subtype, _persistence);
-                List<Operation> suboperations = new(workflowItem.Operations.Length);
-                foreach (string suboperationId in workflowItem.Operations)
-                {
-                    suboperations.Add(
-                        await InstantiateOperation(
-                            await LoadOperationAsync(suboperationId.ToString(), _persistence),
-                            _persistence
-                        )
-                    );
-                }
-                WorkflowOperationConnection[] connections = workflowItem.Connections.Select(item => new WorkflowOperationConnection()
-                {
-                    Source = new WorkflowOperationConnectionPoint()
-                    {
-                        Operation = item.Source.Operation,
-                        Field = item.Source.Field
-                    },
-                    Target = new WorkflowOperationConnectionPoint()
-                    {
-                        Operation = item.Target.Operation,
-                        Field = item.Target.Field
-                    },
-                    Multiplexer = item.Multiplex
-                }).ToArray();
-
-                WorkflowOperation operation = new(suboperations.ToArray(), connections)
-                {
-                    Identifier = operationItem.Id
-                };
-                operation.Default = operationItem.Default;
-
-                return operation;
-            }
-            else
-            {
-                // TODO: Clean up and make private init members private init again.
-                Type operationType = Operation.TypeFromName(operationItem.Type);
-
-                Operation operation = (Operation)Activator.CreateInstance(operationType);
-                operation.Identifier = operationItem.Id;
-                operation.Default = operationItem.Default;
-
-                return operation;
-            }
-        }
     }
 }

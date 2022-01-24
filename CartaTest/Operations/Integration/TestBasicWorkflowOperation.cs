@@ -22,11 +22,11 @@ namespace CartaTest.Operations
             // There is a single output "bar".
             InputOperation opInput = new()
             {
-                DefaultTyped = new() { Name = "foo" }
+                DefaultValuesTyped = new() { Name = "foo" }
             };
             OutputOperation opOutput = new()
             {
-                DefaultTyped = new() { Name = "bar" }
+                DefaultValuesTyped = new() { Name = "bar" }
             };
 
             // We generate the workflow operation itself.

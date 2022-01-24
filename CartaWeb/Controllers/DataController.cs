@@ -35,6 +35,14 @@ namespace CartaWeb.Controllers
 
         private static readonly Dictionary<DataSource, IDataResolver> DataResolvers;
 
+        /// <inheritdoc />
+        public DataController(ILogger<DataController> logger, INoSqlDbContext noSqlDbContext)
+        {
+            _logger = logger;
+            _persistence = new Persistence(noSqlDbContext);
+        }
+
+        #region Persistence
         private static readonly string BaseDirectory = @"data";
         private static readonly string GraphDirectory = @"graphs";
 
@@ -147,15 +155,9 @@ namespace CartaWeb.Controllers
             }
             else return await Task.FromResult(false);
         }
+        #endregion
 
-
-        /// <inheritdoc />
-        public DataController(ILogger<DataController> logger, INoSqlDbContext noSqlDbContext)
-        {
-            _logger = logger;
-            _persistence = new Persistence(noSqlDbContext);
-        }
-
+        #region Endpoints (Data CRUD)
         /// <summary>
         /// Finds the sample graph associated with a specified source and resource.
         /// </summary>
@@ -178,6 +180,8 @@ namespace CartaWeb.Controllers
         [HttpGet]
         public ActionResult<IList<DataSource>> GetSources()
         {
+            // TODO: (Permissions) This endpoint should be accessible to any user.
+
             return Ok(Enum.GetValues<DataSource>().ToList());
         }
         /// <summary>
@@ -200,6 +204,8 @@ namespace CartaWeb.Controllers
             [FromRoute] DataSource source
         )
         {
+            // TODO: (Permissions) This endpoint should be accessible to any user.
+
             try
             {
                 if (!DataResolvers.ContainsKey(source)) return NotFound();
@@ -237,8 +243,12 @@ namespace CartaWeb.Controllers
             [FromBody] FiniteGraph graph
         )
         {
+            // TODO: (Permissions) This endpoint should only be accessible to users with the appropriate permissions to
+            //       the data resource. For now, until we add permissions for each dataset, every dataset is available.
+
             try
             {
+                // TODO: Allow user-uploaded graphs to have aliases assigned to them.
                 if (source == DataSource.User)
                 {
                     int id = await SaveGraphAsync(graph);
@@ -272,6 +282,9 @@ namespace CartaWeb.Controllers
             [FromRoute] string resource
         )
         {
+            // TODO: (Permissions) This endpoint should only be accessible to users with the appropriate permissions to
+            //       the data resource. For now, until we add permissions for each dataset, every dataset is available.
+
             try
             {
                 if (source == DataSource.User)
@@ -294,7 +307,9 @@ namespace CartaWeb.Controllers
                 );
             }
         }
+        #endregion
 
+        #region Endpoints (Data Queries)
         /// <summary>
         /// Gets a particular selector of data from the graph at the specified data resource.
         /// </summary>
@@ -352,12 +367,17 @@ namespace CartaWeb.Controllers
             [FromRoute] string selector
         )
         {
+            // TODO: (Permissions) This endpoint should only be accessible to users with the appropriate permissions to
+            //       the data resource. For now, until we add permissions for each dataset, every dataset is available.
+
             try
             {
                 // Get the base graph and check if it was actually retrieved.
                 Graph graph = await LookupData(source, resource);
                 if (graph is null) return NotFound();
 
+                // TODO: Make constructing selectors more robust.
+                // TODO: Add a prefix to the selector model parameters to separate them from other query parameters.
                 // We find the appropriate selector class corresponding to the specified discriminant.
                 // We wrap our original graph in this selector graph to provide selection-specific data retrieval.
                 Operation selectorOperation = Operation.ConstructSelector(selector, out object selectorInput, out object _);
@@ -378,6 +398,14 @@ namespace CartaWeb.Controllers
             }
         }
 
+        /// <summary>
+        /// Gets an operation template that may used to construct an operation instance. This operation can be used to
+        /// retrieve the data resource.
+        /// </summary>
+        /// <param name="source">The data source identifier.</param>
+        /// <param name="resource">The data resource identifier.</param>
+        /// <returns status="200">An operation template.</returns>
+        /// <returns status="404">Occurs when the specified data source is invalid.</returns>
         [Authorize]
         [HttpGet("{source}/{resource}/operation")]
         public async Task<ActionResult<OperationTemplate>> GetDataOperation(
@@ -385,11 +413,14 @@ namespace CartaWeb.Controllers
             [FromRoute] string resource
         )
         {
+            // TODO: (Permissions) This endpoint should be accessible to any user.
+            //       For now, until we add permissions on the toolbox level, every operation type is available.
+
             try
             {
                 if (!DataResolvers.ContainsKey(source)) return NotFound();
 
-                OperationTemplate template = await DataResolvers[source].GenerateOperationAsync(this, resource);
+                OperationTemplate template = await DataResolvers[source].GenerateOperation(this, resource);
                 return Ok(template);
             }
             catch (HttpRequestException requestException)
@@ -401,11 +432,6 @@ namespace CartaWeb.Controllers
                 );
             }
         }
+        #endregion
     }
 }
-
-// TODO: Make constructing selectors more robust.
-// TODO: Implement an endpoint to retrieve an operation (configured with defaults but not instantiated) from a source, resource pair.
-//       This should be implemented within each data resolver.
-// TODO: Allow user-uploaded graphs to have aliases assigned to them.
-// TODO: Optimize loading of user-uploaded graphs so that the aliases and identifiers are loaded but not the graph itself.

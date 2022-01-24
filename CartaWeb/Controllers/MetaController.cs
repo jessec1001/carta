@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.Extensions.Logging;
 using CartaCore.Documentation;
+using CartaCore.Extensions.Documentation;
 using CartaWeb.Models.Meta;
 
 namespace CartaWeb.Controllers
@@ -223,6 +224,8 @@ namespace CartaWeb.Controllers
         [HttpGet]
         public List<ApiCollection> GetEndpoints()
         {
+            // TODO: (Permissions) This endpoint should be accessible to any user.
+
             List<ApiCollection> endpoints = new();
 
             // Get each controller type in this assembly.

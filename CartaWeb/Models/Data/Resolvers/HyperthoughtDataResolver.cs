@@ -19,10 +19,10 @@ namespace CartaWeb.Models.Data
     /// </summary>
     public class HyperthoughtDataResolver : IDataResolver
     {
-        private static TimeSpan AliasExpiration = TimeSpan.FromMinutes(15.00);
+        private static readonly TimeSpan AliasExpiration = TimeSpan.FromMinutes(15.00);
         private static readonly int AliasCount = short.MaxValue;
 
-        private SortedList<string, (DateTime, Guid)> Aliases;
+        private readonly SortedList<string, (DateTime, Guid)> Aliases;
 
         /// <summary>
         /// Creates a new instance of the <see cref="HyperthoughtDataResolver"/> class with a specified controller.
@@ -40,9 +40,8 @@ namespace CartaWeb.Models.Data
                 throw new HttpRequestException("HyperThought API key must be non-null.", null, HttpStatusCode.Unauthorized);
 
             // We need to find the UUID associated with a HyperThought resource if we are passed an alias.
-            HyperthoughtApi api = new HyperthoughtApi(controller.Request.Query["api"].ToString());
-            Guid uuid = Guid.Empty;
-            if (!Guid.TryParse(resource, out uuid))
+            HyperthoughtApi api = new(controller.Request.Query["api"].ToString());
+            if (!Guid.TryParse(resource, out Guid uuid))
             {
                 // Find the alias if we don't currently have it or it is outdated.
                 if (!Aliases.TryGetValue(resource, out (DateTime timestamp, Guid uuid) alias) ||
@@ -62,24 +61,20 @@ namespace CartaWeb.Models.Data
                     uuid = alias.uuid;
                 }
             }
-            HyperthoughtWorkflowGraph graph = new HyperthoughtWorkflowGraph(api, uuid);
+            HyperthoughtWorkflowGraph graph = new(api, uuid);
             await graph.EnsureValidity();
             return graph;
         }
 
-        public async Task<OperationTemplate> GenerateOperationAsync(ControllerBase controller, string resource)
+        /// <inheritdoc />
+        public Task<OperationTemplate> GenerateOperation(ControllerBase controller, string resource)
         {
             // We check that an API key was specified.
             if (!controller.Request.Query.ContainsKey("api"))
                 throw new HttpRequestException("HyperThought API key must be non-null.", null, HttpStatusCode.Unauthorized);
 
-            // TODO: Use something more like `new HyperthoughtGraphOperation().Template(defaults)` where defaults is typed for typed operations.
-            return new HyperthoughtGraphOperation().GetTemplate
-            (
-                new HyperthoughtGraphOperationIn()
-                {
-                    Path = resource
-                }
+            return Task.FromResult(
+                new HyperthoughtGraphOperation().GetTemplate(new HyperthoughtGraphOperationIn() { Path = resource })
             );
         }
 
@@ -92,7 +87,7 @@ namespace CartaWeb.Models.Data
 
             // Get all of the workflow templates for all of the projects from the API.
             // Using the user's API key, this should only return resources accessible to the user.
-            HyperthoughtApi api = new HyperthoughtApi(controller.Request.Query["api"].ToString());
+            HyperthoughtApi api = new(controller.Request.Query["api"].ToString());
             IList<HyperthoughtWorkspace> workspaces = await api.Workspaces.GetWorkspacesAsync();
             IList<Task<IList<HyperthoughtWorkflowTemplate>>> templateTasks = workspaces
                 .Select(workspace => api.Workflow.GetWorkflowTemplatesAsync(workspace))
@@ -100,7 +95,7 @@ namespace CartaWeb.Models.Data
 
             // Construct the resources list.
             // Each resource should be of the form "Project.Template"
-            List<string> resources = new List<string>();
+            List<string> resources = new();
             for (int k = 0; k < workspaces.Count; k++)
             {
                 foreach (HyperthoughtWorkflowTemplate template in await templateTasks[k])

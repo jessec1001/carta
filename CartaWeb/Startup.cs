@@ -75,7 +75,7 @@ namespace CartaWeb
                 awsDynamoDbOptions.TableName = awsCdkOptions.DynamoDBTable;
                 awsCognitoOptions.UserPoolId = awsCdkOptions.UserPoolId;
             }
-            services.AddSingleton<OperationTaskCollection>(new OperationTaskCollection());
+            services.AddSingleton<OperationJobCollection>(new OperationJobCollection());
             services.AddHostedService<BackgroundOperationService>();
             services.AddSingleton<INoSqlDbContext>(
                 new DynamoDbContext

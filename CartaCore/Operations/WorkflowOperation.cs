@@ -1,10 +1,14 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using CartaCore.Data;
 using CartaCore.Operations.Attributes;
+using NJsonSchema;
+using NJsonSchema.Generation;
 
 namespace CartaCore.Operations
 {
@@ -151,7 +155,7 @@ namespace CartaCore.Operations
 
                     Input = input,
                     Output = new Dictionary<string, object>(),
-                    Default = operation.Default
+                    Default = operation.DefaultValues
                 };
                 Dictionary<string, object> total = totalContext.Total;
 
@@ -470,9 +474,9 @@ namespace CartaCore.Operations
             foreach (Operation operation in Operations)
             {
                 if (operation is InputOperation inputOperation &&
-                    inputOperation.Default.ContainsKey("Name"))
+                    inputOperation.DefaultValues.ContainsKey("Name"))
                 {
-                    inputs.Add((string)inputOperation.Default["Name"]);
+                    inputs.Add((string)inputOperation.DefaultValues["Name"]);
                 }
             }
             return inputs.ToArray();
@@ -484,9 +488,9 @@ namespace CartaCore.Operations
             foreach (Operation operation in Operations)
             {
                 if (operation is OutputOperation outputOperation &&
-                    outputOperation.Default.ContainsKey("Name"))
+                    outputOperation.DefaultValues.ContainsKey("Name"))
                 {
-                    outputs.Add((string)outputOperation.Default["Name"]);
+                    outputs.Add((string)outputOperation.DefaultValues["Name"]);
                 }
             }
             return outputs.ToArray();
@@ -498,8 +502,8 @@ namespace CartaCore.Operations
             foreach (Operation operation in Operations)
             {
                 if (operation is InputOperation inputOperation &&
-                    inputOperation.Default.ContainsKey("Name") &&
-                    (string)inputOperation.Default["Name"] == field)
+                    inputOperation.DefaultValues.ContainsKey("Name") &&
+                    (string)inputOperation.DefaultValues["Name"] == field)
                 {
                     foreach (WorkflowOperationConnection connection in Connections)
                     {
@@ -524,8 +528,8 @@ namespace CartaCore.Operations
             foreach (Operation operation in Operations)
             {
                 if (operation is OutputOperation outputOperation &&
-                    outputOperation.Default.ContainsKey("Name") &&
-                    (string)outputOperation.Default["Name"] == field)
+                    outputOperation.DefaultValues.ContainsKey("Name") &&
+                    (string)outputOperation.DefaultValues["Name"] == field)
                 {
                     foreach (WorkflowOperationConnection connection in Connections)
                     {

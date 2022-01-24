@@ -4,11 +4,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using CartaWeb.Models.DocumentItem;
 using CartaCore.Operations;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace CartaWeb.Services
 {
-    public class OperationTaskCollection
+    public class OperationJobCollection
     {
         // TODO: The structure of the items in this queue look like it good candidates for a more efficient data structure (job).
         // TODO: We can try to use an events system to allow jobs to batch database requests.

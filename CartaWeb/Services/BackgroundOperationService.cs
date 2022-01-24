@@ -14,12 +14,12 @@ namespace Carta.Api.Services
 {
     public class BackgroundOperationService : BackgroundService
     {
-        private OperationTaskCollection TaskCollection;
+        private OperationJobCollection TaskCollection;
         private ILogger<BackgroundOperationService> Logger;
         private Persistence _persistence;
         private IServiceScopeFactory ServiceScopeFactory;
 
-        public BackgroundOperationService(OperationTaskCollection taskCollection, ILogger<BackgroundOperationService> logger, INoSqlDbContext noSqlDbContext, IServiceScopeFactory serviceScopeFactory)
+        public BackgroundOperationService(OperationJobCollection taskCollection, ILogger<BackgroundOperationService> logger, INoSqlDbContext noSqlDbContext, IServiceScopeFactory serviceScopeFactory)
         {
             TaskCollection = taskCollection;
             Logger = logger;

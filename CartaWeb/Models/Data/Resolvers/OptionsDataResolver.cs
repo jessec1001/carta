@@ -42,10 +42,11 @@ namespace CartaWeb.Models.Data
             return Task.FromResult((IList<string>)Resolvers.Keys.ToList());
         }
 
-        public async Task<OperationTemplate> GenerateOperationAsync(ControllerBase controller, string resource)
+        /// <inheritdoc />
+        public Task<OperationTemplate> GenerateOperation(ControllerBase controller, string resource)
         {
             if (Resolvers.TryGetValue(resource, out OptionsResourceResolver resolver))
-                return resolver.Operation;
+                return Task.FromResult(resolver.Operation);
             return null;
         }
     }
