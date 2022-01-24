@@ -61,7 +61,7 @@ namespace CartaCore.Operations
                     )
                     .ToArrayAsync();
             }
-            else values = Array.Empty<object>();
+            else values = System.Array.Empty<object>();
 
             return await Task.FromResult(new FindPropertyOperationOut() { Values = values });
         }

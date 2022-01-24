@@ -36,6 +36,16 @@ namespace CartaCore.Operations
         public virtual Dictionary<string, object> InitialValues { get => new(); }
 
         /// <summary>
+        /// The default type converter.
+        /// </summary>
+        protected static readonly TypeConverterContext DefaultTypeConverter = new(
+            new EnumTypeConverter(),
+            new NumericTypeConverter(),
+            new ArrayTypeConverter(),
+            new DictionaryTypeConverter()
+        );
+
+        /// <summary>
         /// Called before the operation is performed. This is where the operation can perform any setup that is required
         /// and where operation tasks should be added. 
         /// </summary>
@@ -364,9 +374,9 @@ namespace CartaCore.Operations
             // TODO: We need to inherit execution settings from the calling API.
             // Execute the operation.
             OperationContext context = new() { Operation = operation };
-            context.Input = input.AsDictionary(inputType, TypeConverterContext.Default);
+            context.Input = input.AsDictionary(inputType, DefaultTypeConverter);
             await operation.Perform(context);
-            object output = context.Output.AsTyped(outputType, TypeConverterContext.Default);
+            object output = context.Output.AsTyped(outputType, DefaultTypeConverter);
 
             // Find the field on the output object that corresponds to the selector graph.
             foreach (PropertyInfo property in output.GetType().GetProperties())

@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-
 using MorseCode.ITask;
-
 using CartaCore.Data;
 using CartaCore.Statistics;
 
@@ -39,7 +37,7 @@ namespace CartaCore.Integration.Synthetic
 
             // Generate our random properties.
             CompoundRandom random = new(Parameters.Seed);
-            int propertyCount = Parameters.PropertyCount.Sample(random);
+            int propertyCount = Parameters.PropertyCount;
             NamedPropertyTypes = new Dictionary<string, Type>();
             while (NamedPropertyTypes.Count < propertyCount)
             {
@@ -135,7 +133,7 @@ namespace CartaCore.Integration.Synthetic
             properties.TrimExcess();
 
             // Create out-edges.
-            int childCount = Parameters.ChildCount.Sample(random);
+            int childCount = Parameters.ChildCount;
             List<Edge> outEdges = new(capacity: childCount);
             for (int index = 0; index < childCount; index++)
             {

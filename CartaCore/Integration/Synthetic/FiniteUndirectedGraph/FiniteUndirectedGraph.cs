@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
 using CartaCore.Data;
 using CartaCore.Statistics;
 
@@ -39,9 +38,9 @@ namespace CartaCore.Integration.Synthetic
             CompoundRandom random = new(Parameters.Seed);
 
             // Generate the random number of vertices and edges.
-            int numVertices = Math.Max(Parameters.VertexCount.Sample(random), 0);
+            int numVertices = Math.Max(Parameters.VertexCount, 0);
             int possibleEdges = numVertices * (numVertices - 1) / 2;
-            int numEdges = Math.Clamp(Parameters.EdgeCount.Sample(random), 0, possibleEdges);
+            int numEdges = Math.Clamp(Parameters.EdgeCount, 0, possibleEdges);
 
             // Generate the vertices.
             List<Vertex> vertices = new(
@@ -49,9 +48,9 @@ namespace CartaCore.Integration.Synthetic
                 .Range(0, numVertices)
                 .Select
                 (_ => new Vertex(Identity.Create(random.NextGuid()))
-                    {
-                        Label = Parameters.Labeled ? random.NextPsuedoword() : null
-                    }
+                {
+                    Label = Parameters.Labeled ? random.NextPsuedoword() : null
+                }
                 )
             );
 

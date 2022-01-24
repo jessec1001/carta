@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using CartaCore.Operations;
+using CartaCore.Operations.Arithmetic;
+using CartaCore.Operations.Distribution;
 using NUnit.Framework;
 
 namespace CartaTest.Operations
@@ -257,11 +259,11 @@ namespace CartaTest.Operations
 
             ArithmeticOperation opAdd = new()
             {
-                DefaultTyped = new() { Type = ArithmeticOperationType.Add, Input1 = 2.0 }
+                DefaultValuesTyped = new() { Type = ArithmeticOperationType.Add, Input1 = 2.0 }
             };
             ArithmeticOperation opMult = new()
             {
-                DefaultTyped = new() { Type = ArithmeticOperationType.Multiply, Input1 = -3.0 }
+                DefaultValuesTyped = new() { Type = ArithmeticOperationType.Multiply, Input1 = -3.0 }
             };
 
             MeanOperation opMean = new();

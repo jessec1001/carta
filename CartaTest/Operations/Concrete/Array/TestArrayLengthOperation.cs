@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using CartaCore.Operations;
+using CartaCore.Operations.Array;
 using NUnit.Framework;
 
 namespace CartaTest.Operations

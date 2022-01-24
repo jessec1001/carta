@@ -4,6 +4,9 @@ using CartaCore.Operations;
 
 namespace CartaWeb.Models.DocumentItem
 {
+    /// <summary>
+    /// Represents a job associated with an operation execution.
+    /// </summary>
     public class JobItem : Item
     {
         // TODO: Implement operation status here.

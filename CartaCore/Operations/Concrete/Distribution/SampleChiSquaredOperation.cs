@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using CartaCore.Operations.Attributes;
 
-namespace CartaCore.Operations
+namespace CartaCore.Operations.Distribution
 {
     /// <summary>
     /// The input for the <see cref="SampleChiSquaredOperation" /> operation.

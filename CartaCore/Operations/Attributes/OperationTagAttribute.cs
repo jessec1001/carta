@@ -1,5 +1,3 @@
-using System;
-
 namespace CartaCore.Operations.Attributes
 {
     /// <summary>
@@ -25,8 +23,8 @@ namespace CartaCore.Operations.Attributes
         {
             // Ensure tags array is defined.
             if (description.Tags is null)
-                description.Tags = Array.Empty<string>();
-            
+                description.Tags = System.Array.Empty<string>();
+
             // Create a new tags array and append the new tag onto the end.
             string[] tags = new string[description.Tags.Length + 1];
             tags[^1] = Tag;

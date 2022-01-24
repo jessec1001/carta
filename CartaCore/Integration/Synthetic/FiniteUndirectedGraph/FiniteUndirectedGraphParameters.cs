@@ -1,4 +1,3 @@
-using CartaCore.Statistics;
 
 namespace CartaCore.Integration.Synthetic
 {
@@ -22,11 +21,11 @@ namespace CartaCore.Integration.Synthetic
         /// The minimum number (inclusive) of edges a generated graph can have. 
         /// </summary>
         /// <returns>The vertex count distribution.</returns>
-        public IIntegerDistribution VertexCount { get; set; } = new PoissonDistribution(10);
+        public int VertexCount { get; set; } = 10;
         /// <summary>
         /// Gets or sets the distribution of the number of edges a generated graph will have.
         /// </summary>
         /// <returns>The edge count distribution.</returns>
-        public IIntegerDistribution EdgeCount { get; set; } = new PoissonDistribution(30);
+        public int EdgeCount { get; set; } = 30;
     }
 }

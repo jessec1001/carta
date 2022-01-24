@@ -1,14 +1,10 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using CartaCore.Data;
 using CartaCore.Operations.Attributes;
-using NJsonSchema;
-using NJsonSchema.Generation;
 
 namespace CartaCore.Operations
 {
@@ -193,7 +189,7 @@ namespace CartaCore.Operations
                         if (!value.GetType().IsArray)
                             throw new Exception("Multiplexed value is not an array.");
 
-                        cardinality = Math.Min(cardinality, ((Array)value).Length);
+                        cardinality = Math.Min(cardinality, ((System.Array)value).Length);
                     }
                 }
 
@@ -211,7 +207,7 @@ namespace CartaCore.Operations
                         foreach (KeyValuePair<string, object> entry in total)
                         {
                             if (multiplexed.Contains(entry.Key))
-                                partial.Add(entry.Key, ((Array)entry.Value).GetValue(k));
+                                partial.Add(entry.Key, ((System.Array)entry.Value).GetValue(k));
                             else
                                 partial.Add(entry.Key, entry.Value);
                         }
@@ -232,7 +228,7 @@ namespace CartaCore.Operations
                             if (!result.ContainsKey(entry.Key))
                                 result.Add(entry.Key, new object[cardinality]);
 
-                            Array value = (Array)result[entry.Key];
+                            System.Array value = (System.Array)result[entry.Key];
                             value.SetValue(entry.Value, k);
                         }
                     }
@@ -274,7 +270,7 @@ namespace CartaCore.Operations
             /// <returns>The operation.</returns>
             private Operation GetOperation(string operationId)
             {
-                return Array.Find(Workflow.Operations, op => op.Identifier == operationId);
+                return System.Array.Find(Workflow.Operations, op => op.Identifier == operationId);
             }
             /// <summary>
             /// Gets the output for an operation specified by identifier.
@@ -365,8 +361,8 @@ namespace CartaCore.Operations
         }
         public WorkflowOperation()
         {
-            Operations = Array.Empty<Operation>();
-            Connections = Array.Empty<WorkflowOperationConnection>();
+            Operations = System.Array.Empty<Operation>();
+            Connections = System.Array.Empty<WorkflowOperationConnection>();
         }
 
         /// <summary>
@@ -378,9 +374,9 @@ namespace CartaCore.Operations
             // Check that each connection point has a corresponding operation.
             foreach (WorkflowOperationConnection connection in Connections)
             {
-                if (!Array.Exists(Operations, op => op.Identifier == connection.Source.Operation))
+                if (!System.Array.Exists(Operations, op => op.Identifier == connection.Source.Operation))
                     return false;
-                if (!Array.Exists(Operations, op => op.Identifier == connection.Target.Operation))
+                if (!System.Array.Exists(Operations, op => op.Identifier == connection.Target.Operation))
                     return false;
             }
             return true;
@@ -450,6 +446,33 @@ namespace CartaCore.Operations
             // information. 
             WorkflowOperationRunner runner = new(this, context);
             await runner.Run();
+        }
+
+        /// <inheritdoc />
+        public override Task PrePerform(OperationContext context)
+        {
+            // Since the preperform phase should not need inputs nor outputs, we simply run this phase on each
+            // suboperation in no particular order.
+            Task[] tasks = new Task[Operations.Length];
+            for (int k = 0; k < Operations.Length; k++)
+            {
+                OperationContext childContext = new() { Parent = context };
+                tasks[k] = Operations[k].PrePerform(childContext);
+            }
+            return Task.WhenAll(tasks);
+        }
+        /// <inheritdoc />
+        public override Task PostPerform(OperationContext context)
+        {
+            // Since the postperform phase should not need inputs nor outputs, we simply run this phase on each
+            // suboperation in no particular order.
+            Task[] tasks = new Task[Operations.Length];
+            for (int k = 0; k < Operations.Length; k++)
+            {
+                OperationContext childContext = new() { Parent = context };
+                tasks[k] = Operations[k].PostPerform(childContext);
+            }
+            return Task.WhenAll(tasks);
         }
 
         // TODO: We need to resolve types based on the connections that are formed between operations.

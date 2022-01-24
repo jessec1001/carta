@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
-using CartaCore.Operations;
-using CartaCore.Statistics;
+using CartaCore.Extensions.Statistics;
+using CartaCore.Operations.Distribution;
 using NUnit.Framework;
 
 namespace CartaTest.Operations

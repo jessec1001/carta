@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using CartaCore.Extensions.Typing;
 using CartaCore.Operations.Attributes;
 using CartaCore.Typing.Conversion;
-using NJsonSchema;
 
 namespace CartaCore.Operations
 {
@@ -43,9 +42,9 @@ namespace CartaCore.Operations
         /// <inheritdoc />
         public override async Task Perform(OperationContext context)
         {
-            TInput input = context.Input.AsTyped<TInput>(TypeConverterContext.Default);
+            TInput input = context.Input.AsTyped<TInput>(DefaultTypeConverter);
             TOutput output = await Perform(input, context);
-            context.Output = output.AsDictionary(TypeConverterContext.Default);
+            context.Output = output.AsDictionary(DefaultTypeConverter);
         }
         /// <inheritdoc />
         public override Task PostPerform(OperationContext context) => Task.CompletedTask;
@@ -60,7 +59,7 @@ namespace CartaCore.Operations
         /// <inheritdoc />
         public override bool IsDeterministic(OperationContext context)
         {
-            TInput input = context.Input.AsTyped<TInput>(TypeConverterContext.Default);
+            TInput input = context.Input.AsTyped<TInput>(DefaultTypeConverter);
             return IsDeterministic(input);
         }
 
@@ -69,7 +68,7 @@ namespace CartaCore.Operations
         /// </summary>
         public TInput DefaultValuesTyped
         {
-            get => DefaultValues.AsTyped<TInput>(TypeConverterContext.Default);
+            get => DefaultValues.AsTyped<TInput>(DefaultTypeConverter);
             set => DefaultValues = value.AsDictionary();
         }
 

@@ -22,7 +22,7 @@ namespace CartaCore.Extensions.Typing
             TypeConverterContext context = null)
         {
             TypeConverter converter = (TypeConverter)context ?? new DictionaryTypeConverter();
-            if (converter.TryConvert(type, fields, out object result)) return result;
+            if (converter.TryConvert(fields.GetType(), type, fields, out object result)) return result;
             throw new InvalidOperationException($"Could not convert dictionary to type {type.Name}.");
         }
         /// <summary>

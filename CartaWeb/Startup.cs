@@ -17,7 +17,6 @@ using Microsoft.Net.Http.Headers;
 using Carta.Api.Services;
 using CartaCore.Persistence;
 using CartaWeb.Formatters;
-using CartaWeb.Models.Binders;
 using CartaWeb.Models.Migration;
 using CartaWeb.Models.Options;
 using CartaWeb.Services;
@@ -127,9 +126,6 @@ namespace CartaWeb
                 {
                     options.RespectBrowserAcceptHeader = true;
                     options.ReturnHttpNotAcceptable = true;
-
-                    // Add our custom model binder provider.
-                    options.ModelBinderProviders.Insert(0, new CustomModelBinderProvider());
 
                     // Our custom formatting middleware needs to come before other formatters.
                     options.InputFormatters.Insert(0, new GraphInputFormatter());

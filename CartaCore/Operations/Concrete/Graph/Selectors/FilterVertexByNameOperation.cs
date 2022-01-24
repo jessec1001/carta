@@ -1,8 +1,8 @@
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using CartaCore.Data;
+using CartaCore.Extensions.String;
 using CartaCore.Operations.Attributes;
-using CartaCore.Utilities;
 
 namespace CartaCore.Operations
 {

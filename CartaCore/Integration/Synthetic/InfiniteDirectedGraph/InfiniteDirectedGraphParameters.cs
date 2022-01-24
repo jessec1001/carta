@@ -22,7 +22,7 @@ namespace CartaCore.Integration.Synthetic
         /// The number of properties generated for the entire graph.
         /// </summary>
         /// <value>The property count distribution.</value>
-        public IIntegerDistribution PropertyCount { get; set; } = new PoissonDistribution(20);
+        public int PropertyCount { get; set; } = 20;
         /// <summary>
         /// Gets or sets the probability that a property is included in a vertex.
         /// </summary>
@@ -33,6 +33,6 @@ namespace CartaCore.Integration.Synthetic
         /// Gets or sets the distribution of the number of children each vertex should generate in the graph.
         /// </summary>
         /// <returns>The child count distribution.</returns>
-        public IIntegerDistribution ChildCount { get; set; } = new PoissonDistribution(2);
+        public int ChildCount { get; set; } = 2;
     }
 }
