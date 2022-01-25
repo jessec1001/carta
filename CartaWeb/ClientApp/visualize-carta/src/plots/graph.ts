@@ -55,7 +55,7 @@ const GraphPlot: Plotter<IGraphPlot, IGraphInteraction> = (
     .append("defs")
     .append("marker")
     .attr("id", "arrow")
-    .attr("viewBox", "0 -5 20 20")
+    .attr("viewBox", "0 -5 20 10")
     .attr("refX", 50)
     .attr("refY", 0)
     .attr("markerWidth", 10)

@@ -144,7 +144,7 @@ namespace CartaCore.Typing.Conversion
 
                             // Convert the value.
                             subcontext.TryConvert(
-                                entry.Value?.GetType(),
+                                entry.Value?.GetType() ?? typeof(object),
                                 property.PropertyType,
                                 entry.Value,
                                 out convertedValue

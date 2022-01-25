@@ -52,6 +52,15 @@ namespace CartaCore.Typing.Conversion
                 return true;
             }
 
+            // TODO: Make this its own type converter.
+            // Check for nullable types.
+            Type targetNullableType = Nullable.GetUnderlyingType(targetType);
+            if (input is null && targetNullableType is not null)
+            {
+                output = Activator.CreateInstance(targetNullableType);
+                return true;
+            }
+
             // Try each of the contained converters until one succeeds.
             // Notice that we pass this context to the contained converters.
             foreach (TypeConverter converter in TypeConverters)

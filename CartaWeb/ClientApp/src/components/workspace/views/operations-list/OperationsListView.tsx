@@ -158,7 +158,7 @@ const OperationsListView: FC = () => {
                 outputOperation.id
               );
               await workflowsAPI.addWorkflowConnection(workflow.id, {
-                source: { field: "Graph", operation: visOperation.id },
+                source: { field: "Plot", operation: visOperation.id },
                 target: { field: "Value", operation: outputOperation.id },
               });
 
