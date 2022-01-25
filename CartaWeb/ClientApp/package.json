@@ -41,10 +41,11 @@
     "extends": "react-app"
   },
   "scripts": {
-    "start": "rimraf ./build && react-scripts start",
-    "build": "react-scripts build",
-    "test": "cross-env CI=true react-scripts test --env=jsdom",
-    "eject": "react-scripts eject",
+    "ssl-legacy": "export NODE_OPTIONS=--openssl-legacy-provider",
+    "start": "ssl-legacy && rimraf ./build && react-scripts start",
+    "build": "ssl-legacy && react-scripts build",
+    "test": "ssl-legacy && cross-env CI=true react-scripts test --env=jsdom",
+    "eject": "ssl-legacy && react-scripts eject",
     "lint": "eslint ./src/"
   },
   "browserslist": {
