@@ -34,7 +34,7 @@ namespace CartaTest.Operations
             bool equals)
         {
             // Create a context that the operation can reference when executing.
-            OperationContext context = new()
+            OperationContext workflowContext = new()
             {
                 Operation = null,
                 Input = new Dictionary<string, object>()
@@ -42,6 +42,10 @@ namespace CartaTest.Operations
                     [key] = value
                 },
                 Output = new Dictionary<string, object>()
+            };
+            OperationContext operationContext = new()
+            {
+                Parent = workflowContext,
             };
 
             // Create the operation and input/output state.
@@ -53,14 +57,14 @@ namespace CartaTest.Operations
             if (excepts)
             {
                 Assert.ThrowsAsync<KeyNotFoundException>(async () =>
-                    output = await operation.Perform(input, context)
+                    output = await operation.Perform(input, operationContext)
                 );
             }
             // Otherwise, expect no error to occur in the assertion. 
             else
             {
                 Assert.DoesNotThrowAsync(async () =>
-                    output = await operation.Perform(input, context)
+                    output = await operation.Perform(input, operationContext)
                 );
 
                 // If an exception was not thrown, check for equality.
@@ -70,20 +74,6 @@ namespace CartaTest.Operations
                 else
                     Assert.AreNotEqual(expectedValue, actualValue);
             }
-        }
-
-        /// <summary>
-        /// Tests that the input operation does not work when a context is not provided.
-        /// </summary>
-        [Test]
-        public void TestInputWithoutContext()
-        {
-            Assert.ThrowsAsync<KeyNotFoundException>(async () =>
-            {
-                InputOperation operation = new();
-                InputOperationIn input = new() { Name = "foo" };
-                InputOperationOut output = await operation.Perform(input);
-            });
         }
     }
 }

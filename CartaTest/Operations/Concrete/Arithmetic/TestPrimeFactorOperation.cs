@@ -14,8 +14,8 @@ namespace CartaTest.Operations
         /// </summary>
         /// <param name="expected">The expected prime factorization.</param>
         /// <param name="integer">The integer to factor.</param>
-        [TestCase(new long[] { }, 0)]
-        [TestCase(new long[] { 1 }, 1)]
+        [TestCase(new long[] { 0 }, 0)]
+        [TestCase(new long[] { }, 1)]
         [TestCase(new long[] { 2 }, 2)]
         [TestCase(new long[] { 3 }, 3)]
         [TestCase(new long[] { 2, 2 }, 4)]

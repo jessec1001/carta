@@ -11,6 +11,9 @@ namespace CartaCore.Operations
         public Graph Graph { get; set; }
     }
 
+    /// <summary>
+    /// Creates a synthetic infinite directed graph.
+    /// </summary>
     [OperationName(Display = "Infinite Directed Graph", Type = "syntheticIdg")]
     public class InfiniteDirectedGraphOperation : TypedOperation
     <

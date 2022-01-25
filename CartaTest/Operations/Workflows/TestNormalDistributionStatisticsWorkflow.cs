@@ -70,27 +70,38 @@ namespace CartaTest.Operations
             #region Operations
             InputOperation opInputSeed = new()
             {
+                Identifier = "1",
                 DefaultValuesTyped = new() { Name = "Seed" }
             };
             InputOperation opInputSampleCount = new()
             {
+                Identifier = "2",
                 DefaultValuesTyped = new() { Name = "SampleCount" }
             };
 
             SampleNormalOperation opSampleNormal = new()
             {
+                Identifier = "3",
                 DefaultValuesTyped = new() { Mean = 1.0, Deviation = 2.0 }
             };
 
-            MeanOperation opMean = new();
-            DeviationOperation opDeviation = new();
+            MeanOperation opMean = new()
+            {
+                Identifier = "4",
+            };
+            DeviationOperation opDeviation = new()
+            {
+                Identifier = "5",
+            };
 
             OutputOperation opOutputMu = new()
             {
+                Identifier = "6",
                 DefaultValuesTyped = new() { Name = "Mu" }
             };
             OutputOperation opOutputSigma = new()
             {
+                Identifier = "7",
                 DefaultValuesTyped = new() { Name = "Sigma" }
             };
             #endregion
@@ -245,36 +256,49 @@ namespace CartaTest.Operations
             #region Operations
             InputOperation opInputSeed = new()
             {
+                Identifier = "1",
                 DefaultValuesTyped = new() { Name = "Seed" }
             };
             InputOperation opInputSampleCount = new()
             {
+                Identifier = "2",
                 DefaultValuesTyped = new() { Name = "SampleCount" }
             };
 
             SampleNormalOperation opSampleNormal = new()
             {
+                Identifier = "3",
                 DefaultValuesTyped = new() { Mean = 0.0, Deviation = 1.0 }
             };
 
             ArithmeticOperation opAdd = new()
             {
+                Identifier = "4",
                 DefaultValuesTyped = new() { Type = ArithmeticOperationType.Add, Input1 = 2.0 }
             };
             ArithmeticOperation opMult = new()
             {
+                Identifier = "5",
                 DefaultValuesTyped = new() { Type = ArithmeticOperationType.Multiply, Input1 = -3.0 }
             };
 
-            MeanOperation opMean = new();
-            DeviationOperation opDeviation = new();
+            MeanOperation opMean = new()
+            {
+                Identifier = "6",
+            };
+            DeviationOperation opDeviation = new()
+            {
+                Identifier = "7",
+            };
 
             OutputOperation opOutputMu = new()
             {
+                Identifier = "8",
                 DefaultValuesTyped = new() { Name = "Mu" }
             };
             OutputOperation opOutputSigma = new()
             {
+                Identifier = "9",
                 DefaultValuesTyped = new() { Name = "Sigma" }
             };
             #endregion

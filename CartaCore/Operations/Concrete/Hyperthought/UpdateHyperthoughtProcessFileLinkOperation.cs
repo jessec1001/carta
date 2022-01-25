@@ -23,33 +23,33 @@ namespace CartaCore.Operations.Hyperthought
         /// <summary>
         /// The file path, e.g. /dirname/subdirname/filename.txt
         /// </summary>
-        public string FilePath;
+        public string FilePath { get; set; }
 
         /// <summary>
         /// The alias of the workspace the file is stored under. 
         /// </summary>
-        public string WorkspaceAlias;
+        public string WorkspaceAlias { get; set; }
 
         /// <summary>
         /// The key (name) of the property the file should be linked to. 
         /// </summary>
-        public string PropertyKey;
+        public string PropertyKey { get; set; }
 
         /// <summary>
         /// The full path of the process, e.g. /source/resource/workflow/builds/part/a1/results.
         /// </summary>
-        public string ProcessPath;
+        public string ProcessPath { get; set; }
 
         /// <summary>
         /// The process path seperator. Defaults to '.'.
         /// </summary>
-        public string PathSeperator;
+        public string PathSeperator { get; set; }
 
         /// <summary>
         /// Overwrite the value if the property with the given key already exists. Defaults to true. If set to false,
         /// and the property already exists, the operation will exit with a warning message.
         /// </summary>
-        public bool? OverwriteExisting;
+        public bool? OverwriteExisting { get; set; }
     }
     /// <summary>
     /// The output for the <see cref="UpdateHyperthoughtProcessFileLinkOperation" /> operation.

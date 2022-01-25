@@ -34,7 +34,11 @@ namespace CartaTests.Operations
                     !(type.IsAbstract || type.IsInterface))
                 .ToArray();
             Type[] typedOperationTypes = operationTypes
-                .Where(type => type.IsAssignableTo(typeof(TypedOperation<,>)))
+                .Where(type =>
+                    type.BaseType is not null &&
+                    type.BaseType.IsGenericType &&
+                    type.BaseType.GetGenericTypeDefinition().IsAssignableTo(typeof(TypedOperation<,>))
+                )
                 .ToArray();
             OperationTypes = operationTypes;
             TypedOperationTypes = typedOperationTypes;
@@ -49,7 +53,7 @@ namespace CartaTests.Operations
             foreach (Type operationType in TypedOperationTypes)
             {
                 // Get the input and output types of the operation.
-                Type[] ioTypes = operationType.GetGenericArguments();
+                Type[] ioTypes = operationType.BaseType.GetGenericArguments();
                 Type inputType = ioTypes[0];
                 Type outputType = ioTypes[1];
 
@@ -58,8 +62,9 @@ namespace CartaTests.Operations
                 MemberInfo[] outputProperties = outputType.GetMembers();
 
                 // Verify that any public members that are not members are properties.
-                foreach (FieldInfo field in inputProperties)
+                foreach (MemberInfo member in inputProperties)
                 {
+                    if (member is not FieldInfo field) continue;
                     if (field.IsPublic)
                     {
                         Assert.Fail
@@ -69,8 +74,9 @@ namespace CartaTests.Operations
                         );
                     }
                 }
-                foreach (FieldInfo field in outputProperties)
+                foreach (MemberInfo member in outputProperties)
                 {
+                    if (member is not FieldInfo field) continue;
                     if (field.IsPublic)
                     {
                         Assert.Fail

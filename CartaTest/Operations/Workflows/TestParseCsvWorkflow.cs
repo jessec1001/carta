@@ -51,11 +51,16 @@ namespace CartaTest.Operations
             #region Operations
             InputOperation opInputUrl = new()
             {
+                Identifier = "1",
                 DefaultValuesTyped = new() { Name = "Url" }
             };
-            StreamUrlOperation opStreamUrl = new();
+            StreamUrlOperation opStreamUrl = new()
+            {
+                Identifier = "2",
+            };
             ParseCsvOperation opParseCsv = new()
             {
+                Identifier = "3",
                 DefaultValuesTyped = new()
                 {
                     Delimiter = ",",
@@ -65,6 +70,7 @@ namespace CartaTest.Operations
             };
             OutputOperation opOutputGraph = new()
             {
+                Identifier = "4",
                 DefaultValuesTyped = new() { Name = "Graph" }
             };
             #endregion

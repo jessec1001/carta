@@ -19,7 +19,7 @@ namespace CartaCore.Operations.Hyperthought
         /// <summary>
         /// The stream of data to retrieve the CSV from.
         /// </summary>
-        public Stream Stream;
+        public Stream Stream { get; set; }
     }
     /// <summary>
     /// The output for the <see cref="ParseHyperthoughtProcessCsvOperation" /> operation.

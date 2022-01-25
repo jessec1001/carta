@@ -57,7 +57,9 @@ namespace CartaCore.Operations.Distribution
             SampleNormalOperationIn sampleNormalOperationIn = new()
             {
                 Seed = input.Seed,
-                Count = input.Count * (input.DegreesOfFreedom + 1)
+                Count = input.Count * input.DegreesOfFreedom,
+                Mean = 0,
+                Deviation = 1
             };
             SampleNormalOperationOut sampleNormalOperationOut = await sampleNormalOperation.Perform(sampleNormalOperationIn);
 
@@ -67,9 +69,9 @@ namespace CartaCore.Operations.Distribution
             for (int k = 0; k < input.Count; k++)
             {
                 double sum = 0;
-                for (int j = 0; j < input.DegreesOfFreedom + 1; j++)
+                for (int j = 0; j < input.DegreesOfFreedom; j++)
                 {
-                    double sample = sampleNormalOperationOut.Samples[k * (input.DegreesOfFreedom + 1) + j];
+                    double sample = sampleNormalOperationOut.Samples[k * input.DegreesOfFreedom + j];
                     sum += sample * sample;
                 }
                 samples[k] = sum;

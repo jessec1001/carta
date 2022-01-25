@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using CartaCore.Operations.Attributes;
 
@@ -42,6 +43,14 @@ namespace CartaCore.Operations.Array
         /// <inheritdoc />
         public override Task<ArrayItemOperationOut> Perform(ArrayItemOperationIn input)
         {
+            // Check for a null array.
+            if (input.Items is null)
+                throw new ArgumentNullException($"Array of items was null.", nameof(input.Items));
+
+            // Wrap around the index singly.
+            if (input.Index < 0)
+                input.Index += input.Items.Length;
+
             return Task.FromResult(new ArrayItemOperationOut() { Item = input.Items[input.Index] });
         }
     }

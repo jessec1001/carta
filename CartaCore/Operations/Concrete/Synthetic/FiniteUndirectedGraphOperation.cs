@@ -11,6 +11,9 @@ namespace CartaCore.Operations
         public Graph Graph { get; set; }
     }
 
+    /// <summary>
+    /// Creates a synthetic finite undirected graph.
+    /// </summary>
     [OperationName(Display = "Finite Undirected Graph", Type = "syntheticFug")]
     public class FiniteUndirectedGraphOperation : TypedOperation
     <

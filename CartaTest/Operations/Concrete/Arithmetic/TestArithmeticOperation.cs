@@ -97,7 +97,7 @@ namespace CartaTest.Operations
         [TestCase(double.NegativeInfinity, -1.0, 0.0)]
         [TestCase(0.5, 1.0, 2.0)]
         [TestCase(-1.0, -1.0, +1.0)]
-        [TestCase(double.PositiveInfinity, double.PositiveInfinity, -10.0)]
+        [TestCase(double.NegativeInfinity, double.PositiveInfinity, -10.0)]
         [TestCase(double.NaN, double.NaN, 3.0)]
         [TestCase(1.15526122, 3.14, 2.718)]
         public async Task TestDivision(double expected, double value1, double value2)

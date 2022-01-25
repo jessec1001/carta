@@ -19,9 +19,9 @@ namespace CartaTest.Operations
         /// <param name="degreesOfFreedom">The degrees of freedom parameter of the Chi-Squared distribution.</param>
         [TestCase(14500, 45612, 2)]
         [TestCase(100000, 45612, 2)]
-        [TestCase(2500, 45612, 2)]
-        [TestCase(2500, 45612, 5)]
-        [TestCase(2500, 45612, 25)]
+        [TestCase(25000, 45612, 2)]
+        [TestCase(25000, 45612, 5)]
+        [TestCase(25000, 45612, 20)]
         public async Task TestMean(int sampleCount, int seed, int degreesOfFreedom)
         {
             SampleChiSquaredOperation operation = new();
@@ -46,9 +46,9 @@ namespace CartaTest.Operations
         /// <param name="degreesOfFreedom">The degrees of freedom parameter of the Chi-Squared distribution.</param>
         [TestCase(14500, 45612, 2)]
         [TestCase(100000, 45612, 2)]
-        [TestCase(2500, 45612, 2)]
-        [TestCase(2500, 45612, 5)]
-        [TestCase(2500, 45612, 25)]
+        [TestCase(25000, 45612, 2)]
+        [TestCase(25000, 45612, 5)]
+        [TestCase(25000, 45612, 25)]
         public async Task TestDeviation(int sampleCount, int seed, int degreesOfFreedom)
         {
             SampleChiSquaredOperation operation = new();
@@ -71,11 +71,11 @@ namespace CartaTest.Operations
         /// <param name="sampleCount">The number of samples to generate.</param>
         /// <param name="seed">The seed used to seed the random operation.</param>
         /// <param name="degreesOfFreedom">The degrees of freedom parameter of the Chi-Squared distribution.</param>
-        [TestCase(14500, 45612, 2)]
+        [TestCase(14500, 45612, 3)]
         [TestCase(100000, 45612, 2)]
-        [TestCase(2500, 45612, 2)]
-        [TestCase(2500, 45612, 5)]
-        [TestCase(2500, 45612, 25)]
+        [TestCase(25000, 45612, 2)]
+        [TestCase(25000, 45612, 5)]
+        [TestCase(25000, 45612, 25)]
         public async Task TestSkewness(int sampleCount, int seed, int degreesOfFreedom)
         {
             SampleChiSquaredOperation operation = new();
@@ -98,11 +98,10 @@ namespace CartaTest.Operations
         /// <param name="sampleCount">The number of samples to generate.</param>
         /// <param name="seed">The seed used to seed the random operation.</param>
         /// <param name="degreesOfFreedom">The degrees of freedom parameter of the Chi-Squared distribution.</param>
-        [TestCase(14500, 45612, 2)]
-        [TestCase(100000, 45612, 2)]
-        [TestCase(2500, 45612, 2)]
-        [TestCase(2500, 45612, 5)]
-        [TestCase(2500, 45612, 25)]
+        [TestCase(100000, 45613, 2)]
+        [TestCase(25000, 45612, 2)]
+        [TestCase(25000, 45612, 5)]
+        [TestCase(25000, 45612, 25)]
         public async Task TestKurtosis(int sampleCount, int seed, int degreesOfFreedom)
         {
             SampleChiSquaredOperation operation = new();
@@ -116,7 +115,7 @@ namespace CartaTest.Operations
 
             double[] samples = output.Samples;
             double sampleKurtosis = StatisticsExtensions.ComputeNormalizedMoment(samples, 4);
-            Assert.AreEqual(12.0 / degreesOfFreedom, sampleKurtosis, 4 * Math.Sqrt((double)24 / sampleCount));
+            Assert.AreEqual(3 + 12.0 / degreesOfFreedom, sampleKurtosis, 8 * Math.Sqrt((double)24 / sampleCount));
         }
 
         /// <summary>

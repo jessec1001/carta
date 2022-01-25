@@ -29,6 +29,9 @@ namespace CartaCore.Operations
         public Graph Graph { get; set; }
     }
 
+    /// <summary>
+    /// Loads a workflow from HyperThought as a graph structure.
+    /// </summary>
     [OperationName(Display = "HyperThought Workflow as Graph", Type = "hyperthoughtWorkflowGraph")]
     [OperationTag(OperationTags.Hyperthought)]
     [OperationTag(OperationTags.Graph)]

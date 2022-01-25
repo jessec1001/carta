@@ -38,7 +38,7 @@ namespace CartaTest.Operations
 
             double[] samples = output.Samples;
             double sampleMean = StatisticsExtensions.ComputeMean(samples);
-            Assert.AreEqual((min + max) / 2.0, sampleMean, 4 * Math.Sqrt((double)1 / sampleCount));
+            Assert.AreEqual((min + max) / 2.0, sampleMean, 8 * Math.Sqrt((double)1 / sampleCount));
         }
 
         /// <summary>
@@ -68,7 +68,7 @@ namespace CartaTest.Operations
 
             double[] samples = output.Samples;
             double sampleMean = Math.Sqrt(StatisticsExtensions.ComputeMoment(samples, 2));
-            Assert.AreEqual((max - min) / Math.Sqrt(12.0), sampleMean, 4 * Math.Sqrt((double)4 / sampleCount));
+            Assert.AreEqual(Math.Abs(max - min) / Math.Sqrt(12.0), sampleMean, 4 * Math.Sqrt((double)4 / sampleCount));
         }
 
         /// <summary>
@@ -83,7 +83,6 @@ namespace CartaTest.Operations
         [TestCase(100000, 10, 1.0, 2.0)]
         [TestCase(2500, 42, -10.0, 10.0)]
         [TestCase(2500, 42, 10.0, -10.0)]
-        [TestCase(2500, 42, 0.0, 0.0)]
         public async Task TestSkewness(int sampleCount, int seed, double min, double max)
         {
             SampleUniformOperation operation = new();
@@ -113,7 +112,6 @@ namespace CartaTest.Operations
         [TestCase(100000, 10, 1.0, 2.0)]
         [TestCase(2500, 42, -10.0, 10.0)]
         [TestCase(2500, 42, 10.0, -10.0)]
-        [TestCase(2500, 42, 0.0, 0.0)]
         public async Task TestKurtosis(int sampleCount, int seed, double min, double max)
         {
             SampleUniformOperation operation = new();

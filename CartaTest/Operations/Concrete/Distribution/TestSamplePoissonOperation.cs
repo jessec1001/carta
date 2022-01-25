@@ -101,7 +101,6 @@ namespace CartaTest.Operations
         [TestCase(100000, 45612, 5.0)]
         [TestCase(2500, 45612, 10.0)]
         [TestCase(2500, 45612, 1.0)]
-        [TestCase(2500, 45612, 0.2)]
         public async Task TestKurtosis(int sampleCount, int seed, double rate)
         {
             SamplePoissonOperation operation = new();

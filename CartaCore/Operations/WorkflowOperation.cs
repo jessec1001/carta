@@ -253,8 +253,9 @@ namespace CartaCore.Operations
                         await operation.Perform(context);
                         foreach (KeyValuePair<string, object> entry in context.Output)
                         {
+                            // TODO: Work on typing here.
                             if (!result.ContainsKey(entry.Key))
-                                result.Add(entry.Key, new object[cardinality]);
+                                result.Add(entry.Key, System.Array.CreateInstance(entry.Value.GetType(), cardinality));
 
                             System.Array value = (System.Array)result[entry.Key];
                             value.SetValue(entry.Value, k);

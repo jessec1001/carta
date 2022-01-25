@@ -31,7 +31,7 @@ namespace CartaCore.Operations.Hyperthought
     }
 
     /// <summary>
-    /// Converts a JSON stream into a list of <see cref="HyperthoughtProperty"/> objects.
+    /// Converts a JSON stream into a list of HyperThought property objects.
     /// </summary>
     [OperationName(Display = "Parse HyperThought Properties JSON", Type = "hyperthoughtParsePropertiesJson")]
     [OperationTag(OperationTags.Hyperthought)]

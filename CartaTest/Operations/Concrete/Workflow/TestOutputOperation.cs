@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using CartaCore.Operations;
 using NUnit.Framework;
 
@@ -25,7 +26,7 @@ namespace CartaTest.Operations
         [TestCase("test1", "test", "test2", "test", true, true)]
         [TestCase("foo", 32, "foo", 42, false, false)]
         [TestCase("a", "apple", "a", "cherry", false, false)]
-        public void TestValidOutputWithContext(
+        public async Task TestValidOutputWithContext(
             string expectedKey,
             object expectedValue,
             string key,
@@ -34,54 +35,37 @@ namespace CartaTest.Operations
             bool equals)
         {
             // Create a context that the operation can reference when executing.
-            OperationContext context = new()
+            OperationContext workflowContext = new()
             {
                 Operation = null,
                 Input = new Dictionary<string, object>(),
                 Output = new Dictionary<string, object>()
             };
+            OperationContext operationContext = new()
+            {
+                Parent = workflowContext,
+            };
 
             // Create the operation and input/output state.
             OutputOperation operation = new();
             OutputOperationIn input = new() { Name = key, Value = value };
-            OutputOperationOut output;
+            await operation.Perform(input, operationContext);
 
-            // If we expect an error to be thrown, perform the appropriate assertion.
             if (excepts)
             {
-                Assert.ThrowsAsync<KeyNotFoundException>(async () =>
-                    output = await operation.Perform(input, context)
-                );
+                // We should not expect the correct value to have been assigned.
+                Assert.IsFalse(workflowContext.Output.ContainsKey(expectedKey));
             }
-            // Otherwise, expect no error to occur in the assertion.
             else
             {
-                Assert.DoesNotThrowAsync(async () =>
-                    output = await operation.Perform(input, context)
-                );
-
                 // If an exception was not thrown, check for equality between values output and expected.
-                Assert.Contains(expectedKey, context.Output.Keys);
-                object actualValue = context.Output[expectedKey];
+                Assert.Contains(expectedKey, workflowContext.Output.Keys);
+                object actualValue = workflowContext.Output[expectedKey];
                 if (equals)
                     Assert.AreEqual(expectedValue, actualValue);
                 else
                     Assert.AreNotEqual(expectedValue, actualValue);
             }
-        }
-
-        /// <summary>
-        /// Tests that the output operation does not work when a context is not provided.
-        /// </summary>
-        [Test]
-        public void TestOutputWithoutContext()
-        {
-            Assert.ThrowsAsync<KeyNotFoundException>(async () =>
-            {
-                OutputOperation operation = new();
-                OutputOperationIn input = new() { Name = "foo" };
-                OutputOperationOut output = await operation.Perform(input);
-            });
         }
     }
 }

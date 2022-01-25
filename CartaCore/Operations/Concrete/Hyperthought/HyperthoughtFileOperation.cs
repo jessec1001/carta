@@ -24,17 +24,17 @@ namespace CartaCore.Operations.Hyperthought
         /// <summary>
         /// The file path, e.g. /dirname/subdirname/filename.txt
         /// </summary>
-        public string FilePath;
+        public string FilePath { get; set; }
 
         /// <summary>
         /// The alias of the workspace the file lives under.
         /// </summary>
-        public string WorkspaceAlias;
+        public string WorkspaceAlias { get; set; }
 
         /// <summary>
         /// The stream of data to be uploaded to HyperThought. If not specified, no data is uploaded.
         /// </summary>
-        public Stream Stream;
+        public Stream Stream { get; set; }
     }
 
     /// <summary>
@@ -42,20 +42,24 @@ namespace CartaCore.Operations.Hyperthought
     /// </summary>
     public struct HyperthoughtFileOperationOut
     {
+        // TODO: For this type of operation, we need a way of specifying a connection that creates a dependency without
+        //       necessarily needing to pass data. For this, we can specify null for the connection target (or source)
+        //       field. 
+
         /// <summary>
         /// The file path, e.g. /dirname/subdirname/filename.txt, where the file was uploaded.
         /// </summary>
-        public string FilePath;
+        public string FilePath { get; set; }
 
         /// <summary>
         /// The alias of the workspace the file lives under.
         /// </summary>
-        public string WorkspaceAlias;
+        public string WorkspaceAlias { get; set; }
 
         /// <summary>
         /// The stream of data downloaded from HyperThought.
         /// </summary>
-        public Stream OutputStream;
+        public Stream OutputStream { get; set; }
     }
 
     /// <summary>

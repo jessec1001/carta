@@ -14,6 +14,9 @@ namespace CartaCore.Operations
         public Graph Graph { get; set; }
     }
 
+    /// <summary>
+    /// Loads an existing graph uploaded to Carta.
+    /// </summary>
     [OperationName(Display = "Carta Stored Graph", Type = "cartaGraph")]
     [OperationTag(OperationTags.Graph)]
     [OperationTag(OperationTags.Loading)]

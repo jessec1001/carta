@@ -22,10 +22,12 @@ namespace CartaTest.Operations
             // There is a single output "bar".
             InputOperation opInput = new()
             {
+                Identifier = "1",
                 DefaultValuesTyped = new() { Name = "foo" }
             };
             OutputOperation opOutput = new()
             {
+                Identifier = "2",
                 DefaultValuesTyped = new() { Name = "bar" }
             };
 
