@@ -186,6 +186,14 @@ class OperationsAPI extends BaseAPI {
     onProgress?: (progress: number) => void
   ): Promise<void> {
     // TODO: Use axios to upload file.
+    const response = await axios({
+      url: `${this.getOperationUrl(operationId)}/jobs/${jobId}/upload`,
+      method: "POST",
+      data: file,
+      onUploadProgress: (progressEvent) => {
+        onProgress?.(progressEvent.loaded / progressEvent.total);
+      },
+    });
   }
   public async downloadJobFile(
     operationId: string,

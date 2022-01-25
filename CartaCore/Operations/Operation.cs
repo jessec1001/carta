@@ -189,23 +189,25 @@ namespace CartaCore.Operations
         /// </summary>
         /// <param name="context">The context under which the operation is executing.</param>
         /// <returns>A list of tasks.</returns>
-        public IEnumerable<OperationTask> GetTasks(OperationContext context)
+        public virtual async IAsyncEnumerable<OperationTask> GetTasks(OperationContext context)
         {
-            // TODO: Support tasks being added by individual operations at any stage in the workflow execution. For now,
-            //       we will only consider tasks induced by missing inputs to the entire operation.
-            Dictionary<string, object> total = context.Total;
-            foreach (KeyValuePair<string, object> entry in total)
-            {
-                // This check for tasks should really only be available for `InputOperation`.
-                if (entry.Value is Stream stream && stream == Stream.Null)
-                {
-                    yield return new OperationTask()
-                    {
-                        Type = OperationTaskType.File,
-                        Field = entry.Key
-                    };
-                }
-            }
+            yield break;
+
+            // // TODO: Support tasks being added by individual operations at any stage in the workflow execution. For now,
+            // //       we will only consider tasks induced by missing inputs to the entire operation.
+            // Dictionary<string, object> total = context.Total;
+            // foreach (KeyValuePair<string, object> entry in total)
+            // {
+            //     // This check for tasks should really only be available for `InputOperation`.
+            //     if (entry.Value is Stream stream && stream == Stream.Null)
+            //     {
+            //         yield return new OperationTask()
+            //         {
+            //             Type = OperationTaskType.File,
+            //             Field = entry.Key
+            //         };
+            //     }
+            // }
         }
 
         /// <summary>

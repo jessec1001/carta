@@ -2,6 +2,8 @@ import { Plotter } from "types";
 interface IGraphVertex {
     id: string;
     label: string;
+    selected?: boolean;
+    depth?: number;
 }
 interface IGraphEdge {
     directed: boolean;
@@ -23,6 +25,8 @@ interface IGraphPlot {
     };
 }
 interface IGraphInteraction {
+    onClickNode?: (node: IGraphVertex) => void;
+    onClickSpace?: () => void;
 }
 declare const GraphPlot: Plotter<IGraphPlot, IGraphInteraction>;
 export default GraphPlot;

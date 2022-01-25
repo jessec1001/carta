@@ -71,7 +71,15 @@ const WorkflowWrapper: FunctionComponent<WorkflowWrapperProps> = ({
 
   // TODO: Add delay and synchronicity to this.
   const handleExecuteWorkflow = async (): Promise<Job | null> => {
-    let job = await operationsAPI.executeOperation(operation.id, input ?? {});
+    let localInput = input ?? {};
+    console.log(localInput, fileField);
+    if (fileField) {
+      delete localInput[fileField];
+    }
+    let job = await operationsAPI.executeOperation(
+      operation.id,
+      localInput ?? {}
+    );
     if (fileField) {
       await operationsAPI.uploadFile(operation.id, job.id, file!);
     }

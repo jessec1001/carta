@@ -89,7 +89,6 @@ const Visualizer: FunctionComponent<{
     workflow.schema.outputs[operation.default["Name"]].type;
   const outputDownload =
     outputType && (outputType === "file" || outputType.includes("file"));
-  console.log(jobId);
 
   return (
     <div
@@ -105,12 +104,13 @@ const Visualizer: FunctionComponent<{
         (outputDownload ? (
           <Link
             to="#"
-            onClick={() => {
+            onClick={(e) => {
               operationsAPI.downloadJobFile(
-                operation.id,
+                workflow.id,
                 jobId!,
                 operation.default!["Name"]
               );
+              e.preventDefault();
             }}
           >
             Download
@@ -125,7 +125,15 @@ const Visualizer: FunctionComponent<{
           <SchemaBaseInput
             schema={workflowOperation.schema.inputs[data]}
             onChange={(value) => {
-              if (workflowOperation.schema?.inputs[data].type === "file") {
+              const fileLike =
+                workflowOperation.schema?.inputs[data].type === "file" ||
+                (Array.isArray(workflowOperation.schema?.inputs?.[data].type) &&
+                  workflowOperation.schema?.inputs?.[data].type?.includes(
+                    "file"
+                  ));
+              console.log(value, fileLike);
+
+              if (fileLike) {
                 value = value as File | null;
                 if (value === null) {
                   setFile(null);

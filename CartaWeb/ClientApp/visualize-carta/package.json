@@ -8,7 +8,16 @@
   "files": [
     "dist"
   ],
+  "watch": {
+    "build": {
+      "patterns": [
+        "src"
+      ],
+      "extensions": "js,ts"
+    }
+  },
   "scripts": {
+    "watch": "npm-watch",
     "build": "rimraf ./dist && tsc",
     "prepare": "npm run build",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -22,6 +31,7 @@
   "devDependencies": {
     "@types/d3": "^7.0.0",
     "@types/three": "^0.133.0",
+    "npm-watch": "^0.11.0",
     "rimraf": "^3.0.2",
     "typescript": "^4.4.3"
   }

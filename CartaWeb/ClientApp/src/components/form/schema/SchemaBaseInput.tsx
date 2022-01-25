@@ -4,6 +4,7 @@ import {
   JsonBaseSchema,
   JsonBooleanSchema,
   JsonEnumSchema,
+  JsonFileSchema,
   JsonMultitypeSchema,
   JsonNumberSchema,
   JsonObjectSchema,
@@ -12,6 +13,7 @@ import {
 } from "library/schema";
 import SchemaNumberInput from "./SchemaNumberInput";
 import SchemaEnumInput from "./SchemaEnumInput";
+import SchemaFileInput from "./SchemaFileInput";
 import SchemaStringInput from "./SchemaStringInput";
 import SchemaBooleanInput from "./SchemaBooleanInput";
 import SchemaObjectInput from "./SchemaObjectInput";
@@ -74,6 +76,17 @@ const SchemaBaseInput: FunctionComponent<SchemaBaseInputProps> = ({
     } else {
       // Any other type can be handled as a simple type value.
       switch (schema.type) {
+        case "file":
+          const fileSchema = schema as JsonFileSchema;
+          return (
+            <SchemaFileInput
+              schema={fileSchema}
+              error={error}
+              value={value}
+              onChange={onChange}
+              {...props}
+            />
+          );
         case "object":
           const objectSchema = schema as JsonObjectSchema;
           return (

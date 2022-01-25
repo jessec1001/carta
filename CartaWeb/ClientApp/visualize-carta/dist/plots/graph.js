@@ -37,12 +37,24 @@ var GraphPlot = function (container, plot, interaction) {
     var _a, _b, _c, _d;
     var width = (_b = (_a = plot.size) === null || _a === void 0 ? void 0 : _a.width) !== null && _b !== void 0 ? _b : 800;
     var height = (_d = (_c = plot.size) === null || _c === void 0 ? void 0 : _c.height) !== null && _d !== void 0 ? _d : 640;
-    var margin = __assign({ left: 60, right: 20, top: 20, bottom: 40 }, plot.margin);
     var svgElement = d3
         .select(container)
         .append("svg")
-        .attr("viewBox", "0 0 " + width + " " + height);
+        .attr("viewBox", -width / 2 + " " + -height / 2 + " " + width + " " + height);
     var zoomElement = svgElement.append("g");
+    svgElement
+        .append("defs")
+        .append("marker")
+        .attr("id", "arrow")
+        .attr("viewBox", "0 -5 20 20")
+        .attr("refX", 50)
+        .attr("refY", 0)
+        .attr("markerWidth", 10)
+        .attr("markerHeight", 10)
+        .attr("orient", "auto")
+        .append("path")
+        .attr("fill", "#99999988")
+        .attr("d", "M0,-10L20,0L0,10");
     if (!plot.vertices || !plot.edges)
         return function () { };
     var ticked = function () {
@@ -72,17 +84,16 @@ var GraphPlot = function (container, plot, interaction) {
             var y = _a.y;
             return y;
         });
+        text
+            .attr("x", function (_a) {
+            var x = _a.x;
+            return x;
+        })
+            .attr("y", function (_a) {
+            var y = _a.y;
+            return y + 35;
+        });
     };
-    var nodes = d3.map(plot.vertices, function (d) { return ({ id: d.id }); });
-    var links = d3.map(plot.edges, function (d) { return (__assign({}, d)); });
-    var nodeLabels = d3.map(plot.vertices, function (d) { return d.label; });
-    var forceNode = d3.forceManyBody();
-    var forceLink = d3
-        .forceLink(links)
-        .id(function (_a) {
-        var id = _a.id;
-        return id;
-    });
     var drag = function (simulation) {
         var onDragStarted = function (event) {
             if (!event.active)
@@ -106,42 +117,78 @@ var GraphPlot = function (container, plot, interaction) {
             .on("end", onDragEnded)
             .on("drag", onDragged);
     };
+    var forceNode = d3.forceManyBody().strength(-500);
+    var forceLink = d3
+        .forceLink()
+        .id(function (_a) {
+        var id = _a.id;
+        return id;
+    })
+        .distance(100);
+    var forceCenter = d3.forceCenter(0, 0);
     // TODO: Change the center of the graph to the center of the container.
     var simulation = d3
-        .forceSimulation(nodes)
+        .forceSimulation()
         .force("link", forceLink)
         .force("charge", forceNode)
-        .force("center", d3.forceCenter(width / 2, height / 2))
+        .force("center", forceCenter)
         .on("tick", ticked);
     var link = zoomElement
         .append("g")
         .attr("stroke", "#999")
         .attr("stroke-opacity", 0.6)
         .attr("stroke-width", 1)
-        .selectAll("line")
-        .data(links)
-        .join("line");
+        .selectAll("line");
     var node = zoomElement
         .append("g")
-        .attr("fill", "#53b853")
-        .attr("stroke", "#000000")
-        .attr("stroke-width", 1)
-        .selectAll("circle")
-        .data(nodes)
-        .join("circle")
-        .attr("r", 5)
-        .call(drag(simulation))
-        .append("title")
-        .text((function (_a) {
-        var _b;
-        var index = _a.index;
-        return (_b = nodeLabels[index]) !== null && _b !== void 0 ? _b : "";
-    }));
+        .attr("fill", "#a1d7a1")
+        .attr("stroke", "#53b853")
+        .attr("stroke-width", 3)
+        .selectAll("circle");
+    // TODO: Preferably, this should be a child of the nodes so that changing the position of nodes doesn't affect the text.
+    var text = zoomElement.append("g").selectAll("text");
+    // This function updates the data. We call it initially to setup the plot.
+    var update = function (plot) {
+        var _a;
+        // We want to preserve positioning and velocity of nodes that are already in the graph.
+        var nodeMap = new Map(node.data().map(function (d) { return [d.id, d]; }));
+        var nodes = plot.vertices.map(function (d) { return (__assign(__assign({}, nodeMap.get(d.id)), d)); });
+        var links = plot.edges.map(function (d) { return (__assign({}, d)); });
+        simulation.nodes(nodes);
+        (_a = simulation
+            .force("link")) === null || _a === void 0 ? void 0 : _a.links(links);
+        simulation.alpha(1).restart();
+        link = link
+            .data(links, function (_a) {
+            var source = _a.source, target = _a.target;
+            return source + "-" + target;
+        })
+            .join("line")
+            .attr("marker-end", function (_a) {
+            var directed = _a.directed;
+            return (directed ? "url(#arrow)" : null);
+        });
+        node = node
+            .data(nodes)
+            .join("circle")
+            .attr("r", 15)
+            .call(drag(simulation))
+            .on("click", function (node) { var _a; return (_a = interaction === null || interaction === void 0 ? void 0 : interaction.onClickNode) === null || _a === void 0 ? void 0 : _a.call(interaction, node); });
+        text = text
+            .data(nodes)
+            .join("text")
+            .text(function (_a) {
+            var label = _a.label;
+            return label;
+        })
+            .attr("text-anchor", "middle");
+    };
+    update(plot);
     var zoom = d3.zoom().on("zoom", function (event) {
         zoomElement.attr("transform", event.transform);
     });
     svgElement.call(zoom).call(zoom.transform, d3.zoomIdentity);
-    return function () { };
+    return update;
 };
 exports.default = GraphPlot;
 //# sourceMappingURL=graph.js.map

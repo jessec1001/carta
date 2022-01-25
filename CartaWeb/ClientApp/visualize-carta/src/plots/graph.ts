@@ -5,6 +5,8 @@ import { Plotter } from "types";
 interface IGraphVertex {
   id: string;
   label: string;
+  selected?: boolean;
+  depth?: number;
 }
 interface IGraphEdge {
   directed: boolean;
@@ -27,7 +29,10 @@ interface IGraphPlot {
     bottom?: number;
   };
 }
-interface IGraphInteraction {}
+interface IGraphInteraction {
+  onClickNode?: (node: IGraphVertex) => void;
+  onClickSpace?: () => void;
+}
 
 // TODO: Consider using WebCoLa to improve the performance of the visualization.
 // TODO: Make sure to add definitions to the SVG for optimal performance.
@@ -40,19 +45,25 @@ const GraphPlot: Plotter<IGraphPlot, IGraphInteraction> = (
   const width = plot.size?.width ?? 800;
   const height = plot.size?.height ?? 640;
 
-  const margin = {
-    left: 60,
-    right: 20,
-    top: 20,
-    bottom: 40,
-    ...plot.margin,
-  };
-
   const svgElement = d3
     .select(container)
     .append("svg")
-    .attr("viewBox", `0 0 ${width} ${height}`);
+    .attr("viewBox", `${-width / 2} ${-height / 2} ${width} ${height}`);
   const zoomElement = svgElement.append("g");
+
+  svgElement
+    .append("defs")
+    .append("marker")
+    .attr("id", "arrow")
+    .attr("viewBox", "0 -5 20 20")
+    .attr("refX", 50)
+    .attr("refY", 0)
+    .attr("markerWidth", 10)
+    .attr("markerHeight", 10)
+    .attr("orient", "auto")
+    .append("path")
+    .attr("fill", "#99999988")
+    .attr("d", "M0,-10L20,0L0,10");
 
   if (!plot.vertices || !plot.edges) return () => {};
 
@@ -66,16 +77,11 @@ const GraphPlot: Plotter<IGraphPlot, IGraphInteraction> = (
     (node as any)
       .attr("cx", ({ x }: { x: any }) => x)
       .attr("cy", ({ y }: { y: any }) => y);
+
+    (text as any)
+      .attr("x", ({ x }: { x: number }) => x)
+      .attr("y", ({ y }: { y: number }) => y + 35);
   };
-
-  const nodes = d3.map(plot.vertices, (d) => ({ id: d.id }));
-  const links = d3.map(plot.edges, (d) => ({ ...d }));
-  const nodeLabels = d3.map(plot.vertices, (d) => d.label);
-
-  const forceNode = d3.forceManyBody();
-  const forceLink = d3
-    .forceLink<IGraphVertex & SimulationNodeDatum, IGraphEdge>(links)
-    .id(({ id }) => id);
 
   const drag = (
     simulation: d3.Simulation<d3.SimulationNodeDatum, undefined>
@@ -102,42 +108,78 @@ const GraphPlot: Plotter<IGraphPlot, IGraphInteraction> = (
       .on("drag", onDragged);
   };
 
+  const forceNode = d3.forceManyBody().strength(-500);
+  const forceLink = d3
+    .forceLink<IGraphVertex & SimulationNodeDatum, IGraphEdge>()
+    .id(({ id }) => id)
+    .distance(100);
+  const forceCenter = d3.forceCenter(0, 0);
+
   // TODO: Change the center of the graph to the center of the container.
   const simulation = d3
-    .forceSimulation(nodes as any)
+    .forceSimulation<IGraphVertex & SimulationNodeDatum, IGraphEdge>()
     .force("link", forceLink)
     .force("charge", forceNode)
-    .force("center", d3.forceCenter(width / 2, height / 2))
+    .force("center", forceCenter)
     .on("tick", ticked);
 
-  const link = zoomElement
-    .append("g")
-    .attr("stroke", "#999")
-    .attr("stroke-opacity", 0.6)
-    .attr("stroke-width", 1)
-    .selectAll("line")
-    .data(links)
-    .join("line");
+  let link: d3.Selection<d3.BaseType, IGraphEdge, SVGElement, unknown> =
+    zoomElement
+      .append("g")
+      .attr("stroke", "#999")
+      .attr("stroke-opacity", 0.6)
+      .attr("stroke-width", 1)
+      .selectAll("line");
+  let node: d3.Selection<d3.BaseType, IGraphVertex, SVGElement, unknown> =
+    zoomElement
+      .append("g")
+      .attr("fill", "#a1d7a1")
+      .attr("stroke", "#53b853")
+      .attr("stroke-width", 3)
+      .selectAll("circle");
+  // TODO: Preferably, this should be a child of the nodes so that changing the position of nodes doesn't affect the text.
+  let text: d3.Selection<d3.BaseType, IGraphVertex, SVGElement, unknown> =
+    zoomElement.append("g").selectAll("text");
 
-  const node = zoomElement
-    .append("g")
-    .attr("fill", "#53b853")
-    .attr("stroke", "#000000")
-    .attr("stroke-width", 1)
-    .selectAll("circle")
-    .data(nodes)
-    .join("circle")
-    .attr("r", 5)
-    .call(drag(simulation) as any)
-    .append("title")
-    .text((({ index }: { index: number }) => nodeLabels[index] ?? "") as any);
+  // This function updates the data. We call it initially to setup the plot.
+  const update = (plot: IGraphPlot) => {
+    // We want to preserve positioning and velocity of nodes that are already in the graph.
+    const nodeMap = new Map(node.data().map((d) => [d.id, d]));
+    const nodes = plot.vertices.map((d) => ({ ...nodeMap.get(d.id), ...d }));
+    const links = plot.edges.map((d) => ({ ...d }));
+
+    simulation.nodes(nodes);
+    simulation
+      .force<d3.ForceLink<IGraphVertex & SimulationNodeDatum, IGraphEdge>>(
+        "link"
+      )
+      ?.links(links);
+    simulation.alpha(1).restart();
+
+    link = link
+      .data(links, ({ source, target }) => source + "-" + target)
+      .join("line")
+      .attr("marker-end", ({ directed }) => (directed ? "url(#arrow)" : null));
+    node = node
+      .data(nodes)
+      .join("circle")
+      .attr("r", 15)
+      .call(drag(simulation as any) as any)
+      .on("click", (node) => interaction?.onClickNode?.(node));
+    text = text
+      .data(nodes)
+      .join("text")
+      .text(({ label }) => label)
+      .attr("text-anchor", "middle");
+  };
+  update(plot);
 
   const zoom = d3.zoom<SVGSVGElement, unknown>().on("zoom", (event) => {
     zoomElement.attr("transform", event.transform);
   });
   svgElement.call(zoom).call(zoom.transform, d3.zoomIdentity);
 
-  return () => {};
+  return update;
 };
 
 export default GraphPlot;

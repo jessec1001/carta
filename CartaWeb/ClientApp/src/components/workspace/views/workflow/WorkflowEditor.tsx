@@ -1,6 +1,6 @@
 import { CheckboxInput } from "components/input";
 import { Text } from "components/text";
-import { FunctionComponent } from "react";
+import { FunctionComponent, useRef } from "react";
 import { useWorkflow } from "./WorkflowContext";
 import { useState } from "react";
 import OperationGrid from "./OperationGrid";
@@ -25,6 +25,7 @@ const WorkflowEditor: FunctionComponent = () => {
     setAutoUpdate,
   } = useWorkflow();
 
+  const ref = useRef<HTMLDivElement>(null);
   const [workflowName, setWorkflowName] = useState("");
 
   const [menuPosition, setMenuPosition] = useState<{
@@ -38,9 +39,12 @@ const WorkflowEditor: FunctionComponent = () => {
 
   useEffect(() => {
     const handleMouseMove = (event: MouseEvent) => {
+      if (!ref.current) return;
+      const rect = ref.current.getBoundingClientRect();
+
       setMousePosition({
-        x: event.clientX,
-        y: event.clientY,
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top,
       });
     };
 
@@ -108,6 +112,7 @@ const WorkflowEditor: FunctionComponent = () => {
         height: "100%",
         overflow: "hidden",
       }}
+      ref={ref}
       onClick={(event) => {
         if ((event.target as HTMLElement).id === "workflow-editor") select([]);
       }}

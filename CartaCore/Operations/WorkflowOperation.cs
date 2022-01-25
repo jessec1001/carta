@@ -476,6 +476,28 @@ namespace CartaCore.Operations
             await runner.Run();
         }
 
+        public override async IAsyncEnumerable<OperationTask> GetTasks(OperationContext context)
+        {
+            // TODO: Support tasks being added by individual operations at any stage in the workflow execution. For now,
+            //       we will only consider tasks induced by missing inputs to the entire operation.
+
+            foreach (string inputField in GetInputFields())
+            {
+                Type inputType = GetInputFieldType(inputField);
+                if (inputType.IsAssignableTo(typeof(Stream)))
+                {
+                    Stream fileUpload = await context.LoadFile(context.OperationId, context.JobId, "upload", inputField);
+                    if (fileUpload is null)
+                        yield return new OperationTask()
+                        {
+                            Type = OperationTaskType.File,
+                            Field = inputField,
+                        };
+                }
+            }
+
+        }
+
         /// <inheritdoc />
         public override Task PrePerform(OperationContext context)
         {

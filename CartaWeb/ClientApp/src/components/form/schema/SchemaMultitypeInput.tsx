@@ -27,6 +27,9 @@ const inferType = (
   value: any,
   types: JsonSchemaBasicTypename[]
 ): JsonSchemaBasicTypename | null => {
+  // TODO: Temporary workaround to allow for file uploads.
+  if (types.includes("file")) return "file";
+
   // For each type that is defined, check if it matches the value.
   // If so, return that type as a match.
   for (const type of types) {

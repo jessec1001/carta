@@ -94,7 +94,6 @@ const OptionSelectorInput: FunctionComponent<OptionSelectorInputProps> = ({
                 selected: childIndex === index,
               })}
             >
-              {console.log(child)}
               {child}
             </li>
           ))}

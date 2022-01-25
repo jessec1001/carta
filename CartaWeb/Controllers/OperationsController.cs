@@ -103,7 +103,7 @@ namespace CartaWeb.Controllers
             }
 
             // We read the file.
-            using FileStream fileStream = new(path, FileMode.Open);
+            FileStream fileStream = new(path, FileMode.Open);
             return Task.FromResult<Stream>(fileStream);
         }
 
@@ -620,6 +620,8 @@ namespace CartaWeb.Controllers
 
                 Threads = 32,
             };
+            await foreach (OperationTask task in operation.GetTasks(context))
+                context.Tasks.Add(task);
             context.SaveFile = SaveJobFileAsync;
             context.LoadFile = LoadJobFileAsync;
 
@@ -846,6 +848,8 @@ namespace CartaWeb.Controllers
                 Input = new Dictionary<string, object>(jobItem.Value),
                 Output = new Dictionary<string, object>()
             };
+            await foreach (OperationTask task in operation.GetTasks(context))
+                context.Tasks.Add(task);
             context.SaveFile = SaveJobFileAsync;
             context.LoadFile = LoadJobFileAsync;
 
