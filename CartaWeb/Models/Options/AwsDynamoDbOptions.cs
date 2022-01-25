@@ -8,12 +8,6 @@ namespace CartaWeb.Models.Options
     public class AwsDynamoDbOptions
     {
         /// <summary>
-        /// Gets or sets the table.
-        /// </summary>
-        /// <value>The name of the DynamoDB table.</value>
-        public string TableName { get; set; }
-
-        /// <summary>
         /// Gets or sets table migration steps
         /// </summary>
         /// <value>A sorted dictionary of migration steps, with key set to the step name, and the
