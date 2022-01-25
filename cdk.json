@@ -1,5 +1,6 @@
 {
   "app": "dotnet run -p CartaAwsDeploy/CartaAwsDeploy.csproj",
+  "requireApproval": "never",
   "context": {
     "@aws-cdk/aws-apigateway:usagePlanKeyOrderInsensitiveId": true,
     "@aws-cdk/core:enableStackNameDuplicates": "true",
@@ -13,6 +14,19 @@
     "@aws-cdk/aws-rds:lowercaseDbIdentifier": true,
     "@aws-cdk/aws-efs:defaultEncryptionAtRest": true,
     "@aws-cdk/aws-lambda:recognizeVersionProps": true,
-    "@aws-cdk/aws-cloudfront:defaultSecurityPolicyTLSv1.2_2021": true
+    "@aws-cdk/aws-cloudfront:defaultSecurityPolicyTLSv1.2_2021": true,
+    "dev:cognitoCallbackUrl" : "https://localhost:5001/signin-oidc",
+    "dev:cognitoCallbackUrl" : "https://development.carta.contextualize.us.com/signin-oidc",
+    "stg:cognitoCallbackUrl" : "https://staging.carta.contextualize.us.com/signin-oidc",
+    "prd:cognitoCallbackUrl" : "https://carta.contextualize.us.com/signin-oidc",
+    "dev:cognitoUserPoolDomainPrefix" : "devcarta",
+    "stg:cognitoUserPoolDomainPrefix" : "stagingcarta",
+    "prd:cognitoUserPoolDomainPrefix" : "carta",
+    "dev:elasticBeanstalkCertificate" : "bfed9213-11cf-4709-adba-f1d665dc0321",
+    "stg:elasticBeanstalkCertificate" : "a931f8b1-acd7-4735-9fa2-4d079410e6fb",
+    "prd:elasticBeanstalkCertificate" : "9e915807-5cdf-4942-b851-21d595bbb609",
+    "dev:elasticBeanstalkInstanceType" : "t2.micro",
+    "stg:elasticBeanstalkInstanceType" : "t2.small",
+    "prd:elasticBeanstalkInstanceType" : "t2.large"
   }
 }
