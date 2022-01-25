@@ -24,7 +24,7 @@ build:
 publish-staging:
   stage: build
   only:
-    - master
+    - dev-v1.0.0rc1
   except:
     - tags
   artifacts:
@@ -96,7 +96,7 @@ test:
 docs-coverage:
   stage: docs
   only:
-    - master
+    - dev-v1.0.0rc1
   dependencies:
     - test
   artifacts:
@@ -111,7 +111,7 @@ docs-projects:
   image: erothejoker/docker-docfx:latest
   stage: docs
   only:
-    - master
+    - dev-v1.0.0rc1
   dependencies:
     - build
   artifacts:
@@ -123,7 +123,7 @@ docs-projects:
 pages:
   stage: deploy
   only:
-    - master
+    - dev-v1.0.0rc1
   dependencies:
     - docs-projects
     - docs-coverage
@@ -137,7 +137,7 @@ pages:
 deploy-staging:
   stage: deploy
   only:
-    - master
+    - dev-v1.0.0rc1
   except:
     - tags
   dependencies:
