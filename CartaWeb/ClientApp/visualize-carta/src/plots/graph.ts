@@ -1,4 +1,5 @@
 import * as d3 from "d3";
+import { SimulationNodeDatum } from "d3";
 import { Plotter } from "types";
 
 interface IGraphVertex {
@@ -72,7 +73,9 @@ const GraphPlot: Plotter<IGraphPlot, IGraphInteraction> = (
   const nodeLabels = d3.map(plot.vertices, (d) => d.label);
 
   const forceNode = d3.forceManyBody();
-  const forceLink = d3.forceLink(links);
+  const forceLink = d3
+    .forceLink<IGraphVertex & SimulationNodeDatum, IGraphEdge>(links)
+    .id(({ id }) => id);
 
   const drag = (
     simulation: d3.Simulation<d3.SimulationNodeDatum, undefined>

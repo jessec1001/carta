@@ -67,8 +67,11 @@ namespace CartaCore.Operations
             catch { }
 
             // Apply all description modifying attributes.
-            foreach (OperationDescribingAttribute attr in type.GetCustomAttributes<OperationDescribingAttribute>())
-                description = attr.Modify(description);
+            foreach (Attribute attr in type.GetCustomAttributes())
+            {
+                if (attr is IOperationDescribingAttribute describer)
+                    description = describer.Modify(description);
+            }
 
             return description;
         }

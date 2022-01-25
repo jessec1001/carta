@@ -1,9 +1,12 @@
+using System;
+
 namespace CartaCore.Operations.Attributes
 {
     /// <summary>
     /// An attribute that assigns a tag to an operation.
     /// </summary>
-    public class OperationTagAttribute : OperationDescribingAttribute
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+    public class OperationTagAttribute : Attribute, IOperationDescribingAttribute
     {
         /// <summary>
         /// A tag to apply to the operation description. Should help to describe the classification of the functionality
@@ -19,7 +22,7 @@ namespace CartaCore.Operations.Attributes
         public OperationTagAttribute(string tag) => Tag = tag;
 
         /// <inheritdoc />
-        public override OperationDescription Modify(OperationDescription description)
+        public OperationDescription Modify(OperationDescription description)
         {
             // Ensure tags array is defined.
             if (description.Tags is null)

@@ -74,13 +74,19 @@ const Visualizer: FunctionComponent<{
   const inputType =
     type === "input" &&
     operation.default &&
-    workflow.schema?.inputs[operation.default["Name"]].type;
+    operation.default["Name"] &&
+    workflow.schema &&
+    workflow.schema.inputs[operation.default["Name"]] &&
+    workflow.schema.inputs[operation.default["Name"]].type;
   const inputUpload =
     inputType && (inputType === "file" || inputType.includes("file"));
   const outputType =
     type === "output" &&
     operation.default &&
-    workflow.schema?.outputs[operation.default["Name"]].type;
+    operation.default["Name"] &&
+    workflow.schema &&
+    workflow.schema.outputs[operation.default["Name"]] &&
+    workflow.schema.outputs[operation.default["Name"]].type;
   const outputDownload =
     outputType && (outputType === "file" || outputType.includes("file"));
   console.log(jobId);

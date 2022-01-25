@@ -77,7 +77,12 @@ var GraphPlot = function (container, plot, interaction) {
     var links = d3.map(plot.edges, function (d) { return (__assign({}, d)); });
     var nodeLabels = d3.map(plot.vertices, function (d) { return d.label; });
     var forceNode = d3.forceManyBody();
-    var forceLink = d3.forceLink(links);
+    var forceLink = d3
+        .forceLink(links)
+        .id(function (_a) {
+        var id = _a.id;
+        return id;
+    });
     var drag = function (simulation) {
         var onDragStarted = function (event) {
             if (!event.active)

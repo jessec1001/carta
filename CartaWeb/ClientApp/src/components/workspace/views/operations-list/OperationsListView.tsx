@@ -147,7 +147,20 @@ const OperationsListView: FC = () => {
                 });
               }
 
-              // TODO: We need to add an output operation for the output of the visualizer.
+              // Add an output operation for the output of the visualizer.
+              const outputOperation = await operationsAPI.createOperation(
+                "workflowOutput",
+                null,
+                { Name: "Visualization" }
+              );
+              await workflowsAPI.addWorkflowOperation(
+                workflow.id,
+                outputOperation.id
+              );
+              await workflowsAPI.addWorkflowConnection(workflow.id, {
+                source: { field: "Graph", operation: visOperation.id },
+                target: { field: "Value", operation: outputOperation.id },
+              });
 
               const workflowOperation = await operationsAPI.createOperation(
                 "workflow",

@@ -61,7 +61,7 @@ namespace CartaCore.Typing.Conversion
         /// <typeparam name="TSource">The source type.</typeparam>
         /// <typeparam name="TTarget">The target type.</typeparam>
         /// <returns><c>true</c> if the conversion was successful; otherwise, <c>false</c>.</returns>
-        public bool TryConvert<TSource, TTarget>(in TSource input, out TTarget output, object value, TypeConverterContext context = null)
+        public bool TryConvert<TSource, TTarget>(in TSource input, out TTarget output, TypeConverterContext context = null)
         {
             // Prepare the input and output values.
             object untypedInput = input;

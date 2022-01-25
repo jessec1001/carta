@@ -1,9 +1,12 @@
+using System;
+
 namespace CartaCore.Operations.Attributes
 {
     /// <summary>
     /// An attribute that indicates that an operation is a selector.
     /// </summary>
-    public class OperationSelectorAttribute : OperationDescribingAttribute
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
+    public class OperationSelectorAttribute : Attribute, IOperationDescribingAttribute
     {
         /// <summary>
         /// The name of the operation when used as a selector for a graph.
@@ -17,7 +20,7 @@ namespace CartaCore.Operations.Attributes
         public OperationSelectorAttribute(string selector) => Selector = selector;
 
         /// <inheritdoc />
-        public override OperationDescription Modify(OperationDescription description)
+        public OperationDescription Modify(OperationDescription description)
         {
             description.Selector = Selector;
             return description;

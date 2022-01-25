@@ -1,4 +1,5 @@
 using System;
+using System.Collections.ObjectModel;
 
 namespace CartaCore.Typing.Conversion
 {
@@ -13,7 +14,7 @@ namespace CartaCore.Typing.Conversion
         /// The internal converters that are used to convert between types.
         /// Note that these converters should be specified in the order that they are used.
         /// </summary>
-        private TypeConverter[] TypeConverters { get; init; }
+        public ReadOnlyCollection<TypeConverter> TypeConverters { get; init; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TypeConverterContext"/> class with the given converters.
@@ -21,7 +22,7 @@ namespace CartaCore.Typing.Conversion
         /// <param name="typeConverters">The converters to use. Should be speicifed in the order of application.</param>
         public TypeConverterContext(params TypeConverter[] typeConverters)
         {
-            TypeConverters = typeConverters;
+            TypeConverters = Array.AsReadOnly(typeConverters);
         }
 
         /// <inheritdoc />

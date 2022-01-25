@@ -1,9 +1,12 @@
+using System;
+
 namespace CartaCore.Operations.Attributes
 {
     /// <summary>
     /// An attribute that assigns type and display names to an operation. 
     /// </summary>
-    public class OperationNameAttribute : OperationDescribingAttribute
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
+    public class OperationNameAttribute : Attribute, IOperationDescribingAttribute
     {
         /// <summary>
         /// The type name of the operation. This will be unique across all operations and can be used as an
@@ -18,7 +21,7 @@ namespace CartaCore.Operations.Attributes
         public string Display { get; init; }
 
         /// <inheritdoc />
-        public override OperationDescription Modify(OperationDescription description)
+        public OperationDescription Modify(OperationDescription description)
         {
             description.Type = Type;
             description.Display = Display;

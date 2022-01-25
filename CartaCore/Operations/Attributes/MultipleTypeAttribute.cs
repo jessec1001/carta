@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
+using CartaCore.Typing.Attributes;
 using CartaCore.Typing.Conversion;
 
-namespace CartaCore.Typing.Attributes
+namespace CartaCore.Operations.Attributes
 {
     /// <summary>
     /// Specifies a list of types that a property or field can take on after conversion.

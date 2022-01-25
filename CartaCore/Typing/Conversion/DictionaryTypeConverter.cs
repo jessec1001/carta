@@ -2,10 +2,11 @@ using System;
 using System.Collections;
 using System.Linq;
 using System.Reflection;
+using CartaCore.Extensions.Typing;
+using CartaCore.Operations.Attributes;
 
 namespace CartaCore.Typing.Conversion
 {
-    // TODO: Do we need a source type to make sure that the source type is the same as the input type?
     // TODO: Should we split converters of this form into two classes?
     /// <summary>
     /// Converts values between a dictionary type and a defined struct or class.
@@ -86,32 +87,74 @@ namespace CartaCore.Typing.Conversion
 
                 // We create a new instance of the target type.
                 output = Activator.CreateInstance(targetType);
-                foreach (DictionaryEntry entry in dictionary)
+                foreach (PropertyInfo property in targetType.GetProperties(BindingFlags.Public | BindingFlags.Instance))
                 {
-                    // We get the property of the target type.
-                    PropertyInfo property = targetType.GetProperty(
-                        entry.Key.ToString(),
-                        BindingFlags.Instance |
-                        BindingFlags.Public |
-                        BindingFlags.IgnoreCase
-                    );
-                    if (property is null) continue;
-
-                    // We use other converters to convert the value.
-                    object convertedValue;
-                    if (context is not null)
+                    // TODO: This is temporary.
+                    OperationAuthenticationAttribute authAttribute = property.GetCustomAttribute<OperationAuthenticationAttribute>();
+                    if (authAttribute is not null)
                     {
-                        context.TryConvert(
-                            entry.Value.GetType(),
-                            property.PropertyType,
-                            entry.Value,
-                            out convertedValue
-                        );
-                    }
-                    else convertedValue = entry.Value;
+                        // Get the referenced authentication value if possible.
+                        if (dictionary.Contains("authentication"))
+                        {
+                            object authObject = dictionary["authentication"];
+                            if (authObject is IDictionary authDictionary)
+                            {
+                                if (authDictionary.Contains(authAttribute.Key))
+                                {
+                                    // Using the authentication value, we call the appropriate constructor.
+                                    object authValue = authDictionary[authAttribute.Key];
+                                    object[] constructorArgs = new object[] { authValue };
+                                    object authInstance = Activator.CreateInstance(property.PropertyType, constructorArgs);
 
-                    // We set the value of the property.
-                    property.SetValue(output, convertedValue);
+                                    // We set the value of the property.
+                                    property.SetValue(output, authInstance);
+                                }
+                            }
+                        }
+
+                        // Do not allow overriding the authentication value.
+                        continue;
+                    }
+
+                    // Check if the property is in the dictionary.
+                    DictionaryEntry entry = default;
+                    bool entryExists = false;
+                    foreach (DictionaryEntry dictionaryEntry in dictionary)
+                    {
+                        string key = dictionaryEntry.Key.ToString();
+                        if (key.Equals(property.Name, StringComparison.OrdinalIgnoreCase))
+                        {
+                            entry = dictionaryEntry;
+                            entryExists = true;
+                            break;
+                        }
+                    }
+
+                    // We attempt to convert the property.
+                    if (entryExists)
+                    {
+                        object convertedValue;
+                        if (context is not null)
+                        {
+                            // By default, use the context to convert the value.
+                            TypeConverter converter = context;
+
+                            // Create a new type converter context based on the property attributes.
+                            TypeConverterContext subcontext = context.ApplyAttributes(property.GetCustomAttributes());
+
+                            // Convert the value.
+                            subcontext.TryConvert(
+                                entry.Value?.GetType(),
+                                property.PropertyType,
+                                entry.Value,
+                                out convertedValue
+                            );
+                        }
+                        else convertedValue = entry.Value;
+
+                        // We set the value of the property.
+                        property.SetValue(output, convertedValue);
+                    }
                 }
                 return true;
             }
