@@ -21,7 +21,33 @@ build:
     - cd ../../
     - dotnet build --configuration Release
 
-publish:
+publish-staging:
+  stage: build
+  only:
+    - dev-v1.0.0rc1
+  except:
+    - tags
+  artifacts:
+    paths:
+      - package.zip
+  script:
+    - curl -sL https://deb.nodesource.com/setup_current.x | bash -
+    - apt-get install -y nodejs
+    - apt-get install -y zip unzip
+    - npm install -g aws-cdk
+    - mkdir ~/.aws 
+    - echo "[default]" > ~/.aws/config 
+    - echo "region = $AWS_DEFAULT_REGION"  >> ~/.aws/config 
+    - echo "[default]" > ~/.aws/credentials
+    - echo "aws_access_key_id = $STAGING_AWS_ACCESS_KEY_ID"  >> ~/.aws/credentials
+    - echo "aws_secret_access_key = $STAGING_AWS_SECRET_ACCESS_KEY"  >> ~/.aws/credentials
+    - cdk deploy ResourceStack --outputs-file CartaWeb/appsettings.CDK.json
+    - dotnet publish --configuration Release CartaWeb/ -o package
+    - cp -r .platform/ package/
+    - cd package
+    - zip -r ../package.zip .
+
+publish-production:
   stage: build
   only:
     - tags
@@ -30,8 +56,16 @@ publish:
       - package.zip
   script:
     - curl -sL https://deb.nodesource.com/setup_current.x | bash -
-    - apt-get install -y zip unzip
     - apt-get install -y nodejs
+    - apt-get install -y zip unzip
+    - npm install -g aws-cdk
+    - mkdir ~/.aws 
+    - echo "[default]" > ~/.aws/config 
+    - echo "region = $AWS_DEFAULT_REGION"  >> ~/.aws/config 
+    - echo "[default]" > ~/.aws/credentials
+    - echo "aws_access_key_id = $PRODUCTION_AWS_ACCESS_KEY_ID"  >> ~/.aws/credentials
+    - echo "aws_secret_access_key = $PRODUCTION_AWS_SECRET_ACCESS_KEY"  >> ~/.aws/credentials
+    - cdk deploy ResourceStack --outputs-file CartaWeb/appsettings.CDK.json
     - dotnet publish --configuration Release CartaWeb/ -o package
     - cp -r .platform/ package/
     - cd package
@@ -62,7 +96,7 @@ test:
 docs-coverage:
   stage: docs
   only:
-    - master
+    - dev-v1.0.0rc1
   dependencies:
     - test
   artifacts:
@@ -77,7 +111,7 @@ docs-projects:
   image: erothejoker/docker-docfx:latest
   stage: docs
   only:
-    - master
+    - dev-v1.0.0rc1
   dependencies:
     - build
   artifacts:
@@ -89,7 +123,7 @@ docs-projects:
 pages:
   stage: deploy
   only:
-    - master
+    - dev-v1.0.0rc1
   dependencies:
     - docs-projects
     - docs-coverage
@@ -100,22 +134,44 @@ pages:
     - mv docfx_project/_site public/
     - mv coverage/ public/coverage/
 
-deploy:
-  image: registry.gitlab.com/gitlab-org/cloud-deploy/aws-base:latest
+deploy-staging:
+  stage: deploy
+  only:
+    - dev-v1.0.0rc1
+  except:
+    - tags
+  dependencies:
+    - publish-staging
+  script:
+    - curl -sL https://deb.nodesource.com/setup_current.x | bash -
+    - apt-get install -y nodejs
+    - npm install -g aws-cdk
+    - mkdir ~/.aws 
+    - echo "[default]" > ~/.aws/config 
+    - echo "region = $AWS_DEFAULT_REGION"  >> ~/.aws/config 
+    - echo "[default]" > ~/.aws/credentials
+    - echo "aws_access_key_id = $STAGING_AWS_ACCESS_KEY_ID"  >> ~/.aws/credentials
+    - echo "aws_secret_access_key = $STAGING_AWS_SECRET_ACCESS_KEY"  >> ~/.aws/credentials
+    - COMMIT_SHA=`echo $CI_COMMIT_SHA | cut -c1-8`
+    - mv package.zip package-$COMMIT_SHA.zip
+    - cdk deploy ElasticBeanstalkStack --context commitSHA=$COMMIT_SHA
+
+deploy-production:
   stage: deploy
   only:
     - tags
   dependencies:
-    - publish
+    - publish-production
   script:
-    - aws s3 cp package.zip s3://$AWS_S3_BUCKET/package-$CI_COMMIT_TAG.zip
-    - >
-      aws elasticbeanstalk create-application-version
-      --application-name Carta
-      --version-label Carta-$CI_COMMIT_TAG
-      --source-bundle S3Bucket=$AWS_S3_BUCKET,S3Key=package-$CI_COMMIT_TAG.zip
-    - >
-      aws elasticbeanstalk update-environment
-      --application-name Carta
-      --environment-name Carta-dev
-      --version-label Carta-$CI_COMMIT_TAG
+    - curl -sL https://deb.nodesource.com/setup_current.x | bash -
+    - apt-get install -y nodejs
+    - npm install -g aws-cdk
+    - mkdir ~/.aws 
+    - echo "[default]" > ~/.aws/config 
+    - echo "region = $AWS_DEFAULT_REGION"  >> ~/.aws/config 
+    - echo "[default]" > ~/.aws/credentials
+    - echo "aws_access_key_id = $PRODUCTION_AWS_ACCESS_KEY_ID"  >> ~/.aws/credentials
+    - echo "aws_secret_access_key = $PRODUCTION_AWS_SECRET_ACCESS_KEY"  >> ~/.aws/credentials
+    - COMMIT_SHA=`echo $CI_COMMIT_SHA | cut -c1-8`
+    - mv package.zip package-$COMMIT_SHA.zip
+    - cdk deploy ElasticBeanstalkStack --context commitSHA=$COMMIT_SHA

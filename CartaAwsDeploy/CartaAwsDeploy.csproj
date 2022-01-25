@@ -9,15 +9,18 @@
 
   <ItemGroup>
     <!-- CDK Construct Library dependencies -->
-    <PackageReference Include="Amazon.CDK" Version="1.121.0" />
+    <PackageReference Include="Amazon.CDK" Version="1.134.0" />
 
     <!-- jsii Roslyn analyzers (un-comment to obtain compile-time checks for missing required props
     <PackageReference Include="Amazon.Jsii.Analyzers" Version="*" PrivateAssets="all" />
     -->
-    <PackageReference Include="Amazon.CDK.AWS.DynamoDB" Version="1.121.0" />
-    <PackageReference Include="Amazon.CDK.AWS.IAM" Version="1.121.0" />
-    <PackageReference Include="Amazon.CDK.AWS.Cognito" Version="1.121.0" />
-    <PackageReference Include="AWSSDK.SecurityToken" Version="3.7.1.47" />
+    <PackageReference Include="Amazon.CDK.AWS.DynamoDB" Version="1.134.0" />
+    <PackageReference Include="Amazon.CDK.AWS.IAM" Version="1.134.0" />
+    <PackageReference Include="Amazon.CDK.AWS.Cognito" Version="1.134.0" />
+    <PackageReference Include="Amazon.CDK.AWS.S3.Assets" Version="1.134.0" />
+    <PackageReference Include="Amazon.CDK.AWS.ElasticBeanstalk" Version="1.134.0" />
+    <PackageReference Include="Amazon.CDK.AWS.CertificateManager" Version="1.134.0" />
+    <PackageReference Include="Amazon.CDK.AWS.S3.Deployment" Version="1.134.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -25,5 +28,18 @@
     <None Remove="Amazon.CDK.AWS.IAM" />
     <None Remove="Amazon.CDK.AWS.Cognito" />
     <None Remove="AWSSDK.SecurityToken" />
+    <None Remove="Amazon.CDK.AWS.S3.Assets" />
+    <None Remove="Amazon.CDK.AWS.ElasticBeanstalk" />
+    <None Remove="Amazon.CDK.AWS.CertificateManager" />
+    <None Remove="Amazon.CDK.AWS.Route53" />
+    <None Remove="Amazon.CDK.AWS.Route53.Targets" />
+    <None Remove="Amazon.CDK.AWS.S3.Deployment" />
+    <None Remove="Amazon.CDK.AWS.CloudFront.Origins" />
+    <None Remove="CommandLineParser" />
+    <None Remove="Amazon.CDK.AWS.Logs" />
+    <None Remove="Amazon.CDK.AWS.CloudWatch" />
+    <None Remove="Amazon.CDK.AWS.SNS" />
+    <None Remove="Amazon.CDK.AWS.SNS.Subscriptions" />
+    <None Remove="Amazon.CDK.AWS.CloudWatch.Actions" />
   </ItemGroup>
 </Project>

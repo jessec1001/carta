@@ -55,54 +55,38 @@ namespace CartaWeb
         public void ConfigureServices(IServiceCollection services)
         {
             // AWS settings
-            AwsAccessOptions awsOptions = Configuration
-                .GetSection("Deployment:AWS")
-                .Get<AwsAccessOptions>();
             AwsDynamoDbOptions awsDynamoDbOptions = Configuration
                 .GetSection("Database:DynamoDb:Table")
                 .Get<AwsDynamoDbOptions>();
-            AwsCognitoOptions awsCognitoOptions = Configuration.
-                GetSection("Authentication:Cognito").
-                Get<AwsCognitoOptions>();
             AwsCdkOptions awsCdkOptions = Configuration.
-                GetSection("CartaAwsDeployStack").
+                GetSection("ResourceStack").
                 Get<AwsCdkOptions>();
-            if (awsCdkOptions is not null)
-            {
-                awsOptions.AccessKey = awsCdkOptions.AccessKey;
-                awsOptions.SecretKey = awsCdkOptions.SecretKey;
-                awsOptions.RegionEndpoint = awsCdkOptions.RegionEndpoint;
-                awsDynamoDbOptions.TableName = awsCdkOptions.DynamoDBTable;
-                awsCognitoOptions.UserPoolId = awsCdkOptions.UserPoolId;
-            }
-            services.AddSingleton<OperationJobCollection>(new OperationJobCollection());
-            services.AddHostedService<BackgroundOperationService>();
-            services.AddSingleton<INoSqlDbContext>(
-                new DynamoDbContext
-                (
-                    awsOptions.AccessKey,
-                    awsOptions.SecretKey,
-                    Amazon.RegionEndpoint.GetBySystemName(awsOptions.RegionEndpoint),
-                    awsDynamoDbOptions.TableName
-                )
-            );
-            if (awsOptions.AccessKey is null)
+            services.
+                AddSingleton<INoSqlDbContext>(
+                    new DynamoDbContext
+                    (
+                        awsCdkOptions.AccessKey,
+                        awsCdkOptions.SecretKey,
+                        Amazon.RegionEndpoint.GetBySystemName(awsCdkOptions.RegionEndpoint),
+                        awsCdkOptions.DynamoDBTable
+                    ));
+            if (awsCdkOptions.AccessKey is null)
                 services.
                     AddSingleton<IAmazonCognitoIdentityProvider>(
                         new AmazonCognitoIdentityProviderClient
                         (
-                            Amazon.RegionEndpoint.GetBySystemName(awsOptions.RegionEndpoint)
+                            Amazon.RegionEndpoint.GetBySystemName(awsCdkOptions.RegionEndpoint)
                         ));
             else
                 services.
                     AddSingleton<IAmazonCognitoIdentityProvider>(
                         new AmazonCognitoIdentityProviderClient
                         (
-                            awsOptions.AccessKey,
-                            awsOptions.SecretKey,
-                            Amazon.RegionEndpoint.GetBySystemName(awsOptions.RegionEndpoint)
+                            awsCdkOptions.AccessKey,
+                            awsCdkOptions.SecretKey,
+                            Amazon.RegionEndpoint.GetBySystemName(awsCdkOptions.RegionEndpoint)
                         ));
-            if (awsDynamoDbOptions.MigrationSteps is not null)
+            if ((awsDynamoDbOptions is not null) && (awsDynamoDbOptions.MigrationSteps is not null))
             {
                 services.AddSingleton<INoSqlDbMigrationBuilder>((container) =>
                 {
@@ -111,15 +95,15 @@ namespace CartaWeb
                     return new DynamoDbMigrationBuilder
                         (
                             awsDynamoDbOptions.MigrationSteps,
-                            awsOptions.AccessKey,
-                            awsOptions.SecretKey,
-                            Amazon.RegionEndpoint.GetBySystemName(awsOptions.RegionEndpoint),
-                            awsDynamoDbOptions.TableName,
+                            awsCdkOptions.AccessKey,
+                            awsCdkOptions.SecretKey,
+                            Amazon.RegionEndpoint.GetBySystemName(awsCdkOptions.RegionEndpoint),
+                            awsCdkOptions.DynamoDBTable,
                             logger
                         );
                 });
             }
-            services.Configure<AwsCognitoOptions>(Configuration.GetSection("Authentication:Cognito"));
+            services.Configure<AwsCdkOptions>(Configuration.GetSection("ResourceStack"));
 
             // Formatting settings.
             services
@@ -177,14 +161,11 @@ namespace CartaWeb
                     Configuration
                         .GetSection("Authentication:OpenIdConnect")
                         .Bind(options);
-                    if (awsCdkOptions is not null)
-                    {
-                        options.ClientId = awsCdkOptions.UserPoolClientId;
-                        string serverUrl = $"https://cognito-idp.{awsOptions.RegionEndpoint}.amazonaws.com/" +
-                            $"{awsCognitoOptions.UserPoolId}";
-                        options.Authority = serverUrl;
-                        options.MetadataAddress = $"{serverUrl}/.well-known/openid-configuration";
-                    }
+                    options.ClientId = awsCdkOptions.UserPoolClientId;
+                    string serverUrl = $"https://cognito-idp.{awsCdkOptions.RegionEndpoint}.amazonaws.com/" +
+                        $"{awsCdkOptions.UserPoolId}";
+                    options.Authority = serverUrl;
+                    options.MetadataAddress = $"{serverUrl}/.well-known/openid-configuration";
                 }
             );
 
