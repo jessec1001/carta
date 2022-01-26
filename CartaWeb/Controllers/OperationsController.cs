@@ -754,39 +754,38 @@ namespace CartaWeb.Controllers
                 return job;
             }
         }
-        // TODO: Reimplement.
-        // [HttpPost("{operationId}/jobs/{jobId}/{field}/{selector}/prioritize")]
-        // public async Task<ActionResult> PrioritizeOperationJob(
-        //     [FromRoute] string operationId,
-        //     [FromRoute] string jobId,
-        //     [FromRoute] string field,
-        //     [FromRoute] string selector
-        // )
-        // {
-        //     // TODO: (Permissions) This endpoint should only be accessible to someone who has "execute" permissions to
-        //     //       the referenced operation instance.
+        [HttpPost("{operationId}/jobs/{jobId}/{field}/{selector}/prioritize")]
+        public async Task<ActionResult> PrioritizeOperationJob(
+            [FromRoute] string operationId,
+            [FromRoute] string jobId,
+            [FromRoute] string field,
+            [FromRoute] string selector
+        )
+        {
+            // TODO: (Permissions) This endpoint should only be accessible to someone who has "execute" permissions to
+            //       the referenced operation instance.
 
-        //     // Get the job if it exists.
-        //     (JobItem job, Operation operation, OperationContext context) = _jobCollection.Seek(jobId);
-        //     if (job is null)
-        //     {
-        //         return NotFound(new
-        //         {
-        //             Error = "Job with specified identifier could not be found.",
-        //             Id = operationId
-        //         });
-        //     }
+            // Get the job if it exists.
+            (JobItem job, Operation operation, OperationContext context) = _jobCollection.Seek(jobId);
+            if (job is null)
+            {
+                return NotFound(new
+                {
+                    Error = "Job with specified identifier could not be found.",
+                    Id = operationId
+                });
+            }
 
-        //     // Compute the selector.
-        //     Operation selectorOperation = Operation.ConstructSelector(selector, out object selectorInput, out object _);
-        //     await TryUpdateModelAsync(selectorInput, selectorInput.GetType(), "");
-        //     Selector selectorInstance = new Selector(selectorOperation);
+            // Compute the selector.
+            Operation selectorOperation = Operation.ConstructSelector(selector, out object selectorInput, out object _);
+            await TryUpdateModelAsync(selectorInput, selectorInput.GetType(), "");
+            Selector selectorInstance = new Selector(selectorOperation);
 
-        //     // Add the selector to the priority queue of the context.
-        //     context.Selectors.Enqueue(new(selectorInstance, selectorInput));
+            // Add the selector to the priority queue of the context.
+            context.Selectors.Enqueue(new(selectorInstance, selectorInput));
 
-        //     return Ok();
-        // }
+            return Ok();
+        }
 
         // TODO: Review API URLs.
         /// <summary>
@@ -917,16 +916,16 @@ namespace CartaWeb.Controllers
             Stream file = await LoadJobFileAsync(operationId, jobId, "download", field);
             return file is null ? StatusCode(423, new { Error = "File download is not ready." }) : File(file, "application/octet-stream", field);
         }
-        // // TODO: Implement.
-        // public async Task<ActionResult> AuthenticateOperation(
+        // TODO: Implement.
+        public async Task<ActionResult> AuthenticateOperation(
 
-        // )
-        // {
-        //     // TODO: (Permissions) This endpoint should only be accessible to someone who has "execute" permissions to
-        //     //       the referenced operation instance.
+        )
+        {
+            // TODO: (Permissions) This endpoint should only be accessible to someone who has "execute" permissions to
+            //       the referenced operation instance.
 
-        //     return Ok();
-        // }
+            return Ok();
+        }
         #endregion
 
         #region Endpoints (Schema)

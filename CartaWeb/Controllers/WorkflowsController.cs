@@ -86,6 +86,8 @@ namespace CartaWeb.Controllers
         public async Task<ActionResult<WorkflowItem>> CreateWorkflow(
             [FromBody] WorkflowItem workflowItem)
         {
+            // TODO: (Permissions) This endpoint should be accessible to anyone.
+
             // Set an identifier and make sure that internal representation fields have been set.
             // We make sure that the identifier has not already been set by the user otherwise, this is a bad request.
             // We make sure that the name is specified so that we have something to display and return from endpoints.
@@ -117,6 +119,10 @@ namespace CartaWeb.Controllers
         public async Task<ActionResult<WorkflowItem>> GetWorkflow(
             [FromRoute] string workflowId)
         {
+            // TODO: (Permissions) This endpoint should be accessible to those with "read" access to the specified
+            //       workflow. For now, we don't have such a permission flag so anyone can access this endpoint.
+            //       Additionally, we should add another endpoint for users to get a list of all of their workflows.
+
             // Get the workflow from the store and check that it exists.
             WorkflowItem workflowItem = await LoadWorkflowAsync(workflowId, _persistence);
             if (workflowItem is null)
@@ -135,6 +141,9 @@ namespace CartaWeb.Controllers
             [FromRoute] string workflowId,
             [FromBody] WorkflowItem mergingWorkflowItem)
         {
+            // TODO: (Permissions) This endpoint should be accessible to those with "write" access to the specified
+            //       workflow. For now, we don't have such a permission flag so anyone can access this endpoint.
+
             // Get the existing workflow item and check that it exists.
             WorkflowItem workflowItem = await LoadWorkflowAsync(workflowId, _persistence);
             if (workflowItem is null)
@@ -171,6 +180,9 @@ namespace CartaWeb.Controllers
         [HttpDelete("{workflowId}")]
         public async Task<ActionResult> DeleteWorkflow(string workflowId)
         {
+            // TODO: (Permissions) This endpoint should be accessible to those with "admin" access to the specified
+            //       workflow. For now, we don't have such a permission flag so anyone can access this endpoint.
+
             // Try to delete the workflow and return a status indicating whether successful.
             bool success = await DeleteWorkflowAsync(workflowId, _persistence);
             if (!success)
@@ -190,6 +202,11 @@ namespace CartaWeb.Controllers
         public async Task<ActionResult<OperationItem[]>> GetWorkflowOperations(
             [FromRoute] string workflowId)
         {
+            // TODO: (Permissions) This endpoint should be accessible to those with "read" access to the specified
+            //       workflow and "read" access to each of the contained operations. For now, we don't have such a
+            //       permission flag for workflows so anyone with "read" permissions to the contained operations should
+            //       be able to use this endpoint.
+
             // We try to get the workflow from the store and check that it exists.
             WorkflowItem workflowItem = await LoadWorkflowAsync(workflowId, _persistence);
             if (workflowItem is null)
@@ -212,6 +229,11 @@ namespace CartaWeb.Controllers
             [FromRoute] string workflowId,
             [FromRoute] string suboperationId)
         {
+            // TODO: (Permissions) This endpoint should be accessible to those with "write" access to the specified
+            //       workflow and "admin" access to the specified operation. For now, we don't have such a permission
+            //       flag for workflows so anyone whom has "admin" permissions over the operation (we need to reconsider
+            //       "admin" over operation requirement).
+
             // We try to get the workflow from the store and check that it exists.
             WorkflowItem workflowItem = await LoadWorkflowAsync(workflowId, _persistence);
             if (workflowItem is null)
@@ -246,6 +268,11 @@ namespace CartaWeb.Controllers
             [FromRoute] string workflowId,
             [FromRoute] string suboperationId)
         {
+            // TODO: (Permissions) This endpoint should be accessible to those with "write" access to the specified
+            //       workflow. For now, we don't have such a permission flag for workflows so anyone can access this
+            //       endpoint. Notice however, that a user should not need "admin" access to the specified operation to
+            //       remove it from the workflow (this would be prohibitively restrictive).
+
             // We try to get the workflow from the store and check that it exists.
             WorkflowItem workflowItem = await LoadWorkflowAsync(workflowId, _persistence);
             if (workflowItem is null)
@@ -297,6 +324,11 @@ namespace CartaWeb.Controllers
         public async Task<ActionResult<WorkflowConnection[]>> GetWorkflowConnections(
             [FromRoute] string workflowId)
         {
+            // TODO: (Permissions) This endpoint should be accessible to those with "read" access to the specified
+            //       workflow and "read" access to each of the contained operations. For now, we don't have such a
+            //       permission flag for workflows so anyone with "read" permissions to the contained operations should
+            //       be able to use this endpoint.
+
             // We try to get the workflow from the store and check that it exists.
             WorkflowItem workflowItem = await LoadWorkflowAsync(workflowId, _persistence);
             if (workflowItem is null)
@@ -316,6 +348,10 @@ namespace CartaWeb.Controllers
             [FromRoute] string workflowId,
             [FromBody] WorkflowConnection connection)
         {
+            // TODO: (Permissions) This endpoint should be accessible to those with "write" access to the specified
+            //       workflow. For now, we don't have such a permission flag for workflows so anyone should be able to
+            //       use this endpoint.
+
             // We try to get the workflow from the store and check that it exists.
             WorkflowItem workflowItem = await LoadWorkflowAsync(workflowId, _persistence);
             if (workflowItem is null)
@@ -390,6 +426,10 @@ namespace CartaWeb.Controllers
             [FromRoute] string connectionId,
             [FromBody] WorkflowConnection mergingConnection)
         {
+            // TODO: (Permissions) This endpoint should be accessible to those with "write" access to the specified
+            //       workflow. For now, we don't have such a permission flag for workflows so anyone should be able to
+            //       use this endpoint.
+
             // We try to get the workflow from the store and check that it exists.
             WorkflowItem workflowItem = await LoadWorkflowAsync(workflowId, _persistence);
             if (workflowItem is null)
@@ -475,6 +515,10 @@ namespace CartaWeb.Controllers
             [FromRoute] string workflowId,
             [FromRoute] string connectionId)
         {
+            // TODO: (Permissions) This endpoint should be accessible to those with "write" access to the specified
+            //       workflow. For now, we don't have such a permission flag for workflows so anyone should be able to
+            //       use this endpoint.
+
             // We try to get the workflow from the store and check that it exists.
             WorkflowItem workflowItem = await LoadWorkflowAsync(workflowId, _persistence);
             if (workflowItem is null)
@@ -510,6 +554,11 @@ namespace CartaWeb.Controllers
             [FromBody] WorkflowConnection connection
         )
         {
+            // TODO: (Permissions) This endpoint should be accessible to those with "read" access to the specified
+            //       workflow. For now, we don't have such a permission flag for workflows so anyone should be able to
+            //       use this endpoint.
+
+            // TODO: This endpoint should be modified to return a list of suggestions.
             // We try to get the workflow from the store and check that it exists.
             WorkflowItem workflowItem = await LoadWorkflowAsync(workflowId, _persistence);
             if (workflowItem is null)
@@ -539,18 +588,6 @@ namespace CartaWeb.Controllers
                     Id = connection.Target.Operation
                 });
             }
-
-            // TODO: Generalize to workflows.
-            OperationItem sourceOperation = await OperationsController.LoadOperationAsync
-            (
-                connection.Source.Operation.ToString(),
-                _persistence
-            );
-            OperationItem targetOperation = await OperationsController.LoadOperationAsync
-            (
-                connection.Target.Operation.ToString(),
-                _persistence
-            );
 
             WorkflowOperation workflow = (WorkflowOperation)await OperationsController.InstantiateOperation(new OperationItem()
             {

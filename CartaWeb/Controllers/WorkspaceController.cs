@@ -126,6 +126,8 @@ namespace CartaWeb.Controllers
             [FromRoute] string name
         )
         {
+            // TODO: (Permissions) This endpoint should be available to all users.
+
             // Create workspace item 
             UserInformation userInformation = new(User);
             WorkspaceItem workspaceItem = new(userInformation.Id, name, userInformation);
@@ -179,6 +181,9 @@ namespace CartaWeb.Controllers
             [FromRoute] string id
         )
         {
+            // TODO: (Permissions) This endpoint should only be accessible to someone who has any permission connection
+            //       to the workspace.
+
             WorkspaceItem workspaceItem = await LoadWorkspaceAsync(new UserInformation(User).Id, id);
             if (workspaceItem is null) return NotFound();
             else return Ok(workspaceItem);
@@ -208,6 +213,9 @@ namespace CartaWeb.Controllers
             [FromQuery(Name = "archived")] bool? archived
         )
         {
+            // TODO: (Permissions) This endpoint should be available to all users. However, the endpoint should be
+            //       updated to retrieve workspaces based on the permissions of the user.
+
             // If no archived query parameter has been passed, set it to false
             if (!archived.HasValue) archived = false;
 
@@ -245,6 +253,11 @@ namespace CartaWeb.Controllers
             [FromRoute] string id
         )
         {
+            // TODO: (Permissions) This endpoint should only be accessible to someone who has the ability to read users
+            //       of a group. Ideally, this should be based on visibility flags of users (see annotations in the user
+            //       controller) where anyone with "admin" permissions over the workspace should have fixed visibility.
+            //       For now, we can either use the "admin" flag or the "read" flag.
+
             UserItem userItem = new(id);
             IEnumerable<Item> readUserItems = await _persistence.LoadItemsAsync(userItem);
             List<UserItem> userItems = new() { };
@@ -284,6 +297,9 @@ namespace CartaWeb.Controllers
             [FromQuery(Name = "archived")] bool archived
         )
         {
+            // TODO: (Permissions) This endpoint should only be accessible to someone who has "admin" permissions over
+            //       the referenced workspace.
+
             UserInformation userInformation = new(User);
             WorkspaceItem workspaceItem = await LoadWorkspaceAsync(userInformation.Id, id);
             if (workspaceItem is null) return NotFound();
@@ -371,6 +387,9 @@ namespace CartaWeb.Controllers
             [FromBody] List<UserItem> userItems
         )
         {
+            // TODO: (Permissions) This endpoint needs to be merged into a new permissions endpoint of the form:
+            //        `PUT /workspace/{workspaceId}/permissions/user/{userId}`.
+
             UserInformation userInformation = new(User);
             WorkspaceItem workspaceItem = await LoadWorkspaceAsync(userInformation.Id, id);
             if (workspaceItem is null) return NotFound();
@@ -431,6 +450,9 @@ namespace CartaWeb.Controllers
             [FromQuery(Name = "users")] List<string> users
         )
         {
+            // TODO: (Permissions) This endpoint needs to be merged into a new permissions endpoint of the form:
+            //        `PUT /workspace/{workspaceId}/permissions/user/{userId}`.
+
             foreach (string userId in users)
             {
                 // Load the workspace and user items
@@ -489,6 +511,11 @@ namespace CartaWeb.Controllers
             [FromRoute] string workspaceId
         )
         {
+            // TODO: (Permissions) This endpoint needs to be modified to return any operations that have permissions
+            //       connections to them for the given workspace. We should not discern based on the permissions of
+            //       individual operations at this point and leave that to the operations controller. Thus, this
+            //       endpoint should always return something equavalent to a list of identifiers and no more.      
+
             // Retrieve the operation access items.
             List<OperationAccessItem> operationAccessItems = new();
             OperationAccessItem readOperationAccessItem = new(workspaceId, null);
@@ -521,6 +548,9 @@ namespace CartaWeb.Controllers
             [FromRoute] string operationId
         )
         {
+            // TODO: (Permissions) This endpoint is practically useless since it should only return an identifier (see
+            //       annotation in previous endpoint). We should remove this endpoint.
+
             OperationAccessItem operationAccessItem = await LoadOperationAccessAsync(workspaceId, operationId);
             if (operationAccessItem is null) return NotFound();
             else return Ok(operationAccessItem);
@@ -547,6 +577,10 @@ namespace CartaWeb.Controllers
             [FromRoute] string operationId
         )
         {
+            // TODO: (Permissions) This endpoint should no longer exist here. We should instead use a new permissions
+            //       endpoint of the operations controller to add permissions to operations. This will be of the form:
+            //       `PUT /operations/{operationId}/permissions/group/{workspaceId}`.
+
             // Get user information.
             UserInformation userInformation = new(User);
 
@@ -601,6 +635,10 @@ namespace CartaWeb.Controllers
             [FromRoute] string operationId
         )
         {
+            // TODO: (Permissions) This endpoint should no longer exist here. We should instead use a new permissions
+            //       endpoint of the operations controller to add permissions to operations. This will be of the form:
+            //       `PUT /operations/{operationId}/permissions/group/{workspaceId}`.
+
             OperationAccessItem operationAccessItem = await LoadOperationAccessAsync(workspaceId, operationId);
             UserInformation currentUser = new(User);
             if (operationAccessItem is null) return NotFound();
@@ -689,7 +727,12 @@ namespace CartaWeb.Controllers
             [FromQuery(Name = "dateTo")] DateTime? dateTo
         )
         {
-            // Check that dateTo does not precede dateFrom
+            // TODO: (Permissions) This endpoint should take into consideration the previously noted permissions for
+            //       each stored change. For instance, we should emit operation added/removed events for any operations
+            //       that the workflow has access to and the current user is in the workspace and we should emit user
+            //       added/removed events for which the current user has visibility permissions to.
+
+            // Check that date-to does not precede date-from.
             if (dateFrom.HasValue & dateTo.HasValue)
                 if (dateFrom.Value > dateTo.Value)
                     return BadRequest();

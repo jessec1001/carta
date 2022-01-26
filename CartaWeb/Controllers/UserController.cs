@@ -39,15 +39,15 @@ namespace CartaWeb.Controllers
         /// <summary>
         /// Dictionary that maps user attributes to Cognito user attrubute names
         /// </summary>
-        protected static Dictionary<string, string> _attributeDictionary =
-            new Dictionary<string, string>
-            {
-                        { "UserId", "sub" },
-                        { "UserName", "username" },
-                        { "Email", "email" },
-                        { "FirstName", "given_name" },
-                        { "LastName", "family_name" }
-            };
+        private static readonly Dictionary<string, string> _attributeDictionary =
+        new()
+        {
+            { "UserId", "sub" },
+            { "UserName", "username" },
+            { "Email", "email" },
+            { "FirstName", "given_name" },
+            { "LastName", "family_name" }
+        };
 
         /// <summary>
         /// Creates a new instance of the <see cref="UserController"/> class with a specified controller.
@@ -73,7 +73,7 @@ namespace CartaWeb.Controllers
         /// The attribute value.
         /// </returns>
         /// </summary>
-        private string GetUserAttribute(List<AttributeType> attributes, string attributeName)
+        private static string GetUserAttribute(List<AttributeType> attributes, string attributeName)
         {
             AttributeType attribute = attributes.Find(i => i.Name == attributeName);
             if (attribute is not null) return attribute.Value;
@@ -89,15 +89,17 @@ namespace CartaWeb.Controllers
         /// </returns>
         public static UserInformation GetUserInformation(ClaimsPrincipal user)
         {
-            UserInformation userInformation = new UserInformation
+            UserInformation userInformation = new
             (
                 user.FindFirstValue(ClaimTypes.NameIdentifier),
                 user.FindFirstValue("cognito:username")
-            );
-            userInformation.Email = user.FindFirstValue(ClaimTypes.Email);
-            userInformation.FirstName = user.FindFirstValue(ClaimTypes.GivenName);
-            userInformation.LastName = user.FindFirstValue(ClaimTypes.Surname);
-            userInformation.Groups = new List<string>();
+            )
+            {
+                Email = user.FindFirstValue(ClaimTypes.Email),
+                FirstName = user.FindFirstValue(ClaimTypes.GivenName),
+                LastName = user.FindFirstValue(ClaimTypes.Surname),
+                Groups = new List<string>()
+            };
             foreach (Claim claim in user.FindAll("cognito:groups"))
             {
                 if (!userInformation.Groups.Contains(claim.Value)) userInformation.Groups.Add(claim.Value);
@@ -112,6 +114,8 @@ namespace CartaWeb.Controllers
         [HttpGet("authenticated")]
         public ActionResult<bool> IsUserAuthenticated()
         {
+            // TODO: (Permissions) This endpoint should be available to all users.
+
             return Ok(User.Identity.IsAuthenticated);
         }
 
@@ -126,6 +130,8 @@ namespace CartaWeb.Controllers
         [HttpGet]
         public ActionResult<UserInformation> GetUser()
         {
+            // TODO: (Permissions) This endpoint should be available to all users.
+
             return Ok(GetUserInformation(User));
         }
 
@@ -160,10 +166,20 @@ namespace CartaWeb.Controllers
             string attributeValue,
             string attributeFilter)
         {
+            // TODO: (Permissions) This endpoint should be available to all users.
+            // -     For now, we can keep it open to all users or restrict it to users within organizations groups.
+            // -     However, in the future, it should be modified to reflect the visability of users based on the
+            //       permissions system. For instance, we may add some permissions flags between a source groups and a
+            //       target groups to indicate whether the name, email, and other information of the target group should
+            //       be visible to the source group. Thus, to make a user "public" to all searches, the "all" group
+            //       would have a connection to the "user" group with all visibility flags set to true. 
+
             List<UserInformation> userInformationList = new() { };
 
-            ListUsersRequest request = new ListUsersRequest();
-            request.UserPoolId = _options.UserPoolId;
+            ListUsersRequest request = new()
+            {
+                UserPoolId = _options.UserPoolId
+            };
             if (attributeName.HasValue)
                 request.Filter = _attributeDictionary[attributeName.ToString()] +
                     attributeFilter + "\"" + attributeValue + "\"";
@@ -175,7 +191,7 @@ namespace CartaWeb.Controllers
                 {
                     response = await _identityProvider.ListUsersAsync(request);
                 }
-                catch (Amazon.CognitoIdentityProvider.AmazonCognitoIdentityProviderException e)
+                catch (AmazonCognitoIdentityProviderException e)
                 {
                     _logger.LogError(e, "ListUsers request failed unexpectedly.");
                     return BadRequest();
@@ -183,14 +199,16 @@ namespace CartaWeb.Controllers
 
                 foreach (UserType user in response.Users)
                 {
-                    UserInformation userInformation = new UserInformation
+                    UserInformation userInformation = new
                     (
                         GetUserAttribute(user.Attributes, "sub"),
                         user.Username
-                    );
-                    userInformation.Email = GetUserAttribute(user.Attributes, "email");
-                    userInformation.FirstName = GetUserAttribute(user.Attributes, "given_name");
-                    userInformation.LastName = GetUserAttribute(user.Attributes, "family_name");
+                    )
+                    {
+                        Email = GetUserAttribute(user.Attributes, "email"),
+                        FirstName = GetUserAttribute(user.Attributes, "given_name"),
+                        LastName = GetUserAttribute(user.Attributes, "family_name")
+                    };
                     userInformationList.Add(userInformation);
                 }
 
@@ -223,20 +241,26 @@ namespace CartaWeb.Controllers
             [FromRoute] string groupName
         )
         {
-            List<UserInformation> userInformationList = new() { };
+            // TODO: (Permissions) This endpoint should be restricted to users that are actually part of a group or have
+            //       the "admin" permission over the group. Additionally, the method should be updated to reflect the
+            //       addition of permissions groups whereas the current method works with Cognito groups as if they are
+            //       organizations.
 
-            ListUsersInGroupRequest request = new ListUsersInGroupRequest();
-            request.GroupName = groupName;
-            request.UserPoolId = _options.UserPoolId;
+            List<UserInformation> userInformationList = new() { };
+            ListUsersInGroupRequest request = new()
+            {
+                GroupName = groupName,
+                UserPoolId = _options.UserPoolId
+            };
 
             do
             {
-                ListUsersInGroupResponse response = null;
+                ListUsersInGroupResponse response;
                 try
                 {
                     response = await _identityProvider.ListUsersInGroupAsync(request);
                 }
-                catch (Amazon.CognitoIdentityProvider.Model.ResourceNotFoundException e)
+                catch (ResourceNotFoundException e)
                 {
                     _logger.LogError(e, "ListUsersInGroup request fail because the user pool ID was not found.");
                     return NotFound();
@@ -252,14 +276,16 @@ namespace CartaWeb.Controllers
 
                 foreach (UserType user in response.Users)
                 {
-                    UserInformation userInformation = new UserInformation
+                    UserInformation userInformation = new
                     (
                         GetUserAttribute(user.Attributes, "sub"),
                         user.Username
-                    );
-                    userInformation.Email = GetUserAttribute(user.Attributes, "email");
-                    userInformation.FirstName = GetUserAttribute(user.Attributes, "given_name");
-                    userInformation.LastName = GetUserAttribute(user.Attributes, "family_name");
+                    )
+                    {
+                        Email = GetUserAttribute(user.Attributes, "email"),
+                        FirstName = GetUserAttribute(user.Attributes, "given_name"),
+                        LastName = GetUserAttribute(user.Attributes, "family_name")
+                    };
                     userInformationList.Add(userInformation);
                 }
 
@@ -287,6 +313,8 @@ namespace CartaWeb.Controllers
         [HttpGet("signin")]
         public IActionResult SignInUser()
         {
+            // TODO: (Permissions) This endpoint should be available to all users.
+
             if (User.Identity.IsAuthenticated)
                 return SignIn(User);
             else
@@ -302,6 +330,8 @@ namespace CartaWeb.Controllers
         [HttpGet("signout")]
         public IActionResult SignOutUser()
         {
+            // TODO: (Permissions) This endpoint should be available to all users.
+
             return SignOut();
         }
     }
