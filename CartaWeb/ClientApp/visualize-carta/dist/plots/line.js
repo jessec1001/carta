@@ -48,7 +48,7 @@ var LinePlot = function (container, data) {
         .attr("width", width + marginLeft + marginRight)
         .attr("height", height + marginTop + marginBottom)
         .append("g")
-        .attr("transform", "translate(" + marginLeft + "," + marginTop + ")");
+        .attr("transform", "translate(".concat(marginLeft, ",").concat(marginTop, ")"));
     // TODO: Make our data structures as compatible with these data structures as possible.
     var xValues = data.dims[0];
     var yValues = data.dims[1];
@@ -67,7 +67,7 @@ var LinePlot = function (container, data) {
     // TODO: Use d3.axis() and .orient("bottom"/"left")
     svg
         .append("g")
-        .attr("transform", "translate(0, " + height + ")")
+        .attr("transform", "translate(0, ".concat(height, ")"))
         .call(d3.axisBottom(x));
     svg.append("g").call(d3.axisLeft(y));
     svg

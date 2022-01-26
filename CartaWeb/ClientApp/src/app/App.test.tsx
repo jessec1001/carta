@@ -1,4 +1,4 @@
-// TODO: Re-enable test in future.
+// TODO: Reimplement test.
 import ReactDOM from "react-dom";
 import { MemoryRouter } from "react-router-dom";
 // import App from "./App";

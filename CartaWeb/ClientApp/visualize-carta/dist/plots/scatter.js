@@ -49,7 +49,7 @@ var createSvg = function (container, plot) {
         ? Object.entries(plot.style)
             .map(function (_a) {
             var key = _a[0], value = _a[1];
-            return key + ": " + value + ";";
+            return "".concat(key, ": ").concat(value, ";");
         })
             .join(" ")
         : "";
@@ -58,7 +58,7 @@ var createSvg = function (container, plot) {
     var svg = d3
         .select(container)
         .append("svg")
-        .attr("viewBox", "0 0 " + size.width + " " + size.height)
+        .attr("viewBox", "0 0 ".concat(size.width, " ").concat(size.height))
         .attr("style", style);
     // Return the SVG element and relevant computed information.
     return { svg: svg, size: size };
@@ -289,10 +289,10 @@ var PlotScatter2d = function (container, plot, events) {
     var xAxisElement = svg.append("g");
     var yAxisElement = svg.append("g");
     var xAxisCreate = function (g, scale) {
-        g.attr("transform", "translate(0, " + (size.height - margin.bottom) + ")").call(d3.axisBottom(scale));
+        g.attr("transform", "translate(0, ".concat(size.height - margin.bottom, ")")).call(d3.axisBottom(scale));
     };
     var yAxisCreate = function (g, scale) {
-        g.attr("transform", "translate(" + margin.left + ", 0)").call(d3.axisLeft(scale));
+        g.attr("transform", "translate(".concat(margin.left, ", 0)")).call(d3.axisLeft(scale));
     };
     // Get the colormap that is used for this plot.
     var extentColor = d3.extent(plot.data, function (value) { return value.value; });

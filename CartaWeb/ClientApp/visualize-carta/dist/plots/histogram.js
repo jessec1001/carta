@@ -39,7 +39,7 @@ var HistogramPlot = function (container, plot) {
     var svgElement = d3
         .select(container)
         .append("svg")
-        .attr("viewBox", "0 0 " + width + " " + height);
+        .attr("viewBox", "0 0 ".concat(width, " ").concat(height));
     if (!plot.data)
         return;
     var rangePoints = [];
@@ -65,11 +65,11 @@ var HistogramPlot = function (container, plot) {
         .range([height - margin.bottom, margin.top]);
     svgElement
         .append("g")
-        .attr("transform", "translate(0, " + (height - margin.bottom) + ")")
+        .attr("transform", "translate(0, ".concat(height - margin.bottom, ")"))
         .call(d3.axisBottom(scaleValues));
     svgElement
         .append("g")
-        .attr("transform", "translate(" + margin.left + ", 0)")
+        .attr("transform", "translate(".concat(margin.left, ", 0)"))
         .call(d3.axisLeft(scaleFreq));
     svgElement
         .append("g")

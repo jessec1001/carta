@@ -4,9 +4,9 @@
   "version": "1.0.0",
   "description": "A server-side compatible visualization visualization library for the Carta platform.",
   "main": "dist/index.js",
-  "types": "dist/index.d.js",
+  "types": "dist/index.d.ts",
   "files": [
-    "dist"
+    "/dist"
   ],
   "watch": {
     "build": {
