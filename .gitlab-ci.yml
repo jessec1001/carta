@@ -42,7 +42,7 @@ publish-staging:
     - mkdir ~/.aws 
     - echo "[cdk]" > ~/.aws/config 
     - echo "region = $AWS_DEFAULT_REGION"  >> ~/.aws/config 
-    - echo "[default]" > ~/.aws/credentials
+    - echo "[cdk]" > ~/.aws/credentials
     - echo "aws_access_key_id = $STAGING_AWS_ACCESS_KEY_ID"  >> ~/.aws/credentials
     - echo "aws_secret_access_key = $STAGING_AWS_SECRET_ACCESS_KEY"  >> ~/.aws/credentials
     - cdk deploy ResourceStack --profile cdk --outputs-file CartaWeb/appsettings.CDK.json
@@ -147,7 +147,7 @@ deploy-staging:
     - mkdir ~/.aws 
     - echo "[cdk]" > ~/.aws/config 
     - echo "region = $AWS_DEFAULT_REGION"  >> ~/.aws/config 
-    - echo "[default]" > ~/.aws/credentials
+    - echo "[cdk]" > ~/.aws/credentials
     - echo "aws_access_key_id = $STAGING_AWS_ACCESS_KEY_ID"  >> ~/.aws/credentials
     - echo "aws_secret_access_key = $STAGING_AWS_SECRET_ACCESS_KEY"  >> ~/.aws/credentials
     - COMMIT_SHA=`echo $CI_COMMIT_SHA | cut -c1-8`
