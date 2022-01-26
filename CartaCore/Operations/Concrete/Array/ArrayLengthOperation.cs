@@ -38,7 +38,7 @@ namespace CartaCore.Operations.Array
         /// <inheritdoc />
         public override Task<ArrayLengthOperationOut> Perform(ArrayLengthOperationIn input)
         {
-            return Task.FromResult(new ArrayLengthOperationOut() { Count = input.Items.Length });
+            return Task.FromResult(new ArrayLengthOperationOut() { Count = input.Items?.Length ?? 0 });
         }
     }
 }
