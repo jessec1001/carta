@@ -1,10 +1,4 @@
-import {
-  FunctionComponent,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { FunctionComponent, useEffect, useMemo, useState } from "react";
 import { GraphData, GraphWorkflow } from "library/api";
 import { GraphVisualizer } from "components/visualizations";
 import { useViews, Views } from "components/views";

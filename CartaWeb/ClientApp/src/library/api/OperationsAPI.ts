@@ -1,6 +1,6 @@
 import axios from "axios";
 import queryString from "query-string";
-import { flattenSchema, JsonSchema } from "library/schema";
+import { flattenSchema } from "library/schema";
 import BaseAPI from "./BaseAPI";
 import { Job, Operation, OperationSchema, OperationType } from "./operations";
 import fileDownload from "js-file-download";
@@ -186,7 +186,7 @@ class OperationsAPI extends BaseAPI {
     onProgress?: (progress: number) => void
   ): Promise<void> {
     // TODO: Use axios to upload file.
-    const response = await axios({
+    await axios({
       url: `${this.getOperationUrl(operationId)}/jobs/${jobId}/upload`,
       method: "POST",
       data: file,

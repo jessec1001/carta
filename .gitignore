@@ -5,8 +5,8 @@
 
 # CDK Stack files
 cdk.out/
-*.cdk.*
-*.CDK.*
+**.cdk.**
+**.CDK.**
 
 # User-specific files
 *.rsuser

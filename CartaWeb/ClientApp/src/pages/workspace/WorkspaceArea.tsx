@@ -1,6 +1,6 @@
 import { FunctionComponent, useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router";
-import { Workspace, WorkspaceAPI } from "library/api";
+import { WorkspaceAPI } from "library/api";
 import { PageLayout } from "components/layout";
 import { OperationsListView } from "components/workspace/views";
 import WorkspaceWrapper from "components/workspace/WorkspaceWrapper";
@@ -49,7 +49,7 @@ const WorkspacePage: FunctionComponent = () => {
   const [loadingStep, setLoadingStep] = useState("");
   const [loadingProgress, setLoadingProgress] = useState(0);
 
-  const [workspace, setWorkspace] = useState<Workspace | null>(null);
+  // const [workspace, setWorkspace] = useState<Workspace | null>(null);
 
   const [accessions, setAccessions] = useStoredState<Record<string, number>>(
     {},
@@ -57,14 +57,14 @@ const WorkspacePage: FunctionComponent = () => {
   );
   useEffect(() => {
     setAccessions({ ...accessions, [id]: Date.now() });
-  }, []);
+  }, [accessions, id, setAccessions]);
 
   useEffect(() => {
     (async () => {
       const timeBefore = Date.now();
 
       setLoadingStep("Loading workspace");
-      setWorkspace(await workspaceApi.getCompleteWorkspace(id));
+      // setWorkspace(await workspaceApi.getCompleteWorkspace(id));
       setLoadingStep("Finishing up");
       setLoadingProgress(1.0);
 

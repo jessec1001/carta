@@ -1,10 +1,9 @@
 import classNames from "classnames";
 import { FC, useMemo, useRef, useState } from "react";
-import { WorkspaceOperation } from "library/api";
 import { ObjectFilter } from "library/search";
 import { Loading, Text } from "components/text";
 import { useViews, Views } from "components/views";
-import { CaretIcon, OperationIcon, WorkflowIcon } from "components/icons";
+import { OperationIcon, WorkflowIcon } from "components/icons";
 import { Column, Row } from "components/structure";
 import { SearchboxInput } from "components/input";
 import { useWorkspace } from "components/workspace";
@@ -53,31 +52,31 @@ const OperationsListItem: FC<{
 /** A view that displays the list of operations in the current workspace.e */
 const OperationsListView: FC = () => {
   // We use these contexts to handle opening and closing views and managing data.
-  const { viewId, rootId, actions: viewActions } = useViews();
+  const { rootId, actions: viewActions } = useViews();
   const elementRef = useRef<HTMLDivElement>(null);
-  const listRef = useRef<HTMLUListElement>(null);
+  // const listRef = useRef<HTMLUListElement>(null);
 
   // We use a state variable to indicate which item of the operations list is currently selected.
   // We use a state variable to indicate whether the currently selected item is being renamed.
   // By selecting an operation, we indicate that we are preparing to rename the operation.
-  const [selected, setSelected] = useState<string | null>(null);
-  const [renaming, setRenaming] = useState<boolean>(false);
-  const [name, setName] = useState<string>("");
+  // const [selected, setSelected] = useState<string | null>(null);
+  // const [renaming, setRenaming] = useState<boolean>(false);
+  // const [name, setName] = useState<string>("");
 
   // We setup a query to filter the operations.
   const [query, setQuery] = useState("");
   const operationsFilter = new ObjectFilter(query, {});
 
   // FIXME: Temporarily store information for the dropdown menu.
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [dialogOpen, setDialogOpen] = useState<null | "blank" | "data">(null);
+  // const [dropdownOpen, setDropdownOpen] = useState(false);
+  // const [dialogOpen, setDialogOpen] = useState<null | "blank" | "data">(null);
 
   // We load the operations.
-  const { workspace, operations } = useWorkspace();
+  const { operations } = useWorkspace();
 
   // TODO: Have a tab history system so when the active tab is closed, the previous tab is activated.
   // FIXME: We need to handle adding a new operation.
-  const { dataAPI, operationsAPI, workflowsAPI, workspaceAPI } = useAPI();
+  const { dataAPI, operationsAPI, workflowsAPI } = useAPI();
   const handleAddOperation = async (type: "blank" | "data") => {
     switch (type) {
       case "blank":

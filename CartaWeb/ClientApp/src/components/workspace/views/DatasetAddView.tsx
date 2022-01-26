@@ -148,7 +148,7 @@ const DatasetAddView: FunctionComponent<{
   }, [mountedRef, dataAPI]);
 
   // We use the view context to create or remove views from the view container.
-  const { viewId, rootId, actions } = useViews();
+  const { viewId, actions } = useViews();
   const handleSelect = (source: string, resource: string) => {
     // When a dataset item is clicked, its selected state is toggled.
     // Since we currently only allow a single dataset, this will also move the selection around.

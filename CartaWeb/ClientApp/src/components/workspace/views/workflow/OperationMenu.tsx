@@ -1,7 +1,7 @@
 import { FunctionComponent, HTMLProps, useEffect, useState } from "react";
 import { useAPI, useDelayCallback, useSequentialRequest } from "hooks";
 import { Modify } from "types";
-import { OperationType, OperationsAPI } from "library/api";
+import { OperationType } from "library/api";
 import { SearchboxInput } from "components/input";
 import { Menu, MenuOption } from "components/menu";
 import { VerticalScroll } from "components/scroll";

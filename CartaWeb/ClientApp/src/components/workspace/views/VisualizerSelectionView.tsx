@@ -1,10 +1,4 @@
-import {
-  FunctionComponent,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { FunctionComponent, useEffect, useMemo, useState } from "react";
 import { DataNode, GraphData, Property } from "library/api";
 import { ObjectFilter } from "library/search";
 import { Accordian } from "components/accordian";
@@ -379,7 +373,7 @@ const renderPropertyList = (vertices: DataNode[], filter: ObjectFilter) => {
 const VisualizerSelectionView: FunctionComponent = () => {
   // Retrieve the dataset information.
   const { actions } = useViews();
-  const datasetId: string | undefined = actions.getActiveTag("dataset");
+  // const datasetId: string | undefined = actions.getActiveTag("dataset");
   const dataset: any = null;
   const datasetName = dataset && (dataset.name ?? "UNKNOWN");
 

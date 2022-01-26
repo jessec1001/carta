@@ -1,66 +1,61 @@
-import React, {
+import {
   FunctionComponent,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
-import classNames from "classnames";
-import { ObjectFilter } from "library/search";
-import { Text, Loading } from "components/text";
+import { Text } from "components/text";
 import { IconButtonAdd } from "components/buttons";
-import { DatabaseIcon, DatasetIcon } from "components/icons";
-import { SearchboxInput, TextFieldInput } from "components/input";
+import { DatabaseIcon } from "components/icons";
 import { Column, Row } from "components/structure";
 import { useViews, Views } from "components/views";
 import DatasetAddView from "./DatasetAddView";
-import DatasetGraphView from "./DatasetGraphView";
 
 import "./DatasetListView.css";
 
-/**
- * Renders a dataset item that can be selected and renamed..
- * @param dataset The dataset to render.
- * @param setSelected A function to set the selected dataset.
- * @param setName A function to set the name of the dataset.
- * @param selected Whether this dataset is currently selected.
- * @param rename Whether this dataset is currently being renamed and what it is being renamed to.
- * @returns An element that represents a dataset item.
- */
-const renderDataset = (
-  dataset: any,
-  setSelected: (event: React.MouseEvent) => void,
-  setName: (value: string) => void,
-  selected: boolean,
-  rename?: string
-) => {
-  // Compute the default display name for the dataset.
-  const displayName = dataset.name ?? "UNKNOWN";
+// /**
+//  * Renders a dataset item that can be selected and renamed..
+//  * @param dataset The dataset to render.
+//  * @param setSelected A function to set the selected dataset.
+//  * @param setName A function to set the name of the dataset.
+//  * @param selected Whether this dataset is currently selected.
+//  * @param rename Whether this dataset is currently being renamed and what it is being renamed to.
+//  * @returns An element that represents a dataset item.
+//  */
+// const renderDataset = (
+//   dataset: any,
+//   setSelected: (event: React.MouseEvent) => void,
+//   setName: (value: string) => void,
+//   selected: boolean,
+//   rename?: string
+// ) => {
+//   // Compute the default display name for the dataset.
+//   const displayName = dataset.name ?? "UNKNOWN";
 
-  return (
-    <li
-      className={classNames("DatasetListView-DatasetItem", { selected })}
-      key={dataset.id}
-      onClick={setSelected}
-    >
-      <Text align="middle">
-        <DatasetIcon padded />
-        {rename !== undefined && selected ? (
-          <TextFieldInput
-            className={"DatasetListView-DatasetItem-Input"}
-            value={rename}
-            onChange={setName}
-            placeholder={displayName}
-          />
-        ) : (
-          displayName
-        )}
-      </Text>
-    </li>
-  );
-};
+//   return (
+//     <li
+//       className={classNames("DatasetListView-DatasetItem", { selected })}
+//       key={dataset.id}
+//       onClick={setSelected}
+//     >
+//       <Text align="middle">
+//         <DatasetIcon padded />
+//         {rename !== undefined && selected ? (
+//           <TextFieldInput
+//             className={"DatasetListView-DatasetItem-Input"}
+//             value={rename}
+//             onChange={setName}
+//             placeholder={displayName}
+//           />
+//         ) : (
+//           displayName
+//         )}
+//       </Text>
+//     </li>
+//   );
+// };
 
 /** A component that renders a list of datasets that can be searched and sorted. */
 const DatasetListView: FunctionComponent = () => {
@@ -73,7 +68,7 @@ const DatasetListView: FunctionComponent = () => {
   // By selecting a dataset, we indicate that we are preparing to rename the dataset.
   const [selected, setSelected] = useState<string | null>(null);
   const [renaming, setRenaming] = useState<boolean>(false);
-  const [name, setName] = useState<string>("");
+  // const [name, setName] = useState<string>("");
 
   // To aid in the selection and renaming process, we need some references to some of the raw HTML elements.
   // Namely, we need a reference to the list of all elements and to the currently selected element.
@@ -81,8 +76,8 @@ const DatasetListView: FunctionComponent = () => {
 
   // We setup a query that can be changed by the filter box.
   // This filter uses the more complex object filter which allows for complex searches to be made.
-  const [query, setQuery] = useState<string>("");
-  const datasetFilter = new ObjectFilter(query, {});
+  // const [query, setQuery] = useState<string>("");
+  // const datasetFilter = new ObjectFilter(query, {});
 
   // We create these event handlers to handle when views should be modified.
   // Clicking the add button should open the add dataset view.
@@ -91,15 +86,15 @@ const DatasetListView: FunctionComponent = () => {
   const handleAddDataset = useCallback(() => {
     actions.addElementToContainer(rootId, <DatasetAddView />);
   }, [actions, rootId]);
-  const handleOpenDataset = useCallback(
-    (datasetId: string) => {
-      actions.addElementToContainer(
-        rootId,
-        <DatasetGraphView id={datasetId} />
-      );
-    },
-    [actions, rootId]
-  );
+  // const handleOpenDataset = useCallback(
+  //   (datasetId: string) => {
+  //     actions.addElementToContainer(
+  //       rootId,
+  //       <DatasetGraphView id={datasetId} />
+  //     );
+  //   },
+  //   [actions, rootId]
+  // );
 
   /**
    * Dataset items should be able to be renamed.
@@ -126,34 +121,34 @@ const DatasetListView: FunctionComponent = () => {
   const handleDelete = useCallback(() => {}, []);
 
   // This handles the logic of selecting a particular dataset item.
-  const handleSelect = useCallback(
-    (dataset: any, event: React.MouseEvent) => {
-      // This corresponds to a single click.
-      if (event.detail === 1) {
-        if (selected === dataset.id) {
-          // If the current selected element was clicked, start renaming.
-          const name = dataset.name ?? "UNKNOWN";
-          if (!renaming) {
-            setRenaming(true);
-            setName(name);
-          }
-        } else {
-          // If there was a selection being renamed, submit renaming.
-          if (renaming) {
-            setRenaming(false);
-            handleRename();
-          }
-        }
-        setSelected(dataset.id);
-      }
+  // const handleSelect = useCallback(
+  //   (dataset: any, event: React.MouseEvent) => {
+  //     // This corresponds to a single click.
+  //     if (event.detail === 1) {
+  //       if (selected === dataset.id) {
+  //         // If the current selected element was clicked, start renaming.
+  //         const name = dataset.name ?? "UNKNOWN";
+  //         if (!renaming) {
+  //           setRenaming(true);
+  //           setName(name);
+  //         }
+  //       } else {
+  //         // If there was a selection being renamed, submit renaming.
+  //         if (renaming) {
+  //           setRenaming(false);
+  //           handleRename();
+  //         }
+  //       }
+  //       setSelected(dataset.id);
+  //     }
 
-      // This corresponds to a double click.
-      if (event.detail === 2 && !renaming) {
-        handleOpenDataset(dataset.id);
-      }
-    },
-    [handleOpenDataset, handleRename, selected, renaming]
-  );
+  //     // This corresponds to a double click.
+  //     if (event.detail === 2 && !renaming) {
+  //       handleOpenDataset(dataset.id);
+  //     }
+  //   },
+  //   [handleOpenDataset, handleRename, selected, renaming]
+  // );
 
   // This removes the selection when a click is made outside of the dataset list.
   useEffect(() => {
@@ -233,7 +228,7 @@ const DatasetListView: FunctionComponent = () => {
       {/* Display a searchbox for filtering the datasets. */}
       <Row className="DatasetListView-Header">
         <Column>
-          <SearchboxInput onChange={setQuery} clearable />
+          {/* <SearchboxInput onChange={setQuery} clearable /> */}
         </Column>
         &nbsp;
         <IconButtonAdd onClick={handleAddDataset} />

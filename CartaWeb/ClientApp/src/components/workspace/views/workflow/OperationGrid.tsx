@@ -117,7 +117,7 @@ const OperationGrid: FunctionComponent<OperationGridProps> = ({ workflow }) => {
     }
 
     // Update columns (propagation) for updated connections.
-  }, [connections, operations]);
+  }, [columns, connections, operations]);
 
   // useEffect(() => {
   //   updateXarrow();
@@ -163,15 +163,15 @@ const OperationGrid: FunctionComponent<OperationGridProps> = ({ workflow }) => {
             data = data ?? input[nameProperty];
           }
 
-          let columnIndex = 0;
-          for (let k = 0; k < operations.length; k++) {
-            if (operations[k].id === operation.id) {
-              break;
-            }
-            if (columns[operations[k].id] === columns[operation.id]) {
-              columnIndex++;
-            }
-          }
+          // let columnIndex = 0;
+          // for (let k = 0; k < operations.length; k++) {
+          //   if (operations[k].id === operation.id) {
+          //     break;
+          //   }
+          //   if (columns[operations[k].id] === columns[operation.id]) {
+          //     columnIndex++;
+          //   }
+          // }
 
           return (
             <div

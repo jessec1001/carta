@@ -1,6 +1,5 @@
 import { SchemaBaseInput } from "components/form/schema";
 import { Operation, OperationType } from "library/api";
-import { JsonObjectSchema } from "library/schema";
 import { useCallback, useEffect, useState } from "react";
 import { FunctionComponent } from "react";
 import LockIcon from "components/icons/LockIcon";
@@ -10,7 +9,7 @@ import { useRef } from "react";
 import { ScatterPlot, HistogramPlot, GraphPlot } from "visualize-carta";
 import { useContext } from "react";
 import { Theme, ThemeContext } from "components/theme";
-import WorkflowContext, { useWorkflow } from "./WorkflowContext";
+import { useWorkflow } from "./WorkflowContext";
 import classNames from "classnames";
 import { OperationGridContext } from "./OperationGrid";
 import { useAPI, useDelayCallback } from "hooks";
@@ -71,15 +70,15 @@ const Visualizer: FunctionComponent<{
     // TODO: Revert once re-rendering issue has been solved
   }, [type, data]);
 
-  const inputType =
-    type === "input" &&
-    operation.default &&
-    operation.default["Name"] &&
-    workflow.schema &&
-    workflow.schema.inputs[operation.default["Name"]] &&
-    workflow.schema.inputs[operation.default["Name"]].type;
-  const inputUpload =
-    inputType && (inputType === "file" || inputType.includes("file"));
+  // const inputType =
+  //   type === "input" &&
+  //   operation.default &&
+  //   operation.default["Name"] &&
+  //   workflow.schema &&
+  //   workflow.schema.inputs[operation.default["Name"]] &&
+  //   workflow.schema.inputs[operation.default["Name"]].type;
+  // const inputUpload =
+  //   inputType && (inputType === "file" || inputType.includes("file"));
   const outputType =
     type === "output" &&
     operation.default &&
@@ -196,7 +195,7 @@ const OperationNode: FunctionComponent<OperationNodeProps> = ({
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [startPosition]);
+  }, [operation.id, setVerticalPosition, startPosition]);
 
   useEffect(() => {
     if (updater) {

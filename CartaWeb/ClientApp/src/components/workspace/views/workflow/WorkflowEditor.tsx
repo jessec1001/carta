@@ -26,7 +26,6 @@ const WorkflowEditor: FunctionComponent = () => {
   } = useWorkflow();
 
   const ref = useRef<HTMLDivElement>(null);
-  const [workflowName, setWorkflowName] = useState("");
 
   const [menuPosition, setMenuPosition] = useState<{
     x: number;

@@ -1,5 +1,4 @@
 import {
-  JsonObjectSchema,
   JsonObjectSchemaWidgets,
   JsonSchema,
   JsonStringSchema,
