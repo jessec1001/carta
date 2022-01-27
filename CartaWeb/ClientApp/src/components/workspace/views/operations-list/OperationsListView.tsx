@@ -14,11 +14,14 @@ import { WorkflowEditorView } from "components/workspace/views";
 import styles from "./OperationsListView.module.css";
 import DatasetAddView from "../DatasetAddView";
 
-/** A component that renders a single operation in the current workspace. */
+/** A view-specific component that renders a single operation from the workspace. */
 const OperationsListItem: FC<{
   operation: Operation;
   onWorkflow?: () => void;
 }> = ({ operation, onWorkflow = () => null }) => {
+  // TODO: We should load operations one at a time, not all at once and render each one regardless of whether it has fully loaded.
+  // TODO: Make sure that we have a loading symbol while reloading the particular operation after renaming.
+
   return (
     <li
       className={classNames("OperationListView-OperationsListItem")}
@@ -52,7 +55,7 @@ const OperationsListItem: FC<{
 /** A view that displays the list of operations in the current workspace.e */
 const OperationsListView: FC = () => {
   // We use these contexts to handle opening and closing views and managing data.
-  const { rootId, actions: viewActions } = useViews();
+  const { viewId, rootId, actions: viewActions } = useViews();
   const elementRef = useRef<HTMLDivElement>(null);
   // const listRef = useRef<HTMLUListElement>(null);
 
@@ -190,6 +193,7 @@ const OperationsListView: FC = () => {
       closeable
       direction="vertical"
       ref={elementRef}
+      onClick={() => viewActions.addHistory(viewId)}
     >
       {/* Display a searchbox for filtering the operations alongside a button to add more operations. */}
       <Row
