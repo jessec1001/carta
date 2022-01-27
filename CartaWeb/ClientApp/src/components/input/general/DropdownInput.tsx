@@ -36,11 +36,12 @@ const DropdownInput: FunctionComponent<
     // If our header contains what was clicked on, we toggle the state.
     // Otherwise, we assume that the click was one to close the dropdown.
     const handleClick = (event: MouseEvent) => {
-      if (headerElement.current) {
-        if (headerElement.current.contains(event.target as Element))
-          setToggled((prevToggled) => !prevToggled);
-        else setToggled(false);
-      }
+      if (
+        headerElement.current &&
+        headerElement.current.contains(event.target as Element)
+      ) {
+        setToggled((prevToggled) => !prevToggled);
+      } else setToggled(false);
     };
 
     // Setup and teardown.

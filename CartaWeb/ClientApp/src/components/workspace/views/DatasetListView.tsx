@@ -11,7 +11,7 @@ import { IconButtonAdd } from "components/buttons";
 import { DatabaseIcon } from "components/icons";
 import { Column, Row } from "components/structure";
 import { useViews, Views } from "components/views";
-import DatasetAddView from "./DatasetAddView";
+import DatasetAddView from "./operation-from-data/DatasetAddView";
 
 import "./DatasetListView.css";
 

@@ -132,6 +132,12 @@ const WorkspacePage: FC = () => {
     workspaceRefresh
   );
 
+  // Whenever a workspace is loaded, we want to update the title on the page.
+  useEffect(() => {
+    if (!workspace) document.title = `Workspace - Carta`;
+    else document.title = `${workspace.name} - Carta`;
+  }, [workspace]);
+
   // Update the latest accession to this workspace.
   const [workspaceHistory, setWorkspaceHistory] = useStoredState<
     Record<string, number>

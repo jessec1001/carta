@@ -1,5 +1,5 @@
 import { FunctionComponent, useEffect, useMemo, useState } from "react";
-import { DataNode, GraphData, Property } from "library/api";
+import { Property } from "library/api";
 import { ObjectFilter } from "library/search";
 import { Accordian } from "components/accordian";
 import { PropertyIcon, ValueIcon, VertexIcon } from "components/icons";
@@ -14,7 +14,7 @@ import "./VisualizerSelectionView.css";
 /** A property that is attached to a particular vertex. */
 interface AttachedProperty extends Property {
   /** The values of the property along with the vertex that owns this property. */
-  values: [DataNode, any][];
+  values: [any, any][];
 
   /** The subproperties of the property. */
   properties?: AttachedProperty[];
@@ -45,7 +45,7 @@ const renderValues = (values: any[]) => {
     </ul>
   );
 };
-const renderAttachedValues = (values: [DataNode, any][]) => {
+const renderAttachedValues = (values: [any, any][]) => {
   return (
     <ul role="presentation" className="VisualizerSelectionView-IndentList">
       {/* Loop through each of the values in the array. */}
@@ -160,7 +160,7 @@ const consolidateProperties = (
  * @param vertex The vertex to format the properties of.
  * @returns The formatted properties.
  */
-const formatProperties = (vertex: DataNode) => {
+const formatProperties = (vertex: any) => {
   const properties: AttachedProperty[] = [];
 
   // Loop through each of the properties of the vertex.
@@ -176,7 +176,7 @@ const formatProperties = (vertex: DataNode) => {
       // Append the property to the list.
       properties.push({
         id: property.id,
-        values: property.values.map((value) => [vertex, value]),
+        values: property.values.map((value: any) => [vertex, value]),
         properties: subproperties,
       });
     }
@@ -316,7 +316,7 @@ const renderPropertyTree = (properties: AttachedProperty[] | undefined) => {
  * @param query The query to filter vertices by.
  * @returns An element that renders the list of selected vertices.
  */
-const renderVertexList = (vertices: DataNode[], filter: ObjectFilter) => {
+const renderVertexList = (vertices: any[], filter: ObjectFilter) => {
   // Get the filtered vertices.
   const filteredVertices = filter.filter(vertices);
 
@@ -356,7 +356,7 @@ const renderVertexList = (vertices: DataNode[], filter: ObjectFilter) => {
  * @param query The query to filter properties by.
  * @returns An element that renders the list of selected properties.
  */
-const renderPropertyList = (vertices: DataNode[], filter: ObjectFilter) => {
+const renderPropertyList = (vertices: any[], filter: ObjectFilter) => {
   // Get the considated properties of the vertices.
   // Notice that we also apply the filter so we can search for properties.
   let properties: AttachedProperty[] = [];
@@ -379,7 +379,7 @@ const VisualizerSelectionView: FunctionComponent = () => {
 
   // Retrieve the graph information.
   // Additionally, setup event handlers to update the view when the graph selection changes.
-  const graph: GraphData | undefined = actions.getActiveTag("graph");
+  const graph: any | undefined = actions.getActiveTag("graph");
   useEffect(() => {
     // The selection event handler.
     const handleSelection = () => {
@@ -406,7 +406,7 @@ const VisualizerSelectionView: FunctionComponent = () => {
 
   // Setup the query and selection state.
   const [query, setQuery] = useState<string>("");
-  const [selection, setSelection] = useState<DataNode[]>([]);
+  const [selection, setSelection] = useState<any[]>([]);
 
   // The mode dictates whether to sort properties via property or vertex.
   const [mode, setMode] = useState<"vertex" | "property">("vertex");

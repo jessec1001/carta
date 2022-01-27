@@ -2,7 +2,6 @@ import { SchemaForm } from "components/form/schema";
 import { VerticalScroll } from "components/scroll";
 import { Text, Loading } from "components/text";
 import { useViews } from "components/views";
-import { GraphData } from "library/api";
 import MetaApi from "library/api/meta";
 import { JsonSchema } from "library/schema";
 import { FunctionComponent, useEffect, useState } from "react";
@@ -18,7 +17,7 @@ const VisualizerOperationView: FunctionComponent<
 > = ({ name, operation, type }) => {
   const { actions } = useViews();
 
-  const graph: GraphData | undefined = actions.getActiveTag("graph");
+  const graph: any | undefined = actions.getActiveTag("graph");
 
   const [error, setError] = useState<Error | null>(null);
 

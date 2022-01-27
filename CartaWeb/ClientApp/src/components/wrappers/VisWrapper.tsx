@@ -1,12 +1,11 @@
 import React, { Component, createRef, RefObject } from "react";
 import { DataView } from "vis-data/standalone";
 import { Network, Options } from "vis-network/standalone";
-import { GraphData } from "library/api/data";
 import { Edge, Node } from "library/api/data";
 import "./VisWrapper.css";
 
 export interface VisWrapperProps {
-  graph: GraphData;
+  graph: any;
   options: Options;
   selection?: string[];
 

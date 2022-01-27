@@ -8,7 +8,6 @@ import { Text } from "components/text";
 import { LoadingIcon } from "components/icons";
 import { useViews } from "components/views";
 import { useWorkspace } from "./WorkspaceContext";
-import { GraphData } from "library/api";
 import MetaApi, { MetaTypeEntry } from "library/api/meta";
 import React, { FunctionComponent, useEffect, useState } from "react";
 import { DatasetAddView, DatasetListView } from ".";
@@ -111,7 +110,7 @@ const WorkspaceToolbar: FunctionComponent = () => {
     })();
   }, []);
 
-  const graph: GraphData | undefined = actions.getActiveTag("graph");
+  const graph: any | undefined = actions.getActiveTag("graph");
 
   return (
     <div

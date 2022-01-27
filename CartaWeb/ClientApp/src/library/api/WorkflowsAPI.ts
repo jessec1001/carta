@@ -2,6 +2,7 @@ import BaseAPI from "./BaseAPI";
 import { Operation } from "./operations";
 import { Workflow, WorkflowConnection } from "./workflows";
 
+// TODO: Add documentation.
 /** Contains methods for accessing the Carta Workflow API module. */
 class WorkflowsAPI extends BaseAPI {
   protected getApiUrl() {
@@ -186,6 +187,28 @@ class WorkflowsAPI extends BaseAPI {
     );
 
     return await this.readJSON<WorkflowConnection>(response);
+  }
+  // #endregion
+
+  // #region Template Workflows
+  public async createBlankWorkflow(
+    workflow: Partial<Workflow>
+  ): Promise<Workflow> {
+    // Create the workflow.
+    const createdWorkflow = await this.createWorkflow(workflow);
+
+    // Return the workflow.
+    return createdWorkflow;
+  }
+  public async createDataWorkflow(
+    data: { source: string; resource: string }[],
+    workflow: Partial<Workflow>
+  ): Promise<Workflow> {
+    // Create the workflow.
+    const createdWorkflow = await this.createWorkflow(workflow);
+
+    // Return the workflow.
+    return createdWorkflow;
   }
   // #endregion
 }

@@ -1,8 +1,6 @@
 // TODO: Remove old style API references.
-import DataApi from "library/api/data";
 import GeneralApi from "library/api/general";
 import MetaApi from "library/api/meta";
-import WorkflowApi from "library/api/workflows";
 
 import BaseAPI from "./BaseAPI";
 import DataAPI from "./DataAPI";
@@ -20,8 +18,6 @@ export {
   WorkspaceAPI,
   GeneralApi,
   MetaApi,
-  WorkflowApi,
-  DataApi,
 };
 export * from "./data";
 export * from "./user";

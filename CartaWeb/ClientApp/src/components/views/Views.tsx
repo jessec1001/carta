@@ -21,6 +21,7 @@ const Views: FunctionComponent<ViewsProps> & ViewsComposition = ({
   children,
   ...props
 }) => {
+  // TODO: Make the root simply a container rather than a split view or tab view.
   // We use a counter to keep track of the last identifier that was assigned to an element.
   // We initialize the views with a single root view.
   // We keep track of the most recently (most recent at end) activated views so that we can extract tags from them.
@@ -145,47 +146,69 @@ const Views: FunctionComponent<ViewsProps> & ViewsComposition = ({
     },
     [setView]
   );
-  const removeView = useCallback((id: number) => {
-    setViews((views) => {
-      // Cancel the operation if the view does not exist.
-      const view = views.get(id);
-      if (!view) return views;
+  const removeView = useCallback(
+    (id: number) => {
+      setViews((views) => {
+        // Cancel the operation if the view does not exist.
+        const view = views.get(id);
+        if (!view) return views;
 
-      // Copy the view map.
-      const newViews = new Map(views);
+        // Copy the view map.
+        const newViews = new Map(views);
 
-      // We need to remove the view as a child from its parent.
-      if (view.parentId !== null) {
-        let parent = views.get(view.parentId);
-        if (parent && isContainerView(parent)) {
-          parent = {
-            ...parent,
-            childIds: parent.childIds.filter((childId) => childId !== id),
-          };
-          newViews.set(view.parentId, parent);
+        // We need to remove the view as a child from its parent.
+        if (view.parentId !== null) {
+          let parent = views.get(view.parentId);
+          if (parent && isContainerView(parent)) {
+            // If the parent is a tab view and this view is the active view,
+            // we need to use the history to find the next active view and set it.
+            if (parent.type === "tab" && parent.activeId === id) {
+              let nextActiveId: number | null = null;
+              for (let k = history.length - 1; k >= 0; k--) {
+                const historyId = history[k];
+                if (historyId === id) continue;
+                if (parent.childIds.includes(historyId)) {
+                  nextActiveId = historyId;
+                  break;
+                }
+              }
+              parent = {
+                ...parent,
+                activeId: nextActiveId,
+              };
+            }
+
+            // Remove the view from the parent's child list.
+            parent = {
+              ...parent,
+              childIds: parent.childIds.filter((childId) => childId !== id),
+            };
+            newViews.set(view.parentId, parent);
+          }
         }
-      }
 
-      // We need to remove all of the view's descendants.
-      const descendantIds = [id];
-      for (let k = 0; k < descendantIds.length; k++) {
-        const descendantId = descendantIds[k];
-        const descendant = views.get(descendantId);
-        if (descendant && isContainerView(descendant)) {
-          for (const childId of descendant.childIds)
-            descendantIds.push(childId);
+        // We need to remove all of the view's descendants.
+        const descendantIds = [id];
+        for (let k = 0; k < descendantIds.length; k++) {
+          const descendantId = descendantIds[k];
+          const descendant = views.get(descendantId);
+          if (descendant && isContainerView(descendant)) {
+            for (const childId of descendant.childIds)
+              descendantIds.push(childId);
+          }
         }
-      }
-      for (const descendantId of descendantIds) newViews.delete(descendantId);
+        for (const descendantId of descendantIds) newViews.delete(descendantId);
 
-      // We need to remove the removed views from the history.
-      setHistory((history) =>
-        history.filter((id) => !descendantIds.includes(id))
-      );
+        // We need to remove the removed views from the history.
+        setHistory((history) =>
+          history.filter((id) => !descendantIds.includes(id))
+        );
 
-      return newViews;
-    });
-  }, []);
+        return newViews;
+      });
+    },
+    [history]
+  );
   const getHistory = useCallback(() => history, [history]);
   const addHistory = useCallback((id: number) => {
     setHistory((history) => {

@@ -1,6 +1,5 @@
 import useAPI from "./useAPI";
 import useControllableState from "./useControllableState";
-import useCRUD from "./useCRUD";
 import useDelayCallback from "./useDelayCallback";
 import useRefresh from "./useRefresh";
 import useMounted from "./useMounted";
@@ -13,7 +12,6 @@ import useLoading from "./useLoading";
 export {
   useAPI,
   useControllableState,
-  useCRUD,
   useDelayCallback,
   useRefresh,
   useLoading,
@@ -25,7 +23,6 @@ export {
 };
 export * from "./useAPI";
 export * from "./useControllableState";
-export * from "./useCRUD";
 export * from "./useDelayCallback";
 export * from "./useRefresh";
 export * from "./useLoading";

@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { FC, useMemo, useRef, useState } from "react";
+import { FC, useCallback, useMemo, useRef, useState } from "react";
 import { ObjectFilter } from "library/search";
 import { Loading, Text } from "components/text";
 import { useViews, Views } from "components/views";
@@ -7,12 +7,14 @@ import { OperationIcon, WorkflowIcon } from "components/icons";
 import { Column, Row } from "components/structure";
 import { SearchboxInput } from "components/input";
 import { useWorkspace } from "components/workspace";
-import { useAPI } from "hooks";
+import { useAPI, useRefresh } from "hooks";
 import { Operation } from "library/api/operations";
 import { ButtonDropdown, IconButton } from "components/buttons";
 import { WorkflowEditorView } from "components/workspace/views";
+import DatasetAddView from "../operation-from-data/DatasetAddView";
 import styles from "./OperationsListView.module.css";
-import DatasetAddView from "../DatasetAddView";
+import { seconds } from "library/utility";
+import { Workflow } from "library/api";
 
 /** A view-specific component that renders a single operation from the workspace. */
 const OperationsListItem: FC<{
@@ -57,32 +59,45 @@ const OperationsListView: FC = () => {
   // We use these contexts to handle opening and closing views and managing data.
   const { viewId, rootId, actions: viewActions } = useViews();
   const elementRef = useRef<HTMLDivElement>(null);
-  // const listRef = useRef<HTMLUListElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
 
   // We use a state variable to indicate which item of the operations list is currently selected.
   // We use a state variable to indicate whether the currently selected item is being renamed.
   // By selecting an operation, we indicate that we are preparing to rename the operation.
-  // const [selected, setSelected] = useState<string | null>(null);
-  // const [renaming, setRenaming] = useState<boolean>(false);
-  // const [name, setName] = useState<string>("");
+  const [selected, setSelected] = useState<string | null>(null);
+  const [renaming, setRenaming] = useState<boolean>(false);
+  const [name, setName] = useState<string>("");
 
   // We setup a query to filter the operations.
   const [query, setQuery] = useState("");
   const operationsFilter = new ObjectFilter(query, {});
 
-  // FIXME: Temporarily store information for the dropdown menu.
-  // const [dropdownOpen, setDropdownOpen] = useState(false);
-  // const [dialogOpen, setDialogOpen] = useState<null | "blank" | "data">(null);
+  // We use the workspace to get the list of operations contained within.
+  const { dataAPI, operationsAPI, workflowsAPI, workspaceAPI } = useAPI();
+  const { workspace } = useWorkspace();
+  const operationsRefresh = useCallback(async () => {
+    return workspaceAPI.getWorkspaceOperations(workspace.id);
+  }, [workspace.id, workspaceAPI]);
+  const [operations, operationsError] = useRefresh(
+    operationsRefresh,
+    seconds(30)
+  );
 
-  // We load the operations.
-  const { operations } = useWorkspace();
-
-  // TODO: Have a tab history system so when the active tab is closed, the previous tab is activated.
   // FIXME: We need to handle adding a new operation.
-  const { dataAPI, operationsAPI, workflowsAPI } = useAPI();
-  const handleAddOperation = async (type: "blank" | "data") => {
+  // TODO: Name these functions better.
+  const handleCreateOperation = (workflow: Workflow) => {
+    // TODO: Create an operation instance to the workflow.
+    // TODO: Add the operation instance to the workspace.
+  };
+  const handleCreateWorkflow = async (type: "blank" | "data") => {
     switch (type) {
       case "blank":
+        // viewActions.addElementToContainer(
+        //   rootId,
+        //   <OperationFromBlankView onSubmit={(name: string) => {
+
+        //   }} />
+        // )
         // TODO: Use a dialog to prompt for the name of the new workflow.
 
         // Create a blank workflow.
@@ -95,13 +110,8 @@ const OperationsListView: FC = () => {
           "workflow",
           workflow.id
         );
-
-        // Add the operation to the workspace.
-        operations.CRUD.add(operation);
         break;
       case "data":
-        // TODO: Use a dialog to prompt for the name of the new workflow and the data to use.
-        // TODO: Implement.
         viewActions.addElementToContainer(
           rootId,
           <DatasetAddView
@@ -168,7 +178,6 @@ const OperationsListView: FC = () => {
                 "workflow",
                 workflow.id
               );
-              operations.CRUD.add(workflowOperation);
             }}
           />,
           true
@@ -211,7 +220,7 @@ const OperationsListView: FC = () => {
           options={{ blank: "From Blank", data: "From Data" }}
           auto="blank"
           className={classNames(styles.workflowButton)}
-          onPick={(value) => handleAddOperation(value as any)}
+          onPick={(value) => handleCreateWorkflow(value as any)}
         >
           New
         </ButtonDropdown>
@@ -219,10 +228,10 @@ const OperationsListView: FC = () => {
 
       {/* Check if the operations are still loading. */}
       {/* If so, display some loading text. */}
-      {!operations.value && <Loading />}
+      {/* {!operations.value && <Loading />} */}
 
       {/* Otherwise, display the list of operations. */}
-      {operations.value && (
+      {/* {operations.value && (
         <ul role="presentation">
           {operationsFilter.filter(operations.value).map((operation) => (
             <OperationsListItem
@@ -242,7 +251,7 @@ const OperationsListView: FC = () => {
             />
           ))}
         </ul>
-      )}
+      )} */}
     </Views.Container>
   );
 };
