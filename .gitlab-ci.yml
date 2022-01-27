@@ -11,6 +11,10 @@ stages:
   - docs
   - deploy
 
+variables:
+  STAGING_AWS_ACCESS_KEY_ID: $STAGING_AWS_ACCESS_KEY_ID
+  STAGING_AWS_SECRET_ACCESS_KEY: $STAGING_AWS_SECRET_ACCESS_KEY
+    
 build:
   stage: build
   script:
@@ -38,7 +42,7 @@ publish-staging:
     - mkdir ~/.aws 
     - echo "[cdk]" > ~/.aws/config 
     - echo "region = $AWS_DEFAULT_REGION"  >> ~/.aws/config 
-    - echo "[default]" > ~/.aws/credentials
+    - echo "[cdk]" > ~/.aws/credentials
     - echo "aws_access_key_id = $STAGING_AWS_ACCESS_KEY_ID"  >> ~/.aws/credentials
     - echo "aws_secret_access_key = $STAGING_AWS_SECRET_ACCESS_KEY"  >> ~/.aws/credentials
     - cdk deploy ResourceStack --profile cdk --outputs-file CartaWeb/appsettings.CDK.json
@@ -59,12 +63,6 @@ publish-production:
     - apt-get install -y nodejs
     - apt-get install -y zip unzip
     - npm install -g aws-cdk
-    - mkdir ~/.aws 
-    - echo "[cdk]" > ~/.aws/config 
-    - echo "region = $AWS_DEFAULT_REGION"  >> ~/.aws/config 
-    - echo "[default]" > ~/.aws/credentials
-    - echo "aws_access_key_id = $PRODUCTION_AWS_ACCESS_KEY_ID"  >> ~/.aws/credentials
-    - echo "aws_secret_access_key = $PRODUCTION_AWS_SECRET_ACCESS_KEY"  >> ~/.aws/credentials
     - cdk deploy ResourceStack --profile cdk --outputs-file CartaWeb/appsettings.CDK.json
     - dotnet publish --configuration Release CartaWeb/ -o package
     - cp -r .platform/ package/
@@ -149,7 +147,7 @@ deploy-staging:
     - mkdir ~/.aws 
     - echo "[cdk]" > ~/.aws/config 
     - echo "region = $AWS_DEFAULT_REGION"  >> ~/.aws/config 
-    - echo "[default]" > ~/.aws/credentials
+    - echo "[cdk]" > ~/.aws/credentials
     - echo "aws_access_key_id = $STAGING_AWS_ACCESS_KEY_ID"  >> ~/.aws/credentials
     - echo "aws_secret_access_key = $STAGING_AWS_SECRET_ACCESS_KEY"  >> ~/.aws/credentials
     - COMMIT_SHA=`echo $CI_COMMIT_SHA | cut -c1-8`
@@ -166,12 +164,6 @@ deploy-production:
     - curl -sL https://deb.nodesource.com/setup_current.x | bash -
     - apt-get install -y nodejs
     - npm install -g aws-cdk
-    - mkdir ~/.aws 
-    - echo "[cdk]" > ~/.aws/config 
-    - echo "region = $AWS_DEFAULT_REGION"  >> ~/.aws/config 
-    - echo "[default]" > ~/.aws/credentials
-    - echo "aws_access_key_id = $PRODUCTION_AWS_ACCESS_KEY_ID"  >> ~/.aws/credentials
-    - echo "aws_secret_access_key = $PRODUCTION_AWS_SECRET_ACCESS_KEY"  >> ~/.aws/credentials
     - COMMIT_SHA=`echo $CI_COMMIT_SHA | cut -c1-8`
     - mv package.zip package-$COMMIT_SHA.zip
     - cdk deploy ElasticBeanstalkStack --profile cdk  --context commitSHA=$COMMIT_SHA
