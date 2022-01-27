@@ -196,7 +196,7 @@ const DatasetAddView: FunctionComponent<{
       {Object.entries(groupedResources).map(([source, resources]) => {
         let contents;
         if (resources === null) {
-          contents = <Loading />;
+          contents = <Loading>Loading</Loading>;
         } else if (resources instanceof ApiException) {
           contents = renderError(resources);
         } else {

@@ -1,6 +1,6 @@
 import { FunctionComponent, useCallback, useContext, useState } from "react";
 import { useHistory } from "react-router";
-import { useAPI, useLoader, useStoredState } from "hooks";
+import { useAPI, useRefresh, useStoredState } from "hooks";
 import { UserContext } from "components/user";
 import { Workspace } from "library/api";
 import { ObjectFilter } from "library/search";
@@ -8,7 +8,6 @@ import { IconButtonAdd } from "components/buttons";
 import { SearchboxInput } from "components/input";
 import { AnimatedJumbotron } from "components/jumbotron";
 import { PageLayout, Wrapper } from "components/layout";
-import { Link } from "components/link";
 import { Column, Row } from "components/structure";
 import { Loading, Text, Paragraph, Title } from "components/text";
 import { UserNeedsAuthentication } from "components/user";
@@ -39,7 +38,7 @@ const WorkspacesAuthenticated: FunctionComponent = () => {
   const loadWorkspaces = useCallback(async () => {
     return await workspaceAPI.getCompleteWorkspaces(false);
   }, [workspaceAPI]);
-  const [workspaces, error] = useLoader(loadWorkspaces);
+  const [workspaces, error] = useRefresh(loadWorkspaces);
 
   // We use a query specified in a search bar to filter through the workspaces.
   const [query, setQuery] = useState("");
@@ -53,13 +52,13 @@ const WorkspacesAuthenticated: FunctionComponent = () => {
   });
 
   // We sort workspaces by the date they were last accessed at (per this user).
-  const [workspaceAccessions] = useStoredState<Record<string, number>>(
+  const [workspaceHistory] = useStoredState<Record<string, number>>(
     {},
-    "workspaceAccessions"
+    "workspaceHistory"
   );
   const workspaceSorter = (workspace1: Workspace, workspace2: Workspace) => {
-    const access1 = workspaceAccessions[workspace1.id];
-    const access2 = workspaceAccessions[workspace2.id];
+    const access1 = workspaceHistory[workspace1.id];
+    const access2 = workspaceHistory[workspace2.id];
     if (access1 === undefined && access2 === undefined) return 0;
     if (access1 === undefined) return +1;
     if (access2 === undefined) return -1;
@@ -114,9 +113,6 @@ const WorkspacesAuthenticated: FunctionComponent = () => {
 
       {/* If the data is still loading, render a loading symbol. */}
       {!workspaces && !error && <Loading />}
-
-      {/* Render a link to the entire list of workspaces. */}
-      <Link to="/workspace/list">See more</Link>
     </section>
   );
 };

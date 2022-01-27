@@ -126,7 +126,7 @@ const UserInput: FunctionComponent<UserInputProps> = ({
         {/* If the users have not loaded yet, display a loading symbol. */}
         {!users && (
           <OptionInput unselectable>
-            <Loading />
+            <Loading>Loading users</Loading>
           </OptionInput>
         )}
 

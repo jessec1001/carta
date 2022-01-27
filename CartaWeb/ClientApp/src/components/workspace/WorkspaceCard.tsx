@@ -19,14 +19,14 @@ const WorkspaceCard: FunctionComponent<
   WorkspaceCardProps & HTMLAttributes<HTMLDivElement>
 > = ({ workspace, children, ...props }) => {
   // We load workspace accessions to obtain the last date that this workspace was accessed.s
-  const [workspaceAccessions] = useStoredState<Record<string, number>>(
+  const [workspaceHistory] = useStoredState<Record<string, number>>(
     {},
-    "workspaceAccessions"
+    "workspaceHistory"
   );
 
   // Compute a string for the last accessed date.
   // If the workspace has never been accessed (unlikely), defaults to "never".
-  const accessTimestamp: number | undefined = workspaceAccessions[workspace.id];
+  const accessTimestamp: number | undefined = workspaceHistory[workspace.id];
   const accessDate =
     accessTimestamp === undefined ? undefined : new Date(accessTimestamp);
   const accessDateString = accessDate

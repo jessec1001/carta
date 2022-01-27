@@ -130,7 +130,6 @@ const Visualizer: FunctionComponent<{
                   workflowOperation.schema?.inputs?.[data].type?.includes(
                     "file"
                   ));
-              console.log(value, fileLike);
 
               if (fileLike) {
                 value = value as File | null;

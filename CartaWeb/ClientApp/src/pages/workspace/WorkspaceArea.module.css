@@ -1,0 +1,53 @@
+.overlayContainer {
+  /* This element will contain the overlay so needs to allow for absolute positioning. */
+  position: relative;
+  width: 100%;
+  height: 100%;
+  flex: 1;
+}
+.overlay {
+  /* Position the overlay above all content. */
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 100;
+
+  /* Stretch the overlay to fit onto the entire parent element. */
+  width: 100%;
+  height: 100%;
+
+  /* Make child elements able to be easily centered. */
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  align-items: center;
+
+  /* Make the overlay slightly transparent and apply a slight blur. */
+  background-color: var(--color-fill-overlay);
+  color: var(--color-stroke-lowlight);
+  backdrop-filter: blur(0.5px);
+}
+.overlayContent {
+  /* The loading overlay should be centered. */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  flex: 1;
+
+  /* The loading overlay should fill up as much space as possible. */
+  width: 100%;
+  padding: 2em 2em;
+}
+.overlayTip {
+  /* The tip should have some spacing. */
+  height: 8em;
+  width: 100%;
+  padding: 2em 2em;
+
+  /* The tip should be centered horizontally. */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}

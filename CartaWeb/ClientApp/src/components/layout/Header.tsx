@@ -37,11 +37,6 @@ const Header: FunctionComponent = () => {
         <NavigationLink lower to="/">
           Home
         </NavigationLink>
-        <UserIsAuthenticated>
-          <NavigationLink lower to="/workspace/list">
-            Workspaces
-          </NavigationLink>
-        </UserIsAuthenticated>
         <NavigationLink lower to="/documentation">
           Documentation
         </NavigationLink>

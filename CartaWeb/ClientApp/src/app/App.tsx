@@ -7,7 +7,6 @@ import {
   TestPage,
   WorkspaceAreaPage,
   WorkspaceNewPage,
-  WorkspaceListPage,
 } from "pages";
 import { UserWrapper } from "components/user";
 import { NotificationWrapper } from "components/notifications";
@@ -17,6 +16,7 @@ import "styles/reset.css";
 import "styles/globals.css";
 import "styles/theme.css";
 import "styles/app.css";
+
 /**
  * The main app component which renders all other components.
  * Used to store routing information for each page.
@@ -36,7 +36,6 @@ const App: FunctionComponent = () => {
 
             {/* Workspace page routes. */}
             <Route exact path="/workspace/new" component={WorkspaceNewPage} />
-            <Route exact path="/workspace/list" component={WorkspaceListPage} />
             <Route path="/workspace" component={WorkspaceAreaPage} />
           </Switch>
         </ThemeWrapper>

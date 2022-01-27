@@ -72,7 +72,6 @@ const WorkflowWrapper: FunctionComponent<WorkflowWrapperProps> = ({
   // TODO: Add delay and synchronicity to this.
   const handleExecuteWorkflow = async (): Promise<Job | null> => {
     let localInput = input ?? {};
-    console.log(localInput, fileField);
     if (fileField) {
       delete localInput[fileField];
     }

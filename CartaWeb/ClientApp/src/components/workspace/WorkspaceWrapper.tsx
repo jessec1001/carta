@@ -6,29 +6,21 @@ import WorkspaceContext from "./WorkspaceContext";
 /** The props used for the {@link WorkspaceWrapper} component. */
 interface WorkspaceWrapperProps {
   /** The unique identifier for the workspace. */
-  id: string;
+  workspace: Workspace;
 }
 
 /** A component that wraps its children in a context that exposes all data loaded for a particular workspace. */
 const WorkspaceWrapper: FunctionComponent<WorkspaceWrapperProps> = ({
-  id,
+  workspace,
   children,
 }) => {
   // We need the workspace API to access workspace objects.
   const { operationsAPI, workspaceAPI } = useAPI();
 
-  // We store the original workspace object itself.
-  // TODO: Some hook that combines useMounted and useEffect for async loading functions. Perhaps periodic as well.
-  const [workspace, setWorkspace] = useState<Workspace | null>(null);
   useEffect(() => {
-    (async () => {
-      const workspace = await workspaceAPI.getWorkspace(id);
-      setWorkspace(workspace);
-
-      // TODO: Is there a better place for this?
-      document.title = `${workspace.name} - Carta`;
-    })();
-  }, [id, workspaceAPI]);
+    // TODO: Is there a better place for this?
+    document.title = `${workspace.name} - Carta`;
+  }, [workspace]);
 
   // This defines how workspace operations should be maintained.
   // We automatically refresh the workspace operations every 30 seconds.
@@ -38,7 +30,7 @@ const WorkspaceWrapper: FunctionComponent<WorkspaceWrapperProps> = ({
     () => ({
       fetch: async () => {
         const workspaceOperations = await workspaceAPI.getWorkspaceOperations(
-          id
+          workspace.id
         );
         const operations: Operation[] = [];
         for (const workspaceOperation of workspaceOperations) {
@@ -49,15 +41,15 @@ const WorkspaceWrapper: FunctionComponent<WorkspaceWrapperProps> = ({
         return operations;
       },
       add: async (operation: Operation) => {
-        await workspaceAPI.addWorkspaceOperation(id, operation.id);
+        await workspaceAPI.addWorkspaceOperation(workspace.id, operation.id);
         return operation;
       },
       remove: async (operation: Operation) => {
-        await workspaceAPI.removeWorkspaceOperation(id, operation.id);
+        await workspaceAPI.removeWorkspaceOperation(workspace.id, operation.id);
       },
       update: (operation: Operation) => Promise.resolve(operation),
     }),
-    [id, operationsAPI, workspaceAPI]
+    [workspace, operationsAPI, workspaceAPI]
   );
   const [operations, operationsCRUD] = useCRUD(
     operationsFetcher,

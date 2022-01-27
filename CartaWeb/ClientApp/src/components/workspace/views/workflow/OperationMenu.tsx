@@ -135,7 +135,7 @@ const OperationMenu: FunctionComponent<OperationMenuProps> = ({
 
       {/* Render a scrollable section with the operations queried. */}
       <VerticalScroll>
-        {types === null && <Loading text="Loading operations" />}
+        {types === null && <Loading>Loading operations</Loading>}
         {types && types.length === 0 && (
           <Text color="muted">No operations matching query</Text>
         )}
