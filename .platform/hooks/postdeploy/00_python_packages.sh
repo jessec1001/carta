@@ -13,4 +13,4 @@ cd /var/app/current
 
 # Install Python packages.
 # After this point, you can run Python scripts with "pipenv run python3 script.py".
-sudo -H -u webapp pipenv install numpy
+sudo -H -u webapp /home/webapp/.local/bin/pipenv install numpy
