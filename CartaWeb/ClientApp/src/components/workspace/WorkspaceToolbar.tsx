@@ -10,7 +10,6 @@ import { useViews } from "components/views";
 import { useWorkspace } from "./WorkspaceContext";
 import MetaApi, { MetaTypeEntry } from "library/api/meta";
 import React, { FunctionComponent, useEffect, useState } from "react";
-import { DatasetAddView, DatasetListView } from ".";
 import { WorkspaceSettingsView } from "./views";
 import VisualizerOperationView from "./views/VisualizerOperationView";
 import VisualizerSelectionView from "./views/VisualizerSelectionView";
@@ -159,21 +158,6 @@ const WorkspaceToolbar: FunctionComponent = () => {
         <Dropdown side="bottom-right">
           <DropdownToggler>View</DropdownToggler>
           <DropdownArea>
-            <div className="toolbar-group-label">Datasets</div>
-            <DropdownItem
-              onClick={() => {
-                actions.addElementToContainer(rootId, <DatasetListView />);
-              }}
-            >
-              Dataset List
-            </DropdownItem>
-            <DropdownItem
-              onClick={() => {
-                actions.addElementToContainer(rootId, <DatasetAddView />);
-              }}
-            >
-              Dataset Import{" "}
-            </DropdownItem>
             <div className="toolbar-group-label">Workflows</div>
             <DropdownItem
               onClick={() => {

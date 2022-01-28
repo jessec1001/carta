@@ -1,8 +1,9 @@
 import { Modify } from "types";
-import { Document, DocumentDTO, Identifiable, parseDocument } from "../base";
+import { Document, DocumentDTO, parseDocument } from "../base";
+import { Operation } from "../operations";
 
 /** Represents a workspace operation object. */
-interface WorkspaceOperation extends Document, Identifiable {}
+interface WorkspaceOperation extends Operation, Document {}
 /** Represents a workspace operation object as returned by the API server. */
 type WorkspaceOperationDTO = Modify<WorkspaceOperation, DocumentDTO>;
 

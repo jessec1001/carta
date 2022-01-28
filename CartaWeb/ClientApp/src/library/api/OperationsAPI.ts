@@ -40,11 +40,12 @@ class OperationsAPI extends BaseAPI {
         tags: filterTags,
       },
     });
-    const response = await fetch(url, this.defaultFetcher("GET"));
+    const response = await fetch(url, this.defaultFetchParameters("GET"));
 
     await this.ensureSuccess(
       response,
-      "Error occurred while trying to fetch operation types."
+      "Error occurred while trying to fetch operation types.",
+      ["application/json"]
     );
 
     return await this.readJSON<OperationType[]>(response);
@@ -56,11 +57,12 @@ class OperationsAPI extends BaseAPI {
     includeSchema: boolean = true
   ): Promise<Operation> {
     const url = this.getOperationUrl(operationId);
-    const response = await fetch(url, this.defaultFetcher("GET"));
+    const response = await fetch(url, this.defaultFetchParameters("GET"));
 
     await this.ensureSuccess(
       response,
-      "Error occurred while trying to fetch operation."
+      "Error occurred while trying to fetch operation.",
+      ["application/json"]
     );
 
     const operation = await this.readJSON<Operation>(response);
@@ -82,11 +84,15 @@ class OperationsAPI extends BaseAPI {
     };
 
     const url = this.getApiUrl();
-    const response = await fetch(url, this.defaultFetcher("POST", operation));
+    const response = await fetch(
+      url,
+      this.defaultFetchParameters("POST", operation)
+    );
 
     await this.ensureSuccess(
       response,
-      "Error occurred while trying to create operation."
+      "Error occurred while trying to create operation.",
+      ["application/json"]
     );
 
     return await this.readJSON<Operation>(response);
@@ -95,22 +101,27 @@ class OperationsAPI extends BaseAPI {
     operation: Partial<Operation>
   ): Promise<Operation> {
     const url = this.getOperationUrl(operation.id!);
-    const response = await fetch(url, this.defaultFetcher("PATCH", operation));
+    const response = await fetch(
+      url,
+      this.defaultFetchParameters("PATCH", operation)
+    );
 
     await this.ensureSuccess(
       response,
-      "Error occurred while trying to update operation."
+      "Error occurred while trying to update operation.",
+      ["application/json"]
     );
 
     return await this.readJSON<Operation>(response);
   }
   public async deleteOperation(operationId: string): Promise<void> {
     const url = this.getOperationUrl(operationId);
-    const response = await fetch(url, this.defaultFetcher("DELETE"));
+    const response = await fetch(url, this.defaultFetchParameters("DELETE"));
 
     await this.ensureSuccess(
       response,
-      "Error occurred while trying to delete operation."
+      "Error occurred while trying to delete operation.",
+      ["application/json"]
     );
   }
   // #endregion
@@ -125,7 +136,7 @@ class OperationsAPI extends BaseAPI {
     const url = this.getOperationUrl(operationId);
     const response = await fetch(
       `${url}/jobs`,
-      this.defaultFetcher("POST", {
+      this.defaultFetchParameters("POST", {
         ...inputs,
         authentication: authentication,
       })
@@ -133,18 +144,23 @@ class OperationsAPI extends BaseAPI {
 
     await this.ensureSuccess(
       response,
-      "Error occurred while trying to execute operation."
+      "Error occurred while trying to execute operation.",
+      ["application/json"]
     );
 
     return await this.readJSON<Job>(response);
   }
   public async getOperationJobs(operationId: string): Promise<Job[]> {
     const url = this.getOperationUrl(operationId);
-    const response = await fetch(`${url}/jobs`, this.defaultFetcher("GET"));
+    const response = await fetch(
+      `${url}/jobs`,
+      this.defaultFetchParameters("GET")
+    );
 
     await this.ensureSuccess(
       response,
-      "Error occurred while trying to fetch operation jobs."
+      "Error occurred while trying to fetch operation jobs.",
+      ["application/json"]
     );
 
     return await this.readJSON<Job[]>(response);
@@ -156,12 +172,13 @@ class OperationsAPI extends BaseAPI {
     const url = this.getOperationUrl(operationId);
     const response = await fetch(
       `${url}/jobs/${jobId}`,
-      this.defaultFetcher("GET")
+      this.defaultFetchParameters("GET")
     );
 
     await this.ensureSuccess(
       response,
-      "Error occurred while trying to fetch operation job."
+      "Error occurred while trying to fetch operation job.",
+      ["application/json"]
     );
 
     return await this.readJSON<Job>(response);
@@ -217,11 +234,15 @@ class OperationsAPI extends BaseAPI {
     operationId: string
   ): Promise<OperationSchema> {
     const url = this.getOperationUrl(operationId);
-    const response = await fetch(`${url}/schema`, this.defaultFetcher("GET"));
+    const response = await fetch(
+      `${url}/schema`,
+      this.defaultFetchParameters("GET")
+    );
 
     await this.ensureSuccess(
       response,
-      "Error occurred while trying to fetch operation input schema."
+      "Error occurred while trying to fetch operation input schema.",
+      ["application/json"]
     );
 
     const schema = await this.readJSON<OperationSchema>(response);

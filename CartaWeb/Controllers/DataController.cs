@@ -157,7 +157,6 @@ namespace CartaWeb.Controllers
         }
         #endregion
 
-        #region Endpoints (Data CRUD)
         /// <summary>
         /// Finds the sample graph associated with a specified source and resource.
         /// </summary>
@@ -171,6 +170,7 @@ namespace CartaWeb.Controllers
             return null;
         }
 
+        #region Endpoints (Data CRUD)
         /// <summary>
         /// Gets the valid sources to access data from. Note that this includes data sources that the user may not have
         /// authorization to access. In querying the valid data sources, no data is actually retrieved.

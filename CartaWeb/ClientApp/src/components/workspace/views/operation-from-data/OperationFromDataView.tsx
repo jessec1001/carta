@@ -15,7 +15,7 @@ import { Text, Loading } from "components/text";
 import { Column, Row } from "components/structure";
 import { useViews, Views } from "components/views";
 
-import "./DatasetAddView.css";
+import "./OperationFromDataView.css";
 
 /**
  * Renders an error that has been raised while loading resources.
@@ -81,9 +81,12 @@ const renderResource = (
 };
 
 /** A component that renders a view to add datasets to a workspace. */
-const DatasetAddView: FunctionComponent<{
-  onPick?: (data: { source: string; resource: string }[], name: string) => void;
-}> = ({ onPick = () => {} }) => {
+const OperationFromDataView: FunctionComponent<{
+  onSubmit?: (
+    data: { source: string; resource: string }[],
+    name: string
+  ) => void;
+}> = ({ onSubmit = () => {} }) => {
   // We need the data API to make calls to get the data resources.
   const { dataAPI } = useAPI();
 
@@ -156,9 +159,9 @@ const DatasetAddView: FunctionComponent<{
       setSelected(null);
     else setSelected({ source, resource });
   };
-  const handleAdd = () => {
+  const handleCreate = () => {
     if (selected === null) return;
-    onPick([selected], name);
+    onSubmit([selected], name);
     actions.removeView(viewId);
   };
   const handleCancel = () => {
@@ -169,7 +172,7 @@ const DatasetAddView: FunctionComponent<{
   const title = useMemo(() => {
     return (
       <Text align="middle">
-        <DatabaseIcon padded /> Add Dataset
+        <DatabaseIcon padded /> Operation from Dataset
       </Text>
     );
   }, []);
@@ -245,6 +248,7 @@ const DatasetAddView: FunctionComponent<{
         );
       })}
 
+      {/* TODO: Check if pressing 'Enter' triggers the submit method. */}
       {/* Render an input for the optional display name of the selected dataset. */}
       <FormGroup title="Name" density="flow">
         <TextFieldInput
@@ -262,10 +266,10 @@ const DatasetAddView: FunctionComponent<{
         <Button
           color="primary"
           type="submit"
-          onClick={handleAdd}
+          onClick={handleCreate}
           disabled={selected === null}
         >
-          Add
+          Create
         </Button>
         <Button color="secondary" type="button" onClick={handleCancel}>
           Cancel
@@ -275,4 +279,4 @@ const DatasetAddView: FunctionComponent<{
   );
 };
 
-export default DatasetAddView;
+export default OperationFromDataView;

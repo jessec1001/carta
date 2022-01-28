@@ -1,3 +1,4 @@
+import queryString from "query-string";
 import BaseAPI from "./BaseAPI";
 import { User, UserSearcheableAttribute } from "./user";
 import { BrowserException } from "library/exceptions";
@@ -30,11 +31,12 @@ class UserAPI extends BaseAPI {
    */
   public async isAuthenticated(): Promise<boolean> {
     const url = `${this.getApiUrl()}/authenticated`;
-    const response = await fetch(url, this.defaultFetcher());
+    const response = await fetch(url, this.defaultFetchParameters());
 
     await this.ensureSuccess(
       response,
-      "Error occurred while trying to check authentication."
+      "Error occurred while trying to check authentication.",
+      ["application/json"]
     );
     return await this.readJSON<boolean>(response);
   }
@@ -45,11 +47,12 @@ class UserAPI extends BaseAPI {
    */
   public async getUserInfo(): Promise<User> {
     const url = `${this.getApiUrl()}`;
-    const response = await fetch(url, this.defaultFetcher());
+    const response = await fetch(url, this.defaultFetchParameters());
 
     await this.ensureSuccess(
       response,
-      "Error occurred while trying to fetch user information."
+      "Error occurred while trying to fetch user information.",
+      ["application/json"]
     );
     return await this.readJSON<User>(response);
   }
@@ -72,10 +75,10 @@ class UserAPI extends BaseAPI {
     let response: Response;
     if (matchAttribute === null) {
       // We are not filtering the users so we make a more basic request.
-      response = await fetch(baseUrl, this.defaultFetcher());
+      response = await fetch(baseUrl, this.defaultFetchParameters());
     } else {
       // We are filtering so we need to format and add the advanced request parameters.
-      const attributeName = matchAttribute as string;
+      const attributeName = matchAttribute;
       const attributeValue = matchValue ?? "";
       let attributeFilter: "=" | "^=";
       switch (matchType) {
@@ -87,13 +90,21 @@ class UserAPI extends BaseAPI {
           break;
       }
 
-      const url = `${baseUrl}?attributeName=${attributeName}&attributeValue=${attributeValue}&attributeFilter=${attributeFilter}`;
-      response = await fetch(url, this.defaultFetcher());
+      const url = queryString.stringifyUrl({
+        url: baseUrl,
+        query: {
+          attributeName,
+          attributeValue,
+          attributeFilter,
+        },
+      });
+      response = await fetch(url, this.defaultFetchParameters());
     }
 
     await this.ensureSuccess(
       response,
-      "Error occurred while trying to fetch users information."
+      "Error occurred while trying to fetch users information.",
+      ["application/json"]
     );
     return await this.readJSON<User[]>(response);
   }
@@ -104,11 +115,12 @@ class UserAPI extends BaseAPI {
    */
   public async getGroupUsersInfo(groupId: string): Promise<User[]> {
     const url = `${this.getApiUrl()}/group/${encodeURIComponent(groupId)}`;
-    const response = await fetch(url, this.defaultFetcher());
+    const response = await fetch(url, this.defaultFetchParameters());
 
     await this.ensureSuccess(
       response,
-      "Error occurred while trying to fetch user information."
+      "Error occurred while trying to fetch user information.",
+      ["application/json"]
     );
     return await this.readJSON<User[]>(response);
   }
@@ -174,7 +186,7 @@ class UserAPI extends BaseAPI {
    */
   public async signOut(): Promise<void> {
     const url = `${this.getApiUrl()}/signout`;
-    const response = await fetch(url, this.defaultFetcher());
+    const response = await fetch(url, this.defaultFetchParameters());
 
     await this.ensureSuccess(
       response,

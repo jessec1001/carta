@@ -1,27 +1,28 @@
 import queryString from "query-string";
 import BaseAPI from "./BaseAPI";
-import { DataResourceIdentifier } from "./data";
+import { Graph, GraphResource } from "./data";
 
 /** Contains methods for accesssing the Carta Data API module. */
 class DataAPI extends BaseAPI {
-  private defaultResourceIdentifiers: DataResourceIdentifier[];
+  private defaultResourceIdentifiers: GraphResource[];
 
   /**
    * @param resourceIdentifiers The default resource identifiers to incorporate into API requests.
    */
-  constructor(resourceIdentifiers: DataResourceIdentifier[] = []) {
+  constructor(resourceIdentifiers: GraphResource[] = []) {
     super();
-
     this.defaultResourceIdentifiers = resourceIdentifiers;
   }
 
   protected getApiUrl() {
     return "/api/data";
   }
-  protected getResourceUrl(source: string, resource: string) {
+  protected getResourceUrl(source: string, resource?: string) {
     const encodedSource = encodeURIComponent(source);
-    const encodedResource = encodeURIComponent(resource);
-    return `${this.getApiUrl()}/${encodedSource}/${encodedResource}`;
+    const encodedResource = encodeURIComponent(resource ?? "");
+    return resource
+      ? `${this.getApiUrl()}/${encodedSource}/${encodedResource}`
+      : `${this.getApiUrl()}/${encodedSource}`;
   }
 
   /**
@@ -36,7 +37,7 @@ class DataAPI extends BaseAPI {
   ): Map<string, any> {
     const parameters = new Map<string, any>();
 
-    const filteredResourceIdentifiers: DataResourceIdentifier[] =
+    const filteredResourceIdentifiers: GraphResource[] =
       this.defaultResourceIdentifiers.filter(
         (data) =>
           (data.source === undefined ||
@@ -62,11 +63,12 @@ class DataAPI extends BaseAPI {
       url: `${this.getApiUrl()}`,
       query: Object.fromEntries(this.getParameters()),
     });
-    const response = await fetch(url, this.defaultFetcher());
+    const response = await fetch(url, this.defaultFetchParameters());
 
     await this.ensureSuccess(
       response,
-      "Error occurred while trying to fetch data sources."
+      "Error occurred while trying to fetch data sources.",
+      ["application/json"]
     );
 
     return await this.readJSON<string[]>(response);
@@ -78,19 +80,102 @@ class DataAPI extends BaseAPI {
    */
   public async getResources(source: string): Promise<string[]> {
     const url = queryString.stringifyUrl({
-      url: `${this.getApiUrl()}/${encodeURIComponent(source)}`,
+      url: `${this.getResourceUrl(source)}`,
       query: Object.fromEntries(this.getParameters(source)),
     });
-    const response = await fetch(url, this.defaultFetcher());
+    const response = await fetch(url, this.defaultFetchParameters());
 
     await this.ensureSuccess(
       response,
-      "Error occurred while trying to fetch data resources."
+      "Error occurred while trying to fetch data resources.",
+      ["application/json"]
     );
 
     return await this.readJSON<string[]>(response);
   }
 
+  /**
+   * Creates a new graph at the specified data source and resource.
+   * @param source The data source.
+   * @param graph The graph to create.
+   * @returns The created graph.
+   */
+  public async postGraph(source: string, graph: Graph): Promise<Graph> {
+    const url = queryString.stringifyUrl({
+      url: `${this.getResourceUrl(source)}`,
+      query: Object.fromEntries(this.getParameters(source)),
+    });
+    const response = await fetch(
+      url,
+      this.defaultFetchParameters("POST", graph)
+    );
+
+    await this.ensureSuccess(
+      response,
+      "Error occurred while trying to post data resource.",
+      ["application/json"]
+    );
+
+    return await this.readJSON<Graph>(response);
+  }
+  /**
+   * Deletes a graph at the specified data source and resource.
+   * @param source The data source.
+   * @param resource The data resource.
+   */
+  public async deleteGraph(source: string, resource: string): Promise<void> {
+    const url = queryString.stringifyUrl({
+      url: `${this.getResourceUrl(source, resource)}`,
+      query: Object.fromEntries(this.getParameters(source, resource)),
+    });
+    const response = await fetch(url, this.defaultFetchParameters("DELETE"));
+
+    await this.ensureSuccess(
+      response,
+      "Error occurred while trying to delete data resource."
+    );
+  }
+  /**
+   * Retrieves a graph at a particular data source and resource.
+   * @param source The data source.
+   * @param resource The data resource.
+   * @param selector A selector to use to isolate the data to be retrieved from the graph.
+   * @param parameters A mapping of parameters to use for the selector.
+   * @returns The graph.
+   */
+  public async getGraph(
+    source: string,
+    resource: string,
+    selector: string,
+    parameters?: Record<string, any>
+  ): Promise<Graph> {
+    const url = queryString.stringifyUrl({
+      url: `${this.getResourceUrl(source, resource)}/${encodeURIComponent(
+        selector
+      )}`,
+      query: {
+        ...Object.fromEntries(this.getParameters(source, resource)),
+        ...parameters,
+      },
+    });
+    const response = await fetch(url, this.defaultFetchParameters());
+
+    await this.ensureSuccess(
+      response,
+      "Error occurred while trying to fetch data resource.",
+      ["application/json"]
+    );
+
+    return await this.readJSON<Graph>(response);
+  }
+
+  /**
+   * Gets the template for an operation that loads a particular data source.
+   * Should be used to programmatically create new operations that load data.
+   * @param source The data source.
+   * @param resource The data resource.
+   * @returns Information about the operation.
+   */
   public async getOperation(
     source: string,
     resource: string
@@ -103,11 +188,12 @@ class DataAPI extends BaseAPI {
       url: `${this.getResourceUrl(source, resource)}/operation`,
       query: Object.fromEntries(this.getParameters(source, resource)),
     });
-    const response = await fetch(url, this.defaultFetcher());
+    const response = await fetch(url, this.defaultFetchParameters());
 
     await this.ensureSuccess(
       response,
-      "Error occurred while trying to fetch data operation."
+      "Error occurred while trying to fetch data operation.",
+      ["application/json"]
     );
 
     return await this.readJSON<{

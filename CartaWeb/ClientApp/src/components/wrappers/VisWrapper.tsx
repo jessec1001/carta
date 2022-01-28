@@ -1,7 +1,7 @@
 import React, { Component, createRef, RefObject } from "react";
 import { DataView } from "vis-data/standalone";
 import { Network, Options } from "vis-network/standalone";
-import { Edge, Node } from "library/api/data";
+import { Edge, Vertex } from "library/api/data";
 import "./VisWrapper.css";
 
 export interface VisWrapperProps {
@@ -55,7 +55,7 @@ export default class VisWrapper extends Component<VisWrapperProps> {
   static displayName = VisWrapper.name;
 
   ref: RefObject<HTMLDivElement>;
-  data: { nodes: DataView<Node>; edges: DataView<Edge> };
+  data: { nodes: DataView<Vertex>; edges: DataView<Edge> };
   network: Network | null;
   focus: { x: number; y: number };
 

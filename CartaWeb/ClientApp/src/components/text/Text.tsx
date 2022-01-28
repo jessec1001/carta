@@ -33,7 +33,7 @@ interface TextProps {
 const Text: FunctionComponent<TextProps> = ({
   component: element,
   size = "normal",
-  color = "normal",
+  color,
   justify,
   align,
   padding,

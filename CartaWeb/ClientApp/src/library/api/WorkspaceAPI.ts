@@ -36,7 +36,7 @@ class WorkspaceAPI extends BaseAPI {
       url: this.getApiUrl(),
       query: { archived: archived },
     });
-    const response = await fetch(url, this.defaultFetcher());
+    const response = await fetch(url, this.defaultFetchParameters());
 
     await this.ensureSuccess(
       response,
@@ -82,7 +82,7 @@ class WorkspaceAPI extends BaseAPI {
    */
   public async getWorkspace(workspaceId: string): Promise<Workspace> {
     const url = this.getWorkspaceUrl(workspaceId);
-    const response = await fetch(url, this.defaultFetcher());
+    const response = await fetch(url, this.defaultFetchParameters());
 
     await this.ensureSuccess(
       response,
@@ -119,7 +119,7 @@ class WorkspaceAPI extends BaseAPI {
    */
   public async createWorkspace(workspaceName: string): Promise<Workspace> {
     const url = `${this.getApiUrl()}/${encodeURIComponent(workspaceName)}`;
-    const response = await fetch(url, this.defaultFetcher("POST"));
+    const response = await fetch(url, this.defaultFetchParameters("POST"));
 
     await this.ensureSuccess(
       response,
@@ -162,7 +162,7 @@ class WorkspaceAPI extends BaseAPI {
       url: this.getWorkspaceUrl(workspaceId),
       query: { archived: true },
     });
-    const response = await fetch(url, this.defaultFetcher("PATCH"));
+    const response = await fetch(url, this.defaultFetchParameters("PATCH"));
 
     await this.ensureSuccess(
       response,
@@ -181,7 +181,7 @@ class WorkspaceAPI extends BaseAPI {
       url: this.getWorkspaceUrl(workspaceId),
       query: { archived: false },
     });
-    const response = await fetch(url, this.defaultFetcher("PATCH"));
+    const response = await fetch(url, this.defaultFetchParameters("PATCH"));
 
     await this.ensureSuccess(
       response,
@@ -218,7 +218,7 @@ class WorkspaceAPI extends BaseAPI {
         dateTo: dateTo && dateTo.toISOString(),
       },
     });
-    const response = await fetch(url, this.defaultFetcher());
+    const response = await fetch(url, this.defaultFetchParameters());
 
     this.ensureSuccess(
       response,
@@ -241,7 +241,7 @@ class WorkspaceAPI extends BaseAPI {
     workspaceId: string
   ): Promise<WorkspaceUser[]> {
     const url = `${this.getWorkspaceUrl(workspaceId)}/users`;
-    const response = await fetch(url, this.defaultFetcher());
+    const response = await fetch(url, this.defaultFetchParameters());
 
     await this.ensureSuccess(
       response,
@@ -263,7 +263,10 @@ class WorkspaceAPI extends BaseAPI {
     users: WorkspaceUser[]
   ): Promise<WorkspaceUser[]> {
     const url = `${this.getWorkspaceUrl(workspaceId)}/users`;
-    const response = await fetch(url, this.defaultFetcher("PATCH", users));
+    const response = await fetch(
+      url,
+      this.defaultFetchParameters("PATCH", users)
+    );
 
     await this.ensureSuccess(
       response,
@@ -289,7 +292,7 @@ class WorkspaceAPI extends BaseAPI {
         users: users.map((user) => user.userInformation.id),
       },
     });
-    const response = await fetch(url, this.defaultFetcher("DELETE"));
+    const response = await fetch(url, this.defaultFetchParameters("DELETE"));
 
     await this.ensureSuccess(
       response,
@@ -308,7 +311,7 @@ class WorkspaceAPI extends BaseAPI {
     workspaceId: string
   ): Promise<WorkspaceOperation[]> {
     const url = `${this.getWorkspaceUrl(workspaceId)}/operations`;
-    const response = await fetch(url, this.defaultFetcher("GET"));
+    const response = await fetch(url, this.defaultFetchParameters("GET"));
 
     await this.ensureSuccess(
       response,
@@ -332,7 +335,7 @@ class WorkspaceAPI extends BaseAPI {
     const url = `${this.getWorkspaceUrl(
       workspaceId
     )}/operations/${operationId}`;
-    const response = await fetch(url, this.defaultFetcher("GET"));
+    const response = await fetch(url, this.defaultFetchParameters("GET"));
 
     await this.ensureSuccess(
       response,
@@ -356,7 +359,7 @@ class WorkspaceAPI extends BaseAPI {
     const url = `${this.getWorkspaceUrl(
       workspaceId
     )}/operations/${operationId}`;
-    const response = await fetch(url, this.defaultFetcher("POST"));
+    const response = await fetch(url, this.defaultFetchParameters("POST"));
 
     await this.ensureSuccess(
       response,
@@ -379,7 +382,7 @@ class WorkspaceAPI extends BaseAPI {
     const url = `${this.getWorkspaceUrl(
       workspaceId
     )}/operations/${operationId}`;
-    const response = await fetch(url, this.defaultFetcher("DELETE"));
+    const response = await fetch(url, this.defaultFetchParameters("DELETE"));
 
     await this.ensureSuccess(
       response,

@@ -1,10 +1,25 @@
 import BaseAPI from "./BaseAPI";
+import DataAPI from "./DataAPI";
+import OperationsAPI from "./OperationsAPI";
 import { Operation } from "./operations";
-import { Workflow, WorkflowConnection } from "./workflows";
+import { Workflow, WorkflowConnection, WorkflowTemplate } from "./workflows";
 
 // TODO: Add documentation.
 /** Contains methods for accessing the Carta Workflow API module. */
 class WorkflowsAPI extends BaseAPI {
+  private operationsApi: OperationsAPI;
+  private dataApi: DataAPI;
+
+  // TODO: Make it so every API has a reference to all the other APIs.
+  /**
+   * @param operationsApi A reference to the operations API.
+   */
+  public constructor(operationsApi: OperationsAPI, dataApi: DataAPI) {
+    super();
+    this.operationsApi = operationsApi;
+    this.dataApi = dataApi;
+  }
+
   protected getApiUrl() {
     return "/api/workflows";
   }
@@ -15,40 +30,49 @@ class WorkflowsAPI extends BaseAPI {
   // #region Workflows CRUD
   public async getWorkflow(workflowId: string): Promise<Workflow> {
     const url = this.getWorkflowUrl(workflowId);
-    const response = await fetch(url, this.defaultFetcher("GET"));
+    const response = await fetch(url, this.defaultFetchParameters("GET"));
 
     await this.ensureSuccess(
       response,
-      "Error occurred while trying to fetch workflow."
+      "Error occurred while trying to fetch workflow.",
+      ["application/json"]
     );
 
     return await this.readJSON<Workflow>(response);
   }
   public async createWorkflow(workflow: Partial<Workflow>): Promise<Workflow> {
     const url = this.getApiUrl();
-    const response = await fetch(url, this.defaultFetcher("POST", workflow));
+    const response = await fetch(
+      url,
+      this.defaultFetchParameters("POST", workflow)
+    );
 
     await this.ensureSuccess(
       response,
-      "Error occurred while trying to create workflow."
+      "Error occurred while trying to create workflow.",
+      ["application/json"]
     );
 
     return await this.readJSON<Workflow>(response);
   }
   public async updateWorkflow(workflow: Workflow): Promise<Workflow> {
     const url = this.getWorkflowUrl(workflow.id);
-    const response = await fetch(url, this.defaultFetcher("PATCH", workflow));
+    const response = await fetch(
+      url,
+      this.defaultFetchParameters("PATCH", workflow)
+    );
 
     await this.ensureSuccess(
       response,
-      "Error occurred while trying to update workflow."
+      "Error occurred while trying to update workflow.",
+      ["application/json"]
     );
 
     return await this.readJSON<Workflow>(response);
   }
   public async deleteWorkflow(workflowId: string): Promise<void> {
     const url = this.getWorkflowUrl(workflowId);
-    const response = await fetch(url, this.defaultFetcher("DELETE"));
+    const response = await fetch(url, this.defaultFetchParameters("DELETE"));
 
     await this.ensureSuccess(
       response,
@@ -62,7 +86,7 @@ class WorkflowsAPI extends BaseAPI {
     const url = this.getWorkflowUrl(workflowId);
     const response = await fetch(
       `${url}/operations`,
-      this.defaultFetcher("GET")
+      this.defaultFetchParameters("GET")
     );
 
     await this.ensureSuccess(
@@ -79,7 +103,7 @@ class WorkflowsAPI extends BaseAPI {
     const url = this.getWorkflowUrl(workflowId);
     const response = await fetch(
       `${url}/operations/${operationId}`,
-      this.defaultFetcher("POST")
+      this.defaultFetchParameters("POST")
     );
 
     await this.ensureSuccess(
@@ -94,7 +118,7 @@ class WorkflowsAPI extends BaseAPI {
     const url = this.getWorkflowUrl(workflowId);
     const response = await fetch(
       `${url}/operations/${operationId}`,
-      this.defaultFetcher("DELETE")
+      this.defaultFetchParameters("DELETE")
     );
 
     await this.ensureSuccess(
@@ -111,7 +135,7 @@ class WorkflowsAPI extends BaseAPI {
     const url = this.getWorkflowUrl(workflowId);
     const response = await fetch(
       `${url}/connections`,
-      this.defaultFetcher("GET")
+      this.defaultFetchParameters("GET")
     );
 
     await this.ensureSuccess(
@@ -128,7 +152,7 @@ class WorkflowsAPI extends BaseAPI {
     const url = this.getWorkflowUrl(workflowId);
     const response = await fetch(
       `${url}/connections`,
-      this.defaultFetcher("POST", connection)
+      this.defaultFetchParameters("POST", connection)
     );
 
     await this.ensureSuccess(
@@ -145,7 +169,7 @@ class WorkflowsAPI extends BaseAPI {
     const url = this.getWorkflowUrl(workflowId);
     const response = await fetch(
       `${url}/connections/${connection.id}`,
-      this.defaultFetcher("PATCH", connection)
+      this.defaultFetchParameters("PATCH", connection)
     );
 
     await this.ensureSuccess(
@@ -162,7 +186,7 @@ class WorkflowsAPI extends BaseAPI {
     const url = this.getWorkflowUrl(workflowId);
     const response = await fetch(
       `${url}/connections/${connectionId}`,
-      this.defaultFetcher("DELETE")
+      this.defaultFetchParameters("DELETE")
     );
 
     await this.ensureSuccess(
@@ -178,7 +202,7 @@ class WorkflowsAPI extends BaseAPI {
     const url = this.getWorkflowUrl(workflowId);
     const response = await fetch(
       `${url}/connections/suggest`,
-      this.defaultFetcher("POST", connection)
+      this.defaultFetchParameters("POST", connection)
     );
 
     await this.ensureSuccess(
@@ -191,24 +215,100 @@ class WorkflowsAPI extends BaseAPI {
   // #endregion
 
   // #region Template Workflows
-  public async createBlankWorkflow(
-    workflow: Partial<Workflow>
+  // TODO: Consider moving template creating endpoints to the backend.
+  public async createWorkflowFromTemplate(
+    workflow: Partial<Workflow>,
+    template: WorkflowTemplate
   ): Promise<Workflow> {
     // Create the workflow.
     const createdWorkflow = await this.createWorkflow(workflow);
 
-    // Return the workflow.
-    return createdWorkflow;
+    // Create the operations.
+    for (let k = 0; k < template.operations.length; k++) {
+      const operationTemplate = template.operations[k];
+      const operation = await this.operationsApi.createOperation(
+        operationTemplate.type,
+        operationTemplate.subtype,
+        operationTemplate.default
+      );
+      await this.addWorkflowOperation(createdWorkflow.id, operation.id);
+    }
+
+    // Create the connections.
+    for (let k = 0; k < template.connections.length; k++) {
+      const connectionTemplate = template.connections[k];
+      await this.addWorkflowConnection(createdWorkflow.id, connectionTemplate);
+    }
+
+    // Retrieve the updated workflow.
+    return await this.getWorkflow(createdWorkflow.id);
   }
-  public async createDataWorkflow(
-    data: { source: string; resource: string }[],
-    workflow: Partial<Workflow>
-  ): Promise<Workflow> {
-    // Create the workflow.
-    const createdWorkflow = await this.createWorkflow(workflow);
+  public async createBlankWorkflowTemplate(): Promise<WorkflowTemplate> {
+    // A blank workflow has no operations nor connections.
+    return {
+      operations: [],
+      connections: [],
+    };
+  }
+  public async createDataWorkflowTemplate(
+    data: { source: string; resource: string }[]
+  ): Promise<WorkflowTemplate> {
+    // Initialize lists of operations and connections.
+    const operations: WorkflowTemplate["operations"] = [];
+    const connections: WorkflowTemplate["connections"] = [];
 
-    // Return the workflow.
-    return createdWorkflow;
+    // Add the output operation.
+    const outputOperation: Operation = {
+      id: operations.length.toString(),
+      type: "workflowOutput",
+      subtype: null,
+      default: { Name: "Visualization" },
+    };
+    operations.push(outputOperation);
+
+    // Add the visualization operation.
+    const visOperation: Operation = {
+      id: operations.length.toString(),
+      type: "visualizeGraphPlot",
+      subtype: null,
+    };
+    operations.push(visOperation);
+    connections.push({
+      id: "",
+      source: { field: "Plot", operation: visOperation.id },
+      target: { field: "Value", operation: outputOperation.id },
+      multiplex: false,
+    });
+
+    // TODO: Add a combine graph operation.
+
+    // Add each of the data operations.
+    for (let k = 0; k < data.length; k++) {
+      const datum = data[k];
+      const datumTemplate = await this.dataApi.getOperation(
+        datum.source,
+        datum.resource
+      );
+      const datumOperation: Operation = {
+        id: operations.length.toString(),
+        type: datumTemplate.type,
+        subtype: datumTemplate.subtype,
+        default: datumTemplate.default,
+      };
+      operations.push(datumOperation);
+      connections.push({
+        id: "",
+        source: { field: "Graph", operation: datumOperation.id },
+        target: { field: "Graph", operation: visOperation.id },
+        multiplex: false,
+      });
+    }
+
+    // Return the workflow template.
+    return {
+      operations,
+      connections,
+    };
   }
   // #endregion
 }

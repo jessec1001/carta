@@ -2,10 +2,10 @@ import { FunctionComponent, useEffect, useMemo, useState } from "react";
 import { Property } from "library/api";
 import { ObjectFilter } from "library/search";
 import { Accordian } from "components/accordian";
-import { PropertyIcon, ValueIcon, VertexIcon } from "components/icons";
+import { PropertyIcon, VertexIcon } from "components/icons";
 import { SearchboxInput } from "components/input";
 import { Column, Row } from "components/structure";
-import { EmptySymbol, NullSymbol } from "components/symbols";
+// import { EmptySymbol, NullSymbol } from "components/symbols";
 import { useViews, Views } from "components/views";
 import { Text } from "components/text";
 
@@ -14,101 +14,101 @@ import "./VisualizerSelectionView.css";
 /** A property that is attached to a particular vertex. */
 interface AttachedProperty extends Property {
   /** The values of the property along with the vertex that owns this property. */
-  values: [any, any][];
+  value: [any, any];
 
   /** The subproperties of the property. */
   properties?: AttachedProperty[];
 }
 
-/**
- * Renders a list of values for a property of any type.
- * @param values The list of values.
- * @returns An element that renders the list of values.
- */
-const renderValues = (values: any[]) => {
-  return (
-    <ul role="presentation">
-      {/* Loop through each of the values in the array. */}
-      {values.map((obs, index) => {
-        // Get the type and color of the value.
-        const valueType = computeTypeName(obs);
-        const valueColor = computeTypeColor(valueType);
-        return (
-          <li key={index}>
-            <Text align="middle" {...({ title: valueType } as any)}>
-              <ValueIcon color={valueColor} />
-              {renderValue(obs)}
-            </Text>
-          </li>
-        );
-      })}
-    </ul>
-  );
-};
-const renderAttachedValues = (values: [any, any][]) => {
-  return (
-    <ul role="presentation" className="VisualizerSelectionView-IndentList">
-      {/* Loop through each of the values in the array. */}
-      {values.map((obs, index) => {
-        // Get the type and color of the value.
-        const [vertex, value] = obs;
-        const valueType = computeTypeName(value);
-        return (
-          <li key={index}>
-            <Text
-              align="middle"
-              {...{ title: `Name: ${vertex.label}; ID: ${vertex.id}` }}
-            >
-              <VertexIcon padded selected color={vertex.color as string} />
-              <span title={valueType}>{renderValue(value)}</span>
-            </Text>
-          </li>
-        );
-      })}
-    </ul>
-  );
-};
+// /**
+//  * Renders a list of values for a property of any type.
+//  * @param values The list of values.
+//  * @returns An element that renders the list of values.
+//  */
+// const renderValues = (values: any[]) => {
+//   return (
+//     <ul role="presentation">
+//       {/* Loop through each of the values in the array. */}
+//       {values.map((obs, index) => {
+//         // Get the type and color of the value.
+//         const valueType = computeTypeName(obs);
+//         const valueColor = computeTypeColor(valueType);
+//         return (
+//           <li key={index}>
+//             <Text align="middle" {...({ title: valueType } as any)}>
+//               <ValueIcon color={valueColor} />
+//               {renderValue(obs)}
+//             </Text>
+//           </li>
+//         );
+//       })}
+//     </ul>
+//   );
+// };
+// const renderAttachedValues = (values: [any, any][]) => {
+//   return (
+//     <ul role="presentation" className="VisualizerSelectionView-IndentList">
+//       {/* Loop through each of the values in the array. */}
+//       {values.map((obs, index) => {
+//         // Get the type and color of the value.
+//         const [vertex, value] = obs;
+//         const valueType = computeTypeName(value);
+//         return (
+//           <li key={index}>
+//             <Text
+//               align="middle"
+//               {...{ title: `Name: ${vertex.label}; ID: ${vertex.id}` }}
+//             >
+//               <VertexIcon padded selected color={vertex.color as string} />
+//               <span title={valueType}>{renderValue(value)}</span>
+//             </Text>
+//           </li>
+//         );
+//       })}
+//     </ul>
+//   );
+// };
 
-/**
- * Computes the color of a particular type of value.
- * @param typename The name of the type.
- * @returns The color assigned to the type.
- */
-const computeTypeColor = (typename: string): string => {
-  switch (typename) {
-    case "number":
-      return "#0000dd";
-    case "boolean":
-      return "#00bb00";
-    case "string":
-      return "#aa4422";
-    case "null":
-      return "#ff0000";
-    case "array":
-      return "#00dddd";
-    case "map":
-      return "#dd00dd";
-    default:
-      return "#888888";
-  }
-};
+// /**
+//  * Computes the color of a particular type of value.
+//  * @param typename The name of the type.
+//  * @returns The color assigned to the type.
+//  */
+// const computeTypeColor = (typename: string): string => {
+//   switch (typename) {
+//     case "number":
+//       return "#0000dd";
+//     case "boolean":
+//       return "#00bb00";
+//     case "string":
+//       return "#aa4422";
+//     case "null":
+//       return "#ff0000";
+//     case "array":
+//       return "#00dddd";
+//     case "map":
+//       return "#dd00dd";
+//     default:
+//       return "#888888";
+//   }
+// };
 
-/**
- * Computes the name of a particular type of value.
- * @param value The value to compute the type of.
- * @returns The name of the type.
- */
-const computeTypeName = (value: any) => {
-  if (value === null) {
-    return "null";
-  } else if (Array.isArray(value)) {
-    return "array";
-  } else if (typeof value === "object") {
-    return "map";
-  } else {
-    return typeof value;
-  }
-};
+// /**
+//  * Computes the name of a particular type of value.
+//  * @param value The value to compute the type of.
+//  * @returns The name of the type.
+//  */
+// const computeTypeName = (value: any) => {
+//   if (value === null) {
+//     return "null";
+//   } else if (Array.isArray(value)) {
+//     return "array";
+//   } else if (typeof value === "object") {
+//     return "map";
+//   } else {
+//     return typeof value;
+//   }
+// };
 
 /**
  * Consolidates a list of properties into a single property hierarchy with all of the same-named properties at equal
@@ -134,9 +134,9 @@ const consolidateProperties = (
       const id = property.id;
       if (id in consolidated) {
         // If the property already exists, merge the values.
-        consolidated[id].values = consolidated[id].values.concat(
-          property.values
-        );
+        // consolidated[id].value = consolidated[id].value.concat(
+        //   property.value
+        // );
 
         // We also need to merge the subproperties.
         // This is done recursively.
@@ -176,7 +176,7 @@ const formatProperties = (vertex: any) => {
       // Append the property to the list.
       properties.push({
         id: property.id,
-        values: property.values.map((value: any) => [vertex, value]),
+        value: property.value.map((value: any) => [vertex, value]),
         properties: subproperties,
       });
     }
@@ -185,52 +185,54 @@ const formatProperties = (vertex: any) => {
   return properties;
 };
 
-/**
- * Renders a particular value.
- * @param value The value to render.
- * @returns An element that renders the value.
- */
-const renderValue = (value: any) => {
-  if (value === null) {
-    // Render null.
-    return <NullSymbol />;
-  } else if (Array.isArray(value)) {
-    // Render an empty array.
-    if (value.length === 0) return <EmptySymbol />;
-    // Render the array as a list of values.
-    else
-      return (
-        <table>
-          <tr>
-            {value.map((value, index) => (
-              <td key={index}>{renderValue(value)}</td>
-            ))}
-          </tr>
-        </table>
-      );
-  } else if (typeof value === "object") {
-    // Render an empty object.
-    if (Object.keys(value).length === 0) return <EmptySymbol />;
-    else
-      return (
-        // Render the object as a list of key-value pairs.
-        <table>
-          {Object.entries(value).map(([key, value]) => (
-            <tr key={key}>
-              <td>{key}</td>
-              <td>{renderValue(value)}</td>
-            </tr>
-          ))}
-        </table>
-      );
-  } else if (typeof value === "string" && value === "") {
-    // Render an empty string.
-    return <EmptySymbol />;
-  } else {
-    // Render the value as its string representation if no further structure is found.
-    return value.toString();
-  }
-};
+// /**
+//  * Renders a particular value.
+//  * @param value The value to render.
+//  * @returns An element that renders the value.
+//  */
+// const renderValue = (value: any) => {
+//   if (value === null) {
+//     // Render null.
+//     return <NullSymbol />;
+//   } else if (Array.isArray(value)) {
+//     // Render an empty array.
+//     if (value.length === 0) return <EmptySymbol />;
+//     // Render the array as a list of values.
+//     else
+//       return (
+//         <table>
+//           <tr>
+//             {value.map(
+//               (value, index) =>
+//                 null
+//                 // <td key={index}>{renderValue(value)}</td>
+//             )}
+//           </tr>
+//         </table>
+//       );
+//   } else if (typeof value === "object") {
+//     // Render an empty object.
+//     if (Object.keys(value).length === 0) return <EmptySymbol />;
+//     else
+//       return (
+//         // Render the object as a list of key-value pairs.
+//         <table>
+//           {Object.entries(value).map(([key, value]) => (
+//             <tr key={key}>
+//               <td>{key}</td>
+//               {/* <td>{renderValue(value)}</td> */}
+//             </tr>
+//           ))}
+//         </table>
+//       );
+//   } else if (typeof value === "string" && value === "") {
+//     // Render an empty string.
+//     return <EmptySymbol />;
+//   } else {
+//     // Render the value as its string representation if no further structure is found.
+//     return value.toString();
+//   }
+// };
 
 /**
  * Renders the tree of properties attached to a single vertex.
@@ -259,7 +261,7 @@ const renderVertexTree = (properties: Property[] | undefined) => {
               </Accordian.Header>
               <Accordian.Content>
                 {/* Render the values first followed by subproperties second. */}
-                {renderValues(property.values)}
+                {/* {renderValues(property.values)} */}
                 {hasSubproperties && renderVertexTree(property.properties)}
               </Accordian.Content>
             </Accordian>
@@ -283,7 +285,7 @@ const renderPropertyTree = (properties: AttachedProperty[] | undefined) => {
         // We check if the property has subproperties or values and render them in an expandable accordian.
         const hasSubproperties =
           property.properties !== undefined && property.properties.length > 0;
-        const hasValues = property.values.length > 0;
+        const hasValues = true; // property.values.length > 0;
         return (
           <li key={property.id}>
             <Accordian initialToggled={!(hasSubproperties || hasValues)}>
@@ -297,7 +299,7 @@ const renderPropertyTree = (properties: AttachedProperty[] | undefined) => {
               </Accordian.Header>
               <Accordian.Content>
                 {/* Render the values first followed by subproperties second. */}
-                {renderAttachedValues(property.values)}
+                {/* {renderAttachedValues(property.values)} */}
                 {(hasSubproperties || hasValues) &&
                   renderPropertyTree(property.properties)}
               </Accordian.Content>

@@ -55,11 +55,9 @@ const Overlay: FC = ({ children }) => {
   const tip = useTicker(tips, true, tipDisplayInterval);
 
   return (
-    <div className={styles.overlayContainer}>
-      <div className={styles.overlay}>
-        <div className={styles.overlayContent}>{children}</div>
-        <p className={styles.overlayTip}>{tip}</p>
-      </div>
+    <div className={styles.overlay}>
+      <div className={styles.overlayContent}>{children}</div>
+      <p className={styles.overlayTip}>{tip}</p>
     </div>
   );
 };
@@ -152,23 +150,25 @@ const WorkspacePage: FC = () => {
 
   return (
     <PageLayout header>
-      {workspace && (
-        <WorkspaceWrapper workspace={workspace}>
-          <Views>
-            <WorkspaceToolbar />
-            <DefaultLayout />
-            <Views.Renderer />
-          </Views>
-        </WorkspaceWrapper>
-      )}
-      {!isLoadingComplete && (
-        <Overlay>
-          {!workspaceError && (
-            <LoadingOverlay text={loadingText} progress={loadingProgress} />
-          )}
-          {workspaceError && <ErrorOverlay error={workspaceError.message} />}
-        </Overlay>
-      )}
+      <div className={styles.overlayContainer}>
+        {true && (
+          <WorkspaceWrapper workspace={{ id: "1" } as any}>
+            <Views>
+              <WorkspaceToolbar />
+              <DefaultLayout />
+              <Views.Renderer />
+            </Views>
+          </WorkspaceWrapper>
+        )}
+        {!isLoadingComplete && (
+          <Overlay>
+            {!workspaceError && (
+              <LoadingOverlay text={loadingText} progress={loadingProgress} />
+            )}
+            {workspaceError && <ErrorOverlay error={workspaceError.message} />}
+          </Overlay>
+        )}
+      </div>
     </PageLayout>
   );
 };

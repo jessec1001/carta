@@ -6,7 +6,7 @@
   /* Give a decent amount of padding internally. */
   display: inline-flex;
   align-items: center;
-  padding: 0.5rem;
+  padding: 0.125em 0.25em;
 
   /* Add a slight transition delay for the button hover effect to take place. */
   transition: filter 0.1s ease-in-out;

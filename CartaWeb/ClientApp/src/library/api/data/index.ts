@@ -1,2 +1,2 @@
-export * from "./DataResourceIdentifier";
-export * from "./graph";
+export * from "./GraphResource";
+export * from "./Graph";

@@ -42,7 +42,9 @@ const useAPI = () => {
   userAPIRef = useRef(new UserAPI());
   workspaceAPIRef = useRef(new WorkspaceAPI());
   operationsAPIRef = useRef(new OperationsAPI());
-  workflowsAPIRef = useRef(new WorkflowsAPI());
+  workflowsAPIRef = useRef(
+    new WorkflowsAPI(operationsAPIRef.current, dataAPIRef.current)
+  );
 
   // Return their current value.
   return {

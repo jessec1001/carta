@@ -7,14 +7,15 @@ import useMounted from "./useMounted";
  * @param refresh The loading function.
  * @param refreshInterval An optional interval that can be specified for automatically refreshing the data. If not
  * specified, the data will not be automatically refreshed.
- * @returns A tuple containing the data and error respectively. If still loading, both the data and error will be
- * `null`. If loading succeeded, the data will be set and the error will be `undefined`. If loading failed, the error
- * will be set and the data will be `undefined`.
+ * @returns A tuple containing the data and error respectively and a manual refresh callback. If still loading, both the
+ * data and error will be `undefined`. If loading succeeded, the data will be set and the error will be `undefined`. If
+ * loading failed, the error will be set and the data will be `undefined`. Calling the refresh callback will force a
+ * refresh but not return any data.
  */
 const useRefresh = <TData>(
   refresh: () => Promise<TData>,
   refreshInterval?: number
-): [TData | undefined, Error | undefined] => {
+): [TData | undefined, Error | undefined, () => void] => {
   // We store information about the data or error retrieved from the loading function.
   const mounted = useMounted();
   const [results, setResults] = useState<{ data?: TData; error?: Error }>({});
@@ -42,7 +43,7 @@ const useRefresh = <TData>(
   }, [mountedRefresh, refreshInterval]);
 
   // We return the current data and error.
-  return [data, error];
+  return [data, error, refresh];
 };
 
 export default useRefresh;

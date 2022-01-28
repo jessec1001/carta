@@ -15,7 +15,10 @@ class BaseAPI {
    * @param body An optional body to include in the request.
    * @returns The parameters to the fetcher.
    */
-  protected defaultFetcher(method: string = "GET", body?: any): RequestInit {
+  protected defaultFetchParameters(
+    method: string = "GET",
+    body?: any
+  ): RequestInit {
     let parameters: RequestInit = { method };
 
     if (body !== undefined) {
@@ -32,10 +35,29 @@ class BaseAPI {
    * Ensures that an HTTP response has a successful status code (200-299). If not, raises an {@link ApiException}.
    * @param response The response to check.
    * @param errorMessage The error message that should be passed to the exception.
+   * @param contentType The type of content that is expected in the response. If not specified, does not check the content type.
    */
-  protected async ensureSuccess(response: Response, errorMessage: string) {
+  protected async ensureSuccess(
+    response: Response,
+    errorMessage: string,
+    contentTypes?: string[]
+  ) {
+    // Check if the response was okay.
     if (!response.ok) {
       throw await ApiException.create(response, errorMessage);
+    }
+
+    // Check if the content type is correct.
+    if (contentTypes) {
+      const responseType = response.headers.get("content-type");
+      if (!contentTypes.some((type) => responseType?.includes(type))) {
+        throw await ApiException.create(
+          response,
+          `Expected a content type in [${contentTypes.join(
+            ", "
+          )}] but got ${responseType}.`
+        );
+      }
     }
   }
   /**

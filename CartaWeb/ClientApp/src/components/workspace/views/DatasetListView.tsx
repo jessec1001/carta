@@ -11,7 +11,7 @@ import { IconButtonAdd } from "components/buttons";
 import { DatabaseIcon } from "components/icons";
 import { Column, Row } from "components/structure";
 import { useViews, Views } from "components/views";
-import DatasetAddView from "./operation-from-data/DatasetAddView";
+import OperationFromDataView from "./operation-from-data/OperationFromDataView";
 
 import "./DatasetListView.css";
 
@@ -84,7 +84,7 @@ const DatasetListView: FunctionComponent = () => {
   // Clicking the close tab button should close the list datasets view.
   // Executing a dataset item should open the graph dataset view to that dataset.
   const handleAddDataset = useCallback(() => {
-    actions.addElementToContainer(rootId, <DatasetAddView />);
+    actions.addElementToContainer(rootId, <OperationFromDataView />);
   }, [actions, rootId]);
   // const handleOpenDataset = useCallback(
   //   (datasetId: string) => {

@@ -45,7 +45,7 @@ export class PropertyItem extends Component<PropertyProps, PropertyState> {
         <div className={className} onClick={this.props.onClick}>
           <p className="property-item-name">{this.props.property.id}:</p>
           <div className="property-item-occurrences">
-            ×{this.props.property.values.length} &nbsp;
+            ×{this.props.property.value.length} &nbsp;
             <div
               className="d-inline property-expand"
               onClick={this.handleExpand}
@@ -60,7 +60,7 @@ export class PropertyItem extends Component<PropertyProps, PropertyState> {
             {this.props.property.properties && (
               <PropertyList properties={this.props.property.properties} />
             )}
-            <ObservationList observations={this.props.property.values} />
+            <ObservationList observations={this.props.property.value} />
           </div>
         )}
       </div>

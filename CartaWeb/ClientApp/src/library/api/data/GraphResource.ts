@@ -1,5 +1,5 @@
 /** Represents a unique identifier for a data resource including its parameters. */
-interface DataResourceIdentifier {
+interface GraphResource {
   /** The source of the data. If not specified, represents a wildcard. */
   source?: string;
   /** The resource of the data. If not specified, represents a wildcard. */
@@ -9,4 +9,4 @@ interface DataResourceIdentifier {
   parameters: Map<string, any>;
 }
 
-export type { DataResourceIdentifier };
+export type { GraphResource };

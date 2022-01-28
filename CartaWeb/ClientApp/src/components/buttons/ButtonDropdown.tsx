@@ -1,10 +1,9 @@
 import { ComponentProps, FC, useState } from "react";
-import classNames from "classnames";
 import { AppColors } from "app";
 import { Button, ButtonGroup } from "components/buttons";
 import { CaretIcon } from "components/icons";
-import styles from "./ButtonDropdown.module.css";
 import { OptionInput, OptionSelectorInput } from "components/input";
+import { Text } from "components/text";
 
 /** The props used for the {@link ButtonDropdown} comonent. */
 interface ButtonDropdownProps extends ComponentProps<typeof ButtonGroup> {
@@ -28,18 +27,13 @@ const ButtonDropdown: FC<ButtonDropdownProps> = ({
   options,
   auto,
   onPick = () => {},
-  className,
   children,
   ...props
 }) => {
   const [toggled, setToggled] = useState(false);
 
   return (
-    <ButtonGroup
-      connected
-      className={classNames(styles.ButtonDropdown, className)}
-      {...props}
-    >
+    <ButtonGroup connected {...props}>
       <Button
         type="button"
         color={color}
@@ -54,7 +48,9 @@ const ButtonDropdown: FC<ButtonDropdownProps> = ({
         outline={outline}
         onClick={() => setToggled((toggled) => !toggled)}
       >
-        <CaretIcon direction="down" />
+        <Text size="small" align="middle">
+          <CaretIcon direction="down" />
+        </Text>
       </Button>
       <OptionSelectorInput
         toggled={toggled}
