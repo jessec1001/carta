@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { FC, useCallback, useMemo, useRef, useState } from "react";
+import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ObjectFilter } from "library/search";
 import { Loading, Text } from "components/text";
 import { useViews, Views } from "components/views";
@@ -80,6 +80,8 @@ const OperationsListView: FC = () => {
   const [query, setQuery] = useState("");
   const operationsFilter = new ObjectFilter(query, {});
 
+  const [operations, setOperations] = useState<Operation[]>([]);
+
   // We use the workspace to get the list of operations contained within.
   const { operationsAPI, workflowsAPI, workspaceAPI } = useAPI();
   const { workspace } = useWorkspace();
@@ -90,9 +92,35 @@ const OperationsListView: FC = () => {
       loading: false,
     }));
   }, [workspace.id, workspaceAPI]);
-  const [operations, operationsError, operationsRefresh] = useRefresh<
+  const [operationsPartial, operationsError, operationsRefresh] = useRefresh<
     LoadableOperation[]
   >(operationsFetcher, seconds(30));
+
+  useEffect(() => {
+    if (operationsPartial) {
+      // Load all of the corresponding operations by identifier.
+      for (const operationPartial of operationsPartial) {
+        (async () => {
+          const operation = await operationsAPI.getOperation(
+            operationPartial.id,
+            false
+          );
+          setOperations((operations) => {
+            const operationIndex = operations.findIndex(
+              (op) => op.id === operation.id
+            );
+            if (operationIndex >= 0) {
+              const newOperations = [...operations];
+              newOperations[operationIndex] = operation;
+              return newOperations;
+            } else {
+              return [...operations, operation];
+            }
+          });
+        })();
+      }
+    }
+  }, [operationsAPI, operationsPartial]);
 
   // TODO: We can make the following code more concise if we actually have a template for a workflow
   //       before constructing the workflow itself.
@@ -188,7 +216,7 @@ const OperationsListView: FC = () => {
       </Row>
 
       {/* If the operations are not available yet, display why. */}
-      {!operations && (
+      {!operationsPartial && (
         <div className={styles.info}>
           {/* Check if the operations are still loading and display some loading text if so. */}
           {!operationsError && <Loading />}
@@ -204,25 +232,37 @@ const OperationsListView: FC = () => {
       )}
 
       {/* Otherwise, display the list of operations. */}
-      {operations && (
+      {operationsPartial && (
         <ul role="presentation">
-          {operationsFilter.filter(operations).map((operation) => (
-            <OperationsListItem
-              key={operation.id}
-              operation={operation}
-              onWorkflow={() => {
-                if (!operation.subtype) return;
-                viewActions.addElementToContainer(
-                  rootId,
-                  <WorkflowEditorView
+          {operationsFilter
+            .filter(operationsPartial)
+            .map((loadableOperation) => {
+              // Get the operation associated with the operation identifier.
+              const operation = operations.find(
+                (operation) => operation.id === loadableOperation.id
+              );
+
+              if (!operation) return <Loading>Loading operation</Loading>;
+              else {
+                return (
+                  <OperationsListItem
+                    key={operation.id}
                     operation={operation}
-                    workflowId={operation.subtype}
-                  />,
-                  true
+                    onWorkflow={() => {
+                      if (!operation.subtype) return;
+                      viewActions.addElementToContainer(
+                        rootId,
+                        <WorkflowEditorView
+                          operation={operation}
+                          workflowId={operation.subtype}
+                        />,
+                        true
+                      );
+                    }}
+                  />
                 );
-              }}
-            />
-          ))}
+              }
+            })}
         </ul>
       )}
     </Views.Container>

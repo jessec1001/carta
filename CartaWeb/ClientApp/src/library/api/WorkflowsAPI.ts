@@ -223,6 +223,9 @@ class WorkflowsAPI extends BaseAPI {
     // Create the workflow.
     const createdWorkflow = await this.createWorkflow(workflow);
 
+    // Create a mapping of the template operations identifiers to the created operations identifiers.
+    const operationIdMapping = new Map<string, string>();
+
     // Create the operations.
     for (let k = 0; k < template.operations.length; k++) {
       const operationTemplate = template.operations[k];
@@ -231,13 +234,28 @@ class WorkflowsAPI extends BaseAPI {
         operationTemplate.subtype,
         operationTemplate.default
       );
+      operationIdMapping.set(operationTemplate.id, operation.id);
       await this.addWorkflowOperation(createdWorkflow.id, operation.id);
     }
 
     // Create the connections.
     for (let k = 0; k < template.connections.length; k++) {
       const connectionTemplate = template.connections[k];
-      await this.addWorkflowConnection(createdWorkflow.id, connectionTemplate);
+      console.log(operationIdMapping, connectionTemplate.source.operation);
+      await this.addWorkflowConnection(createdWorkflow.id, {
+        source: {
+          operation: operationIdMapping.get(
+            connectionTemplate.source.operation
+          )!,
+          field: connectionTemplate.source.field,
+        },
+        target: {
+          operation: operationIdMapping.get(
+            connectionTemplate.target.operation
+          )!,
+          field: connectionTemplate.target.field,
+        },
+      });
     }
 
     // Retrieve the updated workflow.

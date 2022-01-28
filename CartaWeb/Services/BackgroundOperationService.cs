@@ -10,7 +10,7 @@ using Microsoft.Extensions.Logging;
 using CartaWeb.Services;
 using CartaCore.Persistence;
 
-namespace Carta.Api.Services
+namespace CartaWeb.Services
 {
     public class BackgroundOperationService : BackgroundService
     {

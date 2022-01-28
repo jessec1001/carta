@@ -14,7 +14,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
-using Carta.Api.Services;
 using CartaCore.Persistence;
 using CartaWeb.Formatters;
 using CartaWeb.Models.Migration;
@@ -104,6 +103,11 @@ namespace CartaWeb
                 });
             }
             services.Configure<AwsCdkOptions>(Configuration.GetSection("ResourceStack"));
+
+            // Background job service.
+            services.AddSingleton<OperationJobCollection>();
+            services.AddHostedService<BackgroundOperationService>();
+
 
             // Formatting settings.
             services
