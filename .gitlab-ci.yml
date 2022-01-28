@@ -63,7 +63,7 @@ publish-production:
     - apt-get install -y nodejs
     - apt-get install -y zip unzip
     - npm install -g aws-cdk
-    - cdk deploy ResourceStack --profile cdk --outputs-file CartaWeb/appsettings.CDK.json
+    - cdk deploy ResourceStack --outputs-file CartaWeb/appsettings.CDK.json
     - dotnet publish --configuration Release CartaWeb/ -o package
     - cp -r .platform/ package/
     - cd package
@@ -152,7 +152,7 @@ deploy-staging:
     - echo "aws_secret_access_key = $STAGING_AWS_SECRET_ACCESS_KEY"  >> ~/.aws/credentials
     - COMMIT_SHA=`echo $CI_COMMIT_SHA | cut -c1-8`
     - mv package.zip package-$COMMIT_SHA.zip
-    - cdk deploy ElasticBeanstalkStack --profile cdk --context commitSHA=$COMMIT_SHA
+    - cdk deploy ElasticBeanstalkStack --profile cdk --context commitSHA=$COMMIT_SHA --no-rollback
 
 deploy-production:
   stage: deploy
@@ -166,4 +166,4 @@ deploy-production:
     - npm install -g aws-cdk
     - COMMIT_SHA=`echo $CI_COMMIT_SHA | cut -c1-8`
     - mv package.zip package-$COMMIT_SHA.zip
-    - cdk deploy ElasticBeanstalkStack --profile cdk  --context commitSHA=$COMMIT_SHA
+    - cdk deploy ElasticBeanstalkStack --context commitSHA=$COMMIT_SHA --no-rollback
