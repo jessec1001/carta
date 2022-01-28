@@ -1,4 +1,6 @@
 import { Modify } from "types";
+import { Operation } from "../operations";
+import { WorkspaceOperation } from "../workspace";
 import { Document, DocumentDTO, Identifiable, parseDocument } from "../base";
 import { WorkspaceChange } from "./WorkspaceChange";
 import { WorkspaceUser } from "./WorkspaceUser";
@@ -10,7 +12,8 @@ interface Workspace extends Document, Identifiable {
 
   /** The users that have been given access to the workspace. */
   users?: WorkspaceUser[];
-
+  /** The operations that are contained in a workspace. */
+  operations?: (WorkspaceOperation | (WorkspaceOperation & Operation))[];
   /** The changes that have been made to the workspace. */
   changes?: WorkspaceChange[];
 }

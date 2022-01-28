@@ -239,9 +239,9 @@ class WorkflowsAPI extends BaseAPI {
     }
 
     // Create the connections.
+    // We need to make sure to use the mapping from template to created operation identifiers.
     for (let k = 0; k < template.connections.length; k++) {
       const connectionTemplate = template.connections[k];
-      console.log(operationIdMapping, connectionTemplate.source.operation);
       await this.addWorkflowConnection(createdWorkflow.id, {
         source: {
           operation: operationIdMapping.get(
@@ -261,6 +261,10 @@ class WorkflowsAPI extends BaseAPI {
     // Retrieve the updated workflow.
     return await this.getWorkflow(createdWorkflow.id);
   }
+  /**
+   * Creates a template for a blank workflow.
+   * @returns A workflow template.
+   */
   public async createBlankWorkflowTemplate(): Promise<WorkflowTemplate> {
     // A blank workflow has no operations nor connections.
     return {
@@ -268,6 +272,12 @@ class WorkflowsAPI extends BaseAPI {
       connections: [],
     };
   }
+  /**
+   * Creates a template for a workflow that loads a collection of data as graphs, combines them, and visualizes them
+   * as an output.
+   * @param data The datasets to load.
+   * @returns A workflow template.
+   */
   public async createDataWorkflowTemplate(
     data: { source: string; resource: string }[]
   ): Promise<WorkflowTemplate> {

@@ -59,9 +59,9 @@ class WorkspaceAPI extends BaseAPI {
       workspaces.map((workspace) => {
         return (async () => {
           // We retrieve the additional information that we are missing for a particular workspace.
-          const [users, changes] = await Promise.all([
+          const [users, operations, changes] = await Promise.all([
             this.getWorkspaceUsers(workspace.id),
-            // TODO: Add support for getting operations.
+            this.getWorkspaceOperations(workspace.id),
             this.getWorkspaceChanges(workspace.id),
           ]);
 
@@ -69,6 +69,7 @@ class WorkspaceAPI extends BaseAPI {
           return {
             ...workspace,
             users,
+            operations,
             changes,
           };
         })();
@@ -98,10 +99,10 @@ class WorkspaceAPI extends BaseAPI {
    */
   public async getCompleteWorkspace(workspaceId: string): Promise<Workspace> {
     // We retrieve each of the parts of a complete workspace at the same time.
-    const [workspace, users, changes] = await Promise.all([
+    const [workspace, users, operations, changes] = await Promise.all([
       this.getWorkspace(workspaceId),
       this.getWorkspaceUsers(workspaceId),
-      // TODO: Add support for getting operations,
+      this.getWorkspaceOperations(workspaceId),
       this.getWorkspaceChanges(workspaceId),
     ]);
 
@@ -109,6 +110,7 @@ class WorkspaceAPI extends BaseAPI {
     return {
       ...workspace,
       users,
+      operations,
       changes,
     };
   }
@@ -138,8 +140,7 @@ class WorkspaceAPI extends BaseAPI {
   ): Promise<Workspace> {
     const newWorkspace = await this.createWorkspace(workspace.name!);
 
-    // TODO: Add support for posting datasets.
-    // TODO: Add support for posting workflows.
+    // TODO: Add support for posting operations.
     // We add the users and datasets to the new workspace if included.
     const [users] = await Promise.all([
       workspace.users === undefined || workspace.users.length === 0
@@ -389,7 +390,6 @@ class WorkspaceAPI extends BaseAPI {
       "Error occurred while trying to remove operation from workspace."
     );
   }
-  // TODO: Add API endpoint support for operations contained in a workspace.
   // #endregion
 }
 

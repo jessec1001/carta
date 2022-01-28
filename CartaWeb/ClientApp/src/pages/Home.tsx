@@ -33,6 +33,7 @@ const WorkspacesUnauthenticated: FunctionComponent = () => {
 
 /** A page-specific component to render the workspaces section when the user is authenticated. */
 const WorkspacesAuthenticated: FunctionComponent = () => {
+  // TODO: Review how we might load all workspaces, then all their user and operation ID's, then all of their user informations and operation informations more efficiently.
   // We use the workspace API to load in the workspaces.
   const { workspaceAPI } = useAPI();
   const loadWorkspaces = useCallback(async () => {
@@ -46,8 +47,7 @@ const WorkspacesAuthenticated: FunctionComponent = () => {
     defaultProperty: "name",
     mappedProperties: new Map([
       [["user"], ["users", "userInformation"]],
-      [["dataset"], ["datasets"]],
-      [["workflow"], ["workflows"]],
+      [["operation"], ["operations"]],
     ]),
   });
 
@@ -94,7 +94,12 @@ const WorkspacesAuthenticated: FunctionComponent = () => {
           </Title>
         </Column>
         <Column>
-          <SearchboxInput value={query} onChange={setQuery} clearable />
+          <SearchboxInput
+            value={query}
+            onChange={setQuery}
+            placeholder="Search workspaces"
+            clearable
+          />
         </Column>
       </Row>
 

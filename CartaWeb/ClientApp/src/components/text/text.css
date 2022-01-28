@@ -1,3 +1,7 @@
+.text > * {
+  flex-shrink: 0;
+}
+
 /* Padding */
 .text.padded-center {
   margin: 0.5rem 0rem;

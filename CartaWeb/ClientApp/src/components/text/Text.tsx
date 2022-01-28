@@ -1,5 +1,6 @@
 import React, { FunctionComponent } from "react";
 import classNames from "classnames";
+import { AppColors } from "app";
 
 /** The props used for the {@link Text} component. */
 interface TextProps {
@@ -13,8 +14,7 @@ interface TextProps {
   /** The size of the text to render. If not specified, defaults to the inherited style. */
   size?: "reset" | "small" | "normal" | "medium" | "large" | "title";
   /** The color of the text to render. If not specified, defaults to the inherited style. */
-  // TODO: Make this some standard color type.
-  color?: "normal" | "notify" | "info" | "warning" | "error" | "muted";
+  color?: AppColors;
   /** The horizontal alignment of the text to render. If not specified, defaults to the inherited style. */
   justify?: "left" | "right" | "center";
   /** The vertical alignment of the text to render. If not specified, defaults to the inherited style. */
