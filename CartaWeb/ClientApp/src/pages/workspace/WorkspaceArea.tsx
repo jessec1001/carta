@@ -118,7 +118,7 @@ const WorkspacePage: FC = () => {
   // Then, we grab the workspace from the API. We do so in a way so that we can retrieve any error that may occur.
   const { workspaceAPI } = useAPI();
   const workspaceId = searchParams.get("id");
-  const workspaceRefresh = useCallback(async () => {
+  const workspaceFetcher = useCallback(async () => {
     progressStage(0, 0.0);
     let workspace: Workspace;
     if (!workspaceId) throw new Error("No workspace ID was provided.");
@@ -127,7 +127,7 @@ const WorkspacePage: FC = () => {
     return workspace;
   }, [completeStage, progressStage, workspaceAPI, workspaceId]);
   const [workspace, workspaceError] = useRefresh<Workspace | undefined>(
-    workspaceRefresh
+    workspaceFetcher
   );
 
   // Whenever a workspace is loaded, we want to update the title on the page.
@@ -137,22 +137,23 @@ const WorkspacePage: FC = () => {
   }, [workspace]);
 
   // Update the latest accession to this workspace.
-  const [workspaceHistory, setWorkspaceHistory] = useStoredState<
-    Record<string, number>
-  >({}, "workspaceHistory");
+  const [, setWorkspaceHistory] = useStoredState<Record<string, number>>(
+    {},
+    "workspaceHistory"
+  );
   useEffect(() => {
     if (!workspaceId) return;
-    setWorkspaceHistory({
-      ...workspaceHistory,
+    setWorkspaceHistory((history) => ({
+      ...history,
       [workspaceId]: Date.now(),
-    });
-  }, [workspaceHistory, workspaceId, setWorkspaceHistory]);
+    }));
+  }, [workspaceId, setWorkspaceHistory]);
 
   return (
     <PageLayout header>
       <div className={styles.overlayContainer}>
-        {true && (
-          <WorkspaceWrapper workspace={{ id: "1" } as any}>
+        {workspace && (
+          <WorkspaceWrapper workspace={workspace}>
             <Views>
               <WorkspaceToolbar />
               <DefaultLayout />

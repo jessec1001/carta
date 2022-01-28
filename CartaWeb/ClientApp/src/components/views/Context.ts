@@ -225,11 +225,8 @@ const useViews = (): IViews => {
       tags?: Record<string, any>
     ): number | null => {
       // Ensure that the container exists.
-      console.log(containerId, element, active, tags);
-      console.log("HERE 0");
       const container = getView(containerId);
       if (container === null || !isContainerView(container)) return null;
-      console.log("HERE 1");
 
       // Create the new view.
       const newViewId = addView({
@@ -242,7 +239,6 @@ const useViews = (): IViews => {
         element,
         tags: tags || {},
       });
-      console.log("HERE 2");
 
       // If it has been specified that the element should be active, activate it using its parent.
       if (active) {
@@ -253,7 +249,6 @@ const useViews = (): IViews => {
           }));
         }
       }
-      console.log("HERE 3");
 
       return newViewId;
     },

@@ -38,7 +38,7 @@ const WorkspacesAuthenticated: FunctionComponent = () => {
   const loadWorkspaces = useCallback(async () => {
     return await workspaceAPI.getCompleteWorkspaces(false);
   }, [workspaceAPI]);
-  const [workspaces, error] = useRefresh(loadWorkspaces);
+  const [workspaces, workspacesError] = useRefresh(loadWorkspaces);
 
   // We use a query specified in a search bar to filter through the workspaces.
   const [query, setQuery] = useState("");
@@ -98,6 +98,7 @@ const WorkspacesAuthenticated: FunctionComponent = () => {
         </Column>
       </Row>
 
+      {/* TODO: Add a loading property to the workspaces carousel to indicate that workspaces are still loading. */}
       {/* If workspaces were retrieved, render them in a carousel. */}
       {processedWorkspaces &&
         (processedWorkspaces.length > 0 ? (
@@ -109,10 +110,12 @@ const WorkspacesAuthenticated: FunctionComponent = () => {
         ))}
 
       {/* If an error occurred, render it in error colored text. */}
-      {error && <Text color="error">Error occurred: {error.message}</Text>}
+      {workspacesError && (
+        <Text color="error">Error occurred: {workspacesError.message}</Text>
+      )}
 
       {/* If the data is still loading, render a loading symbol. */}
-      {!workspaces && !error && <Loading />}
+      {!workspaces && !workspacesError && <Loading />}
     </section>
   );
 };

@@ -33,13 +33,10 @@ const Views: FunctionComponent<ViewsProps> & ViewsComposition = ({
         {
           currentId: -1,
           parentId: null,
-
           title: "root",
           closeable: false,
           status: "none",
-
           tags: {},
-
           type: "split",
           direction: "horizontal",
           sizes: [1],
@@ -51,13 +48,10 @@ const Views: FunctionComponent<ViewsProps> & ViewsComposition = ({
         {
           currentId: 0,
           parentId: -1,
-
           title: "root",
           closeable: false,
           status: "none",
-
           tags: {},
-
           type: "tab",
           childIds: [],
           activeId: null,
@@ -66,7 +60,6 @@ const Views: FunctionComponent<ViewsProps> & ViewsComposition = ({
     ])
   );
   const [history, setHistory] = useState<number[]>([]);
-  console.log(views);
 
   // Construct the necessary minimal actions for the context to function.
   const getView = useCallback(
