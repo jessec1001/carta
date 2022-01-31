@@ -1,4 +1,5 @@
 import { Accordian } from "components/accordian";
+import Arrow from "components/arrow";
 import {
   Button,
   ButtonGroup,
@@ -207,6 +208,28 @@ const Container: FunctionComponent = () => {
                   <Accordian.Toggle>Toggle 2</Accordian.Toggle>
                 </Accordian.Header>
               </Accordian>
+            </section>
+            <section>
+              <Title>Arrows</Title>
+              <Arrow
+                source=""
+                target=""
+                points={[
+                  [0, 0],
+                  [20, 0],
+                ]}
+              />
+              <div />
+              <Arrow
+                source=""
+                target=""
+                points={[
+                  [1, 1],
+                  [1, 200],
+                  [200, 200],
+                  [200, 1],
+                ]}
+              />
             </section>
             <section>
               <Title>Buttons</Title>
