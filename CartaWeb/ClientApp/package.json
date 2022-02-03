@@ -61,7 +61,7 @@
   },
   "jest": {
     "transformIgnorePatterns": [
-      "node_modules/(?!vis\\-network)"
+      "node_modules/(?!(vis\\-network|three))"
     ],
     "moduleNameMapper": {
       "\\.(css|less)$": "<rootDir>/__mocks__/styleMock.js",
