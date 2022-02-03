@@ -10,4 +10,4 @@ export {
   WorkspaceTimeline,
 };
 export * from "./WorkspaceContext";
-export * from "./views";
+export * from "../../pages/workspace/views";

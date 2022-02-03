@@ -43,7 +43,7 @@ const useRefresh = <TData>(
   }, [mountedRefresh, refreshInterval]);
 
   // We return the current data and error.
-  return [data, error, refresh];
+  return [data, error, mountedRefresh];
 };
 
 export default useRefresh;

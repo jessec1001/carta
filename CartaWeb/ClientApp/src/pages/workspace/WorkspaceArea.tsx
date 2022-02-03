@@ -9,7 +9,7 @@ import {
 } from "hooks";
 import { Workspace } from "library/api";
 import { PageLayout } from "components/layout";
-import { OperationsListView } from "components/workspace/views";
+import { OperationsListView } from "pages/workspace/views";
 import WorkspaceWrapper from "components/workspace/WorkspaceWrapper";
 import WorkspaceToolbar from "components/workspace/WorkspaceToolbar";
 import { Loading, Text } from "components/text";

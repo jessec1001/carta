@@ -10,7 +10,7 @@ import { useWorkspace } from "components/workspace";
 import { useAPI, useRefresh } from "hooks";
 import { Operation } from "library/api/operations";
 import { ButtonDropdown, IconButton } from "components/buttons";
-import { WorkflowEditorView } from "components/workspace/views";
+import { WorkflowEditorView } from "pages/workspace/views";
 import styles from "./OperationsListView.module.css";
 import { seconds } from "library/utility";
 import { Workflow, WorkflowTemplate, WorkspaceOperation } from "library/api";

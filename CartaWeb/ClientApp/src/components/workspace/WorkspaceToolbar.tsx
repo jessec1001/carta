@@ -10,10 +10,10 @@ import { useViews } from "components/views";
 import { useWorkspace } from "./WorkspaceContext";
 import MetaApi, { MetaTypeEntry } from "library/api/meta";
 import React, { FunctionComponent, useEffect, useState } from "react";
-import { WorkspaceSettingsView } from "./views";
-import VisualizerOperationView from "./views/VisualizerOperationView";
-import VisualizerSelectionView from "./views/VisualizerSelectionView";
-import WorkflowCreateView from "./views/WorkflowCreateView";
+import { WorkspaceSettingsView } from "../../pages/workspace/views";
+import VisualizerOperationView from "../../pages/workspace/views/VisualizerOperationView";
+import VisualizerSelectionView from "../../pages/workspace/views/VisualizerSelectionView";
+import WorkflowCreateView from "../../pages/workspace/views/WorkflowCreateView";
 import SettingsIcon from "components/icons/SettingsIcon";
 
 // TODO: Load actors and selectors along with the workspace (in workspace wrapper/context).
