@@ -1,6 +1,7 @@
 import { FunctionComponent } from "react";
 import { IconProps, SVGStyle } from "./icons";
 
+/** An SVG icon for a lock. */
 const LockIcon: FunctionComponent<IconProps> = ({ children, ...props }) => (
   <svg
     version="1.1"

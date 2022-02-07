@@ -1,5 +1,13 @@
 import classNames from "classnames";
-import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  ComponentProps,
+  FC,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { ObjectFilter } from "library/search";
 import { Loading, Text } from "components/text";
 import { useViews, Views } from "components/views";
@@ -7,7 +15,7 @@ import { OperationIcon, WorkflowIcon } from "components/icons";
 import { Column, Row } from "components/structure";
 import { SearchboxInput } from "components/input";
 import { useWorkspace } from "components/workspace";
-import { useAPI, useRefresh } from "hooks";
+import { useAPI, useNestedAsync } from "hooks";
 import { Operation } from "library/api/operations";
 import { ButtonDropdown, IconButton } from "components/buttons";
 import { WorkflowEditorView } from "pages/workspace/views";
@@ -15,46 +23,45 @@ import styles from "./OperationsListView.module.css";
 import { seconds } from "library/utility";
 import { Workflow, WorkflowTemplate, WorkspaceOperation } from "library/api";
 import OperationFromDataView from "../operation-from-data";
-import OperationFromBlankView from "../operation-from-blank";
 
 // TODO: Add help popups to every view.
 
-/** Represents an operation that can be loading. */
-interface LoadableOperation extends WorkspaceOperation {
-  /** Whether the operation has finished loading yet. */
-  loading: boolean;
-}
+/** Represents an operation item that is loaded and displayed by the {@link OperationsListItem} component. */
+type OperationItem = WorkspaceOperation & Operation;
 
 /** A view-specific component that renders a single operation from the workspace. */
-const OperationsListItem: FC<{
-  operation: Operation;
-  // selected: boolean;
-  // onRename?: () => void;
-  onWorkflow?: () => void;
-}> = ({ operation, onWorkflow = () => null }) => {
+const OperationsListItem: FC<
+  ComponentProps<"li"> & {
+    operation: Operation;
+    selected: boolean;
+    name: string;
+    onRename?: (name: string) => void;
+    onOpenJobs?: () => void;
+    onOpenWorkflow?: () => void;
+  }
+> = ({
+  operation,
+  selected,
+  name,
+  onRename = () => {},
+  onOpenJobs = () => {},
+  onOpenWorkflow = () => {},
+  className,
+  children,
+  ...props
+}) => {
   // TODO: Make sure that we have a loading symbol while reloading the particular operation after renaming.
 
   return (
-    <li
-      className={classNames("OperationListView-OperationsListItem")}
-      style={{
-        display: "flex",
-        justifyContent: "space-between",
-        cursor: "pointer",
-      }}
-    >
+    <li className={classNames(styles.item, className)} {...props}>
       <Text align="middle">
         <OperationIcon padded />
         {operation.name ?? <Text color="muted">(Unnamed)</Text>}
       </Text>
       <Text align="middle">
         {operation.type === "workflow" && (
-          <span
-            style={{
-              margin: "0rem 0.5rem",
-            }}
-          >
-            <IconButton title="Workflow" onClick={onWorkflow}>
+          <span className={styles.itemButtons}>
+            <IconButton title="Workflow" onClick={onOpenWorkflow}>
               <WorkflowIcon />
             </IconButton>
           </span>
@@ -69,12 +76,12 @@ const OperationsListView: FC = () => {
   // We use these contexts to handle opening and closing views and managing data.
   const { viewId, rootId, actions: viewActions } = useViews();
   const elementRef = useRef<HTMLDivElement>(null);
-  // const listRef = useRef<HTMLUListElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
 
   // // We store which item of the operations list is currently selected and whether it is being renamed.
-  // const [selected, setSelected] = useState<string | null>(null);
-  // const [renaming, setRenaming] = useState<boolean>(false);
-  // const [name, setName] = useState<string>("");
+  const [selected, setSelected] = useState<string | null>(null);
+  const [renaming, setRenaming] = useState<boolean>(false);
+  const [name, setName] = useState<string>("");
 
   // We setup a query to filter the operations.
   const [query, setQuery] = useState("");
@@ -92,7 +99,8 @@ const OperationsListView: FC = () => {
       loading: false,
     }));
   }, [workspace.id, workspaceAPI]);
-  const [operationsPartial, operationsError, operationsRefresh] = useRefresh<
+  const [operationsPartial, operationsRefresh] = useNestedAsync<
+    typeof operationsFetcher,
     LoadableOperation[]
   >(operationsFetcher, seconds(30));
 
@@ -122,12 +130,34 @@ const OperationsListView: FC = () => {
     }
   }, [operationsAPI, operationsPartial]);
 
-  // TODO: We can make the following code more concise if we actually have a template for a workflow
-  //       before constructing the workflow itself.
-  const handleCreateWorkflow = async (
+  // We use these methods to handle opening a new corresponding to an operation in the list.
+  const handleOpenWorkflowView = useCallback(
+    (operation: OperationItem) => {
+      if (!operation.subtype) return;
+      viewActions.addElementToContainer(
+        rootId,
+        <WorkflowEditorView
+          operation={operation}
+          workflowId={operation.subtype}
+        />,
+        true
+      );
+    },
+    [rootId, viewActions]
+  );
+  const handleOpenJobsView = (operation: OperationItem) => {};
+
+  // We use these methods for modifying the list of operations.
+  const defaultOperationName = "New Operation";
+  const renameOperation = useCallback(() => {}, []);
+  const deleteOperation = useCallback(() => {}, []);
+  const createWorkflow = async (
     workflow: Partial<Workflow>,
     template: WorkflowTemplate
   ) => {
+    // TODO: Before making API requests, tenatively add the new workflow to the list of operations.
+    //       This will require linking a temporary identifier to be replaced.
+
     // Create a new workflow.
     const createdWorkflow = await workflowsAPI.createWorkflowFromTemplate(
       workflow,
@@ -142,35 +172,25 @@ const OperationsListView: FC = () => {
 
     // Add the operation instance to the workspace.
     await workspaceAPI.addWorkspaceOperation(workspace.id, operation.id);
-    operationsRefresh();
+    await operationsRefresh();
+
+    // TODO: Autofocus and start renaming the newly created operation.
   };
-  const handleSelectWorkflow = async (type: "blank" | "data") => {
-    // TODO: Before making API requests, tenatively add the new workflow to the list of operations.
+  const configureWorkflow = async (type: "blank" | "data") => {
     switch (type) {
       case "blank":
-        viewActions.addElementToContainer(
-          rootId,
-          <OperationFromBlankView
-            onSubmit={async (name: string) =>
-              handleCreateWorkflow(
-                { name },
-                await workflowsAPI.createBlankWorkflowTemplate()
-              )
-            }
-          />,
-          true
+        createWorkflow(
+          { name: defaultOperationName },
+          await workflowsAPI.createBlankWorkflowTemplate()
         );
         break;
       case "data":
         viewActions.addElementToContainer(
           rootId,
           <OperationFromDataView
-            onSubmit={async (
-              data: { source: string; resource: string }[],
-              name: string
-            ) =>
-              handleCreateWorkflow(
-                { name },
+            onSubmit={async (data: { source: string; resource: string }[]) =>
+              createWorkflow(
+                { name: defaultOperationName },
                 await workflowsAPI.createDataWorkflowTemplate(data)
               )
             }
@@ -178,6 +198,96 @@ const OperationsListView: FC = () => {
           true
         );
         break;
+    }
+  };
+
+  // Allow for the user to stop renaming and deselect an operation.
+  useEffect(() => {
+    if (listRef.current) {
+      const handlePotentialOutsideClick = (event: MouseEvent) => {
+        if (listRef.current?.contains(event.target as Element)) {
+          if (renaming) {
+            // Submit the new name.
+            setRenaming(false);
+            renameOperation();
+          }
+          setSelected(null);
+        }
+      };
+
+      // Setup and teardown.
+      if (elementRef.current) {
+        const element = elementRef.current;
+        element.addEventListener("click", handlePotentialOutsideClick);
+        return () =>
+          element.removeEventListener("click", handlePotentialOutsideClick);
+      }
+    }
+  }, [renameOperation, renaming]);
+
+  // Allow the user to use keyboard shortcuts to perform or cancel renaming and deleting.
+  useEffect(() => {
+    const handlePotentialKey = (event: KeyboardEvent) => {
+      switch (event.code) {
+        case "Enter":
+          // If renaming, we submit the new name.
+          if (renaming) {
+            setRenaming(false);
+            renameOperation();
+          }
+          // Otherwise, we open the workflow for the selected operation if applicable.
+          else if (selected) {
+            handleOpenWorkflowView();
+          }
+          break;
+        case "Escape":
+          // If renaming, we cancel the rename.
+          // If an operation is selected, unselect it.
+          if (renaming) setRenaming(false);
+          else if (selected) setSelected(null);
+          break;
+        case "Delete":
+          // If an operation is selected, delete it.
+          if (!renaming) deleteOperation();
+          break;
+      }
+    };
+
+    // Setup and teardown.
+    window.addEventListener("keydown", handlePotentialKey);
+    return () => window.removeEventListener("keydown", handlePotentialKey);
+  }, [
+    handleOpenWorkflowView,
+    deleteOperation,
+    renameOperation,
+    renaming,
+    selected,
+  ]);
+
+  // Handles the logic of selecting a particular operation.
+  const handleSelect = (operation: OperationItem, event: React.MouseEvent) => {
+    if (event.detail === 1) {
+      // This corresponds to a single click.
+      if (selected === operation.id) {
+        // If the operation is already selected, we start renamining.
+        if (!renaming) {
+          setRenaming(true);
+          setName(operation.name ?? "");
+        }
+      } else {
+        // We make sure to submit a new name if we are renaming.
+        if (renaming) {
+          setRenaming(false);
+          renameOperation();
+        }
+
+        // If the operation is not selected, we select it.
+        setSelected(operation.id);
+      }
+    } else if (event.detail === 2) {
+      // This corresponds to a double click.
+      // We open a workflow for the selected operation if applicable.
+      handleOpenWorkflowView(operation);
     }
   };
 
@@ -199,6 +309,7 @@ const OperationsListView: FC = () => {
       ref={elementRef}
       onClick={() => viewActions.addHistory(viewId)}
     >
+      {/* TODO: Replace split button dropdown with a simple dropdown. */}
       {/* Display a searchbox for filtering the operations alongside a button to add more operations. */}
       <Row className={styles.header}>
         <Column>
@@ -209,7 +320,7 @@ const OperationsListView: FC = () => {
           options={{ blank: "From Blank", data: "From Data" }}
           auto="blank"
           className={classNames(styles.workflowButton)}
-          onPick={(value) => handleSelectWorkflow(value as any)}
+          onPick={(value) => configureWorkflow(value as any)}
         >
           New
         </ButtonDropdown>
@@ -233,7 +344,7 @@ const OperationsListView: FC = () => {
 
       {/* Otherwise, display the list of operations. */}
       {operationsPartial && (
-        <ul role="presentation">
+        <ul role="presentation" ref={listRef}>
           {operationsFilter
             .filter(operationsPartial)
             .map((loadableOperation) => {
@@ -248,17 +359,16 @@ const OperationsListView: FC = () => {
                   <OperationsListItem
                     key={operation.id}
                     operation={operation}
-                    onWorkflow={() => {
-                      if (!operation.subtype) return;
-                      viewActions.addElementToContainer(
-                        rootId,
-                        <WorkflowEditorView
-                          operation={operation}
-                          workflowId={operation.subtype}
-                        />,
-                        true
-                      );
-                    }}
+                    selected={selected === operation.id}
+                    name={
+                      selected === operation.id
+                        ? name
+                        : operation.name ?? defaultOperationName
+                    }
+                    onClick={(event) => handleSelect(operation, event)}
+                    onRename={setName}
+                    onOpenWorkflow={() => handleOpenWorkflowView(operation)}
+                    onOpenJobs={() => handleOpenJobsView(operation)}
                   />
                 );
               }

@@ -1,6 +1,6 @@
 import { FunctionComponent, useCallback, useContext, useState } from "react";
 import { useHistory } from "react-router";
-import { useAPI, useRefresh, useStoredState } from "hooks";
+import { useAPI, useNestedAsync, useStoredState } from "hooks";
 import { UserContext } from "components/user";
 import { Workspace } from "library/api";
 import { ObjectFilter } from "library/search";
@@ -33,13 +33,16 @@ const WorkspacesUnauthenticated: FunctionComponent = () => {
 
 /** A page-specific component to render the workspaces section when the user is authenticated. */
 const WorkspacesAuthenticated: FunctionComponent = () => {
+  // TODO: Replace calls to getCompletedWorkspaces with nested calls.
   // TODO: Review how we might load all workspaces, then all their user and operation ID's, then all of their user informations and operation informations more efficiently.
   // We use the workspace API to load in the workspaces.
   const { workspaceAPI } = useAPI();
   const loadWorkspaces = useCallback(async () => {
     return await workspaceAPI.getCompleteWorkspaces(false);
   }, [workspaceAPI]);
-  const [workspaces, workspacesError] = useRefresh(loadWorkspaces);
+  const [workspaces] = useNestedAsync<typeof loadWorkspaces, Workspace[]>(
+    loadWorkspaces
+  );
 
   // We use a query specified in a search bar to filter through the workspaces.
   const [query, setQuery] = useState("");
@@ -67,7 +70,7 @@ const WorkspacesAuthenticated: FunctionComponent = () => {
 
   // Process the workspaces through the query filter and the access sorter.
   let processedWorkspaces = workspaces;
-  if (processedWorkspaces) {
+  if (processedWorkspaces && !(processedWorkspaces instanceof Error)) {
     processedWorkspaces = workspaceFilter.filter(processedWorkspaces);
     processedWorkspaces = processedWorkspaces.sort(workspaceSorter);
   }
@@ -106,6 +109,7 @@ const WorkspacesAuthenticated: FunctionComponent = () => {
       {/* TODO: Add a loading property to the workspaces carousel to indicate that workspaces are still loading. */}
       {/* If workspaces were retrieved, render them in a carousel. */}
       {processedWorkspaces &&
+        !(processedWorkspaces instanceof Error) &&
         (processedWorkspaces.length > 0 ? (
           <WorkspaceCarousel workspaces={processedWorkspaces} />
         ) : (
@@ -115,12 +119,12 @@ const WorkspacesAuthenticated: FunctionComponent = () => {
         ))}
 
       {/* If an error occurred, render it in error colored text. */}
-      {workspacesError && (
-        <Text color="error">Error occurred: {workspacesError.message}</Text>
+      {workspaces instanceof Error && (
+        <Text color="error">Error occurred: {workspaces.message}</Text>
       )}
 
       {/* If the data is still loading, render a loading symbol. */}
-      {!workspaces && !workspacesError && <Loading />}
+      {!workspaces && <Loading />}
     </section>
   );
 };

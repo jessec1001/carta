@@ -40,7 +40,7 @@ var GraphPlot = function (container, plot, interaction) {
     var svgElement = d3
         .select(container)
         .append("svg")
-        .attr("viewBox", "".concat(-width / 2, " ").concat(-height / 2, " ").concat(width, " ").concat(height));
+        .attr("viewBox", -width / 2 + " " + -height / 2 + " " + width + " " + height);
     var zoomElement = svgElement.append("g");
     svgElement
         .append("defs")

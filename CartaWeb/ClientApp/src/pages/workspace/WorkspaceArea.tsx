@@ -3,7 +3,7 @@ import { useLocation } from "react-router";
 import {
   useAPI,
   useLoading,
-  useRefresh,
+  useNestedAsync,
   useStoredState,
   useTicker,
 } from "hooks";
@@ -126,13 +126,15 @@ const WorkspacePage: FC = () => {
     completeStage(0);
     return workspace;
   }, [completeStage, progressStage, workspaceAPI, workspaceId]);
-  const [workspace, workspaceError] = useRefresh<Workspace | undefined>(
-    workspaceFetcher
-  );
+  const [workspace] = useNestedAsync<
+    typeof workspaceFetcher,
+    Workspace | undefined
+  >(workspaceFetcher);
 
   // Whenever a workspace is loaded, we want to update the title on the page.
   useEffect(() => {
     if (!workspace) document.title = `Workspace - Carta`;
+    else if (workspace instanceof Error) document.title = `Error - Carta`;
     else document.title = `${workspace.name} - Carta`;
   }, [workspace]);
 
@@ -152,7 +154,7 @@ const WorkspacePage: FC = () => {
   return (
     <PageLayout header>
       <div className={styles.overlayContainer}>
-        {workspace && (
+        {workspace && !(workspace instanceof Error) && (
           <WorkspaceWrapper workspace={workspace}>
             <Views>
               <WorkspaceToolbar />
@@ -163,10 +165,12 @@ const WorkspacePage: FC = () => {
         )}
         {!isLoadingComplete && (
           <Overlay>
-            {!workspaceError && (
+            {!(workspace instanceof Error) && (
               <LoadingOverlay text={loadingText} progress={loadingProgress} />
             )}
-            {workspaceError && <ErrorOverlay error={workspaceError.message} />}
+            {workspace instanceof Error && (
+              <ErrorOverlay error={workspace.message} />
+            )}
           </Overlay>
         )}
       </div>

@@ -1,7 +1,7 @@
 import useAPI from "./useAPI";
 import useControllableState from "./useControllableState";
 import useDelayCallback from "./useDelayCallback";
-import useRefresh from "./useRefresh";
+import useNestedAsync from "./useNestedAsync";
 import useMounted from "./useMounted";
 import useSequentialRequest from "./useSequentialRequest";
 import useStoredState from "./useStoredState";
@@ -13,7 +13,7 @@ export {
   useAPI,
   useControllableState,
   useDelayCallback,
-  useRefresh,
+  useNestedAsync,
   useLoading,
   useMounted,
   useSequentialRequest,
@@ -24,7 +24,7 @@ export {
 export * from "./useAPI";
 export * from "./useControllableState";
 export * from "./useDelayCallback";
-export * from "./useRefresh";
+export * from "./useNestedAsync";
 export * from "./useLoading";
 export * from "./useMounted";
 export * from "./useSequentialRequest";
