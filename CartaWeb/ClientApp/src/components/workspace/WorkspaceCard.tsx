@@ -36,7 +36,9 @@ const WorkspaceCard: FunctionComponent<
   // Compute a string for the last modified date.
   // If the workspace has never been modified (should be impossible), defaults to "never".
   const modifyDate =
-    workspace.changes && workspace.changes[0].workspaceAction.dateTime;
+    workspace.changes &&
+    workspace.changes.length > 0 &&
+    workspace.changes[0].workspaceAction.dateTime;
   const modifyDateString = modifyDate
     ? `${modifyDate.toLocaleDateString()} at ${modifyDate.toLocaleTimeString()}`
     : "never";
@@ -67,13 +69,13 @@ const WorkspaceCard: FunctionComponent<
         {/* Render the date last modified at. */}
         <Text color="muted" size="small">
           Last modified at{" "}
-          <time dateTime={modifyDate?.toISOString()}>{modifyDateString}</time>
+          <time dateTime={modifyDateString}>{modifyDateString}</time>
         </Text>
 
         {/* Render the date last accessed at. */}
         <Text color="muted" size="small">
           Last accessed at{" "}
-          <time dateTime={accessDate?.toISOString()}>{accessDateString}</time>
+          <time dateTime={accessDateString}>{accessDateString}</time>
         </Text>
       </Card.Footer>
     </Card>

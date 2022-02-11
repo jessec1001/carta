@@ -8,21 +8,34 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { useAPI, useNestedAsync } from "hooks";
+import {
+  Operation,
+  Workflow,
+  WorkflowTemplate,
+  WorkspaceOperation,
+} from "library/api";
 import { ObjectFilter } from "library/search";
+import { seconds } from "library/utility";
+import { ButtonDropdown, IconButton } from "components/buttons";
+import { OperationIcon, WorkflowIcon } from "components/icons";
+import { SearchboxInput } from "components/input";
+import { Column, Row } from "components/structure";
 import { Loading, Text } from "components/text";
 import { useViews, Views } from "components/views";
-import { OperationIcon, WorkflowIcon } from "components/icons";
-import { Column, Row } from "components/structure";
-import { SearchboxInput } from "components/input";
 import { useWorkspace } from "components/workspace";
-import { useAPI, useNestedAsync } from "hooks";
-import { Operation } from "library/api/operations";
-import { ButtonDropdown, IconButton } from "components/buttons";
 import { WorkflowEditorView } from "pages/workspace/views";
-import styles from "./OperationsListView.module.css";
-import { seconds } from "library/utility";
-import { Workflow, WorkflowTemplate, WorkspaceOperation } from "library/api";
 import OperationFromDataView from "../operation-from-data";
+import styles from "./OperationsListView.module.css";
+
+// TODO: Add a sort to this view to switch between alphabetical and chronological order.
+// TODO: The structure of the state:
+/*
+1. Before loading: undefined
+2. After loading (workspace operations): [undefined, undefined, ...]
+3. After loading (operations): [op1, op2, ...]
+*/
+// TODO: Add additional state to capture operations that are currently being created.
 
 // TODO: Add help popups to every view.
 
@@ -32,7 +45,7 @@ type OperationItem = WorkspaceOperation & Operation;
 /** A view-specific component that renders a single operation from the workspace. */
 const OperationsListItem: FC<
   ComponentProps<"li"> & {
-    operation: Operation;
+    operation: OperationItem;
     selected: boolean;
     name: string;
     onRename?: (name: string) => void;
@@ -87,48 +100,23 @@ const OperationsListView: FC = () => {
   const [query, setQuery] = useState("");
   const operationsFilter = new ObjectFilter(query, {});
 
-  const [operations, setOperations] = useState<Operation[]>([]);
-
   // We use the workspace to get the list of operations contained within.
   const { operationsAPI, workflowsAPI, workspaceAPI } = useAPI();
   const { workspace } = useWorkspace();
   const operationsFetcher = useCallback(async () => {
     const operations = await workspaceAPI.getWorkspaceOperations(workspace.id);
-    return operations.map((operation) => ({
-      ...operation,
-      loading: false,
-    }));
-  }, [workspace.id, workspaceAPI]);
-  const [operationsPartial, operationsRefresh] = useNestedAsync<
+    return operations.map(
+      (operation) => async () =>
+        ({
+          ...operation,
+          ...(await operationsAPI.getOperation(operation.id)),
+        } as OperationItem)
+    );
+  }, [operationsAPI, workspaceAPI, workspace.id]);
+  const [operations, operationsRefresh] = useNestedAsync<
     typeof operationsFetcher,
-    LoadableOperation[]
+    OperationItem[]
   >(operationsFetcher, seconds(30));
-
-  useEffect(() => {
-    if (operationsPartial) {
-      // Load all of the corresponding operations by identifier.
-      for (const operationPartial of operationsPartial) {
-        (async () => {
-          const operation = await operationsAPI.getOperation(
-            operationPartial.id,
-            false
-          );
-          setOperations((operations) => {
-            const operationIndex = operations.findIndex(
-              (op) => op.id === operation.id
-            );
-            if (operationIndex >= 0) {
-              const newOperations = [...operations];
-              newOperations[operationIndex] = operation;
-              return newOperations;
-            } else {
-              return [...operations, operation];
-            }
-          });
-        })();
-      }
-    }
-  }, [operationsAPI, operationsPartial]);
 
   // We use these methods to handle opening a new corresponding to an operation in the list.
   const handleOpenWorkflowView = useCallback(
@@ -237,7 +225,8 @@ const OperationsListView: FC = () => {
           }
           // Otherwise, we open the workflow for the selected operation if applicable.
           else if (selected) {
-            handleOpenWorkflowView();
+            // TODO: Implement.
+            // handleOpenWorkflowView();
           }
           break;
         case "Escape":
@@ -327,52 +316,53 @@ const OperationsListView: FC = () => {
       </Row>
 
       {/* If the operations are not available yet, display why. */}
-      {!operationsPartial && (
+      {(operations === undefined || operations instanceof Error) && (
         <div className={styles.info}>
           {/* Check if the operations are still loading and display some loading text if so. */}
-          {!operationsError && <Loading />}
+          {operations === undefined && <Loading />}
 
           {/* Check if there was an error in loading the operations and display it if so. */}
-          {operationsError && (
+          {operations instanceof Error && (
             <Text color="error">
               An error occurred while loading operations.&nbsp;
-              {`(${operationsError.message})`}
+              {`(${operations.message})`}
             </Text>
           )}
         </div>
       )}
 
       {/* Otherwise, display the list of operations. */}
-      {operationsPartial && (
+      {operations && !(operations instanceof Error) && (
         <ul role="presentation" ref={listRef}>
-          {operationsFilter
-            .filter(operationsPartial)
-            .map((loadableOperation) => {
-              // Get the operation associated with the operation identifier.
-              const operation = operations.find(
-                (operation) => operation.id === loadableOperation.id
+          {operationsFilter.filter(operations).map((operation) => {
+            if (operation === undefined)
+              return <Loading>Loading operation</Loading>;
+            else if (operation instanceof Error)
+              return (
+                <Text color="error">
+                  An error occurred while loading this operation.&nbsp;
+                  {`(${operation.message})`}
+                </Text>
               );
-
-              if (!operation) return <Loading>Loading operation</Loading>;
-              else {
-                return (
-                  <OperationsListItem
-                    key={operation.id}
-                    operation={operation}
-                    selected={selected === operation.id}
-                    name={
-                      selected === operation.id
-                        ? name
-                        : operation.name ?? defaultOperationName
-                    }
-                    onClick={(event) => handleSelect(operation, event)}
-                    onRename={setName}
-                    onOpenWorkflow={() => handleOpenWorkflowView(operation)}
-                    onOpenJobs={() => handleOpenJobsView(operation)}
-                  />
-                );
-              }
-            })}
+            else {
+              return (
+                <OperationsListItem
+                  key={operation.id}
+                  operation={operation}
+                  selected={selected === operation.id}
+                  name={
+                    selected === operation.id
+                      ? name
+                      : operation.name ?? defaultOperationName
+                  }
+                  onClick={(event) => handleSelect(operation, event)}
+                  onRename={setName}
+                  onOpenWorkflow={() => handleOpenWorkflowView(operation)}
+                  onOpenJobs={() => handleOpenJobsView(operation)}
+                />
+              );
+            }
+          })}
         </ul>
       )}
     </Views.Container>

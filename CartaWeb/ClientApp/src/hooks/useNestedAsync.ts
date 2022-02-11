@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 
+// TODO: When doing nested copies, copy everything that is not functional and then resolve functional things.
+
 /**
  * The promisable type represents a value where any element or subproperty can be obtained by calling a function that
  * returns a promise. For any particular type, it represents one of the following:
@@ -8,45 +10,42 @@ import { useCallback, useEffect, useState } from "react";
  * 3. An object where each subproperty is a promisable value.
  * 4. An array of promisable values matching the original array type.
  */
-type Promisable<TData, TTotal = TData> =
+type Promisable<TData> =
   | PromisableValue<TData>
-  | PromisableFunction<TData, TTotal>
-  | PromisableArray<TData, TTotal>
-  | PromisableObject<TData, TTotal>;
+  | PromisableArray<TData>
+  | PromisableObject<TData>
+  | PromisableFunction<TData>;
 
 type PromisableValue<TData> = TData;
-type PromisableFunction<TData, TTotal> = (
-  value: any
-) => Promise<Promisable<TData, TTotal>>;
-type PromisableArray<TData, TTotal> = TData extends (infer TElement)[]
-  ? Promisable<TElement, TTotal>[]
+type PromisableArray<TData> = TData extends (infer TElement)[]
+  ? Promisable<TElement>[]
   : never;
-type PromisableObject<TData, TTotal> = {
-  [key in keyof TData]: Promisable<TData[key], TTotal>;
+type PromisableObject<TData> = {
+  [key in keyof TData]: Promisable<TData[key]>;
 };
+type PromisableFunction<TData> = () => Promise<Promisable<TData>>;
 
 /**
  * The promised type changes the value of any promisable field or value to undefined, the original type, or an error.
  */
 type Promised<
-  TPromise extends Promisable<TData, TTotal>,
-  TData,
-  TTotal = TData
+  TPromise extends Promisable<TData>,
+  TData
 > = TPromise extends PromisableValue<TData>
   ? TData
-  : TPromise extends (value: any) => Promise<infer TSubpromise>
-  ? TSubpromise extends Promisable<TData, TTotal>
-    ? Promised<TSubpromise, TData, TTotal> | Error | undefined
+  : TPromise extends () => Promise<infer TSubpromise>
+  ? TSubpromise extends Promisable<TData>
+    ? Promised<TSubpromise, TData> | Error | undefined
     : never
   : TData extends (infer TElement)[]
   ? TPromise extends (infer TPromiseElement)[]
-    ? TPromiseElement extends Promisable<TElement, TTotal>
-      ? Promised<TPromiseElement, TElement, TTotal>[]
+    ? TPromiseElement extends Promisable<TElement>
+      ? Promised<TPromiseElement, TElement>[]
       : never
     : never
-  : TPromise extends PromisableObject<TData, TTotal>
+  : TPromise extends PromisableObject<TData>
   ? {
-      [key in keyof TData]: Promised<TPromise[key], TData[key], TTotal>;
+      [key in keyof TData]: Promised<TPromise[key], TData[key]>;
     }
   : never;
 
@@ -84,29 +83,32 @@ const nestedCopy = (value: any, path: (string | number)[], set?: any): any => {
 const useNestedAsync = <TPromise extends Promisable<TData>, TData>(
   promise: TPromise,
   refreshInterval?: number
-): [Promised<TPromise, TData>, () => Promise<void>] => {
+): [Promised<TPromise, TData>, () => Promise<Promised<TPromise, TData>>] => {
   // Defines how to retrieve the default value for a promise.
-  const defaultResolve = useCallback(
-    <TPromise extends Promisable<TData, TTotal>, TData, TTotal = TData>(
+  const defaults = useCallback(
+    <TPromise extends Promisable<TData>, TData>(
       promise: TPromise
-    ): Promised<TPromise, TData, TTotal> => {
+    ): Promised<TPromise, TData> => {
       if (typeof promise === "function")
-        return undefined as Promised<TPromise, TData, TTotal>;
+        return undefined as Promised<TPromise, TData>;
       else if (Array.isArray(promise)) {
-        const promiseArray = promise as PromisableArray<TData, TTotal>;
+        const promiseArray = promise as PromisableArray<TData>;
         const array: any[] = [];
         for (const element of promiseArray) {
-          array.push(defaultResolve(element));
+          array.push(defaults(element));
         }
-        return array as Promised<TPromise, TData, TTotal>;
-      } else if (typeof promise === "object") {
-        const promiseObject = promise as PromisableObject<TData, TTotal>;
+        return array as Promised<TPromise, TData>;
+      } else if (
+        typeof promise === "object" &&
+        Object.getPrototypeOf(promise) === Object.prototype
+      ) {
+        const promiseObject = promise as PromisableObject<TData>;
         const object: Record<string, any> = {};
         Object.entries(promiseObject).forEach(([key, value]) => {
-          object[key] = defaultResolve(value);
+          object[key] = defaults(value);
         });
-        return object as Promised<TPromise, TData, TTotal>;
-      } else return promise as Promised<TPromise, TData, TTotal>;
+        return object as Promised<TPromise, TData>;
+      } else return promise as Promised<TPromise, TData>;
     },
     []
   );
@@ -114,63 +116,62 @@ const useNestedAsync = <TPromise extends Promisable<TData>, TData>(
   // We store the result of the promise and we update it when possible.
   // We use a default value to initialize the state.
   const [result, setResult] = useState<Promised<TPromise, TData>>(
-    defaultResolve<TPromise, TData>(promise)
+    defaults<TPromise, TData>(promise)
   );
 
-  // Resolves an actual promise and sets the result in state automatically.
+  // Defines how asynchronous functions are resolved.
   const resolve = useCallback(
-    async <TPromise extends Promisable<TData, TTotal>, TData, TTotal = TData>(
+    async <TPromise extends Promisable<TData>, TData>(
       promise: TPromise,
       path: (string | number)[] = []
-    ) => {
+    ): Promise<Promised<TPromise, TData>> => {
       if (typeof promise === "function") {
-        const promiseFunction = promise as PromisableFunction<TData, TTotal>;
-        setResult((result) => {
-          promiseFunction(result)
-            .then((value) =>
-              setResult((result) => nestedCopy(result, path, value))
-            )
-            .catch((error: Error) =>
-              setResult((result) => nestedCopy(result, path, error))
-            );
-          return nestedCopy(result, path, undefined);
-        });
+        const promiseFunction = promise as PromisableFunction<TData>;
+        try {
+          const value = await promiseFunction();
+          setResult((result) => nestedCopy(result, path, defaults(value)));
+          return resolve(value, path) as Promised<TPromise, TData>;
+        } catch (error) {
+          setResult((result) => nestedCopy(result, path, defaults(error)));
+          return resolve(error, path) as Promised<TPromise, TData>;
+        }
       } else if (Array.isArray(promise)) {
-        const promiseArray = promise as PromisableArray<TData, TTotal>;
-        setResult((result) => nestedCopy(result, path, []));
-        await Promise.all(
+        const promiseArray = promise as PromisableArray<TData>;
+        return (await Promise.all(
           promiseArray.map(
             async (subpromise, index) =>
-              await resolve(subpromise, [...path, index])
+              await resolve(subpromise as any, [...path, index])
           )
-        );
-      } else if (typeof promise === "object") {
-        const promiseObject = promise as PromisableObject<TData, TTotal>;
-        setResult((result) => nestedCopy(result, path, {}));
-        await Promise.all(
+        )) as Promised<TPromise, TData>;
+      } else if (
+        typeof promise === "object" &&
+        Object.getPrototypeOf(promise) === Object.prototype
+      ) {
+        const promiseObject = promise as PromisableObject<TData>;
+        return (await Promise.all(
           Object.entries(promiseObject).map(
             async ([key, subpromise]) =>
-              await resolve(subpromise, [...path, key])
+              await resolve(subpromise as any, [...path, key])
           )
-        );
+        )) as Promised<TPromise, TData>;
       } else {
         const promiseValue = promise as PromisableValue<TData>;
-        setResult((result) => {
-          return nestedCopy(result, path, promiseValue);
-        });
+        return promiseValue as Promised<TPromise, TData>;
       }
     },
-    []
+    [defaults]
   );
 
   // When the component is initially mounted, or the promise changes (rare), we load the data.
-  const refresh = useCallback(async () => {
-    await resolve<TPromise, TData>(promise);
-  }, [resolve, promise]);
+  const refresh = useCallback(
+    async () => resolve<TPromise, TData>(promise),
+    [resolve, promise]
+  );
+
+  // When the hook is mounted, we load the data.
   useEffect(() => {
     refresh();
   }, [refresh]);
-
   // When the refresh interval is specified, we will update the data using the promise periodically.
   useEffect(() => {
     if (refreshInterval !== undefined) {
@@ -184,3 +185,4 @@ const useNestedAsync = <TPromise extends Promisable<TData>, TData>(
 };
 
 export default useNestedAsync;
+export type { Promisable, Promised };
