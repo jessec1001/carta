@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection;
-using CartaCore.Typing.Attributes;
+using CartaCore.Operations.Attributes;
 using CartaCore.Typing.Conversion;
 
 namespace CartaCore.Extensions.Typing

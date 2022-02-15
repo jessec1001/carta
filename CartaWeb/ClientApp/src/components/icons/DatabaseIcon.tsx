@@ -1,8 +1,8 @@
-import { FunctionComponent } from "react";
+import { FC } from "react";
 import { IconProps, SVGStyle } from "./icons";
 
 /** An SVG icon for a database (i.e. in a workspace). */
-const DatabaseIcon: FunctionComponent<IconProps> = ({ children, ...props }) => (
+const DatabaseIcon: FC<IconProps> = ({ children, ...props }) => (
   <svg
     version="1.1"
     viewBox="0 0 33.867 33.867"

@@ -1,4 +1,4 @@
-import { FunctionComponent } from "react";
+import { FC } from "react";
 import { IconProps, SVGStyle } from "./icons";
 
 import "./icons.css";
@@ -10,7 +10,7 @@ interface LoadingIconProps {
 }
 
 /** An SVG icon for loading a resource. Can be optionally animated. */
-const LoadingIcon: FunctionComponent<IconProps & LoadingIconProps> = ({
+const LoadingIcon: FC<IconProps & LoadingIconProps> = ({
   animated = true,
   children,
   ...props

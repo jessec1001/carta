@@ -13,6 +13,7 @@ namespace CartaCore.Operations.Arithmetic
         /// <summary>
         /// The integer value to compute the prime factorization of. 
         /// </summary>
+        [FieldName("Integer")]
         public long Integer { get; set; }
     }
     /// <summary>
@@ -24,6 +25,7 @@ namespace CartaCore.Operations.Arithmetic
         /// The ordered prime factors of the integer input.
         /// If the input was negative, -1 will be the first factor of the output.
         /// </summary>
+        [FieldName("Prime Factors")]
         public long[] Factors { get; set; }
     }
 
@@ -49,7 +51,7 @@ namespace CartaCore.Operations.Arithmetic
             if (value == 0)
                 return Task.FromResult(new PrimeFactorOperationOut { Factors = new long[] { 0 } });
             if (value == 1)
-                return Task.FromResult(new PrimeFactorOperationOut { Factors = System.Array.Empty<long>() });
+                return Task.FromResult(new PrimeFactorOperationOut { Factors = Array.Empty<long>() });
 
             // Store the factors in a list and convert later.
             List<long> factors = new();

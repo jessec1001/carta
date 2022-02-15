@@ -128,6 +128,21 @@ namespace CartaCore.Operations
                 BindingFlags.Instance).PropertyType;
         }
 
+        /// <summary>
+        /// Gets the names of the dynamic input fields corresponding to particular input field.
+        /// </summary>
+        /// <param name="field">The input field to get the dynamic fields of.</param>
+        /// <param name="input">The input being passed to the operation.</param>
+        /// <returns>The dynamic input fields corresponding to a field.</returns>
+        public virtual string[] GetDynamicInputFields(string field, TInput input) => Array.Empty<string>();
+        /// <summary>
+        /// Gets the names of the dynamic output fields corresponding to particular output field.
+        /// </summary>
+        /// <param name="field">The output field to get the dynamic fields of.</param>
+        /// <param name="input">The input being passed to the operation.</param>
+        /// <returns>The dynamic output fields corresponding to a field.</returns>
+        public virtual string[] GetDynamicOutputFields(string field, TInput input) => Array.Empty<string>();
+
         public OperationTemplate GetTemplate(TInput defaults)
         {
             // Get the operation name attribute assosicated with this operation.

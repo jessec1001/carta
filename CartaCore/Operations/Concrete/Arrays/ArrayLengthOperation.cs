@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using CartaCore.Operations.Attributes;
 
-namespace CartaCore.Operations.Array
+namespace CartaCore.Operations.Arrays
 {
     /// <summary>
     /// The input for the <see cref="ArrayLengthOperation" /> operation.
@@ -11,6 +11,7 @@ namespace CartaCore.Operations.Array
         /// <summary>
         /// The array of items to count.
         /// </summary>
+        [FieldName("Items")]
         public object[] Items { get; set; }
     }
     /// <summary>
@@ -21,7 +22,8 @@ namespace CartaCore.Operations.Array
         /// <summary>
         /// The number of items in the array.
         /// </summary>
-        public int Count { get; set; }
+        [FieldName("Length")]
+        public int Length { get; set; }
     }
 
     /// <summary>
@@ -38,7 +40,7 @@ namespace CartaCore.Operations.Array
         /// <inheritdoc />
         public override Task<ArrayLengthOperationOut> Perform(ArrayLengthOperationIn input)
         {
-            return Task.FromResult(new ArrayLengthOperationOut() { Count = input.Items?.Length ?? 0 });
+            return Task.FromResult(new ArrayLengthOperationOut() { Length = input.Items?.Length ?? 0 });
         }
     }
 }

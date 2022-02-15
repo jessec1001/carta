@@ -26,7 +26,7 @@
 }
 
 /* The orientation of the tab bar affects the styling of the individual tabs. */
-.TabArea.horizontal .Tab {
+.TabArea.horizontal > .TabBar .Tab {
   /* Force tabs to have some minimum size. */
   min-width: 6rem;
   min-height: initial;
@@ -37,10 +37,10 @@
   /* Tabs should have an indicator border at the top to display a status. */
   border-top: 2px solid var(--status-color);
 }
-.TabArea.horizontal .Tab-Content {
+.TabArea.horizontal > .TabBar .Tab-Content {
   margin-right: 0.5em;
 }
-.TabArea.vertical .Tab {
+.TabArea.vertical > .TabBar .Tab {
   /* Force tabs to have some minimum size. */
   min-height: 12ch;
   min-width: initial;
@@ -56,7 +56,7 @@
   writing-mode: vertical-lr;
   transform: rotate(180deg);
 }
-.TabArea.vertical .Tab-Content {
+.TabArea.vertical > .TabBar .Tab-Content {
   margin-top: 0.5em;
 }
 

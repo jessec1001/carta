@@ -1,4 +1,4 @@
-import { FunctionComponent } from "react";
+import { FC } from "react";
 import { IconProps, SVGStyle } from "./icons";
 
 /** The props used for the {@link PushIcon} component. */
@@ -8,7 +8,7 @@ interface PushIconProps {
 }
 
 /** An SVG icon for a push symbol (i.e. for a layout toolbar). */
-const PushIcon: FunctionComponent<IconProps & PushIconProps> = ({
+const PushIcon: FC<IconProps & PushIconProps> = ({
   direction = "down",
   children,
   ...props

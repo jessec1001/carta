@@ -41,15 +41,18 @@ namespace CartaCore.Operations.Arithmetic
         /// <summary>
         /// The type of arithmetic operation to perform.
         /// </summary>
+        [FieldName("Type")]
         public ArithmeticOperationType Type { get; set; }
 
         /// <summary>
         /// The first operand of the arithmetic expression.
         /// </summary>
+        [FieldName("Input 1")]
         public double Input1 { get; set; }
         /// <summary>
         /// The second operand of the arithmetic expression.
         /// </summary>
+        [FieldName("Input 2")]
         public double Input2 { get; set; }
     }
     /// <summary>
@@ -60,6 +63,7 @@ namespace CartaCore.Operations.Arithmetic
         /// <summary>
         /// The output of the arithmetic expression.
         /// </summary>
+        [FieldName("Output")]
         public double Output { get; set; }
     }
 

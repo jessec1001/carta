@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using CartaCore.Typing.Conversion;
 
-namespace CartaCore.Typing.Attributes
+namespace CartaCore.Operations.Attributes
 {
     /// <summary>
     /// A base interface for attributes that modify a type converter stack.

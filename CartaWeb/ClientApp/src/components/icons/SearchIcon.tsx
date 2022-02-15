@@ -1,8 +1,8 @@
-import { FunctionComponent } from "react";
+import { FC } from "react";
 import { IconProps, SVGStyle } from "./icons";
 
 /** An SVG icon for a search (i.e. for a searchbar). */
-const SearchIcon: FunctionComponent<IconProps> = ({ children, ...props }) => (
+const SearchIcon: FC<IconProps> = ({ children, ...props }) => (
   <svg
     version="1.1"
     viewBox="0 0 33.867 33.867"

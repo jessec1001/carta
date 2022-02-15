@@ -1,6 +1,6 @@
-import { FunctionComponent } from "react";
+import { FC } from "react";
 
-const UploadIcon: FunctionComponent = () => {
+const UploadIcon: FC = () => {
   return (
     <svg
       version="1.1"

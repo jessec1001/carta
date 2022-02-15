@@ -1,7 +1,7 @@
-import { FunctionComponent } from "react";
+import { FC } from "react";
 import { IconProps, SVGStyle } from "./icons";
 
-const UserIcon: FunctionComponent<IconProps> = ({ children, ...props }) => (
+const UserIcon: FC<IconProps> = ({ children, ...props }) => (
   <svg
     version="1.1"
     viewBox="0 0 33.867 33.867"

@@ -1,4 +1,4 @@
-import { FunctionComponent } from "react";
+import { FC } from "react";
 import { IconProps, SVGStyle } from "./icons";
 
 /** The props used for the {@link CaretIcon} component. */
@@ -8,7 +8,7 @@ interface CaretIconProps {
 }
 
 /** An SVG icon for a caret (i.e. for a dropdown). */
-const CaretIcon: FunctionComponent<IconProps & CaretIconProps> = ({
+const CaretIcon: FC<IconProps & CaretIconProps> = ({
   direction = "down",
   children,
   ...props
@@ -23,7 +23,7 @@ const CaretIcon: FunctionComponent<IconProps & CaretIconProps> = ({
           style={SVGStyle(props)}
         >
           <path
-            d="m5.3097 11.57 11.624 10.826 11.624-10.826"
+            d="m9.3416 13.947 7.5919 6.216 7.5919-6.216"
             style={{
               fill: "none",
               strokeLinecap: "square",

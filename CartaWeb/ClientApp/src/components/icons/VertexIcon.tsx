@@ -1,4 +1,4 @@
-import { FunctionComponent } from "react";
+import { FC } from "react";
 import { IconProps, SVGStyle } from "./icons";
 
 /** The props used for the {@link VertexIcon} component. */
@@ -10,7 +10,7 @@ interface VertexIconProps {
 }
 
 /** An SVG icon that represents a vertex (i.e. in a graph). */
-const VertexIcon: FunctionComponent<IconProps & VertexIconProps> = ({
+const VertexIcon: FC<IconProps & VertexIconProps> = ({
   color = "currentcolor",
   selected = false,
   children,

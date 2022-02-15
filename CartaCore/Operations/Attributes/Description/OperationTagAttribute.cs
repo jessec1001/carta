@@ -26,7 +26,7 @@ namespace CartaCore.Operations.Attributes
         {
             // Ensure tags array is defined.
             if (description.Tags is null)
-                description.Tags = System.Array.Empty<string>();
+                description.Tags = Array.Empty<string>();
 
             // Create a new tags array and append the new tag onto the end.
             string[] tags = new string[description.Tags.Length + 1];

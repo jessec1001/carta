@@ -1,4 +1,4 @@
-import { FunctionComponent } from "react";
+import { FC } from "react";
 import { IconProps, SVGStyle } from "./icons";
 
 /** The props for the {@link ValueIcon} component. */
@@ -8,7 +8,7 @@ interface ValueIconProps {
 }
 
 /** An SVG icon that represents a value (i.e. in data). */
-const ValueIcon: FunctionComponent<IconProps & ValueIconProps> = ({
+const ValueIcon: FC<IconProps & ValueIconProps> = ({
   color = "currentcolor",
   children,
   ...props

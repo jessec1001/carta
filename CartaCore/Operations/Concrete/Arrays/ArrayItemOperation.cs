@@ -2,8 +2,9 @@ using System;
 using System.Threading.Tasks;
 using CartaCore.Operations.Attributes;
 
-namespace CartaCore.Operations.Array
+namespace CartaCore.Operations.Arrays
 {
+    // TODO: Make this a generic operation that can be used for any array type.
     /// <summary>
     /// The input for the <see cref="ArrayItemOperation" /> operation.
     /// </summary>
@@ -12,10 +13,12 @@ namespace CartaCore.Operations.Array
         /// <summary>
         /// The array of items to index.
         /// </summary>
+        [FieldName("Items")]
         public object[] Items { get; set; }
         /// <summary>
         /// The index of the item to obtain.
         /// </summary>
+        [FieldName("Index")]
         public int Index { get; set; }
     }
     /// <summary>
@@ -26,6 +29,7 @@ namespace CartaCore.Operations.Array
         /// <summary>
         /// The item that was indexed from the array.
         /// </summary>
+        [FieldName("Item")]
         public object Item { get; set; }
     }
 

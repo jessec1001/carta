@@ -12,17 +12,25 @@ import classNames from "classnames";
 interface LinkProps extends RouterLinkProps {
   /** The color of the link. Defaults to primary. */
   color?: AppColors;
+  /** Whether to ignore when the link is activated. */
+  ignore?: boolean;
 }
 
 /** A component that renders a hyperlink. */
 const Link: FC<LinkProps> = ({
   color = "primary",
+  ignore = false,
+  onClick = () => {},
   className,
   children,
   ...props
 }) => {
   return (
     <RouterLink
+      onClick={(event) => {
+        onClick(event);
+        if (ignore) event.preventDefault();
+      }}
       className={classNames(styles.link, fgStyles[color], className)}
       {...props}
     >

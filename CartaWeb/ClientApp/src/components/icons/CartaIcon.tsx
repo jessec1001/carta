@@ -1,8 +1,8 @@
-import { FunctionComponent, useContext } from "react";
+import { FC, useContext } from "react";
 import { Theme, ThemeContext } from "components/theme";
 
 /** An SVG icon for the Carta platform. */
-const CartaIcon: FunctionComponent = () => {
+const CartaIcon: FC = () => {
   const { theme } = useContext(ThemeContext);
 
   // Return an appropriate icon image based on theming.

@@ -56,7 +56,7 @@ namespace CartaCore.Operations
         public static OperationDescription FromType(Type type)
         {
             // Create an operation description. 
-            OperationDescription description = new() { Tags = System.Array.Empty<string>() };
+            OperationDescription description = new() { Tags = Array.Empty<string>() };
 
             // Get the default description from the XML documentation.
             // We ignore errors here because they are more like warnings in this context and will be caught by tests.

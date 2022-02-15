@@ -1,8 +1,7 @@
-using System;
 using System.Threading.Tasks;
 using CartaCore.Operations.Attributes;
 
-namespace CartaCore.Operations.Array
+namespace CartaCore.Operations.Arrays
 {
     /// <summary>
     /// The input for the <see cref="LinearArrayOperation" /> operation.
@@ -12,22 +11,27 @@ namespace CartaCore.Operations.Array
         /// <summary>
         /// The minimum of the range for generating values.
         /// </summary>
+        [FieldName("Minimum")]
         public double Minimum { get; set; }
         /// <summary>
         /// Whether the minimum value in the range should be exclusive (not included).
         /// </summary>
+        [FieldName("Minimum Exclusive")]
         public bool ExclusiveMinimum { get; set; }
         /// <summary>
         /// The maximum of the range for generating values.
         /// </summary>
+        [FieldName("Maximum")]
         public double Maximum { get; set; }
         /// <summary>
         /// Whether the maximum value in the range should be exclusive (not included).
         /// </summary>
+        [FieldName("Maximum Exclusive")]
         public bool ExclusiveMaximum { get; set; }
         /// <summary>
         /// The number of steps from the minimum to maximum to progress to generate the sequence.
         /// </summary>
+        [FieldName("Steps")]
         public int Steps { get; set; }
     }
     /// <summary>
@@ -38,6 +42,7 @@ namespace CartaCore.Operations.Array
         /// <summary>
         /// The linear sequence of values from the range.
         /// </summary>
+        [FieldName("Values")]
         public double[] Values { get; set; }
     }
 

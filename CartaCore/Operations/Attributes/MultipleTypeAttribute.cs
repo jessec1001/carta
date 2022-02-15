@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using CartaCore.Typing.Attributes;
 using CartaCore.Typing.Conversion;
 
 namespace CartaCore.Operations.Attributes

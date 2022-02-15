@@ -6,16 +6,11 @@ import { Link } from "components/link";
 import { ApiException } from "library/exceptions";
 import { FormGroup } from "components/form";
 import { DatabaseIcon } from "components/icons";
-import {
-  CheckboxInput,
-  SearchboxInput,
-  TextFieldInput,
-} from "components/input";
+import { CheckboxInput, SearchboxInput } from "components/input";
 import { Text, Loading } from "components/text";
 import { Column, Row } from "components/structure";
 import { useViews, Views } from "components/views";
-
-import "./OperationFromDataView.css";
+import styles from "./OperationFromDataView.module.css";
 
 /**
  * Renders an error that has been raised while loading resources.
@@ -70,11 +65,8 @@ const renderResource = (
   selected: boolean
 ) => {
   return (
-    <label className="DatasetAddView-Resource">
-      <CheckboxInput
-        className="DatasetAddView-Resource-Checkbox"
-        value={selected}
-      />
+    <label className={styles.resource}>
+      <CheckboxInput className={styles.resourceCheckbox} value={selected} />
       {resource}
     </label>
   );
@@ -82,10 +74,7 @@ const renderResource = (
 
 /** A component that renders a view to add datasets to a workspace. */
 const OperationFromDataView: FunctionComponent<{
-  onSubmit?: (
-    data: { source: string; resource: string }[],
-    name: string
-  ) => void;
+  onSubmit?: (data: { source: string; resource: string }[]) => void;
 }> = ({ onSubmit = () => {} }) => {
   // We need the data API to make calls to get the data resources.
   const { dataAPI } = useAPI();
@@ -96,7 +85,6 @@ const OperationFromDataView: FunctionComponent<{
     source: string;
     resource: string;
   } | null>(null);
-  const [name, setName] = useState<string>("");
 
   // We use a searchbox query to filter the names of resources.
   const [query, setQuery] = useState<string>("");
@@ -161,7 +149,7 @@ const OperationFromDataView: FunctionComponent<{
   };
   const handleCreate = () => {
     if (selected === null) return;
-    onSubmit([selected], name);
+    onSubmit([selected]);
     actions.removeView(viewId);
   };
   const handleCancel = () => {
@@ -249,18 +237,6 @@ const OperationFromDataView: FunctionComponent<{
       })}
 
       {/* TODO: Check if pressing 'Enter' triggers the submit method. */}
-      {/* Render an input for the optional display name of the selected dataset. */}
-      <FormGroup title="Name" density="flow">
-        <TextFieldInput
-          placeholder={
-            selected ? `(${selected.source}/${selected.resource})` : undefined
-          }
-          disabled={selected === null}
-          value={name}
-          onChange={setName}
-        />
-      </FormGroup>
-
       {/* Render a set of buttons to perform or cancel the add dataset operation. */}
       <ButtonGroup>
         <Button

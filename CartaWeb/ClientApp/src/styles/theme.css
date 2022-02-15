@@ -9,9 +9,10 @@ body {
   --color-stroke-dark: #222222;
   --color-stroke-light: #dddddd;
 
+  /* TODO: Figure out how to standardize the primary and secondary colors for stroke and fill. */
   --color-fill-normal: #ffffff;
   --color-fill-primary: #53b853;
-  --color-fill-secondary: #c1c7c1;
+  --color-fill-secondary: #a1a7a1;
 
   --color-stroke-normal: #000000;
   --color-stroke-primary: #141414;
@@ -37,7 +38,7 @@ body {
   --color-primary-hover: #f0f0f0;
   --color-primary-select: #53b85360;
   --color-primary-disabled: #a0d6a0;
-  --color-secondary: #c1c7c1;
+  --color-secondary: #a1a7a1;
   --color-secondary-stroke: #141414;
 
   --color-fill-body: #fafafa;

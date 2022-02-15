@@ -1,7 +1,7 @@
 /** A style that should be applied to keep SVG icons consistent. */
-const SVGStyle = ({ padded }: IconProps): React.CSSProperties => {
+const SVGStyle = ({ padded, half }: IconProps): React.CSSProperties => {
   return {
-    width: "1em",
+    width: half ? "0.5em" : "1.0em",
     height: "1em",
     padding: "0rem",
     margin: padded ? "0rem 0.25rem" : "0rem",
@@ -12,6 +12,8 @@ const SVGStyle = ({ padded }: IconProps): React.CSSProperties => {
 interface IconProps {
   /** Whether the icon should be slightly padded. */
   padded?: boolean;
+  /** Whether the icon should be half size. */
+  half?: boolean;
 }
 
 export { SVGStyle };

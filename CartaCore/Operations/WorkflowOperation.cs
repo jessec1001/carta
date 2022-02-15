@@ -217,7 +217,7 @@ namespace CartaCore.Operations
                         if (!value.GetType().IsArray)
                             throw new Exception("Multiplexed value is not an array.");
 
-                        cardinality = Math.Min(cardinality, ((System.Array)value).Length);
+                        cardinality = Math.Min(cardinality, ((Array)value).Length);
                     }
                 }
 
@@ -235,7 +235,7 @@ namespace CartaCore.Operations
                         foreach (KeyValuePair<string, object> entry in total)
                         {
                             if (multiplexed.Contains(entry.Key))
-                                partial.Add(entry.Key, ((System.Array)entry.Value).GetValue(k));
+                                partial.Add(entry.Key, ((Array)entry.Value).GetValue(k));
                             else
                                 partial.Add(entry.Key, entry.Value);
                         }
@@ -255,9 +255,9 @@ namespace CartaCore.Operations
                         {
                             // TODO: Work on typing here.
                             if (!result.ContainsKey(entry.Key))
-                                result.Add(entry.Key, System.Array.CreateInstance(entry.Value.GetType(), cardinality));
+                                result.Add(entry.Key, Array.CreateInstance(entry.Value.GetType(), cardinality));
 
-                            System.Array value = (System.Array)result[entry.Key];
+                            Array value = (Array)result[entry.Key];
                             value.SetValue(entry.Value, k);
                         }
                     }
@@ -299,7 +299,7 @@ namespace CartaCore.Operations
             /// <returns>The operation.</returns>
             private Operation GetOperation(string operationId)
             {
-                return System.Array.Find(Workflow.Operations, op => op.Identifier == operationId);
+                return Array.Find(Workflow.Operations, op => op.Identifier == operationId);
             }
             /// <summary>
             /// Gets the output for an operation specified by identifier.
@@ -390,8 +390,8 @@ namespace CartaCore.Operations
         }
         public WorkflowOperation()
         {
-            Operations = System.Array.Empty<Operation>();
-            Connections = System.Array.Empty<WorkflowOperationConnection>();
+            Operations = Array.Empty<Operation>();
+            Connections = Array.Empty<WorkflowOperationConnection>();
         }
 
         /// <summary>
@@ -403,9 +403,9 @@ namespace CartaCore.Operations
             // Check that each connection point has a corresponding operation.
             foreach (WorkflowOperationConnection connection in Connections)
             {
-                if (!System.Array.Exists(Operations, op => op.Identifier == connection.Source.Operation))
+                if (!Array.Exists(Operations, op => op.Identifier == connection.Source.Operation))
                     return false;
-                if (!System.Array.Exists(Operations, op => op.Identifier == connection.Target.Operation))
+                if (!Array.Exists(Operations, op => op.Identifier == connection.Target.Operation))
                     return false;
             }
             return true;

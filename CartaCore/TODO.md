@@ -1,0 +1,49 @@
+# Current Work
+There is an issue preventing the manual (programmatic not browser) refresh for operations when initially created. When an operation is created, there should be an immediate loading text and symbol displayed while the operation is setup on the backend. If any errors occur, they should be displayed in place of this loading text.
+
+Currently, when an operation is constructed, a user needs to wait at most 30 seconds for an automatic refresh or refresh the browser page.
+---
+- Fix setting seed on `SampleNormalOperation` and similar operations.
+- Check if `StatisticalDeviationOperation` is correctly using values.
+- Implement tooltips for operation nodes in the workflow editor.
+- Fix file uploads not being handled correctly.
+- Send pending/working/completed/error status in job back to API callers.
+- Indicate required operation fields on the front-end (e.g. `name`).
+- Throw an error in `InputOperation` and `OutputOperation` when the name field is not specified.
+- Make sure that the list of operations is updated immediately when a new operation is created.
+- Implement renaming an operation.
+- Implement an endpoint to allow for specifying a default value for an operation of type stream via file upload. 
+- Add new relevant tips to the UI and provide some means of viewing a list of them.
+- Make the scatter plot, histogram plot, and graph plot use all of the specified parameters.
+- Add a properties from list of vertices operation which is pipelined.
+
+# Upcoming Work
+- Implement copy/paste for operations across workflow editors.
+- Implement roots of function operation.
+- Implement a lerp operation in a way so that there is a slider from 0 to 1 for the interpolation value.
+- Use `<kbd>` tag for keyboard shortcut descriptions. 
+- Allow operations to be deleted from a workspace.
+- Consider adding a searchbox to the workflow editor.
+- Add some way to select multiple operations in the workflow editor and convert them into a new workflow.
+- Allow for opening the internal workflow of an operation if it is of type workflow.
+- Implement `DynamicFieldAttribute` schema and type conversion modification.
+- Implement schema modifications to include XML documentation.
+- Remove `Identity` class because it is not really used for anything and cumbersome to use.
+- Abstract graph classes to support generic vertex and edge types.
+- Condense some of the graph interface classes if possible.
+- Implement pipelining for `IAsyncEnumerable<T>` type fields.
+- Reimplement dependency graph for workflow operation execution.
+- Add attribute support for schema and type definitions.
+- Add attributes for naming operation fields.
+- Include XML documentation for operation fields in schema.
+- Implement Python code operation.
+- Implement attribute for dynamically generated inputs and outputs.
+  - This should be used in the HyperThought graph operation.
+- Implement an `IAsyncPipeline<T>` interface that `IEntireGraph` implements and use it to support pipelining of vertices and reconstruction of a graph structure.
+- Allow synchronization of an operation status with a job item via its context.
+- Distinguish between broadcasting, multiplexing, and demultiplexing and implement generalized versions of these.
+- Implement some distinguished interface for "selectable" types and abstract this into "selection" operations.
+  - Properly allow "selection" operations to be used to apply a prioritization to a particular pipeline in a workflow.
+  - Allow any operation upstream of a pipeline to add their own prioritization to the pipeline.
+  - Rework `OperationSelectorAttribute` and `OperationSelectorGraphAttribute` attributes.
+- Look into solving Safari rendering issues.

@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using CartaCore.Operations.Attributes;
 
@@ -6,6 +7,7 @@ namespace CartaCore.Operations.Arithmetic
     /// <summary>
     /// The type of comparison operation that may be performed in the <see cref="ComparisonOperation" /> operation.
     /// </summary>
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum ComparisonOperationType
     {
         /// <summary>
@@ -42,15 +44,18 @@ namespace CartaCore.Operations.Arithmetic
         /// <summary>
         /// The type of comparison to perform.
         /// </summary>
+        [FieldName("Type")]
         public ComparisonOperationType Type { get; set; }
 
         /// <summary>
         /// The first operand of the comparison expression.
         /// </summary>
+        [FieldName("Input 1")]
         public double Input1 { get; set; }
         /// <summary>
         /// The second operand of the comparison expression.
         /// </summary>
+        [FieldName("Input 2")]
         public double Input2 { get; set; }
     }
     /// <summary>
@@ -61,6 +66,7 @@ namespace CartaCore.Operations.Arithmetic
         /// <summary>
         /// The output of the comparison expression.
         /// </summary>
+        [FieldName("Output")]
         public bool Output { get; set; }
     }
 
