@@ -8,9 +8,9 @@ namespace CartaCore.Data
     public interface IRootedGraph : IGraph
     {
         /// <summary>
-        /// Gets an enumerable of the identities of root vertices.
+        /// Enumerates over the identities of root vertices.
         /// </summary>
         /// <returns>The identities of root vertices.</returns>
-        IEnumerable<Identity> GetRoots();
+        IAsyncEnumerable<string> Roots();
     }
 }

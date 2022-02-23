@@ -8,10 +8,10 @@ namespace CartaCore.Data
     public abstract class WrapperGraph : Graph
     {
         /// <inheritdoc />
-        protected WrapperGraph(Identity id) : base(id) { }
+        protected WrapperGraph(string id) : base(id) { }
 
         /// <inheritdoc />
-        protected WrapperGraph(Identity id, IEnumerable<Property> properties) : base(id, properties) { }
+        protected WrapperGraph(string id, ISet<IProperty> properties) : base(id, properties) { }
 
         /// <summary>
         /// Gets the wrapped graph.
@@ -20,10 +20,7 @@ namespace CartaCore.Data
         protected abstract IGraph WrappedGraph { get; }
 
         /// <inheritdoc />
-        public override GraphProperties GetProperties()
-        {
-            return WrappedGraph.GetProperties();
-        }
+        public override GraphAttributes Attributes => WrappedGraph.Attributes;
 
         /// <summary>
         /// Tries to provide this object as a type implementing the specified functionality.
@@ -40,7 +37,7 @@ namespace CartaCore.Data
                 func = fn;
                 return true;
             }
-            else if (WrappedGraph.TryProvide<U>(out U wrappedFn))
+            else if (WrappedGraph.TryProvide(out U wrappedFn))
             {
                 func = wrappedFn;
                 return true;

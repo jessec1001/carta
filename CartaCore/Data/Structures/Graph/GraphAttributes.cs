@@ -3,16 +3,8 @@ namespace CartaCore.Data
     /// <summary>
     /// Represents the properties that a graph can take on that determine how the graph must be retrieved or processed.
     /// </summary>
-    public struct GraphProperties
+    public struct GraphAttributes
     {
-        /// <summary>
-        /// Gets whether the graph contains directed or undirected edges.
-        /// </summary>
-        /// <value>
-        /// <c>true</c> if the edges are directed; <c>false</c> if the edges are undirected. If the edges are directed,
-        /// the order of <see cref="Edge.Source"/> and <see cref="Edge.Target"/> matter and change the flow of the edge.
-        /// </value>
-        public bool Directed { get; init; }
         /// <summary>
         /// Gets whether the graph can be loaded dynamically.
         /// </summary>

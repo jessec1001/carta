@@ -6,6 +6,8 @@ using CartaCore.Operations.Attributes;
 
 namespace CartaCore.Operations
 {
+    // TODO: Implement support for pipelining these values.
+
     /// <summary>
     /// The input for the <see cref="FindPropertyOperation"/> operation.
     /// </summary>
@@ -48,15 +50,16 @@ namespace CartaCore.Operations
             // Create an empty list of values
             object[] values;
 
+            // TODO: Improve fetching properties by an identifier.
             // Check if the graph can be enumerated over.
             // If so, grab the values from its vertices.
             IGraph graph = input.Graph;
-            if (graph.TryProvide(out IEntireGraph entireGraph))
+            if (graph.TryProvide(out IEntireGraph<Vertex, IEdge> entireGraph))
             {
                 values = await entireGraph.GetVertices()
                     .Select(vertex => vertex
                         .Properties
-                        .FirstOrDefault(property => property.Identifier.Equals(input.Name))
+                        .FirstOrDefault(property => property.Id == input.Name)
                         .Value
                     )
                     .ToArrayAsync();

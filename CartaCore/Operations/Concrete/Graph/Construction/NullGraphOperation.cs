@@ -4,6 +4,8 @@ using CartaCore.Operations.Attributes;
 
 namespace CartaCore.Operations
 {
+    // TODO: Implement support for pipelining this graph.
+
     /// <summary>
     /// The input for the <see cref="NullGraphOperation" /> operation.
     /// </summary>
@@ -42,13 +44,13 @@ namespace CartaCore.Operations
         public override Task<NullGraphOperationOut> Perform(NullGraphOperationIn input)
         {
             // Generate the graph structure.
-            FiniteGraph graph = new(Identity.Create($"{nameof(NullGraphOperation)}:{input.VertexCount}"), false);
+            FiniteGraph graph = new($"N_{input.VertexCount}");
 
             // Generate the vertices of the graph.
             for (int k = 0; k < input.VertexCount; k++)
             {
                 // Add the vertex to the graph.
-                Vertex vertex = new(Identity.Create(k));
+                Vertex vertex = new(k.ToString());
                 graph.AddVertex(vertex);
             }
 

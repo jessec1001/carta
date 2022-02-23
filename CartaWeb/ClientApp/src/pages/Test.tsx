@@ -1,5 +1,5 @@
 import { Accordian } from "components/accordian";
-import Arrow from "components/arrow";
+import { Arrows } from "components/arrows";
 import {
   Button,
   ButtonGroup,
@@ -211,25 +211,25 @@ const Container: FunctionComponent = () => {
             </section>
             <section>
               <Title>Arrows</Title>
-              <Arrow
+              {/* <Arrows.Arrow
                 source=""
                 target=""
-                points={[
-                  [0, 0],
-                  [20, 0],
-                ]}
+                // points={[
+                //   [0, 0],
+                //   [20, 0],
+                // ]}
               />
               <div />
-              <Arrow
+              <Arrows.Arrow
                 source=""
                 target=""
-                points={[
-                  [1, 1],
-                  [1, 200],
-                  [200, 200],
-                  [200, 1],
-                ]}
-              />
+                // points={[
+                //   [1, 1],
+                //   [1, 200],
+                //   [200, 200],
+                //   [200, 1],
+                // ]}
+              /> */}
             </section>
             <section>
               <Title>Buttons</Title>
@@ -506,10 +506,28 @@ const Container: FunctionComponent = () => {
   );
 };
 
+const DoesBreakParent: FunctionComponent = () => {
+  const [element, setElement] = useState<HTMLElement | null>(null);
+  return (
+    <>
+      PARENT
+      <DoesBreakChild setRef={setElement} element={element} />
+    </>
+  );
+};
+const DoesBreakChild: FunctionComponent<{
+  setRef: (element: HTMLElement | null) => void;
+  element: HTMLElement | null;
+}> = ({ setRef, element }) => {
+  const data = element ? element.tagName : "NONE";
+  return <div ref={setRef}>CHILD: {data}</div>;
+};
+
 const TestPage: FunctionComponent = () => {
   return (
     <PageLayout header footer>
       <div style={{ height: "100%" }}>
+        {/* <DoesBreakParent /> */}
         <Container />
       </div>
     </PageLayout>

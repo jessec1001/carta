@@ -8,6 +8,9 @@ using MorseCode.ITask;
 
 namespace CartaCore.Operations
 {
+    // TODO: Implement pipelining for this operation.
+    // TODO: Fix typing of graph structure.
+
     /// <summary>
     /// The input for the <see cref="ReverseEdgesOperation"/> operation.
     /// </summary>
@@ -45,9 +48,9 @@ namespace CartaCore.Operations
         /// </summary>
         private class ReverseEdgesGraph :
             WrapperGraph,
-            IDynamicInGraph<Vertex>,
-            IDynamicOutGraph<Vertex>,
-            IEntireGraph
+            IDynamicInGraph<Vertex, Edge>,
+            IDynamicOutGraph<Vertex, Edge>,
+            IEntireGraph<Vertex, Edge>
         {
             /// <summary>
             /// The graph that is wrapped by this filter.
@@ -62,7 +65,7 @@ namespace CartaCore.Operations
             /// </summary>
             /// <param name="graph">The graph to reverse edges of.</param>
             public ReverseEdgesGraph(Graph graph)
-                : base(graph.Identifier, graph.Properties)
+                : base(graph.Id, graph.Properties)
             {
                 Graph = graph;
             }
@@ -70,6 +73,7 @@ namespace CartaCore.Operations
             /// <inheritdoc />
             public override bool TryProvide<U>(out U func)
             {
+                // TODO: Provide correct provisions for swapping dynamic in and out functionalities.
                 if (typeof(U).IsAssignableTo(typeof(IRootedGraph)))
                 {
                     func = default;
@@ -84,9 +88,9 @@ namespace CartaCore.Operations
             }
 
             /// <inheritdoc />
-            public async IAsyncEnumerable<Vertex> GetChildVertices(Identity id)
+            public async IAsyncEnumerable<Vertex> GetChildVertices(string id)
             {
-                if (((IGraph)Graph).TryProvide(out IDynamicInGraph<Vertex> dynamicInGraph))
+                if (((IGraph)Graph).TryProvide(out IDynamicInGraph<Vertex, Edge> dynamicInGraph))
                 {
                     await foreach (Vertex parentVertex in dynamicInGraph.GetParentVertices(id))
                         yield return parentVertex;
@@ -99,9 +103,9 @@ namespace CartaCore.Operations
                 }
             }
             /// <inheritdoc />
-            public async IAsyncEnumerable<Vertex> GetParentVertices(Identity id)
+            public async IAsyncEnumerable<Vertex> GetParentVertices(string id)
             {
-                if (((IGraph)Graph).TryProvide(out IDynamicOutGraph<Vertex> dynamicOutGraph))
+                if (((IGraph)Graph).TryProvide(out IDynamicOutGraph<Vertex, Edge> dynamicOutGraph))
                 {
                     await foreach (Vertex childVertex in dynamicOutGraph.GetChildVertices(id))
                         yield return childVertex;
@@ -114,13 +118,13 @@ namespace CartaCore.Operations
                 }
             }
             /// <inheritdoc />
-            public async ITask<Vertex> GetVertex(Identity id)
+            public async ITask<Vertex> GetVertex(string id)
             {
-                if (((IGraph)Graph).TryProvide(out IDynamicGraph<IVertex> dynamic))
+                if (((IGraph)Graph).TryProvide(out IDynamicGraph<Vertex, Edge> dynamic))
                 {
-                    IVertex vertex = await dynamic.GetVertex(id);
+                    Vertex vertex = await dynamic.GetVertex(id);
                     IEnumerable<Edge> edges = vertex.Edges.Select(
-                        edge => new Edge(edge.Identifier, edge.Target, edge.Source, edge.Properties)
+                        edge => new Edge(edge.Id, edge.Target, edge.Source, edge.Properties)
                     );
                     return new Vertex(id, vertex.Properties, edges)
                     {
@@ -131,16 +135,16 @@ namespace CartaCore.Operations
                 else throw new NotSupportedException();
             }
             /// <inheritdoc />
-            public async IAsyncEnumerable<IVertex> GetVertices()
+            public async IAsyncEnumerable<Vertex> GetVertices()
             {
-                if (((IGraph)Graph).TryProvide(out IEntireGraph entire))
+                if (((IGraph)Graph).TryProvide(out IEntireGraph<Vertex, Edge> entire))
                 {
-                    await foreach (IVertex vertex in entire.GetVertices())
+                    await foreach (Vertex vertex in entire.GetVertices())
                     {
                         IEnumerable<Edge> edges = vertex.Edges.Select(
-                            edge => new Edge(edge.Identifier, edge.Target, edge.Source, edge.Properties)
+                            edge => new Edge(edge.Id, edge.Target, edge.Source, edge.Properties)
                         );
-                        yield return new Vertex(vertex.Identifier, vertex.Properties, edges)
+                        yield return new Vertex(vertex.Id, vertex.Properties, edges)
                         {
                             Label = vertex.Label,
                             Description = vertex.Description

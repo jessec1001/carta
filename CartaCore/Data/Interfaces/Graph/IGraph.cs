@@ -6,9 +6,8 @@ namespace CartaCore.Data
     public interface IGraph : IProvider<IGraph>
     {
         /// <summary>
-        /// Gets the structure properties of the graph.
+        /// The structural attributes of the graph.
         /// </summary>
-        /// <returns>The graph properties.</returns>
-        GraphProperties GetProperties();
+        GraphAttributes Attributes { get; }
     }
 }

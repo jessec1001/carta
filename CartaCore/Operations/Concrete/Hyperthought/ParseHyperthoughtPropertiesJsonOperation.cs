@@ -47,7 +47,7 @@ namespace CartaCore.Operations.Hyperthought
         {
             // Create the JSON serializer options.
             JsonSerializerOptions jsonOptions = new(JsonSerializerDefaults.Web);
-            jsonOptions.Converters.Insert(0, new JsonPrimitiveConverter());
+            jsonOptions.Converters.Insert(0, new JsonPrimativeConverter());
 
             // Read the JSON stream.
             List<HyperthoughtProperty> hyperthoughtProperties =

@@ -8,7 +8,7 @@ namespace CartaCore.Serialization.Json
     /// Converts between JSON tokens and <see cref="object"/> types using basic inference on the token types.
     /// Only booleans, strings and numbers are permitted.
     /// </summary>
-    public class JsonPrimitiveConverter : JsonConverter<object>
+    public class JsonPrimativeConverter : JsonConverter<object>
 
     {
         /// <inheritdoc />
@@ -16,21 +16,15 @@ namespace CartaCore.Serialization.Json
         {
             // We serialize based on all possible types of token.
             // If we encounter an unexpected token type, we throw an exception.
-            switch (reader.TokenType)
+            return reader.TokenType switch
             {
-                case JsonTokenType.False:
-                    return false;
-                case JsonTokenType.True:
-                    return true;
-                case JsonTokenType.Number:
-                    return reader.GetDouble();
-                case JsonTokenType.String:
-                    return reader.GetString();
-                case JsonTokenType.Null:
-                    return null;
-                default:
-                    throw new JsonException("Unsupported JSON format. Only primitives (bool, string, number) allowed.");
-            }
+                JsonTokenType.False => false,
+                JsonTokenType.True => true,
+                JsonTokenType.Number => reader.GetDouble(),
+                JsonTokenType.String => reader.GetString(),
+                JsonTokenType.Null => null,
+                _ => throw new JsonException("Unsupported JSON format. Only primitives (bool, string, number) allowed."),
+            };
         }
         /// <inheritdoc />
         public override void Write(Utf8JsonWriter writer, object value, JsonSerializerOptions options)

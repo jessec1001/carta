@@ -42,12 +42,12 @@ namespace CartaCore.Operations
         HyperthoughtGraphOperationOut
     >
     {
-        private class HyperthoughtGraph : WrapperGraph, IEntireGraph
+        private class HyperthoughtGraph : WrapperGraph, IEntireGraph<Vertex, Edge>
         {
-            public HyperthoughtGraph(Identity id) : base(id)
+            public HyperthoughtGraph(string id) : base(id)
             {
             }
-            public HyperthoughtGraph(Identity id, IEnumerable<Property> properties) : base(id, properties)
+            public HyperthoughtGraph(string id, ISet<IProperty> properties) : base(id, properties)
             {
             }
 
@@ -56,7 +56,7 @@ namespace CartaCore.Operations
             public HyperthoughtWorkflowGraph Graph { get; set; }
             protected override IGraph WrappedGraph => Graph;
 
-            public async IAsyncEnumerable<IVertex> GetVertices()
+            public async IAsyncEnumerable<Vertex> GetVertices()
             {
                 // We execute a traversal algorithm over the graph while constantly checking the priority queue.
                 HashSet<Guid> completedIds = new();
@@ -66,7 +66,7 @@ namespace CartaCore.Operations
                 pendingIds.Enqueue(Root);
 
                 // Fetch the root node.
-                Vertex rootVertex = await Graph.GetVertex(Identity.Create(Root));
+                Vertex rootVertex = await Graph.GetVertex(Root.ToString());
                 yield return rootVertex;
 
                 // Keep going until we've completed all the nodes.
@@ -84,7 +84,7 @@ namespace CartaCore.Operations
                         {
                             await foreach (Vertex vertex in entireGraph.GetVertices())
                             {
-                                Guid vertexId = vertex.Identifier.AsType<Guid>();
+                                Guid vertexId = Guid.Parse(vertex.Id);
                                 if (completedIds.Contains(vertexId)) continue;
                                 yield return vertex;
                             }
@@ -95,10 +95,10 @@ namespace CartaCore.Operations
                     Guid id = pendingIds.Dequeue();
 
                     // Get the vertex children.
-                    await foreach (Vertex childVertex in Graph.GetChildVertices(Identity.Create(id)))
+                    await foreach (Vertex childVertex in Graph.GetChildVertices(id.ToString()))
                     {
                         // If the child is not already completed, add it to the pending list.
-                        Guid childId = childVertex.Identifier.AsType<Guid>();
+                        Guid childId = Guid.Parse(childVertex.Id);
                         if (!completedIds.Contains(childId))
                         {
                             pendingIds.Enqueue(childId);
@@ -120,7 +120,7 @@ namespace CartaCore.Operations
             HyperthoughtWorkflowGraph graph = new HyperthoughtWorkflowGraph(input.Api, uuid);
 
             // Return the wrapped graph.
-            HyperthoughtGraph wrappedGraph = new(graph.Identifier, graph.Properties)
+            HyperthoughtGraph wrappedGraph = new(graph.Id, graph.Properties)
             {
                 Context = context,
                 Graph = graph,

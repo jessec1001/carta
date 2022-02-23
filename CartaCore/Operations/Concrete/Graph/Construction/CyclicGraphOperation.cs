@@ -4,6 +4,8 @@ using CartaCore.Operations.Attributes;
 
 namespace CartaCore.Operations
 {
+    // TODO: Implement support for pipelining this graph.
+
     /// <summary>
     /// The input for the <see cref="CyclicGraphOperation" /> operation.
     /// </summary>
@@ -13,6 +15,10 @@ namespace CartaCore.Operations
         /// The number of vertices to use in generating the cyclic graph.
         /// </summary>
         public int VertexCount { get; set; }
+        /// <summary>
+        /// Whether the resulting graph should be directed or undirected.
+        /// </summary>
+        public bool Directed { get; set; }
     }
     /// <summary>
     /// The output for the <see cref="CyclicGraphOperation" /> operation.
@@ -42,7 +48,7 @@ namespace CartaCore.Operations
         public override Task<CyclicGraphOperationOut> Perform(CyclicGraphOperationIn input)
         {
             // Create the graph structure.
-            FiniteGraph graph = new(Identity.Create($"{nameof(CyclicGraphOperation)}:{input.VertexCount}"), false);
+            FiniteGraph graph = new($"C_{input.VertexCount}");
 
             // Generate the vertices of the graph.
             for (int k = 0; k < input.VertexCount; k++)
@@ -51,9 +57,9 @@ namespace CartaCore.Operations
                 int indexBefore = (k - 1 + input.VertexCount) % input.VertexCount;
                 int indexAfter = (k + 1 + input.VertexCount) % input.VertexCount;
 
-                Edge edgeBefore = new(Identity.Create(indexBefore), Identity.Create(k));
-                Edge edgeAfter = new(Identity.Create(k), Identity.Create(indexAfter));
-                Vertex vertex = new(Identity.Create(k), new Edge[] { edgeBefore, edgeAfter });
+                Edge edgeBefore = new(indexBefore.ToString(), k.ToString()) { Directed = input.Directed };
+                Edge edgeAfter = new(k.ToString(), indexAfter.ToString()) { Directed = input.Directed };
+                Vertex vertex = new(k.ToString(), new Edge[] { edgeBefore, edgeAfter });
 
                 // Add the vertex to the graph.
                 graph.AddVertex(vertex);

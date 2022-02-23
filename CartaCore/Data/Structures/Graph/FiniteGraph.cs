@@ -1,91 +1,72 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-
 using MorseCode.ITask;
 
 namespace CartaCore.Data
 {
+    // TODO: Fix this by adjusting the generic typing on dynamic graph interfaces.
     /// <summary>
     /// Represents a graph that has finitely many vertices and edges.
     /// </summary>
-    public class FiniteGraph : Graph,
-        IEntireGraph,
-        IDynamicInGraph<Vertex>,
-        IDynamicOutGraph<Vertex>
+    /// <typeparam name="TVertex">The type of vertex.</typeparam>
+    /// <typeparam name="TEdge">The type of edge.</typeparam>
+    public class FiniteGraph<TVertex, TEdge> : Graph,
+        IRootedGraph,
+        IEntireGraph<TVertex, TEdge>,
+        IDynamicInGraph<TVertex, TEdge>,
+        IDynamicOutGraph<TVertex, TEdge>
+        where TVertex : IVertex<TEdge>
+        where TEdge : IEdge
     {
-        /// <summary>
-        /// Get or sets whether the graph is directed.
-        /// </summary>
-        /// <value><c>true</c> if the graph has directed edges; otherwise, <c>false</c>.</value>
-        protected bool Directed { get; init; }
-
         /// <inheritdoc />
-        public override GraphProperties GetProperties()
+        public override GraphAttributes Attributes => new()
         {
-            return new GraphProperties
-            {
-                Directed = Directed,
-                Dynamic = true,
-                Finite = true
-            };
-        }
+            Dynamic = true,
+            Finite = true
+        };
 
-        private Dictionary<Identity, Vertex> VertexSet { get; init; }
-        private Dictionary<Identity, HashSet<Edge>> InEdgeSet { get; init; }
-        private Dictionary<Identity, HashSet<Edge>> OutEdgeSet { get; init; }
+        private Dictionary<string, TVertex> VertexSet { get; init; }
+        private Dictionary<string, HashSet<TEdge>> InEdgeSet { get; init; }
+        private Dictionary<string, HashSet<TEdge>> OutEdgeSet { get; init; }
 
         /// <summary>
-        /// Initializes an instance of the <see cref="FiniteGraph"/> class with the specified identifier and properties.
+        /// Initializes an instance of the <see cref="FiniteGraph{TVertex, TEdge}"/> class with the specified identifier
+        /// and properties.
         /// </summary>
         /// <param name="id">The graph identifier.</param>
         /// <param name="properties">The properties assigned to the graph.</param>
-        /// <param name="directed">Whether the graph has directed or undirected edges.</param>
         public FiniteGraph(
-            Identity id,
-            IEnumerable<Property> properties,
-            bool directed = true
+            string id,
+            ISet<IProperty> properties
         ) : base(id, properties)
         {
-            Directed = directed;
-
-            VertexSet = new Dictionary<Identity, Vertex>();
-            InEdgeSet = new Dictionary<Identity, HashSet<Edge>>();
-            OutEdgeSet = new Dictionary<Identity, HashSet<Edge>>();
+            VertexSet = new Dictionary<string, TVertex>();
+            InEdgeSet = new Dictionary<string, HashSet<TEdge>>();
+            OutEdgeSet = new Dictionary<string, HashSet<TEdge>>();
         }
         /// <summary>
-        /// Initializes an instance of the <see cref="FiniteGraph"/> class with the specified identifier.
+        /// Initializes an instance of the <see cref="FiniteGraph{TVertex, TEdge}"/> class with the specified
+        /// identifier.
         /// </summary>
         /// <param name="id">The graph identifier.</param>
-        /// <param name="directed">Whether the graph has directed or undirected edges.</param>
         public FiniteGraph(
-            Identity id,
-            bool directed = true
-        ) : base(id)
-        {
-            Directed = directed;
-
-            VertexSet = new Dictionary<Identity, Vertex>();
-            InEdgeSet = new Dictionary<Identity, HashSet<Edge>>();
-            OutEdgeSet = new Dictionary<Identity, HashSet<Edge>>();
-        }
+            string id
+        ) : base(id, new HashSet<IProperty>()) { }
 
         /// <summary>
         /// Adds a vertex to the graph.
         /// </summary>
         /// <param name="vertex">The vertex to add.</param>
         /// <returns><c>true</c> if the vertex was successfully added; otherwise, <c>false</c>.</returns>
-        public bool AddVertex(IVertex vertex)
+        public bool AddVertex(TVertex vertex)
         {
-            if (vertex is not Vertex vertexBase) return false;
-
-            if (VertexSet.ContainsKey(vertex.Identifier))
+            if (VertexSet.ContainsKey(vertex.Id))
                 return false;
             else
             {
-                VertexSet.Add(vertex.Identifier, vertexBase);
+                VertexSet.Add(vertex.Id, vertex);
                 AddEdgeRange(vertex.Edges);
                 return true;
             }
@@ -95,12 +76,12 @@ namespace CartaCore.Data
         /// </summary>
         /// <param name="vertices">The vertices to add.</param>
         /// <returns>The count of successfully added vertices.</returns>
-        public int AddVertexRange(IEnumerable<IVertex> vertices)
+        public int AddVertexRange(IEnumerable<TVertex> vertices)
         {
             if (vertices is null) throw new ArgumentNullException(nameof(vertices));
 
             int added = 0;
-            foreach (IVertex vertex in vertices)
+            foreach (TVertex vertex in vertices)
                 if (AddVertex(vertex)) added++;
             return added;
         }
@@ -109,82 +90,105 @@ namespace CartaCore.Data
         /// </summary>
         /// <param name="vertex">The vertex to remove.</param>
         /// <returns><c>true</c> if the vertex was successfully removed; otherwise, <c>false</c>.</returns>
-        public bool RemoveVertex(IVertex vertex)
+        public bool RemoveVertex(TVertex vertex)
         {
-            return VertexSet.Remove(vertex.Identifier);
+            return VertexSet.Remove(vertex.Id);
         }
         /// <summary>
-        /// Removes a range of specified vertices to the graph.
+        /// Removes a vertex from the graph specified by an identifier.
+        /// </summary>
+        /// <param name="id">The identifier.</param>
+        /// <returns><c>true</c> if the vertex was successfully removed; otherwise, <c>false</c>.</returns>
+        public bool RemoveVertex(string id)
+        {
+            return VertexSet.Remove(id);
+        }
+        /// <summary>
+        /// Removes a range of specified vertices from the graph.
         /// </summary>
         /// <param name="vertices">The vertices to remove.</param>
         /// <returns>The count of successfully removed vertices.</returns>
-        public int RemoveVertexRange(IEnumerable<IVertex> vertices)
+        public int RemoveVertexRange(IEnumerable<TVertex> vertices)
         {
             if (vertices is null) throw new ArgumentNullException(nameof(vertices));
 
             int removed = 0;
-            foreach (IVertex vertex in vertices)
+            foreach (TVertex vertex in vertices)
                 if (RemoveVertex(vertex)) removed++;
+            return removed;
+        }
+        /// <summary>
+        /// Removes a range of vertices specified by identifiers from the graph.
+        /// </summary>
+        /// <param name="ids">The identifiers.</param>
+        /// <returns>The count of successfully removed vertices.</returns>
+        public int RemoveVertexRange(IEnumerable<string> ids)
+        {
+            if (ids is null) throw new ArgumentNullException(nameof(ids));
+
+            int removed = 0;
+            foreach (string id in ids)
+                if (RemoveVertex(id)) removed++;
             return removed;
         }
 
         /// <summary>
         /// Adds an edge directed into a vertex.
         /// </summary>
-        /// <param name="vertex">The vertex to add the edge to.</param>
+        /// <param name="target">The vertex to add the edge to.</param>
         /// <param name="edge">The in-edge.</param>
         /// <returns><c>true</c> if the edge was added; otherwise, <c>false</c>.</returns>
-        private bool AddInEdge(Identity vertex, Edge edge)
+        private bool AddInEdge(string target, TEdge edge)
         {
-            HashSet<Edge> edges;
-            if (InEdgeSet.TryGetValue(vertex, out HashSet<Edge> existing))
+            HashSet<TEdge> edges;
+            if (InEdgeSet.TryGetValue(target, out HashSet<TEdge> existing))
                 edges = existing;
             else
             {
-                edges = new HashSet<Edge>();
-                InEdgeSet.Add(vertex, edges);
+                edges = new HashSet<TEdge>();
+                InEdgeSet.Add(target, edges);
             }
             return edges.Add(edge);
         }
         /// <summary>
         /// Adds an edge directed out of a vertex.
         /// </summary>
-        /// <param name="vertex">The vertex to add the edge to.</param>
+        /// <param name="source">The vertex to add the edge to.</param>
         /// <param name="edge">The out-edge.</param>
         /// <returns><c>true</c> if the edge was added; otherwise, <c>false</c>.</returns>
-        private bool AddOutEdge(Identity vertex, Edge edge)
+        private bool AddOutEdge(string source, TEdge edge)
         {
-            HashSet<Edge> edges;
-            if (OutEdgeSet.TryGetValue(vertex, out HashSet<Edge> existing))
+            HashSet<TEdge> edges;
+            if (OutEdgeSet.TryGetValue(source, out HashSet<TEdge> existing))
                 edges = existing;
             else
             {
-                edges = new HashSet<Edge>();
-                OutEdgeSet.Add(vertex, edges);
+                edges = new HashSet<TEdge>();
+                OutEdgeSet.Add(source, edges);
             }
             return edges.Add(edge);
         }
         /// <summary>
         /// Removes an edge directed into a vertex.
         /// </summary>
-        /// <param name="vertex">The vertex to remove the edge from.</param>
+        /// <param name="target">The vertex to remove the edge from.</param>
         /// <param name="edge">The in-edge.</param>
         /// <returns><c>true</c> if the edge was removed; otherwise, <c>false</c>.</returns>
-        private bool RemoveInEdge(Identity vertex, Edge edge)
+        private bool RemoveInEdge(string target, TEdge edge)
         {
-            if (InEdgeSet.TryGetValue(vertex, out HashSet<Edge> edges))
+            if (InEdgeSet.TryGetValue(target, out HashSet<TEdge> edges))
                 return edges.Remove(edge);
             return false;
         }
         /// <summary>
         /// Removes an edge directed out of a vertex.
         /// </summary>
-        /// <param name="vertex">The vertex to remove the edge from.</param>
+        /// <param name="source">The vertex to remove the edge from.</param>
         /// <param name="edge">The out-edge.</param>
         /// <returns><c>true</c> if the edge was removed; otherwise, <c>false</c>.</returns>
-        private bool RemoveOutEdge(Identity vertex, Edge edge)
+        private bool RemoveOutEdge(string source, TEdge edge)
         {
-            if (OutEdgeSet.TryGetValue(vertex, out HashSet<Edge> edges))
+            if (OutEdgeSet.TryGetValue(source, out HashSet<TEdge> edges))
                 return edges.Remove(edge);
             return false;
         }
@@ -193,12 +197,12 @@ namespace CartaCore.Data
         /// Adds an edge to the graph.
         /// </summary>
         /// <param name="edge">
-        /// The edge to add. This will be directed or undirected based on the corresponding graph property.
+        /// The edge to add. This will be directed or undirected based on the edge property.
         /// </param>
         /// <returns><c>true</c> if the edge was successfully added; otherwise, <c>false</c>.</returns>
-        public bool AddEdge(Edge edge)
+        public bool AddEdge(TEdge edge)
         {
-            if (Directed)
+            if (edge.Directed)
             {
                 bool added = false;
                 added = AddInEdge(edge.Target, edge) || added;
@@ -208,10 +212,10 @@ namespace CartaCore.Data
             else
             {
                 bool added = false;
-                added = AddInEdge(edge.Source, edge) || added;
                 added = AddInEdge(edge.Target, edge) || added;
-                added = AddOutEdge(edge.Source, edge) || added;
                 added = AddOutEdge(edge.Target, edge) || added;
+                added = AddInEdge(edge.Source, edge) || added;
+                added = AddOutEdge(edge.Source, edge) || added;
                 return added;
             }
         }
@@ -222,12 +226,12 @@ namespace CartaCore.Data
         /// The edges to add. These will be directed or undirected based on the corresponding graph property.
         /// </param>
         /// <returns>The count of successfully added edges.</returns>
-        public int AddEdgeRange(IEnumerable<Edge> edges)
+        public int AddEdgeRange(IEnumerable<TEdge> edges)
         {
             if (edges is null) throw new ArgumentNullException(nameof(edges));
 
             int added = 0;
-            foreach (Edge edge in edges)
+            foreach (TEdge edge in edges)
                 if (AddEdge(edge)) added++;
             return added;
         }
@@ -238,9 +242,9 @@ namespace CartaCore.Data
         /// The edge to remove.
         /// </param>
         /// <returns><c>true</c> if the edge was successfully removed; otherwise, <c>false</c>.</returns>
-        public bool RemoveEdge(Edge edge)
+        public bool RemoveEdge(TEdge edge)
         {
-            if (Directed)
+            if (edge.Directed)
             {
                 bool removed = false;
                 removed = RemoveInEdge(edge.Target, edge) || removed;
@@ -264,12 +268,12 @@ namespace CartaCore.Data
         /// The edges to remove.
         /// </param>
         /// <returns>The count of successfully removed edges.</returns>
-        public int RemoveEdgeRange(IEnumerable<Edge> edges)
+        public int RemoveEdgeRange(IEnumerable<TEdge> edges)
         {
             if (edges is null) throw new ArgumentNullException(nameof(edges));
 
             int removed = 0;
-            foreach (Edge edge in edges)
+            foreach (TEdge edge in edges)
                 if (RemoveEdge(edge)) removed++;
             return removed;
         }
@@ -284,85 +288,92 @@ namespace CartaCore.Data
             OutEdgeSet.Clear();
         }
 
-        /// <summary>
-        /// Recreates a vertex specified by an identifier from its vertex information and in- and out-edges.
-        /// </summary>
-        /// <param name="id">The identifier of the vertex.</param>
-        /// <returns>The reconstructed vertex if it exists; otherwise <c>null</c>.</returns>
-        private Vertex ConstituteVertex(Identity id)
-        {
-            // Check if the vertex exists.
-            if (VertexSet.TryGetValue(id, out Vertex vertex))
-            {
-                // Get the edges for the vertex.
-                HashSet<Edge> edges = new();
-                if (InEdgeSet.TryGetValue(id, out HashSet<Edge> inEdges))
-                    edges.UnionWith(inEdges);
-                if (OutEdgeSet.TryGetValue(id, out HashSet<Edge> outEdges))
-                    edges.UnionWith(outEdges);
-
-                // Create the vertex.
-                return new Vertex(vertex.Identifier, vertex.Properties, edges)
-                {
-                    Label = vertex.Label,
-                    Description = vertex.Description,
-                };
-            }
-            return null;
-        }
-
         /// <inheritdoc />
-        public async IAsyncEnumerable<IVertex> GetVertices()
+        public async IAsyncEnumerable<TVertex> GetVertices()
         {
             // Get all of the vertices in the vertex set.
-            foreach (Identity id in VertexSet.Keys)
+            foreach (string id in VertexSet.Keys)
             {
-                // Get the vertex.
-                Vertex vertex = ConstituteVertex(id);
-                if (vertex is null) continue;
-
-                // Yield the vertex.
-                yield return await Task.FromResult(vertex);
+                if (VertexSet.TryGetValue(id, out TVertex vertex))
+                    yield return await Task.FromResult(vertex);
             }
         }
-
         /// <inheritdoc />
-        public IEnumerable<Identity> Roots
+        public async IAsyncEnumerable<TEdge> GetEdges()
         {
-            get
+            // Get all of the vertex identifiers in the edge set.
+            // Notice that this may differ from the vertex identifiers in the vertex set because vertices are allowed to
+            // not have a value assigned to them but still have edges.
+            foreach (string id in InEdgeSet.Keys)
             {
-                return VertexSet.Values
-                    .Where(vertex => !InEdgeSet.TryGetValue(vertex.Identifier, out HashSet<Edge> edges) || !edges.Any())
-                    .Select(vertex => vertex.Identifier);
+                // Get the in-edges for the vertex.
+                // Iterate over them and return.
+                if (InEdgeSet.TryGetValue(id, out HashSet<TEdge> inEdges))
+                    foreach (TEdge edge in inEdges) yield return await Task.FromResult(edge);
             }
         }
 
         /// <inheritdoc />
-        public ITask<Vertex> GetVertex(Identity id)
+        public IAsyncEnumerable<string> Roots()
+        {
+            return VertexSet.Values
+                .Where(vertex => !InEdgeSet.TryGetValue(vertex.Id, out HashSet<TEdge> edges) || !edges.Any())
+                .Select(vertex => vertex.Id)
+                .ToAsyncEnumerable();
+        }
+
+        /// <inheritdoc />
+        public ITask<TVertex> GetVertex(string id)
         {
             // Get the vertex.
-            Vertex vertex = ConstituteVertex(id);
-            return Task.FromResult(vertex).AsITask();
+            if (VertexSet.TryGetValue(id, out TVertex vertex))
+                return Task.FromResult(vertex).AsITask();
+            return Task.FromResult(default(TVertex)).AsITask();
         }
         /// <inheritdoc />
-        public async IAsyncEnumerable<Vertex> GetParentVertices(Identity id)
+        public async IAsyncEnumerable<TVertex> GetParentVertices(string id)
         {
-            InEdgeSet.TryGetValue(id, out HashSet<Edge> edges);
-            if (edges is not null)
+            InEdgeSet.TryGetValue(id, out HashSet<TEdge> inEdges);
+            if (inEdges is not null)
             {
-                foreach (Edge edge in edges)
+                foreach (TEdge edge in inEdges)
                     yield return await GetVertex(edge.Source);
             }
         }
         /// <inheritdoc />
-        public async IAsyncEnumerable<Vertex> GetChildVertices(Identity id)
+        public async IAsyncEnumerable<TVertex> GetChildVertices(string id)
         {
-            OutEdgeSet.TryGetValue(id, out HashSet<Edge> edges);
-            if (edges is not null)
+            OutEdgeSet.TryGetValue(id, out HashSet<TEdge> outEdges);
+            if (outEdges is not null)
             {
-                foreach (Edge edge in edges)
+                foreach (TEdge edge in outEdges)
                     yield return await GetVertex(edge.Target);
             }
         }
+    }
+
+    /// <summary>
+    /// Represents a graph that has finitely many vertices and edges.
+    /// </summary>
+    public class FiniteGraph : FiniteGraph<Vertex, Edge>
+    {
+        /// <summary>
+        /// Initializes an instance of the <see cref="FiniteGraph"/> class with the specified identifier
+        /// and properties.
+        /// </summary>
+        /// <param name="id">The graph identifier.</param>
+        /// <param name="properties">The properties assigned to the graph.</param>
+        public FiniteGraph(
+            string id,
+            ISet<IProperty> properties
+        ) : base(id, properties) { }
+        /// <summary>
+        /// Initializes an instance of the <see cref="FiniteGraph"/> class with the specified
+        /// identifier.
+        /// </summary>
+        /// <param name="id">The graph identifier.</param>
+        public FiniteGraph(
+            string id
+        ) : base(id) { }
     }
 }

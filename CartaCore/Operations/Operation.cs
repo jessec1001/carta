@@ -13,6 +13,9 @@ using NJsonSchema.Generation;
 
 namespace CartaCore.Operations
 {
+    // TODO: Implement something, perhaps in the task running service, that will automatically handle loading uploaded
+    //       files into streams and handle saving streams to downloadable files.
+
     /// <summary>
     /// Represents an abstract base for an operation that takes an input mapping of named entries and produces a similar
     /// output mapping of named entries.
@@ -23,7 +26,7 @@ namespace CartaCore.Operations
         /// <summary>
         /// A unique identifier for this operation that should be used for specifying references to this operation.
         /// </summary>
-        public string Identifier { get; set; }
+        public string Id { get; set; }
         /// <summary>
         /// The default values of the operation.
         /// </summary>
@@ -45,19 +48,18 @@ namespace CartaCore.Operations
             new DictionaryTypeConverter()
         );
 
+        // TODO: This needs to be done better to support passing the holistic information about typing, naming, and
+        //       schema back to calling code.
+
         /// <summary>
-        /// Called before the operation is performed. This is where the operation can perform any setup that is required
-        /// and where operation tasks should be added. 
+        /// An enumeration of inputs that this operation requires within the parent context.
         /// </summary>
-        /// <param name="context">
-        /// The context for the calling operation. Will be assigned to a value that provides access to inputs, outputs,
-        /// defaults, and configurations for the current operation. When operation inside of a workflow, a parent
-        /// context is also provided.
-        /// </param>
-        /// <returns>
-        /// Nothing. The implementation is expected to perform any necessary side-effects on the context.
-        /// </returns>
-        public abstract Task PrePerform(OperationContext context);
+        public virtual IEnumerable<string> ExternalInputs => Enumerable.Empty<string>();
+        /// <summary>
+        /// An enumeration of outputs that this operation produces within the parent context.
+        /// </summary>
+        public virtual IEnumerable<string> ExternalOutputs => Enumerable.Empty<string>();
+
         /// <summary>
         /// Operates on a specified operation context containing input and output mappings. Most operations will use the
         /// input mapping to produce an output mapping. This method is implemented by concrete subclasses.
@@ -71,19 +73,6 @@ namespace CartaCore.Operations
         /// Nothing. The implementation is expected to set values on the input or output of the context.
         /// </returns>
         public abstract Task Perform(OperationContext context);
-        /// <summary>
-        /// Called after the operation is performed. This is where the operation can perform any cleanup that is
-        /// required and where finishing computations can be handled without affecting the operation context.
-        /// </summary>
-        /// <param name="context">
-        /// The context for the calling operation. Will be assigned to a value that provides access to inputs, outputs,
-        /// defaults, and configurations for the current operation. When operation inside of a workflow, a parent
-        /// context is also provided.
-        /// </param>
-        /// <returns>
-        /// Nothing. The implementation is expected to perform any necessary side-effects on the context.
-        /// </returns>
-        public abstract Task PostPerform(OperationContext context);
 
         /// <summary>
         /// Determines whether the operation is deterministic or non-deterministic on a specified context. This allows
@@ -102,12 +91,12 @@ namespace CartaCore.Operations
         /// Gets the input fields that are available for this operation.
         /// </summary>
         /// <returns>A list of valid input fields.</returns>
-        public abstract string[] GetInputFields();
+        public abstract Task<string[]> GetInputFields(OperationContext context);
         /// <summary>
         /// Gets the output fields that are available for this operation.
         /// </summary>
         /// <returns>A list of valid output fields.</returns>
-        public abstract string[] GetOutputFields();
+        public abstract Task<string[]> GetOutputFields(OperationContext context);
 
         /// <summary>
         /// Gets the type of an input field specified by its name.
@@ -184,6 +173,7 @@ namespace CartaCore.Operations
             return jsonSchema;
         }
 
+        // TODO: Provide a better way to retrieve tasks for an operation before executing the operation itself.
         /// <summary>
         /// Get the tasks that need to be executed in order for the operation to complete.
         /// </summary>

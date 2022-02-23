@@ -5,6 +5,15 @@ using System.Threading.Tasks;
 
 namespace CartaCore.Operations
 {
+    // TODO: Create a method to copy a context.
+    // TODO: Create a method to reparent a context.
+
+    // TODO: The dictionaries provided inside of a context should be thread-safe.
+    // TODO: Provide a cancellation token in the context that allows for operations that are doing asynchronous
+    //       background work to be cancelled.
+
+    // TODO: Provide an `ILogger` in the context that allows for logging to be performed (if not null).
+
     public delegate Task OperationFileSaveHandler(
         Stream stream,
         string operationId,
@@ -18,7 +27,14 @@ namespace CartaCore.Operations
         string type,
         string field
     );
+    public delegate Task OperationJobUpdateHandler(
+        string operationId,
+        string jobId,
+        OperationContext job,
+        string field
+    );
 
+    // TODO: Make the context more into a job-like structure.
     /// <summary>
     /// A context that contains execution information for an operation.
     /// </summary>
@@ -35,7 +51,9 @@ namespace CartaCore.Operations
 
         public OperationFileSaveHandler SaveFile;
         public OperationFileLoadHandler LoadFile;
+        public OperationJobUpdateHandler UpdateJob;
 
+        // TODO: Is this necessary?
         public string OperationId { get; set; }
         public string JobId { get; set; }
 

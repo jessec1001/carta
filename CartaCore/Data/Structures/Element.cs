@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace CartaCore.Data
 {
@@ -8,7 +7,7 @@ namespace CartaCore.Data
     /// Represents a graph element that has a set of properties with numerous observations assigned to it.
     /// </summary>
     /// <typeparam name="T">The type of element.</typeparam>
-    public abstract class Element<T> : Identifiable<T>, IElement<T> where T : Element<T>
+    public abstract class Element<T> : Identifiable<T>, IElement where T : Element<T>
     {
         /// <inheritdoc />
         public string Label { get; set; }
@@ -16,7 +15,10 @@ namespace CartaCore.Data
         public string Description { get; set; }
 
         /// <inheritdoc />
-        public IEnumerable<Property> Properties { get; protected init; }
+        public virtual object Value { get; set; }
+
+        /// <inheritdoc />
+        public ISet<IProperty> Properties { get; init; }
 
         /// <summary>
         /// Initializes an instance of the <see cref="Element{T}"/> class with its specified identifier and a set of
@@ -24,8 +26,7 @@ namespace CartaCore.Data
         /// </summary>
         /// <param name="id">The identifier of this element.</param>
         /// <param name="properties">The properties assigned to this element.</param>
-        protected Element(Identity id, IEnumerable<Property> properties)
-            : base(id)
+        protected Element(string id, ISet<IProperty> properties) : base(id)
         {
             // Check that properties is not null before assigning.
             if (properties is null) throw new ArgumentNullException(nameof(properties));
@@ -35,7 +36,7 @@ namespace CartaCore.Data
         /// Initializes an instance of the <see cref="Element{T}"/> class with its specified identifier.
         /// </summary>
         /// <param name="id">The identifier of this element.</param>
-        protected Element(Identity id)
-            : this(id, Enumerable.Empty<Property>()) { }
+        protected Element(string id)
+            : this(id, new HashSet<IProperty>()) { }
     }
 }

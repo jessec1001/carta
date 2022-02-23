@@ -1,5 +1,6 @@
 namespace CartaCore.Data
 {
+    // TODO: Try replacing this pattern with the component pattern.
     /// <summary>
     /// An interface for providing a specific base type of an instance.
     /// </summary>

@@ -1,21 +1,24 @@
 import { ComponentProps, FC } from "react";
+import { useArrows } from "./Context";
 
-// TODO: The source and target prop values should refer to identifiers of ArrowNodes.
+// TODO: Allow for the source and target props to instead be a position
 /** The props for the {@link Arrow} component. */
 interface ArrowProps
   extends Omit<ComponentProps<"svg">, "source" | "target" | "points"> {
   source: string | number | null;
   target: string | number | null;
 
-  points?: [x: number, y: number][];
-  curveRadius?: number;
+  // points?: [x: number, y: number][];
+  // curveRadius?: number;
+  /** These values should be in the [0, 1] range so that [0, 0.5] is center left, etc. */
+  // anchor?: [x: number, y: number];
 }
 
 const arrowSvgData = (
   source: [number, number],
-  target: [number, number],
-  control: [number, number][],
-  radius: number
+  target: [number, number]
+  // control: [number, number][],
+  // radius: number
 ): string => {
   // TODO: Implement the curve radius parameter.
   //       This will require a generalization that tracks lines before and after control points.
@@ -24,10 +27,10 @@ const arrowSvgData = (
   let data = "";
   data += `M ${source[0]} ${source[1]} `;
 
-  // Add the control points.
-  for (const point of control) {
-    data += `L ${point[0]} ${point[1]} `;
-  }
+  // // Add the control points.
+  // for (const point of control) {
+  //   data += `L ${point[0]} ${point[1]} `;
+  // }
 
   // End the data at the target.
   data += `L ${target[0]} ${target[1]}`;
@@ -36,34 +39,40 @@ const arrowSvgData = (
 
 /** A component that renders an SVG arrow from a source to a target with optional control points. */
 const Arrow: FC<ArrowProps> = ({
-  source: s,
-  target: t,
-  points = [],
-  curveRadius = 0,
+  source,
+  target,
+  // points = [],
+  // curveRadius = 0,
   ...props
 }) => {
+  // Get the arrows context.
+  const { nodes } = useArrows();
+
+  // Check if the source and target are valid.
+  if (source === null || target === null) return null;
+
+  // Get the source and target positions.
+  const sourcePos = nodes(source).position();
+  const targetPos = nodes(target).position();
+
+  // Check if the source and target positions are valid.
+  if (sourcePos === undefined || targetPos === undefined) return null;
+
   // TODO: In the future we will actually start at a source and end at a target with the points array representing
   //       the control points along the way.
-  // This is the initial point of the arrow.
-  const source = points.length > 0 ? points[0] : ([0, 0] as [number, number]);
-  const target =
-    points.length > 0
-      ? points[points.length - 1]
-      : ([0, 0] as [number, number]);
-  const control = points.slice(1, points.length - 1);
 
   // We can calculate the width and height of the arrow from the bounds of the points.
-  const minX = Math.min(source[0], target[0], ...points.map((d) => d[0]));
-  const maxX = Math.max(source[0], target[0], ...points.map((d) => d[0]));
-  const minY = Math.min(source[1], target[1], ...points.map((d) => d[1]));
-  const maxY = Math.max(source[1], target[1], ...points.map((d) => d[1]));
+  const minX = Math.min(sourcePos[0], targetPos[0]);
+  const maxX = Math.max(sourcePos[0], targetPos[0]);
+  const minY = Math.min(sourcePos[1], targetPos[1]);
+  const maxY = Math.max(sourcePos[1], targetPos[1]);
   const width = maxX - minX;
   const height = maxY - minY;
 
   return (
     <svg width={width} height={height} {...props}>
       <path
-        d={arrowSvgData(source, target, control, curveRadius)}
+        d={arrowSvgData(sourcePos, targetPos)}
         fill="none"
         stroke="currentColor"
       />

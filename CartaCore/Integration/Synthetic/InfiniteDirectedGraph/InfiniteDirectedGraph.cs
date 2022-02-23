@@ -30,7 +30,7 @@ namespace CartaCore.Integration.Synthetic
         /// </summary>
         /// <param name="parameters">The parameters to generate the graph with.</param>
         public InfiniteDirectedGraph(InfiniteDirectedGraphParameters parameters = default)
-            : base(Identity.Create(nameof(InfiniteDirectedGraph)))
+            : base(nameof(InfiniteDirectedGraph))
         {
             // Set the parameters.
             Parameters = parameters;
@@ -89,20 +89,16 @@ namespace CartaCore.Integration.Synthetic
         }
 
         /// <inheritdoc />
-        public override GraphProperties GetProperties()
+        public override GraphAttributes Attributes => new()
         {
-            return new GraphProperties
-            {
-                Directed = true,
-                Dynamic = true,
-                Finite = false
-            };
-        }
+            Dynamic = true,
+            Finite = false
+        };
 
         /// <inheritdoc />
-        public IEnumerable<Identity> GetRoots()
+        public async IAsyncEnumerable<string> Roots()
         {
-            yield return Identity.Create(new CompoundRandom(Parameters.Seed).NextGuid());
+            yield return await Task.FromResult(new CompoundRandom(Parameters.Seed).NextGuid().ToString());
         }
 
         /// <summary>
@@ -110,23 +106,23 @@ namespace CartaCore.Integration.Synthetic
         /// </summary>
         /// <param name="id">The vertex identifier.</param>
         /// <returns>The requested vertex generated randomly.</returns>
-        protected Vertex GenerateVertex(Identity id)
+        protected Vertex GenerateVertex(string id)
         {
             // Check that we can convert the specified ID to a GUID.
-            if (!id.IsType(out Guid guid)) throw new InvalidCastException();
+            if (!Guid.TryParse(id, out Guid guid)) throw new InvalidCastException();
 
             // Create a compound random number generator using the GUID and original seed as a combined seed.
             CompoundRandom random = new(Parameters.Seed, guid);
 
             // Create properties from the set of graph properties.
-            List<Property> properties = new(capacity: NamedPropertyTypes.Count);
+            HashSet<IProperty> properties = new(capacity: NamedPropertyTypes.Count);
             foreach (KeyValuePair<string, Type> namedPropertyType in NamedPropertyTypes)
             {
                 if (random.NextDouble() < Parameters.PropertyInclusionProbability)
                 {
                     // Add the observation value to the property.
                     object value = GenerateRandomValue(random, namedPropertyType.Value);
-                    Property property = new(Identity.Create(namedPropertyType.Key), value);
+                    Property property = new(namedPropertyType.Key, value);
                     properties.Add(property);
                 }
             }
@@ -141,7 +137,7 @@ namespace CartaCore.Integration.Synthetic
                 Guid randomId = random.NextGuid();
 
                 // The source of each edge is the selected vertex.
-                outEdges.Add(new Edge(id, Identity.Create(randomId)));
+                outEdges.Add(new Edge(id, randomId.ToString()) { Directed = true });
             }
 
             // Return the randomly generated vertex with properties.
@@ -151,12 +147,12 @@ namespace CartaCore.Integration.Synthetic
         }
 
         /// <inheritdoc />
-        public ITask<Vertex> GetVertex(Identity id)
+        public ITask<Vertex> GetVertex(string id)
         {
             return Task.FromResult(GenerateVertex(id)).AsITask();
         }
         /// <inheritdoc />
-        public async IAsyncEnumerable<Vertex> GetChildVertices(Identity id)
+        public async IAsyncEnumerable<Vertex> GetChildVertices(string id)
         {
             Vertex vertex = await GetVertex(id);
             foreach (Edge outEdge in vertex.OutEdges)

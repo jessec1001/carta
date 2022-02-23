@@ -29,7 +29,7 @@ namespace CartaCore.Operations
         /// <param name="graph">The graph to filter.</param>
         /// <param name="vertexFilter">A filter to use to select included vertices.</param>
         public FilterGraph(Graph graph, Func<IVertex, Task<bool>> vertexFilter)
-            : base(graph.Identifier, graph.Properties)
+            : base(graph.Id, graph.Properties)
         {
             Filter = vertexFilter;
         }

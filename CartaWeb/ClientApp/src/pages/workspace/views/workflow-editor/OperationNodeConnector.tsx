@@ -1,3 +1,4 @@
+import { useArrows } from "components/arrows/Context";
 import { Operation } from "library/api";
 import { FunctionComponent } from "react";
 import "./OperationNodeConnector.css";
@@ -12,6 +13,7 @@ interface OperationNodeConnectorProps {
 const OperationNodeConnector: FunctionComponent<
   OperationNodeConnectorProps
 > = ({ operation, connector, attachment }) => {
+  const { nodes } = useArrows();
   const { name, type } = connector;
   const { tryConnect } = useWorkflow();
 
@@ -23,6 +25,7 @@ const OperationNodeConnector: FunctionComponent<
         style={{ background: "var(--color-stroke-normal)" }}
         onClick={() => tryConnect(operation.id, name, attachment)}
         id={`connector_${operation.id}_${connector.name}`}
+        ref={nodes(`${operation.id}:${connector.name}`).set}
       />
       {name}
     </div>

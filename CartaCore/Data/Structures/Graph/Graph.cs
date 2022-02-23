@@ -9,7 +9,7 @@ namespace CartaCore.Data
     public abstract class Graph : Element<Graph>, IGraph
     {
         /// <inheritdoc />
-        public abstract GraphProperties GetProperties();
+        public abstract GraphAttributes Attributes { get; }
 
         /// <summary>
         /// Initializes an instance of the <see cref="Graph"/> class with its specified identifier and a set of
@@ -17,13 +17,13 @@ namespace CartaCore.Data
         /// </summary>
         /// <param name="id">The identifier of this graph.</param>
         /// <param name="properties">The properties assigned to this element.</param>
-        protected Graph(Identity id, IEnumerable<Property> properties)
+        protected Graph(string id, ISet<IProperty> properties)
             : base(id, properties) { }
         /// <summary>
         /// Initializes an instance of the <see cref="Graph"/> class with its specified identifier.
         /// </summary>
         /// <param name="id">The identifier of this graph.</param>
-        protected Graph(Identity id)
+        protected Graph(string id)
             : base(id) { }
     }
 }

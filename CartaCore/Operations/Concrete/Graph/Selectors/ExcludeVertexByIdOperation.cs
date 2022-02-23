@@ -58,7 +58,7 @@ namespace CartaCore.Operations
                     Graph = new FilterGraph
                     (
                         input.Graph,
-                        (vertex) => Task.FromResult(!input.Ids.Any((id) => vertex.Identifier.Equals(id)))
+                        (vertex) => Task.FromResult(!input.Ids.Any((id) => vertex.Id == id))
                     )
                 });
         }

@@ -37,16 +37,12 @@ namespace CartaCore.Operations
         public virtual Task<TOutput> Perform(TInput input, OperationContext context = null) => Perform(input);
 
         /// <inheritdoc />
-        public override Task PrePerform(OperationContext context) => Task.CompletedTask;
-        /// <inheritdoc />
         public override async Task Perform(OperationContext context)
         {
             TInput input = context.Input.AsTyped<TInput>(DefaultTypeConverter);
             TOutput output = await Perform(input, context);
             context.Output = output.AsDictionary(DefaultTypeConverter);
         }
-        /// <inheritdoc />
-        public override Task PostPerform(OperationContext context) => Task.CompletedTask;
 
         /// <summary>
         /// Determines whether the operation is deterministic or non-deterministic on a specified context. This allows
@@ -80,28 +76,32 @@ namespace CartaCore.Operations
 
         // TODO: We need to incorporate the attributes into the following methods.  
         /// <inheritdoc />
-        public override string[] GetInputFields()
+        public override Task<string[]> GetInputFields(OperationContext context)
         {
-            return typeof(TInput)
+            return Task.FromResult(
+                typeof(TInput)
                 .GetProperties(
                     BindingFlags.IgnoreCase |
                     BindingFlags.Public |
                     BindingFlags.Instance
                 )
                 .Select(property => property.Name)
-                .ToArray();
+                .ToArray()
+            );
         }
         /// <inheritdoc />
-        public override string[] GetOutputFields()
+        public override Task<string[]> GetOutputFields(OperationContext context)
         {
-            return typeof(TOutput)
+            return Task.FromResult(
+                typeof(TOutput)
                 .GetProperties(
                     BindingFlags.IgnoreCase |
                     BindingFlags.Public |
                     BindingFlags.Instance
                 )
                 .Select(property => property.Name)
-                .ToArray();
+                .ToArray()
+            );
         }
 
         // TODO: Refactor

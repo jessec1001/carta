@@ -3,8 +3,8 @@ import { Text } from "components/text";
 import { Views } from "components/views";
 import { WorkflowIcon } from "components/icons";
 import { Job, Operation, Workflow } from "library/api";
-import WorkflowEditor from "./workflow/WorkflowEditor";
-import WorkflowWrapper from "./workflow/WorkflowWrapper";
+import WorkflowEditor from "./workflow-editor/WorkflowEditor";
+import WorkflowWrapper from "./workflow-editor/WorkflowWrapper";
 import { useAPI } from "hooks";
 
 interface WorkflowEditorViewProps {

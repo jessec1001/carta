@@ -9,7 +9,7 @@ import {
 } from "hooks";
 import { Workspace } from "library/api";
 import { PageLayout } from "components/layout";
-import { OperationsListView } from "pages/workspace/views";
+import { OperationListView } from "pages/workspace/views";
 import WorkspaceWrapper from "components/workspace/WorkspaceWrapper";
 import WorkspaceToolbar from "components/workspace/WorkspaceToolbar";
 import { Loading, Text } from "components/text";
@@ -17,6 +17,7 @@ import { useViews } from "components/views";
 import { Views } from "components/views";
 import styles from "./WorkspaceArea.module.css";
 
+// TODO: Make sure that a modal is displayed when the user becomes unauthenticated.
 // TODO: There should be preset layouts available for this page.
 /** A page-specific component that is used to initialize the default layout of this page. */
 const DefaultLayout: FC = () => {
@@ -32,7 +33,7 @@ const DefaultLayout: FC = () => {
 
     // We add all of the necessary views to construct the default layout..
     if (!initialized) {
-      actions.addElementToContainer(rootId, <OperationsListView />, true);
+      actions.addElementToContainer(rootId, <OperationListView />, true);
     }
   }, [rootId, actions]);
 

@@ -4,6 +4,8 @@ using CartaCore.Operations.Attributes;
 
 namespace CartaCore.Operations
 {
+    // TODO: Implement support for pipelining this graph.
+
     /// <summary>
     /// The input for the <see cref="CompleteGraphOperation" /> operation.
     /// </summary>
@@ -42,23 +44,20 @@ namespace CartaCore.Operations
         public override Task<CompleteGraphOperationOut> Perform(CompleteGraphOperationIn input)
         {
             // Create the graph structure.
-            FiniteGraph graph = new(Identity.Create($"{nameof(CompleteGraphOperation)}:{input.VertexCount}"), false);
+            FiniteGraph graph = new($"K_{input.VertexCount}");
 
             // Generate the vertices of the graph.
             for (int m = 0; m < input.VertexCount; m++)
+                graph.AddVertex(new(m.ToString()));
+
+            // Generate the edges of the graph.
+            for (int m = 0; m < input.VertexCount; m++)
             {
-                // Create edges to all other vertices.
-                Edge[] edges = new Edge[input.VertexCount - 1];
                 for (int n = 0; n < input.VertexCount; n++)
                 {
-                    int edgeIndex = n < m ? n : n - 1;
-                    if (m != n)
-                        edges[edgeIndex] = new(Identity.Create(m), Identity.Create(n));
+                    if (m < n)
+                        graph.AddEdge(new(m.ToString(), n.ToString()) { Directed = false });
                 }
-                Vertex vertex = new(Identity.Create(m), edges);
-
-                // Add the vertex to the graph.
-                graph.AddVertex(vertex);
             }
 
             return Task.FromResult(new CompleteGraphOperationOut { Graph = graph });

@@ -67,7 +67,7 @@ namespace CartaCore.Statistics
         /// <param name="seed">The seed specified in a byte array.</param>
         public CompoundRandom(byte[] seed)
         {
-            Seed = Array.AsReadOnly<byte>(seed);
+            Seed = Array.AsReadOnly(seed);
             SeedSize = seed.Length;
 
             Randoms = new Random[SeedSize / 4];
@@ -207,7 +207,7 @@ namespace CartaCore.Statistics
         /// <returns>The randomly generated word.</returns>
         public string NextPsuedoword()
         {
-            StringBuilder builder = new StringBuilder();
+            StringBuilder builder = new();
 
             double syllableProbability = 1.0;
             double syllableDampener = 0.6;
@@ -267,7 +267,7 @@ namespace CartaCore.Statistics
             double cumulativeFreq = 0;
             for (int k = 0; k < Vowels.Length; k++)
             {
-                cumulativeFreq += LetterFrequency[(int)Vowels[k] - 97];
+                cumulativeFreq += LetterFrequency[Vowels[k] - 97];
                 if (value < cumulativeFreq)
                     return Vowels[k];
             }
@@ -283,7 +283,7 @@ namespace CartaCore.Statistics
             double cumulativeFreq = 0;
             for (int k = 0; k < Consonants.Length; k++)
             {
-                cumulativeFreq += LetterFrequency[(int)Consonants[k] - 97];
+                cumulativeFreq += LetterFrequency[Consonants[k] - 97];
                 if (value < cumulativeFreq)
                     return Consonants[k];
             }

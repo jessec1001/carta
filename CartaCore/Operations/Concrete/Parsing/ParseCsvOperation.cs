@@ -9,6 +9,8 @@ using CsvHelper.Configuration;
 
 namespace CartaCore.Operations
 {
+    // TODO: Implement pipelining support for this graph.
+    
     /// <summary>
     /// The input for the <see cref="ParseCsvOperation" /> operation.
     /// </summary>
@@ -74,7 +76,7 @@ namespace CartaCore.Operations
             using CsvReader csvReader = new(streamReader, csvConfig);
 
             // Construct the graph structure by reading all of the samples/rows.
-            FiniteGraph graph = new(Identity.Create($"{nameof(ParseCsvOperation)}"), true);
+            FiniteGraph graph = new(nameof(ParseCsvOperation));
 
             // If the input should contain a header, try to read it.
             if (input.ContainsHeader)
@@ -88,7 +90,7 @@ namespace CartaCore.Operations
             while (await csvReader.ReadAsync())
             {
                 // Read each field as a property.
-                List<Property> properties = new();
+                HashSet<IProperty> properties = new();
                 for (int index = 0; index < csvReader.ColumnCount; index++)
                 {
                     // Read the field value; if we should infer types, do that here.
@@ -101,11 +103,11 @@ namespace CartaCore.Operations
                         : fieldValue;
 
                     // Set the property.
-                    properties.Add(new Property(Identity.Create(propertyName), propertyValue));
+                    properties.Add(new Property(propertyName, propertyValue));
                 }
 
                 // Construct the vertex with its properties and add it to the graph.
-                Vertex vertex = new(Identity.Create(vertexCount++), properties.ToArray());
+                Vertex vertex = new(vertexCount++.ToString(), properties);
                 graph.AddVertex(vertex);
             }
 

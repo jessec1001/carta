@@ -64,7 +64,10 @@ namespace CartaCore.Operations
                     Graph = new FilterGraph
                     (
                         input.Graph,
-                        (vertex) => Task.FromResult(regex.IsMatch(vertex.Label))
+                        (vertex) => Task.FromResult(
+                            vertex is Vertex { Label: string label } &&
+                            regex.IsMatch(label)
+                        )
                     )
                 }
             );

@@ -12,6 +12,7 @@ import { Column, Row } from "components/structure";
 import { Loading, Text, Paragraph, Title } from "components/text";
 import { UserNeedsAuthentication } from "components/user";
 import { WorkspaceCarousel } from "components/workspace";
+import { seconds } from "library/utility";
 
 /** A page-specific component to render the workspaces section when the user is unauthenticated. */
 const WorkspacesUnauthenticated: FunctionComponent = () => {
@@ -41,7 +42,9 @@ const WorkspacesAuthenticated: FunctionComponent = () => {
     return await workspaceAPI.getCompleteWorkspaces(false);
   }, [workspaceAPI]);
   const [workspaces] = useNestedAsync<typeof loadWorkspaces, Workspace[]>(
-    loadWorkspaces
+    loadWorkspaces,
+    true,
+    seconds(15)
   );
 
   // We use a query specified in a search bar to filter through the workspaces.
@@ -69,10 +72,10 @@ const WorkspacesAuthenticated: FunctionComponent = () => {
   };
 
   // Process the workspaces through the query filter and the access sorter.
-  let processedWorkspaces = workspaces;
-  if (processedWorkspaces && !(processedWorkspaces instanceof Error)) {
-    processedWorkspaces = workspaceFilter.filter(processedWorkspaces);
-    processedWorkspaces = processedWorkspaces.sort(workspaceSorter);
+  let renderWorkspaces = workspaces;
+  if (!(renderWorkspaces === undefined || renderWorkspaces instanceof Error)) {
+    renderWorkspaces = workspaceFilter.filter(renderWorkspaces);
+    renderWorkspaces = renderWorkspaces.sort(workspaceSorter);
   }
 
   // We need to hook into the browser history to move to the new workspace page when the
@@ -108,10 +111,10 @@ const WorkspacesAuthenticated: FunctionComponent = () => {
 
       {/* TODO: Add a loading property to the workspaces carousel to indicate that workspaces are still loading. */}
       {/* If workspaces were retrieved, render them in a carousel. */}
-      {processedWorkspaces &&
-        !(processedWorkspaces instanceof Error) &&
-        (processedWorkspaces.length > 0 ? (
-          <WorkspaceCarousel workspaces={processedWorkspaces} />
+      {renderWorkspaces &&
+        !(renderWorkspaces instanceof Error) &&
+        (renderWorkspaces.length > 0 ? (
+          <WorkspaceCarousel workspaces={renderWorkspaces} />
         ) : (
           <Text color="muted">
             No workspaces yet. Click the '+' button to create one!

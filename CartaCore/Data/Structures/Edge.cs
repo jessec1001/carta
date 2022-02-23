@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace CartaCore.Data
 {
@@ -8,11 +6,9 @@ namespace CartaCore.Data
     /// Represents a graph edge that connects a pair of vertices that can be identified, and takes on properties with
     /// numerous observations.
     /// </summary>
-    public class Edge : Element<Edge>
+    public class Edge : Element<Edge>, IEdge
     {
-        /// <summary>
-        /// Whether or not this edge is directed. Defaults to true.
-        /// </summary>
+        /// <inheritdoc />
         public bool Directed { get; init; } = true;
 
         /// <summary>
@@ -20,14 +16,10 @@ namespace CartaCore.Data
         /// </summary>
         public double Weight { get; init; } = 1.0;
 
-        /// <summary>
-        /// The identifier of the source vertex.
-        /// </summary>
-        public Identity Source { get; protected init; }
-        /// <summary>
-        /// The identifier of the target vertex.
-        /// </summary>
-        public Identity Target { get; protected init; }
+        /// <inheritdoc />
+        public string Source { get; protected init; }
+        /// <inheritdoc />
+        public string Target { get; protected init; }
 
         /// <summary>
         /// Initializates an instance of the <see cref="Edge"/> class with the specified identity, source and target
@@ -37,7 +29,7 @@ namespace CartaCore.Data
         /// <param name="source">The source vertex identifier.</param>
         /// <param name="target">The target vertex identifier.</param>
         /// <param name="properties">The properties assigned to the edge.</param>
-        public Edge(Identity id, Identity source, Identity target, IEnumerable<Property> properties)
+        public Edge(string id, string source, string target, ISet<IProperty> properties)
             : base(id, properties)
         {
             Source = source;
@@ -50,8 +42,8 @@ namespace CartaCore.Data
         /// <param name="source">The source vertex identifier.</param>
         /// <param name="target">The target vertex identifier.</param>
         /// <param name="properties">The properties assigned to the edge.</param>
-        public Edge(Identity source, Identity target, IEnumerable<Property> properties)
-            : base(Identity.Create(new EdgeIdentifier(source, target)), properties)
+        public Edge(string source, string target, ISet<IProperty> properties)
+            : base($"{source}::{target}", properties)
         {
             Source = source;
             Target = target;
@@ -61,8 +53,8 @@ namespace CartaCore.Data
         /// </summary>
         /// <param name="source">The source vertex identifier.</param>
         /// <param name="target">The target vertex identifier.</param>
-        public Edge(Identity source, Identity target)
-            : this(source, target, Enumerable.Empty<Property>()) { }
+        public Edge(string source, string target)
+            : this(source, target, new HashSet<IProperty>()) { }
         /// <summary>
         /// Initializes an instance of the <see cref="Edge"/> class with the specified source and target vertices and
         /// assigned properties.
@@ -70,75 +62,14 @@ namespace CartaCore.Data
         /// <param name="source">The source vertex.</param>
         /// <param name="target">The target vertex.</param>
         /// <param name="properties">The properties assigned to the edge.</param>
-        public Edge(Vertex source, Vertex target, IEnumerable<Property> properties)
-            : this(source.Identifier, target.Identifier, properties) { }
+        public Edge(Vertex source, Vertex target, ISet<IProperty> properties)
+            : this(source.Id, target.Id, properties) { }
         /// <summary>
         /// Initializes an instance of the <see cref="Edge"/> class with the specified source and target vertices.
         /// </summary>
         /// <param name="source">The source vertex.</param>
         /// <param name="target">The target vertex.</param>
         public Edge(Vertex source, Vertex target)
-            : this(source.Identifier, target.Identifier) { }
-    }
-
-    /// <summary>
-    /// Represents a unique identifier of an edge using its source and target vertices. Note that this identifier for an
-    /// edge does not support uniqueness among parallel edges.
-    /// </summary>
-    public class EdgeIdentifier : IEquatable<EdgeIdentifier>, IComparable<EdgeIdentifier>
-    {
-        /// <summary>
-        /// The source identity that is used to construct the identifier.
-        /// </summary>
-        private readonly Identity Source;
-        /// <summary>
-        /// The target identity that is used to construct the identifier.
-        /// </summary>
-        private readonly Identity Target;
-
-        /// <summary>
-        /// Initializes an instance of the <see cref="EdgeIdentifier"/> class with the specified source and target
-        /// vertex identifiers.
-        /// </summary>
-        /// <param name="source">The source vertex identifier.</param>
-        /// <param name="target">The target vertex identifier.</param>
-        public EdgeIdentifier(Identity source, Identity target)
-        {
-            Source = source;
-            Target = target;
-        }
-
-        /// <inheritdoc />
-        public int CompareTo(EdgeIdentifier other)
-        {
-            // Compare source first and target second.
-            int compareSource = Source.CompareTo(other.Source);
-            int compareTarget = Target.CompareTo(other.Target);
-            return compareSource == 0 ? compareTarget : compareSource;
-        }
-
-        /// <inheritdoc />
-        public bool Equals(EdgeIdentifier other)
-        {
-            return Source == other.Source && Target == other.Target;
-        }
-        /// <inheritdoc />
-        public override bool Equals(object obj)
-        {
-            if (obj is EdgeIdentifier other) return Equals(other);
-            return false;
-        }
-
-        /// <inheritdoc />
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(Source, Target);
-        }
-
-        /// <inheritdoc />
-        public override string ToString()
-        {
-            return $"{Source}::{Target}";
-        }
+            : this(source.Id, target.Id) { }
     }
 }

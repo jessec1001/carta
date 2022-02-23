@@ -1,3 +1,5 @@
+using System;
+
 namespace CartaCore.Data
 {
     /// <summary>
@@ -5,35 +7,32 @@ namespace CartaCore.Data
     /// in relation to other objects of its kind.
     /// </summary>
     /// <typeparam name="T">The type of object that requires an identity.</typeparam>
-    public abstract class Identifiable<T> : IIdentifiable<T> where T : Identifiable<T>
+    public abstract class Identifiable<T> : IIdentifiable, IEquatable<T>, IComparable<T> where T : Identifiable<T>
     {
         /// <summary>
         /// Gets or sets the identifier that uniquely represents this object. 
         /// </summary>
         /// <value>The identifier of this object. This value cannot be changed after initialization.</value>
-        public Identity Identifier { get; set; }
+        public string Id { get; init; }
 
         /// <summary>
         /// Initializes an instance of the <see cref="Identifiable{T}"/> class with its specified identifier.
         /// </summary>
         /// <param name="id">The identifier of this object.</param>
-        protected Identifiable(Identity id)
-        {
-            Identifier = id;
-        }
+        protected Identifiable(string id) => Id = id;
 
         /// <inheritdoc />
         public int CompareTo(T other)
         {
             if (other is null) return 1;
-            return Identifier.CompareTo(other.Identifier);
+            return Id.CompareTo(other.Id);
         }
 
         /// <inheritdoc />
         public bool Equals(T other)
         {
             if (other is null) return false;
-            return Identifier.Equals(other.Identifier);
+            return Id.Equals(other.Id);
         }
         /// <inheritdoc />
         public override bool Equals(object obj)
@@ -45,7 +44,7 @@ namespace CartaCore.Data
         /// <inheritdoc />
         public override int GetHashCode()
         {
-            return Identifier.GetHashCode();
+            return Id.GetHashCode();
         }
 
         /// <summary>

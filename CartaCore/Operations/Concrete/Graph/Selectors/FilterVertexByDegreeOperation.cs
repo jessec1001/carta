@@ -55,6 +55,7 @@ namespace CartaCore.Operations
         /// <inheritdoc />
         public override Task<FilterVertexByDegreeOperationOut> Perform(FilterVertexByDegreeOperationIn input)
         {
+            // TODO: Reimplement the rooted graph optimization.
             return Task.FromResult(
                 new FilterVertexByDegreeOperationOut()
                 {

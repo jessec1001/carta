@@ -1,7 +1,5 @@
 # Current Work
 There is an issue preventing the manual (programmatic not browser) refresh for operations when initially created. When an operation is created, there should be an immediate loading text and symbol displayed while the operation is setup on the backend. If any errors occur, they should be displayed in place of this loading text.
-
-Currently, when an operation is constructed, a user needs to wait at most 30 seconds for an automatic refresh or refresh the browser page.
 ---
 - Fix setting seed on `SampleNormalOperation` and similar operations.
 - Check if `StatisticalDeviationOperation` is correctly using values.
@@ -16,6 +14,7 @@ Currently, when an operation is constructed, a user needs to wait at most 30 sec
 - Add new relevant tips to the UI and provide some means of viewing a list of them.
 - Make the scatter plot, histogram plot, and graph plot use all of the specified parameters.
 - Add a properties from list of vertices operation which is pipelined.
+- Donut plot and box plot.
 
 # Upcoming Work
 - Implement copy/paste for operations across workflow editors.
@@ -47,3 +46,4 @@ Currently, when an operation is constructed, a user needs to wait at most 30 sec
   - Allow any operation upstream of a pipeline to add their own prioritization to the pipeline.
   - Rework `OperationSelectorAttribute` and `OperationSelectorGraphAttribute` attributes.
 - Look into solving Safari rendering issues.
+- Implement loading bar for HyperThought graph based on currently known vertices.

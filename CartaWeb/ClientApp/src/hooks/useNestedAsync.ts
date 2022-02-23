@@ -1,7 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
 
-// TODO: When doing nested copies, copy everything that is not functional and then resolve functional things.
-
 /**
  * The promisable type represents a value where any element or subproperty can be obtained by calling a function that
  * returns a promise. For any particular type, it represents one of the following:
@@ -77,11 +75,13 @@ const nestedCopy = (value: any, path: (string | number)[], set?: any): any => {
  * Loads a nested value asynchronously. This is particularly useful for loading values that need to be retrieved using
  * multiple endpoints or have parts of values that can remain unloaded for a short period of time.
  * @param promise The promise which may be a value, array, dictionary, or asynchronous function returning one of these.
+ * @param buffered Whether the value should be buffered. This means that if the value is being refreshed, the current value will not be updated until the refresh is complete.
  * @param refreshInterval The interval at which to refresh the value.
  * @returns A tuple containing the value and a function to refresh the value.
  */
 const useNestedAsync = <TPromise extends Promisable<TData>, TData>(
   promise: TPromise,
+  buffered?: boolean,
   refreshInterval?: number
 ): [Promised<TPromise, TData>, () => Promise<Promised<TPromise, TData>>] => {
   // Defines how to retrieve the default value for a promise.
@@ -125,41 +125,66 @@ const useNestedAsync = <TPromise extends Promisable<TData>, TData>(
       promise: TPromise,
       path: (string | number)[] = []
     ): Promise<Promised<TPromise, TData>> => {
-      if (typeof promise === "function") {
-        const promiseFunction = promise as PromisableFunction<TData>;
-        try {
-          const value = await promiseFunction();
-          setResult((result) => nestedCopy(result, path, defaults(value)));
-          return resolve(value, path) as Promised<TPromise, TData>;
-        } catch (error) {
-          setResult((result) => nestedCopy(result, path, defaults(error)));
-          return resolve(error, path) as Promised<TPromise, TData>;
+      // We store the resolved value here.
+      let resolved: Promised<TPromise, TData>;
+
+      try {
+        if (typeof promise === "function") {
+          const promiseFunction = promise as PromisableFunction<TData>;
+          try {
+            const value = await promiseFunction();
+            if (!buffered)
+              setResult((result) => nestedCopy(result, path, defaults(value)));
+            resolved = (await resolve(value, path)) as Promised<
+              TPromise,
+              TData
+            >;
+          } catch (error: any) {
+            if (!buffered)
+              setResult((result) => nestedCopy(result, path, defaults(error)));
+            resolved = (await resolve(error, path)) as Promised<
+              TPromise,
+              TData
+            >;
+          }
+        } else if (Array.isArray(promise)) {
+          const promiseArray = promise as PromisableArray<TData>;
+          resolved = (await Promise.all(
+            promiseArray.map(
+              async (subpromise, index) =>
+                await resolve(subpromise as any, [...path, index])
+            )
+          )) as Promised<TPromise, TData>;
+        } else if (
+          typeof promise === "object" &&
+          Object.getPrototypeOf(promise) === Object.prototype
+        ) {
+          const promiseObject = promise as PromisableObject<TData>;
+          resolved = Object.fromEntries(
+            await Promise.all(
+              Object.entries(promiseObject).map(async ([key, subpromise]) => [
+                key,
+                await resolve(subpromise as any, [...path, key]),
+              ])
+            )
+          ) as Promised<TPromise, TData>;
+        } else {
+          const promiseValue = promise as PromisableValue<TData>;
+          resolved = promiseValue as Promised<TPromise, TData>;
         }
-      } else if (Array.isArray(promise)) {
-        const promiseArray = promise as PromisableArray<TData>;
-        return (await Promise.all(
-          promiseArray.map(
-            async (subpromise, index) =>
-              await resolve(subpromise as any, [...path, index])
-          )
-        )) as Promised<TPromise, TData>;
-      } else if (
-        typeof promise === "object" &&
-        Object.getPrototypeOf(promise) === Object.prototype
-      ) {
-        const promiseObject = promise as PromisableObject<TData>;
-        return (await Promise.all(
-          Object.entries(promiseObject).map(
-            async ([key, subpromise]) =>
-              await resolve(subpromise as any, [...path, key])
-          )
-        )) as Promised<TPromise, TData>;
-      } else {
-        const promiseValue = promise as PromisableValue<TData>;
-        return promiseValue as Promised<TPromise, TData>;
+      } catch (error: any) {
+        console.log("ERROR", promise, path);
+        throw error;
       }
+
+      // If the value is buffered, we only update the value if the promise is resolved.
+      if (buffered && !path.length)
+        setResult((result) => nestedCopy(result, path, resolved));
+
+      // We return the resolved value.
+      return resolved;
     },
-    [defaults]
+    [buffered, defaults]
   );
 
   // When the component is initially mounted, or the promise changes (rare), we load the data.

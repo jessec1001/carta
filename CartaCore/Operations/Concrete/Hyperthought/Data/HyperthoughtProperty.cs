@@ -16,7 +16,7 @@ namespace CartaCore.Operations.Hyperthought.Data
         /// <summary>
         /// The value of the Hyperthought property.
         /// </summary>
-        [JsonConverter(typeof(JsonPrimitiveConverter))]
+        [JsonConverter(typeof(JsonPrimativeConverter))]
         public object Value { get; set; }
 
         /// <summary>

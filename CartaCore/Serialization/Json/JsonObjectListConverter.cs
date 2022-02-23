@@ -11,7 +11,7 @@ namespace CartaCore.Serialization.Json
     public class JsonObjectListConverter : JsonConverter<List<object>>
     {
         // This converter is used to convert each value of the list,
-        private JsonObjectConverter Converter = new JsonObjectConverter();
+        private readonly JsonObjectConverter Converter = new();
 
         /// <inheritdoc />
         public override List<object> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
@@ -21,7 +21,7 @@ namespace CartaCore.Serialization.Json
                 throw new JsonException();
 
             // Read in each value using a value-based converter.
-            List<object> values = new List<object>();
+            List<object> values = new();
             while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
                 values.Add(Converter.Read(ref reader, typeof(object), options));
 

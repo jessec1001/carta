@@ -10,8 +10,7 @@ namespace CartaCore.Integration.Synthetic
     /// Represents graph data of a random, finite, undirected graph. Both the vertices and edges are randomly generated
     /// and connected.
     /// </summary>
-    public class FiniteUndirectedGraph : FiniteGraph,
-        IParameterizedGraph<FiniteUndirectedGraphParameters>
+    public class FiniteUndirectedGraph : FiniteGraph<Vertex, Edge>, IParameterizedGraph<FiniteUndirectedGraphParameters>
     {
         /// <inheritdoc />
         public FiniteUndirectedGraphParameters Parameters { get; set; }
@@ -21,7 +20,7 @@ namespace CartaCore.Integration.Synthetic
         /// </summary>
         /// <param name="parameters">The parameters to generate the graph with.</param>
         public FiniteUndirectedGraph(FiniteUndirectedGraphParameters parameters = default)
-            : base(Identity.Create(nameof(FiniteUndirectedGraph)), directed: false)
+            : base(nameof(FiniteUndirectedGraph))
         {
             // We generate all the graph data after setting the parameters.
             Parameters = parameters;
@@ -47,10 +46,10 @@ namespace CartaCore.Integration.Synthetic
                 Enumerable
                 .Range(0, numVertices)
                 .Select
-                (_ => new Vertex(Identity.Create(random.NextGuid()))
-                {
-                    Label = Parameters.Labeled ? random.NextPsuedoword() : null
-                }
+                (_ => new Vertex(random.NextGuid().ToString())
+                    {
+                        Label = Parameters.Labeled ? random.NextPsuedoword() : null
+                    }
                 )
             );
 
@@ -61,7 +60,7 @@ namespace CartaCore.Integration.Synthetic
                 .SelectMany(
                     (vertexA, indexA) => vertices
                         .Where((vertexB, indexB) => indexA < indexB),
-                    (a, b) => new Edge(a, b)
+                    (a, b) => new Edge(a, b) { Directed = false }
                 )
             );
 

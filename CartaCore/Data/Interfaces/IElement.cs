@@ -1,28 +1,17 @@
-using System.Collections.Generic;
-
 namespace CartaCore.Data
 {
     /// <summary>
-    /// Represents a graph element that has a set of properties with numerous observations assigned to it.
+    /// Represents the base structure of a graph element with properties assigned to it.
     /// </summary>
-    /// <typeparam name="T">The type of element.</typeparam>
-    public interface IElement<T> : IIdentifiable<T> where T : IElement<T>
+    public interface IElement : IProperty
     {
         /// <summary>
-        /// Gets or sets the label.
+        /// The label visible in visualizations of the element.
         /// </summary>
-        /// <value>The label visible in visualizations of the element.</value>
         string Label { get; set; }
         /// <summary>
-        /// Gets or sets the description.
+        /// The description of the element visibile in visualizations of the element.
         /// </summary>
-        /// <value>The description of the element visibile in visualizations of the element.</value>
         string Description { get; set; }
-
-        /// <summary>
-        /// Gets or sets the properties.
-        /// </summary>
-        /// <value>The observed properties assigned to the element.</value>
-        IEnumerable<Property> Properties { get; }
     }
 }

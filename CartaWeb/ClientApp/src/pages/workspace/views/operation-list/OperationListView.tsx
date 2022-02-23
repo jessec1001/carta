@@ -27,9 +27,8 @@ import { Column, Row } from "components/structure";
 import { Loading, Text } from "components/text";
 import { useViews, Views } from "components/views";
 import { useWorkspace } from "components/workspace";
-import { WorkflowEditorView } from "pages/workspace/views";
+import WorkflowEditorView from "../workflow-editor";
 import OperationFromDataView from "../operation-from-data";
-import styles from "./OperationsListView.module.css";
 import {
   Dropdown,
   DropdownArea,
@@ -37,6 +36,7 @@ import {
   DropdownToggler,
 } from "components/dropdown";
 import { Link } from "components/link";
+import styles from "./OperationListView.module.css";
 
 // TODO: We need to allow renaming operations.
 // TODO: When an operation is initially created, it should immediately be placed in the renaming state.
@@ -139,7 +139,7 @@ const OperationLoadingItem: FC = () => {
 };
 
 /** A view that displays the list of operations in the current workspace. */
-const OperationsListView: FC = () => {
+const OperationListView: FC = () => {
   // We use these contexts to handle opening and closing views and managing data.
   const { viewId, rootId, actions: viewActions } = useViews();
   const elementRef = useRef<HTMLDivElement>(null);
@@ -172,7 +172,7 @@ const OperationsListView: FC = () => {
   const [operationsLoadable, operationsRefresh] = useNestedAsync<
     typeof operationsFetcher,
     LoadableOperation[]
-  >(operationsFetcher, seconds(30));
+  >(operationsFetcher, false, seconds(30));
   const [operations, setOperations] =
     useState<typeof operationsLoadable>(operationsLoadable);
 
@@ -254,7 +254,7 @@ const OperationsListView: FC = () => {
       viewActions.addElementToContainer(
         rootId,
         <WorkflowEditorView
-          operation={operation}
+          operationId={operation.id}
           workflowId={operation.subtype}
         />,
         true
@@ -422,11 +422,9 @@ const OperationsListView: FC = () => {
   ) => {
     if (event.detail === 1) {
       // This corresponds to a single click.
-      console.log(selectMultiple);
       if (selectMultiple) {
         // We perform selection or deselection of the operation.
         setSelectedOp((selectedOp) => {
-          console.log(selectedOp, operation.id);
           if (selectedOp.includes(operation.id))
             return selectedOp.filter((op) => op !== operation.id);
           else return [...selectedOp, operation.id];
@@ -565,4 +563,4 @@ const OperationsListView: FC = () => {
   );
 };
 
-export default OperationsListView;
+export default OperationListView;

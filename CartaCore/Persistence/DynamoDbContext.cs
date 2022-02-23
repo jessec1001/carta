@@ -89,13 +89,13 @@ namespace CartaCore.Persistence
 
         private static string GetConditionalExpression(DbOperationEnumeration dbOperation)
         {
-            switch (dbOperation)
+            return dbOperation switch
             {
-                case DbOperationEnumeration.Create: return "attribute_not_exists(" + PRIMARY_KEY + ")";
-                case DbOperationEnumeration.Update: return "attribute_exists(" + PRIMARY_KEY + ")";
-                case DbOperationEnumeration.Delete: return "attribute_exists(" + PRIMARY_KEY + ")";
-            }
-            return null;
+                DbOperationEnumeration.Create => "attribute_not_exists(" + PRIMARY_KEY + ")",
+                DbOperationEnumeration.Update => "attribute_exists(" + PRIMARY_KEY + ")",
+                DbOperationEnumeration.Delete => "attribute_exists(" + PRIMARY_KEY + ")",
+                _ => null,
+            };
         }
 
         /// <inheritdoc />
@@ -119,7 +119,7 @@ namespace CartaCore.Persistence
         public async ITask<IEnumerable<DbDocument>> ReadDocumentsAsync(string partitionKey, string sortKeyPrefix)
         {
             // Define query request
-            QueryRequest request = new QueryRequest
+            QueryRequest request = new()
             {
                 TableName = TableName,
                 KeyConditionExpression = "PK = :v_partitionKey and begins_with(SK, :v_sortKey)",
@@ -159,8 +159,10 @@ namespace CartaCore.Persistence
             if (dbDocument.DbOperation == DbOperationEnumeration.Read) return false;
             else if (dbDocument.DbOperation == DbOperationEnumeration.Delete)
             {
-                Expression expression = new Expression();
-                expression.ExpressionStatement = GetConditionalExpression(dbDocument.DbOperation);
+                Expression expression = new()
+                {
+                    ExpressionStatement = GetConditionalExpression(dbDocument.DbOperation)
+                };
                 try
                 {
                     await DbTable.DeleteItemAsync
@@ -179,14 +181,16 @@ namespace CartaCore.Persistence
             else
             {
                 Document item = GetPutItem(dbDocument);
-                Expression expression = new Expression();
-                expression.ExpressionStatement = GetConditionalExpression(dbDocument.DbOperation);
+                Expression expression = new()
+                {
+                    ExpressionStatement = GetConditionalExpression(dbDocument.DbOperation)
+                };
                 try
                 {
                     await DbTable.PutItemAsync(item, new PutItemOperationConfig { ConditionalExpression = expression });
                     return true;
                 }
-                catch (ConditionalCheckFailedException ex)
+                catch (ConditionalCheckFailedException)
                 {
                     return false;
                 }
@@ -196,39 +200,42 @@ namespace CartaCore.Persistence
         /// <inheritdoc />
         public async ITask<bool> WriteDocumentsAsync(IEnumerable<DbDocument> dbDocuments)
         {
-            // Build the list of transaction items
+            // Build the list of transaction items.
             List<TransactWriteItem> transactWriteItems = new() { };
             foreach (DbDocument dbDocument in dbDocuments)
             {
-                TransactWriteItem transactWriteItem = new TransactWriteItem();
+                TransactWriteItem transactWriteItem = new();
                 if (dbDocument.DbOperation == DbOperationEnumeration.Read) return false;
                 else if (dbDocument.DbOperation == DbOperationEnumeration.Delete)
                 {
-                    Delete delete = new Delete();
-                    delete.Key = new Dictionary<string, AttributeValue>
+                    Delete delete = new()
                     {
-                        {"PK", new AttributeValue {S=dbDocument.PartitionKey}},
-                        {"SK", new AttributeValue {S=dbDocument.SortKey}}
+                        Key = new Dictionary<string, AttributeValue>
+                        {
+                            {"PK", new AttributeValue {S=dbDocument.PartitionKey}},
+                            {"SK", new AttributeValue {S=dbDocument.SortKey}}
+                        },
+                        ConditionExpression = GetConditionalExpression(dbDocument.DbOperation),
+                        TableName = TableName
                     };
-                    delete.ConditionExpression = GetConditionalExpression(dbDocument.DbOperation);
-                    delete.TableName = TableName;
                     transactWriteItem.Delete = delete;
                 }
                 else
                 {
                     Document item = GetPutItem(dbDocument);
-                    Put put = new Put();
-                    put.Item = item.ToAttributeMap();
-                    put.ConditionExpression = GetConditionalExpression(dbDocument.DbOperation);
-                    put.TableName = TableName;
+                    Put put = new()
+                    {
+                        Item = item.ToAttributeMap(),
+                        ConditionExpression = GetConditionalExpression(dbDocument.DbOperation),
+                        TableName = TableName
+                    };
                     transactWriteItem.Put = put;
                 }
                 transactWriteItems.Add(transactWriteItem);
             }
 
-            // Execute the transaction
-            TransactWriteItemsRequest transactWriteItemsRequest = new TransactWriteItemsRequest();
-            transactWriteItemsRequest.TransactItems = transactWriteItems;
+            // Execute the transaction.
+            TransactWriteItemsRequest transactWriteItemsRequest = new() { TransactItems = transactWriteItems };
             try
             {
                 await Client.TransactWriteItemsAsync(transactWriteItemsRequest);

@@ -6,6 +6,9 @@ using CartaCore.Operations.Attributes;
 
 namespace CartaCore.Operations
 {
+    // TODO: Implement pipelining for this operation.
+    // TODO: Fix typing of graph structure.
+
     /// <summary>
     /// The input for the <see cref="AggregatePropertiesOperation"/> operation.
     /// </summary>
@@ -44,16 +47,16 @@ namespace CartaCore.Operations
         AggregatePropertiesOperationOut
     >
     {
-        private static void AddVertexProperties(Dictionary<Identity, List<object>> properties, IVertex vertex)
+        private static void AddVertexProperties(Dictionary<string, List<object>> properties, Vertex vertex)
         {
             foreach (Property property in vertex.Properties)
             {
                 // Add the property if it does not exist in the set.
-                if (!properties.ContainsKey(property.Identifier))
-                    properties.Add(property.Identifier, new List<object>());
+                if (!properties.ContainsKey(property.Id))
+                    properties.Add(property.Id, new List<object>());
 
                 // Merge in the set of observations into the property.
-                if (properties.TryGetValue(property.Identifier, out List<object> values))
+                if (properties.TryGetValue(property.Id, out List<object> values))
                     values.Add(property.Value);
             }
         }
@@ -61,18 +64,18 @@ namespace CartaCore.Operations
         /// <inheritdoc />
         public override async Task<AggregatePropertiesOperationOut> Perform(AggregatePropertiesOperationIn input)
         {
-            if (((IGraph)input.Graph).TryProvide(out IDynamicOutGraph<Vertex> dynamicOutGraph))
+            if (((IGraph)input.Graph).TryProvide(out IDynamicOutGraph<Vertex, IEdge> dynamicOutGraph))
             {
                 // Set up data structures to store intermediate information.
-                HashSet<Identity> fetchedVertices = new();
-                Dictionary<Identity, List<object>> properties = new();
+                HashSet<string> fetchedVertices = new();
+                Dictionary<string, List<object>> properties = new();
 
                 List<IAsyncEnumerable<Vertex>> childrenVertices = new();
 
                 // Kick off the algorithm by grabbing the children of this vertex.
                 AddVertexProperties(properties, input.Vertex);
-                fetchedVertices.Add(input.Vertex.Identifier);
-                childrenVertices.Add(dynamicOutGraph.GetChildVertices(input.Vertex.Identifier));
+                fetchedVertices.Add(input.Vertex.Id);
+                childrenVertices.Add(dynamicOutGraph.GetChildVertices(input.Vertex.Id));
 
                 // Keep getting all the children asynchronously and updating our properties collection.
                 while (childrenVertices.Count > 0)
@@ -85,11 +88,11 @@ namespace CartaCore.Operations
                     await foreach (Vertex childVertex in childVertices)
                     {
                         // We need to make sure that we do not duplicate observations.
-                        if (!fetchedVertices.Contains(childVertex.Identifier))
+                        if (!fetchedVertices.Contains(childVertex.Id))
                         {
                             AddVertexProperties(properties, childVertex);
-                            fetchedVertices.Add(childVertex.Identifier);
-                            childrenVertices.Add(dynamicOutGraph.GetChildVertices(childVertex.Identifier));
+                            fetchedVertices.Add(childVertex.Id);
+                            childrenVertices.Add(dynamicOutGraph.GetChildVertices(childVertex.Id));
                         }
                     }
                 }
@@ -99,12 +102,14 @@ namespace CartaCore.Operations
                 {
                     Vertex = new Vertex
                     (
-                        input.Vertex.Identifier,
-                        properties
-                        .Select
-                        (
-                            (KeyValuePair<Identity, List<object>> pair) =>
-                            new Property(pair.Key, pair.Value)
+                        input.Vertex.Id,
+                        new HashSet<IProperty>(
+                            properties
+                            .Select
+                            (
+                                (KeyValuePair<string, List<object>> pair) =>
+                                new Property(pair.Key, pair.Value)
+                            )
                         )
                     )
                     {

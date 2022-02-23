@@ -30,7 +30,7 @@ namespace CartaCore.Serialization.Json
                 ),
                 BindingFlags.Instance | BindingFlags.Public,
                 binder: null,
-                args: new object[] { },
+                args: Array.Empty<object>(),
                 culture: null
             );
 
@@ -45,8 +45,8 @@ namespace CartaCore.Serialization.Json
         private class FullStringEnumConverterInner<TEnum> :
             JsonConverter<TEnum> where TEnum : struct, Enum
         {
-            private Dictionary<string, TEnum> Map;
-            private Dictionary<TEnum, string> InverseMap;
+            private readonly Dictionary<string, TEnum> Map;
+            private readonly Dictionary<TEnum, string> InverseMap;
 
             /// <inheritdoc />
             public FullStringEnumConverterInner()

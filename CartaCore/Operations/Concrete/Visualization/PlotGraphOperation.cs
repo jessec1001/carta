@@ -7,6 +7,8 @@ using CartaCore.Operations.Attributes;
 
 namespace CartaCore.Operations.Visualization
 {
+    // TODO: This operation will need to access previously pipelined results in order to update coloring schemes.
+    
     /// <summary>
     /// The strategy to use for coloring the graph.
     /// </summary>
@@ -169,7 +171,7 @@ namespace CartaCore.Operations.Visualization
             OperationContext callingContext)
         {
             // Check if the graph is enumerable.
-            if (input.Graph is not IEntireGraph entireGraph)
+            if (input.Graph is not IEntireGraph<IVertex, IEdge> entireGraph)
                 throw new ArgumentException("The graph must be a finite graph.");
 
             // Interpret the axes styles if specified.
@@ -190,7 +192,7 @@ namespace CartaCore.Operations.Visualization
                 // Create the data for the vertex.
                 GraphPlotVertex graphPlotVertex = new()
                 {
-                    Id = vertex.Identifier.ToString(),
+                    Id = vertex.Id.ToString(),
                     Label = vertex.Label,
                     // Value = vertex.Value,
                     Style = input.VertexStyle

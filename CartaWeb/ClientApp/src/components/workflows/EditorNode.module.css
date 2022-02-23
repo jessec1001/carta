@@ -1,0 +1,45 @@
+.node {
+  /* Stretch the node out to fill whatever container it is inside. */
+  flex: 1;
+
+  /* Make the the node appear to be a material element on the screen. */
+  border-radius: var(--border-radius);
+  background-color: var(--color-fill-element);
+  box-shadow: var(--shadow);
+}
+.node.selected {
+  /* When a node is selected, give it a slight outline. */
+  box-shadow: 0px 0px 1px 1px var(--color-primary-select);
+}
+
+.header {
+  /* Distribute items along the header. */
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0.25em;
+  border-radius: var(--border-radius) var(--border-radius) 0px 0px;
+}
+.body {
+  padding: 0.25em;
+}
+
+.stripes {
+  /* We want the stripes to to stretch across a box evenly. */
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+
+  /* We give a fixed size to the stripes. */
+  width: 2em;
+  height: 100%;
+
+  /* We want the stripes to be skewed slightly to give nice visualize distinction. */
+  transform: skew(15deg);
+}
+.stripe {
+  /* Each strip should be the same size. */
+  flex: 1;
+}
