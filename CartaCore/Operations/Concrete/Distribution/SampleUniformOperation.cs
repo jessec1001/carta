@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using CartaCore.Operations.Attributes;
 
@@ -12,20 +13,28 @@ namespace CartaCore.Operations.Distribution
         /// <summary>
         /// The seed for the psuedorandom number generator. If not specified, will be based on time.
         /// </summary>
+        [FieldName("Seed")]
         public int? Seed { get; set; }
 
         /// <summary>
         /// The minimum (inclusive) value for each sample.
         /// </summary>
+        [FieldDefault(0)]
+        [FieldName("Minimum")]
         public double Minimum { get; set; }
         /// <summary>
         /// The maximum (exclusive) value for each sample.
         /// </summary>
+        [FieldDefault(1)]
+        [FieldName("Maximum")]
         public double Maximum { get; set; }
 
         /// <summary>
         /// The number of samples to generate.
         /// </summary>
+        [FieldRange(Minimum = 0, ExclusiveMinimum = true)]
+        [FieldDefault(1)]
+        [FieldName("Count")]
         public int Count { get; set; }
     }
     /// <summary>
@@ -36,7 +45,8 @@ namespace CartaCore.Operations.Distribution
         /// <summary>
         /// The randomly generated samples picked from the uniform distribution.
         /// </summary>
-        public double[] Samples { get; set; }
+        [FieldName("Samples")]
+        public IEnumerable<double> Samples { get; set; }
     }
 
     /// <summary>
@@ -52,6 +62,12 @@ namespace CartaCore.Operations.Distribution
         SampleUniformOperationOut
     >
     {
+        private static IEnumerable<double> GenerateSamples(Random random, double min, double max, int count)
+        {
+            for (var k = 0; k < count; k++)
+                yield return random.NextDouble() * (max - min) + min;
+        }
+        
         /// <inheritdoc />
         public override Task<SampleUniformOperationOut> Perform(SampleUniformOperationIn input)
         {
@@ -61,18 +77,10 @@ namespace CartaCore.Operations.Distribution
                 : new Random();
 
             // Generate the samples.
-            double[] samples = new double[input.Count];
-            for (int k = 0; k < samples.Length; k++)
+            return Task.FromResult(new SampleUniformOperationOut
             {
-                // Generate a random uniform variable in [0, 1) and then scale it appropriately.
-                double uniform = random.NextDouble();
-                double sampleUniform = input.Minimum + (input.Maximum - input.Minimum) * uniform;
-
-                samples[k] = sampleUniform;
-            }
-
-            // Return the samples.
-            return Task.FromResult(new SampleUniformOperationOut { Samples = samples });
+                Samples = GenerateSamples(random, input.Minimum, input.Maximum, input.Count)
+            });
         }
 
         /// <inheritdoc />

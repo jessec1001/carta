@@ -9,7 +9,6 @@ using CartaCore.Operations.Attributes;
 namespace CartaCore.Operations
 {
     // TODO: We need to tee streams if we want to support multiple outputs.
-    // TODO: Implement pipelining.
 
     /// <summary>
     /// Represents an operation that executes as a topologically-sorted graph of sub-operations. Connections determine
@@ -108,6 +107,9 @@ namespace CartaCore.Operations
         // TODO: We may want to optimize the usage of a workflow to compile it to a graph structure so it is easier to
         //       get the out- or in-edges for vertices (operations). This might also just be useful for abstraction
         //       purposes of the graph elsewhere in development.
+
+        // TODO: Change 'Get{Input/Output}{Details}' into a single method that returns an enumeration of structures full
+        //       of details for specific fields containing naming, typing, schema, etc.
 
         /// <inheritdoc />
         public override async Task<string[]> GetInputFields(OperationContext context)
@@ -293,6 +295,10 @@ namespace CartaCore.Operations
             DependencyGraph = ConstructDependencyGraph();
         }
 
+        /// <summary>
+        /// Constructs a dependency graph for the workflow operation.
+        /// </summary>
+        /// <returns>The constructed dependency graph.</returns>
         private FiniteGraph<WorkflowDependencyVertex, WorkflowDependencyEdge> ConstructDependencyGraph()
         {
             FiniteGraph<WorkflowDependencyVertex, WorkflowDependencyEdge> dependencies = new(nameof(WorkflowOperation));
@@ -474,7 +480,6 @@ namespace CartaCore.Operations
             Operation operation = vertex.Operation;
 
             // TODO: For now we ignore multiplexing and indexing.
-            // TODO: Implement basic execution.
             // TODO: Implement pipelining execution.
 
             // Create a context for the operation.

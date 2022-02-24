@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using CartaCore.Operations.Attributes;
 
@@ -12,16 +13,23 @@ namespace CartaCore.Operations.Distribution
         /// <summary>
         /// The seed for the psuedorandom number generator. If not specified, will be based on time.
         /// </summary>
+        [FieldName("Seed")]
         public int? Seed { get; set; }
 
         /// <summary>
         /// The rate (lambda) parameter of the Poisson distribution.
         /// </summary>
+        [FieldRange(Minimum = 0, ExclusiveMinimum = true)]
+        [FieldDefault(1)]
+        [FieldName("Rate")]
         public double Rate { get; set; }
 
         /// <summary>
         /// The number of samples to generate.
         /// </summary>
+        [FieldRange(Minimum = 0, ExclusiveMinimum = true)]
+        [FieldDefault(1)]
+        [FieldName("Count")]
         public int Count { get; set; }
     }
     /// <summary>
@@ -32,7 +40,8 @@ namespace CartaCore.Operations.Distribution
         /// <summary>
         /// The randomly generated samples picked from the Poisson distribution.
         /// </summary>
-        public int[] Samples { get; set; }
+        [FieldName("Samples")]
+        public IEnumerable<int> Samples { get; set; }
     }
 
     /// <summary>
@@ -50,22 +59,14 @@ namespace CartaCore.Operations.Distribution
         SamplePoissonOperationOut
     >
     {
-        /// <inheritdoc />
-        public override Task<SamplePoissonOperationOut> Perform(SamplePoissonOperationIn input)
+        private static IEnumerable<int> GenerateSamples(Random random, double rate, int count)
         {
-            // Create a PsuedoRNG with a seed if specified.
-            Random random = input.Seed.HasValue
-                ? new Random(input.Seed.Value)
-                : new Random();
-
-            // Generate the samples.
-            int[] samples = new int[input.Count];
-            for (int k = 0; k < samples.Length; k++)
+            for (int k = 0; k < count; k++)
             {
                 // Generate a Poisson variable based on an exponential simulation.
                 int occurrences = -1;
                 double probability = 1.0;
-                double lambdaExp = Math.Exp(-input.Rate);
+                double lambdaExp = Math.Exp(-rate);
                 do
                 {
                     // Generate a random uniform variable in (0, 1).
@@ -76,11 +77,23 @@ namespace CartaCore.Operations.Distribution
                     probability *= uniform;
                 } while (probability > lambdaExp);
 
-                samples[k] = occurrences;
+                yield return occurrences;
             }
+        }
 
-            // Return the samples.
-            return Task.FromResult(new SamplePoissonOperationOut { Samples = samples });
+        /// <inheritdoc />
+        public override Task<SamplePoissonOperationOut> Perform(SamplePoissonOperationIn input)
+        {
+            // Create a PsuedoRNG with a seed if specified.
+            Random random = input.Seed.HasValue
+                ? new Random(input.Seed.Value)
+                : new Random();
+
+            // Generate the samples.
+            return Task.FromResult(new SamplePoissonOperationOut
+            {
+                Samples = GenerateSamples(random, input.Rate, input.Count)
+            });
         }
 
         /// <inheritdoc />

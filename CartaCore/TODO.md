@@ -17,6 +17,7 @@ There is an issue preventing the manual (programmatic not browser) refresh for o
 - Donut plot and box plot.
 
 # Upcoming Work
+- Consider if we need to change the supported version of JSON schema in the front-end or back-end and check if there is any necessary configuration that needs to be added.
 - Implement copy/paste for operations across workflow editors.
 - Implement roots of function operation.
 - Implement a lerp operation in a way so that there is a slider from 0 to 1 for the interpolation value.

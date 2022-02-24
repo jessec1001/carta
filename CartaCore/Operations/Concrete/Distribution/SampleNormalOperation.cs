@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using CartaCore.Operations.Attributes;
 
@@ -12,20 +13,29 @@ namespace CartaCore.Operations.Distribution
         /// <summary>
         /// The seed for the psuedorandom number generator. If not specified, will be based on time.
         /// </summary>
+        [FieldName("Seed")]
         public int? Seed { get; set; }
 
         /// <summary>
         /// The mean of the normal distribution to sample from.
         /// </summary>
+        [FieldDefault(0)]
+        [FieldName("Mean")]
         public double Mean { get; set; }
         /// <summary>
         /// The standard deviation of the normal distribution to sample from.
         /// </summary>
+        [FieldRange(Minimum = 0, ExclusiveMinimum = true)]
+        [FieldDefault(1)]
+        [FieldName("Deviation")]
         public double Deviation { get; set; }
 
         /// <summary>
         /// The number of samples to generate.
         /// </summary>
+        [FieldRange(Minimum = 0, ExclusiveMinimum = true)]
+        [FieldDefault(1)]
+        [FieldName("Count")]
         public int Count { get; set; }
     }
     /// <summary>
@@ -36,7 +46,8 @@ namespace CartaCore.Operations.Distribution
         /// <summary>
         /// The randomly generated samples picked from the normal distribution.
         /// </summary>
-        public double[] Samples { get; set; }
+        [FieldName("Samples")]
+        public IEnumerable<double> Samples { get; set; }
     }
 
     /// <summary>
@@ -54,6 +65,22 @@ namespace CartaCore.Operations.Distribution
         SampleNormalOperationOut
     >
     {
+        private static IEnumerable<double> GenerateSamples(Random random, double mean, double deviation, int count)
+        {
+            for (int k = 0; k < count; k++)
+            {
+                // Generate two random uniform variables in (0, 1).
+                double uniform1 = Math.Clamp(random.NextDouble(), double.MinValue, 1.0);
+                double uniform2 = Math.Clamp(random.NextDouble(), double.MinValue, 1.0);
+
+                // Generate the standard normally distributed sample.
+                double standardNormal = Math.Sqrt(-2.0 * Math.Log(uniform1)) * Math.Cos(2.0 * Math.PI * uniform2);
+                double sampleNormal = deviation * standardNormal + mean;
+
+                yield return sampleNormal;
+            }
+        }
+
         /// <inheritdoc />
         public override Task<SampleNormalOperationOut> Perform(SampleNormalOperationIn input)
         {
@@ -63,22 +90,10 @@ namespace CartaCore.Operations.Distribution
                 : new Random();
 
             // Generate the samples.
-            double[] samples = new double[input.Count];
-            for (int k = 0; k < samples.Length; k++)
+            return Task.FromResult(new SampleNormalOperationOut
             {
-                // Generate two random uniform variables in (0, 1).
-                double uniform1 = Math.Clamp(random.NextDouble(), double.MinValue, 1.0);
-                double uniform2 = Math.Clamp(random.NextDouble(), double.MinValue, 1.0);
-
-                // Generate the standard normally distributed sample.
-                double standardNormal = Math.Sqrt(-2.0 * Math.Log(uniform1)) * Math.Cos(2.0 * Math.PI * uniform2);
-                double sampleNormal = input.Deviation * standardNormal + input.Mean;
-
-                samples[k] = sampleNormal;
-            }
-
-            // Return the samples.
-            return Task.FromResult(new SampleNormalOperationOut { Samples = samples });
+                Samples = GenerateSamples(random, input.Mean, input.Deviation, input.Count)
+            });
         }
 
         /// <inheritdoc />
