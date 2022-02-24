@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using CartaCore.Extensions.Statistics;
 using CartaCore.Operations.Attributes;
@@ -12,7 +13,7 @@ namespace CartaCore.Operations
         /// <summary>
         /// The list of numeric values to compute the mean of.
         /// </summary>
-        public double[] Values { get; set; }
+        public IAsyncEnumerable<double> Values { get; set; }
     }
     /// <summary>
     /// The output for the <see cref="MeanOperation" /> operation.
@@ -37,9 +38,11 @@ namespace CartaCore.Operations
     >
     {
         /// <inheritdoc />
-        public override Task<MeanOperationOut> Perform(MeanOperationIn input)
+        public override async Task<MeanOperationOut> Perform(MeanOperationIn input)
         {
-            return Task.FromResult(new MeanOperationOut() { Mean = input.Values.ComputeMean() });
+            // We calculate the mean asynchronously.
+            (double mean, _) = await input.Values.ComputeRawMomentAsync(1);
+            return new MeanOperationOut() { Mean = mean };
         }
     }
 }

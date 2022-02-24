@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using CartaCore.Extensions.Statistics;
 using CartaCore.Operations.Attributes;
@@ -12,7 +13,7 @@ namespace CartaCore.Operations
         /// <summary>
         /// The list of numeric values to compute the central kurtosis of.
         /// </summary>
-        public double[] Values { get; set; }
+        public IAsyncEnumerable<double> Values { get; set; }
     }
     /// <summary>
     /// The output for the <see cref="KurtosisOperation" /> operation.
@@ -37,9 +38,11 @@ namespace CartaCore.Operations
     >
     {
         /// <inheritdoc />
-        public override Task<KurtosisOperationOut> Perform(KurtosisOperationIn input)
+        public override async Task<KurtosisOperationOut> Perform(KurtosisOperationIn input)
         {
-            return Task.FromResult(new KurtosisOperationOut() { Kurtosis = input.Values.ComputeNormalizedMoment(4) });
+            // We calculate the kurtosis asynchronously.
+            (double kurtosis, _) = await input.Values.ComputeNormalizedMomentAsync(4);
+            return new KurtosisOperationOut() { Kurtosis = kurtosis };
         }
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using CartaCore.Operations.Attributes;
 
@@ -26,7 +27,7 @@ namespace CartaCore.Operations.Arithmetic
         /// If the input was negative, -1 will be the first factor of the output.
         /// </summary>
         [FieldName("Prime Factors")]
-        public long[] Factors { get; set; }
+        public IEnumerable<long> Factors { get; set; }
     }
 
     /// <summary>
@@ -43,23 +44,21 @@ namespace CartaCore.Operations.Arithmetic
         PrimeFactorOperationOut
     >
     {
-        /// <inheritdoc />
-        public override Task<PrimeFactorOperationOut> Perform(PrimeFactorOperationIn input)
+        private static IEnumerable<long> ComputePrimes(long value)
         {
             // Deal with the case of zero and one.
-            long value = input.Integer;
             if (value == 0)
-                return Task.FromResult(new PrimeFactorOperationOut { Factors = new long[] { 0 } });
+            {
+                yield return 0;
+                yield break;
+            }
             if (value == 1)
-                return Task.FromResult(new PrimeFactorOperationOut { Factors = Array.Empty<long>() });
-
-            // Store the factors in a list and convert later.
-            List<long> factors = new();
+                yield break;
 
             // Handle negative factorization.
             if (value < 0)
             {
-                factors.Add(-1);
+                yield return -1;
                 value = -value;
             }
 
@@ -75,7 +74,7 @@ namespace CartaCore.Operations.Arithmetic
                     long quotient = Math.DivRem(value, k, out long remainder);
                     if (remainder == 0)
                     {
-                        factors.Add(k);
+                        yield return k;
                         factorFound = true;
                         value = quotient;
                         break;
@@ -85,13 +84,17 @@ namespace CartaCore.Operations.Arithmetic
                 // If the value has no factors up to the maximum factor value, then the value is a prime factor itself.
                 if (!factorFound)
                 {
-                    factors.Add(value);
+                    yield return value;
                     value = 1;
                 }
             }
+        }
 
+        /// <inheritdoc />
+        public override Task<PrimeFactorOperationOut> Perform(PrimeFactorOperationIn input)
+        {
             // Return the factors.
-            return Task.FromResult(new PrimeFactorOperationOut { Factors = factors.ToArray() });
+            return Task.FromResult(new PrimeFactorOperationOut { Factors = ComputePrimes(input.Integer) });
         }
     }
 }

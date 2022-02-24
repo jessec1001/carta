@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using CartaCore.Operations.Attributes;
 
@@ -11,7 +12,7 @@ namespace CartaCore.Operations
         /// <summary>
         /// The array of values to compute the extent of.
         /// </summary>
-        public double[] Values { get; set; }
+        public IAsyncEnumerable<double> Values { get; set; }
     }
     /// <summary>
     /// The output for the <see cref="ExtentOperation" /> operation.
@@ -40,24 +41,21 @@ namespace CartaCore.Operations
     >
     {
         /// <inheritdoc />
-        public override Task<ExtentOperationOut> Perform(ExtentOperationIn input)
+        public override async Task<ExtentOperationOut> Perform(ExtentOperationIn input)
         {
             // If there are no entries in the input array, the minimum and maximum are defined to be zero.
             double? minimum = null;
             double? maximum = null;
-            foreach (double value in input.Values)
+            await foreach (double value in input.Values)
             {
                 if (!minimum.HasValue || value < minimum) minimum = value;
                 if (!maximum.HasValue || value > maximum) maximum = value;
             }
-            return Task.FromResult
-            (
-                new ExtentOperationOut()
-                {
-                    Minimum = minimum.Value,
-                    Maximum = maximum.Value
-                }
-            );
+            return new ExtentOperationOut()
+            {
+                Minimum = minimum.Value,
+                Maximum = maximum.Value
+            };
         }
     }
 }

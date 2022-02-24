@@ -12,10 +12,12 @@ namespace CartaCore.Operations
         /// <summary>
         /// The condition to test.
         /// </summary>
+        [FieldName("Condition")]
         public bool Condition { get; set; }
         /// <summary>
         /// The message to display if the condition is not satisfied.
         /// </summary>
+        [FieldName("Message")]
         public string Message { get; set; }
     }
     /// <summary>

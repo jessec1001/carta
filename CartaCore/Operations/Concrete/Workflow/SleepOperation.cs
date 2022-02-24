@@ -3,30 +3,39 @@ using CartaCore.Operations.Attributes;
 
 namespace CartaCore.Operations
 {
-    // TODO: Improve typing on operations such as this by using generics.
     /// <summary>
-    /// The input for the <see cref="DelayOperation"/> operation.
+    /// The input for the <see cref="DelayOperation{TValue}"/> operation.
     /// </summary>
-    public struct DelayOperationIn
+    public struct DelayOperationIn<TValue>
     {
-        /// <summary>
-        /// The amount of time to sleep.
-        /// </summary>
-        public int Milliseconds { get; set; }
         /// <summary>
         /// The value to pass along.
         /// </summary>
-        public object Value { get; set; }
+        [FieldPipelined]
+        [FieldName("Value")]
+        public TValue Value { get; set; }
+        /// <summary>
+        /// The amount of time to delay in milliseconds.
+        /// </summary>
+        [FieldName("Delay")]
+        public int Delay { get; set; }
+        // TODO: Display this only when the type of value is enumerable.
+        /// <summary>
+        /// Whether there should be a delay between each item in the value.
+        /// </summary>
+        [FieldName("Per Item")]
+        public bool PerItem { get; set; }
     }
     /// <summary>
-    /// The output for the <see cref="DelayOperation"/> operation.
+    /// The output for the <see cref="DelayOperation{TValue}"/> operation.
     /// </summary>
-    public struct DelayOperationOut
+    public struct DelayOperationOut<TValue>
     {
         /// <summary>
         /// The value passed along.
         /// </summary>
-        public object Value { get; set; }
+        [FieldName("Value")]
+        public TValue Value { get; set; }
     }
 
     /// <summary>
@@ -34,17 +43,17 @@ namespace CartaCore.Operations
     /// </summary>
     [OperationName(Display = "Delay", Type = "delay")]
     [OperationTag(OperationTags.Workflow)]
-    public class DelayOperation : TypedOperation
+    public class DelayOperation<TValue> : TypedOperation
     <
-        DelayOperationIn,
-        DelayOperationOut
+        DelayOperationIn<TValue>,
+        DelayOperationOut<TValue>
     >
     {
         /// <inheritdoc />
-        public override async Task<DelayOperationOut> Perform(DelayOperationIn input)
+        public override async Task<DelayOperationOut<TValue>> Perform(DelayOperationIn<TValue> input)
         {
-            await Task.Delay(input.Milliseconds);
-            return new DelayOperationOut { Value = input.Value };
+            await Task.Delay(input.Delay);
+            return new DelayOperationOut<TValue> { Value = input.Value };
         }
     }
 }

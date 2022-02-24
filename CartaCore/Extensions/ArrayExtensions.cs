@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace CartaCore.Extensions.Array
+namespace CartaCore.Extensions.Arrays
 {
     /// <summary>
     /// Extensions provided for working with arrays with common applications.
     /// </summary>
-    public static class ArrayExtensions
+    public static class ArraysExtensions
     {
         /// <summary>
         /// Converts an array of bytes into a hexadecimal string.

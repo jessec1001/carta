@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using CartaCore.Extensions.Statistics;
 using CartaCore.Operations.Attributes;
@@ -12,7 +13,7 @@ namespace CartaCore.Operations
         /// <summary>
         /// The list of numeric values to compute the median of.
         /// </summary>
-        public double[] Values { get; set; }
+        public IAsyncEnumerable<double> Values { get; set; }
     }
     /// <summary>
     /// The output for the <see cref="MedianOperation"/> operation.
@@ -37,9 +38,12 @@ namespace CartaCore.Operations
     >
     {
         /// <inheritdoc />
-        public override Task<MedianOperationOut> Perform(MedianOperationIn input)
+        public override async Task<MedianOperationOut> Perform(MedianOperationIn input)
         {
-            return Task.FromResult(new MedianOperationOut() { Median = input.Values.ComputeMedian() });
+            // We calculate the median asynchronously.
+            // Note that we do not actually have an algorithm to do this efficiently.
+            double median = await input.Values.ComputeMedianAsync(); 
+            return new MedianOperationOut() { Median = median };
         }
     }
 }

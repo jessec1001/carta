@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using CartaCore.Extensions.Statistics;
 using CartaCore.Operations.Attributes;
@@ -12,7 +13,7 @@ namespace CartaCore.Operations
         /// <summary>
         /// The list of numeric values to compute the central skewness of.
         /// </summary>
-        public double[] Values { get; set; }
+        public IAsyncEnumerable<double> Values { get; set; }
     }
     /// <summary>
     /// The output for the <see cref="SkewOperation" /> operation.
@@ -37,9 +38,11 @@ namespace CartaCore.Operations
     >
     {
         /// <inheritdoc />
-        public override Task<SkewOperationOut> Perform(SkewOperationIn input)
+        public override async Task<SkewOperationOut> Perform(SkewOperationIn input)
         {
-            return Task.FromResult(new SkewOperationOut() { Skew = input.Values.ComputeNormalizedMoment(3) });
+            // We calculate the skewness asynchronously.
+            (double skew, _) = await input.Values.ComputeNormalizedMomentAsync(3);
+            return new SkewOperationOut() { Skew = skew };
         }
     }
 }

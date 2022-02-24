@@ -5,7 +5,7 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using CartaCore.Extensions.Array;
+using CartaCore.Extensions.Arrays;
 
 namespace CartaCore.Extensions.Hashing
 {
@@ -22,7 +22,7 @@ namespace CartaCore.Extensions.Hashing
         public static byte[] ComputeByteArray(this object value)
         {
             // We handle null values an empty array.
-            if (value is null) return System.Array.Empty<byte>();
+            if (value is null) return Array.Empty<byte>();
 
             // We check for a nullable type (this is not null because of our previous check).
             Type valueType = value.GetType();
@@ -34,7 +34,7 @@ namespace CartaCore.Extensions.Hashing
             if (valueType.IsArray)
             {
                 // We get the array as a value.
-                System.Array arrayValue = value as System.Array;
+                Array arrayValue = value as Array;
                 int bytesLength = 0;
                 byte[][] bytes = new byte[arrayValue.Length][];
                 for (int k = 0; k < arrayValue.Length; k++)
@@ -48,7 +48,7 @@ namespace CartaCore.Extensions.Hashing
                 int bytesIndex = 0;
                 for (int k = 0; k < arrayValue.Length; k++)
                 {
-                    System.Array.Copy(bytes[k], 0, bytesArray, bytesIndex, bytes[k].Length);
+                    Array.Copy(bytes[k], 0, bytesArray, bytesIndex, bytes[k].Length);
                     bytesIndex += bytes[k].Length;
                 }
                 return bytesArray;
@@ -75,7 +75,7 @@ namespace CartaCore.Extensions.Hashing
                 }
 
                 // We sort the associated arrays of bytes by their keys.
-                System.Array.Sort(keysBytes, valuesBytes, comparer);
+                Array.Sort(keysBytes, valuesBytes, comparer);
 
                 // We combine all of the bytes into a single byte array.
                 int bytesLength = 0;
@@ -86,9 +86,9 @@ namespace CartaCore.Extensions.Hashing
                 int bytesIndex = 0;
                 for (int k = 0; k < dictionaryValue.Count; k++)
                 {
-                    System.Array.Copy(keysBytes[k], 0, bytesArray, bytesIndex, keysBytes[k].Length);
+                    Array.Copy(keysBytes[k], 0, bytesArray, bytesIndex, keysBytes[k].Length);
                     bytesIndex += keysBytes[k].Length;
-                    System.Array.Copy(valuesBytes[k], 0, bytesArray, bytesIndex, valuesBytes[k].Length);
+                    Array.Copy(valuesBytes[k], 0, bytesArray, bytesIndex, valuesBytes[k].Length);
                     bytesIndex += valuesBytes[k].Length;
                 }
                 return bytesArray;

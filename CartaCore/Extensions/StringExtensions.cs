@@ -69,7 +69,7 @@ namespace CartaCore.Extensions.String
         {
             // Check the n-gram size.
             if (n < 1) throw new ArgumentException("Size of n-grams must be at least 1");
-            if (n > str.Length) return System.Array.Empty<string>();
+            if (n > str.Length) return Array.Empty<string>();
 
             string[] ngrams = new string[str.Length - n + 1];
             for (int i = 0; i < ngrams.Length; i++)

@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using CartaCore.Extensions.Statistics;
 using CartaCore.Operations.Attributes;
 
 namespace CartaCore.Operations
@@ -12,7 +14,7 @@ namespace CartaCore.Operations
         /// <summary>
         /// The array of values to compute the standard deviation of.
         /// </summary>
-        public double[] Values { get; set; }
+        public IAsyncEnumerable<double> Values { get; set; }
         /// <summary>
         /// Whether to use [Bessel's Correction](https://en.wikipedia.org/wiki/Bessel%27s_correction) to make the
         /// estimator of deviation unbiased.
@@ -42,32 +44,16 @@ namespace CartaCore.Operations
     >
     {
         /// <inheritdoc />
-        public override Task<DeviationOperationOut> Perform(DeviationOperationIn input)
+        public override async Task<DeviationOperationOut> Perform(DeviationOperationIn input)
         {
-            // We use these values to accumulate statistics of the input values.
-            double sum = 0.0;
-            double sumOfSquares = 0.0;
-            int count = input.Values.Length;
-
-            // We perform the accumulation of sums.
-            foreach (double value in input.Values)
-            {
-                sum += value;
-                sumOfSquares += value * value;
-            }
-
-            // We compute the variance using the algebraic equivalent of "V = E[X^2] - E[X]^2".
-            // Note that if Bessel's correction should be used, we multiply by a factor of n/(n-1).
-            double variance = (sumOfSquares / count) - Math.Pow(sum / count, 2);
+            // We calculate the deviation asynchronously.
+            (double variance, int count) = await input.Values.ComputeCentralMomentAsync(2);
             if (input.UseBesselsCorrection)
-            {
-                // We cannot compute Bessel's correction with fewer than two values.
                 variance *= (double)count / (count - 1);
-            }
             double deviation = Math.Sqrt(variance);
 
             // Return the output.
-            return Task.FromResult(new DeviationOperationOut { Deviation = deviation });
+            return new DeviationOperationOut { Deviation = deviation };
         }
     }
 }
