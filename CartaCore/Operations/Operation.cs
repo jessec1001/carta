@@ -86,92 +86,81 @@ namespace CartaCore.Operations
         /// <returns><c>true</c> if the operation is deterministic on a context; otherwise <c>false</c>.</returns>
         public virtual bool IsDeterministic(OperationContext context) => true;
 
-        // TODO: Incorporate context into these methods allowing for dynamic input fields.
         /// <summary>
-        /// Gets the input fields that are available for this operation.
+        /// Gets the input fields and their descriptors for this operation.
         /// </summary>
-        /// <returns>A list of valid input fields.</returns>
-        public abstract Task<string[]> GetInputFields(OperationContext context);
+        /// <param name="context">The executing operation context.</param>
+        /// <returns>An enumeration of input field descriptors.</returns>
+        public abstract IAsyncEnumerable<OperationFieldDescriptor> GetInputFields(OperationContext context);
         /// <summary>
-        /// Gets the output fields that are available for this operation.
+        /// Gets the output fields and their descriptors for this operation.
         /// </summary>
-        /// <returns>A list of valid output fields.</returns>
-        public abstract Task<string[]> GetOutputFields(OperationContext context);
+        /// <param name="context">The executing operation context.</param>
+        /// <returns>An enumeration of output field descriptors.</returns>
+        public abstract IAsyncEnumerable<OperationFieldDescriptor> GetOutputFields(OperationContext context);
 
-        /// <summary>
-        /// Gets the type of an input field specified by its name.
-        /// </summary>
-        /// <param name="field">The name of the field.</param>
-        /// <returns>The type of the input field.</returns>
-        public abstract Type GetInputFieldType(string field);
-        /// <summary>
-        /// Gets the type of an output field specified by its name.
-        /// </summary>
-        /// <param name="field">The name of the field.</param>
-        /// <returns>The type of the output field.</returns>
-        public abstract Type GetOutputFieldType(string field);
+        // // TODO: Reimplement elsewhere.
+        // /// <summary>
+        // /// Generates a schema for an input field specified by its name.
+        // /// </summary>
+        // /// <param name="field">The name of the field.</param>
+        // /// <returns>A generated JSON schema.</returns>
+        // public virtual JsonSchema GetInputFieldSchema(string field)
+        // {
+        //     Type fieldType = GetInputFieldType(field);
 
-        /// <summary>
-        /// Generates a schema for an input field specified by its name.
-        /// </summary>
-        /// <param name="field">The name of the field.</param>
-        /// <returns>A generated JSON schema.</returns>
-        public virtual JsonSchema GetInputFieldSchema(string field)
-        {
-            Type fieldType = GetInputFieldType(field);
+        //     JsonSchema jsonSchema;
+        //     JsonSchemaGeneratorSettings jsonSettings = new JsonSchemaGeneratorSettings()
+        //     {
+        //         GenerateAbstractSchemas = false,
+        //         FlattenInheritanceHierarchy = true
+        //     };
 
-            JsonSchema jsonSchema;
-            JsonSchemaGeneratorSettings jsonSettings = new JsonSchemaGeneratorSettings()
-            {
-                GenerateAbstractSchemas = false,
-                FlattenInheritanceHierarchy = true
-            };
+        //     if (fieldType.IsAssignableTo(typeof(Stream)))
+        //         jsonSchema = new JsonSchema { Type = JsonObjectType.File };
+        //     else
+        //         jsonSchema = JsonSchema.FromType(fieldType, jsonSettings);
 
-            if (fieldType.IsAssignableTo(typeof(Stream)))
-                jsonSchema = new JsonSchema { Type = JsonObjectType.File };
-            else
-                jsonSchema = JsonSchema.FromType(fieldType, jsonSettings);
+        //     // TODO: Figure out the proper way to handle this schema generation.
+        //     // For now, we need to make reference types nullable manually at the root level.
+        //     Type nullableType = Nullable.GetUnderlyingType(fieldType);
+        //     if (fieldType.IsClass || nullableType != null)
+        //         jsonSchema.Type |= JsonObjectType.Null;
 
-            // TODO: Figure out the proper way to handle this schema generation.
-            // For now, we need to make reference types nullable manually at the root level.
-            Type nullableType = Nullable.GetUnderlyingType(fieldType);
-            if (fieldType.IsClass || nullableType != null)
-                jsonSchema.Type |= JsonObjectType.Null;
+        //     jsonSchema.Title = field;
+        //     return jsonSchema;
+        // }
+        // /// <summary>
+        // /// Generates a schema for an output field specified by its name.
+        // /// </summary>
+        // /// <param name="field">The name of the field.</param>
+        // /// <returns>A generated JSON schema.</returns>
+        // public virtual JsonSchema GetOutputFieldSchema(string field)
+        // {
+        //     Type fieldType = GetOutputFieldType(field);
 
-            jsonSchema.Title = field;
-            return jsonSchema;
-        }
-        /// <summary>
-        /// Generates a schema for an output field specified by its name.
-        /// </summary>
-        /// <param name="field">The name of the field.</param>
-        /// <returns>A generated JSON schema.</returns>
-        public virtual JsonSchema GetOutputFieldSchema(string field)
-        {
-            Type fieldType = GetOutputFieldType(field);
+        //     JsonSchema jsonSchema;
+        //     JsonSchemaGeneratorSettings jsonSettings = new JsonSchemaGeneratorSettings()
+        //     {
+        //         GenerateAbstractSchemas = false,
+        //         FlattenInheritanceHierarchy = true
+        //     };
 
-            JsonSchema jsonSchema;
-            JsonSchemaGeneratorSettings jsonSettings = new JsonSchemaGeneratorSettings()
-            {
-                GenerateAbstractSchemas = false,
-                FlattenInheritanceHierarchy = true
-            };
+        //     if (fieldType.IsAssignableTo(typeof(Stream)))
+        //         jsonSchema = new JsonSchema { Type = JsonObjectType.File };
+        //     else
+        //         jsonSchema = JsonSchema.FromType(fieldType, jsonSettings);
 
-            if (fieldType.IsAssignableTo(typeof(Stream)))
-                jsonSchema = new JsonSchema { Type = JsonObjectType.File };
-            else
-                jsonSchema = JsonSchema.FromType(fieldType, jsonSettings);
+        //     // TODO: Figure out the proper way to handle this schema generation.
+        //     // For now, we need to make reference types nullable manually at the root level.
+        //     // For now, we need to make nullable value types nullable manually at the root level.
+        //     Type nullableType = Nullable.GetUnderlyingType(fieldType);
+        //     if (fieldType.IsClass || nullableType != null)
+        //         jsonSchema.Type |= JsonObjectType.Null;
 
-            // TODO: Figure out the proper way to handle this schema generation.
-            // For now, we need to make reference types nullable manually at the root level.
-            // For now, we need to make nullable value types nullable manually at the root level.
-            Type nullableType = Nullable.GetUnderlyingType(fieldType);
-            if (fieldType.IsClass || nullableType != null)
-                jsonSchema.Type |= JsonObjectType.Null;
-
-            jsonSchema.Title = field;
-            return jsonSchema;
-        }
+        //     jsonSchema.Title = field;
+        //     return jsonSchema;
+        // }
 
         // TODO: Provide a better way to retrieve tasks for an operation before executing the operation itself.
         /// <summary>
@@ -219,6 +208,7 @@ namespace CartaCore.Operations
             return operationType;
         }
 
+        // TODO: Implement constructing generic operations if necessary.
         /// <summary>
         /// Constructs a new operation from a specified type.
         /// </summary>

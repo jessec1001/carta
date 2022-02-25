@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using CartaCore.Operations.Attributes;
 
@@ -19,7 +20,6 @@ namespace CartaCore.Operations
         /// </summary>
         [FieldName("Delay")]
         public int Delay { get; set; }
-        // TODO: Display this only when the type of value is enumerable.
         /// <summary>
         /// Whether there should be a delay between each item in the value.
         /// </summary>
@@ -54,6 +54,24 @@ namespace CartaCore.Operations
         {
             await Task.Delay(input.Delay);
             return new DelayOperationOut<TValue> { Value = input.Value };
+        }
+
+        // TODO: See if we can make this method pass an input instead of a context.
+        /// <inheritdoc />
+        public override async IAsyncEnumerable<OperationFieldDescriptor> GetInputFields(OperationContext context)
+        {
+            // TODO: Check if the value is enumerable.
+            bool enumerable = true;
+
+            // Only if the type is enumerable, we expose the per item option.
+            await foreach(OperationFieldDescriptor descriptor in base.GetInputFields(context))
+            {
+                if (descriptor.Name == nameof(DelayOperationIn<TValue>.PerItem))
+                {
+                    if (enumerable) yield return descriptor;
+                }
+                else yield return descriptor;
+            }
         }
     }
 }

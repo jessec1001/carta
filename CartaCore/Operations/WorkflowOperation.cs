@@ -536,7 +536,7 @@ namespace CartaCore.Operations
         {
             if (Results.TryGetValue(id, out Dictionary<string, object> output))
                 return await Task.FromResult(output);
-            else throw new KeyNotFoundException($"Could not find output for operation with ID: {id}.");
+            else throw new KeyNotFoundException($"Could not find output for operation with ID '{id}'.");
         }
     }
 }

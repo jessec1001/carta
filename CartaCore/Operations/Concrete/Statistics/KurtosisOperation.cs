@@ -13,6 +13,7 @@ namespace CartaCore.Operations
         /// <summary>
         /// The list of numeric values to compute the central kurtosis of.
         /// </summary>
+        [FieldName("Values")]
         public IAsyncEnumerable<double> Values { get; set; }
     }
     /// <summary>
@@ -23,6 +24,7 @@ namespace CartaCore.Operations
         /// <summary>
         /// The computed central kurtosis.
         /// </summary>
+        [FieldName("Kurtosis")]
         public double Kurtosis { get; set; }
     }
 

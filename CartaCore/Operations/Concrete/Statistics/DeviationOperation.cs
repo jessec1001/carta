@@ -14,11 +14,13 @@ namespace CartaCore.Operations
         /// <summary>
         /// The array of values to compute the standard deviation of.
         /// </summary>
+        [FieldName("Values")]
         public IAsyncEnumerable<double> Values { get; set; }
         /// <summary>
         /// Whether to use [Bessel's Correction](https://en.wikipedia.org/wiki/Bessel%27s_correction) to make the
         /// estimator of deviation unbiased.
         /// </summary>
+        [FieldName("Use Bessel's Correction")]
         public bool UseBesselsCorrection { get; set; }
     }
     /// <summary>
@@ -29,6 +31,7 @@ namespace CartaCore.Operations
         /// <summary>
         /// The standard deviation of the list of values. 
         /// </summary>
+        [FieldName("Deviation")]
         public double Deviation { get; set; }
     }
 

@@ -11,6 +11,7 @@ namespace CartaCore.Operations.Text
         /// <summary>
         /// The text to measure.
         /// </summary>
+        [FieldName("Text")]
         public string Text { get; set; }
     }
     /// <summary>
@@ -21,6 +22,7 @@ namespace CartaCore.Operations.Text
         /// <summary>
         /// The length of the text.
         /// </summary>
+        [FieldName("Length")]
         public int Length { get; set; }
     }
 

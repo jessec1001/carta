@@ -252,7 +252,7 @@ namespace CartaWeb.Controllers
                 if (source == DataSource.User)
                 {
                     int id = await SaveGraphAsync(graph);
-                    graph.Identifier = Identity.Create(id);
+                    graph.Id = id.ToString();
                     return Ok(graph);
                 }
                 return BadRequest();

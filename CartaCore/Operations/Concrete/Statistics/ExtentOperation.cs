@@ -12,6 +12,7 @@ namespace CartaCore.Operations
         /// <summary>
         /// The array of values to compute the extent of.
         /// </summary>
+        [FieldName("Values")]
         public IAsyncEnumerable<double> Values { get; set; }
     }
     /// <summary>
@@ -22,10 +23,12 @@ namespace CartaCore.Operations
         /// <summary>
         /// The minimum value of the array of values.
         /// </summary>
+        [FieldName("Minimum")]
         public double Minimum { get; set; }
         /// <summary>
         /// The maximum value of the array of values.
         /// </summary>
+        [FieldName("Maximum")]
         public double Maximum { get; set; }
     }
 

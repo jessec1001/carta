@@ -15,10 +15,14 @@ namespace CartaCore.Operations.Text
         /// - If splitting by plain text, just enter the text you want to split by.
         /// - If splitting by regular expression, enter your regular expression surrounded by forward slashes like "/[0-9a-f]+/".
         /// </summary>
+        [FieldRequired]
+        [FieldDefault(" ")]
+        [FieldName("Pattern")]
         public string Pattern { get; set; }
         /// <summary>
         /// The text to split.
         /// </summary>
+        [FieldName("Text")]
         public string Text { get; set; }
     }
     /// <summary>
@@ -29,6 +33,7 @@ namespace CartaCore.Operations.Text
         /// <summary>
         /// The resulting list of parts that the text was split into.
         /// </summary>
+        [FieldName("Parts")]
         public string[] Parts { get; set; }
     }
 

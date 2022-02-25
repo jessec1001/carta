@@ -35,7 +35,6 @@ namespace CartaCore.Operations
         /// </param>
         /// <returns>The typed output from the operation.</returns>
         public virtual Task<TOutput> Perform(TInput input, OperationContext context = null) => Perform(input);
-
         /// <inheritdoc />
         public override async Task Perform(OperationContext context)
         {
@@ -76,56 +75,54 @@ namespace CartaCore.Operations
 
         // TODO: We need to incorporate the attributes into the following methods.  
         /// <inheritdoc />
-        public override Task<string[]> GetInputFields(OperationContext context)
+        public override async IAsyncEnumerable<OperationFieldDescriptor> GetInputFields(OperationContext context)
         {
-            return Task.FromResult(
-                typeof(TInput)
+            // Get the public properties by ignoring case for web portability.
+            PropertyInfo[] properties = typeof(TInput)
                 .GetProperties(
                     BindingFlags.IgnoreCase |
-                    BindingFlags.Public |
-                    BindingFlags.Instance
-                )
-                .Select(property => property.Name)
-                .ToArray()
-            );
-        }
-        /// <inheritdoc />
-        public override Task<string[]> GetOutputFields(OperationContext context)
-        {
-            return Task.FromResult(
-                typeof(TOutput)
-                .GetProperties(
-                    BindingFlags.IgnoreCase |
-                    BindingFlags.Public |
-                    BindingFlags.Instance
-                )
-                .Select(property => property.Name)
-                .ToArray()
-            );
-        }
+                    BindingFlags.Instance |
+                    BindingFlags.Public
+                );
 
-        // TODO: Refactor
-        /*
-            We need more information that simply the type or types that a value can be set to.
-            In some circumstances, we need some special functionality defined in terms of attributes.
-            We need to transform this additional functionality into a generalizeable structure that
-            may be passed around easily.
-        */
-        /// <inheritdoc />
-        public override Type GetInputFieldType(string field)
-        {
-            return typeof(TInput).GetProperty(field,
-                BindingFlags.IgnoreCase |
-                BindingFlags.Public |
-                BindingFlags.Instance).PropertyType;
+            // Construct each of the field descriptors from the known properties.
+            foreach (PropertyInfo property in properties)
+            {
+                yield return await Task.FromResult(
+                    new OperationFieldDescriptor
+                    {
+                        Name = property.Name,
+                        Type = property.PropertyType,
+                        Attributes = property.GetCustomAttributes().ToList(),
+                        Schema = null
+                    }
+                );
+            }
         }
         /// <inheritdoc />
-        public override Type GetOutputFieldType(string field)
+        public override async IAsyncEnumerable<OperationFieldDescriptor> GetOutputFields(OperationContext context)
         {
-            return typeof(TOutput).GetProperty(field,
-                BindingFlags.IgnoreCase |
-                BindingFlags.Public |
-                BindingFlags.Instance).PropertyType;
+            // Get the public properties by ignoring case for web portability.
+            PropertyInfo[] properties = typeof(TOutput)
+                .GetProperties(
+                    BindingFlags.IgnoreCase |
+                    BindingFlags.Instance |
+                    BindingFlags.Public
+                );
+
+            // Construct each of the field descriptors from the known properties.
+            foreach (PropertyInfo property in properties)
+            {
+                yield return await Task.FromResult(
+                    new OperationFieldDescriptor
+                    {
+                        Name = property.Name,
+                        Type = property.PropertyType,
+                        Attributes = property.GetCustomAttributes().ToList(),
+                        Schema = null
+                    }
+                );
+            }
         }
 
         /// <summary>

@@ -1,5 +1,3 @@
-using System;
-
 namespace CartaCore.Data
 {
     /// <summary>

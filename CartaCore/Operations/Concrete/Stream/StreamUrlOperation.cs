@@ -13,6 +13,8 @@ namespace CartaCore.Operations
         /// <summary>
         /// The URL to request a data stream from.
         /// </summary>
+        [FieldRequired]
+        [FieldName("URL")]
         public string Url { get; set; }
     }
     /// <summary>
@@ -23,6 +25,7 @@ namespace CartaCore.Operations
         /// <summary>
         /// The stream of information retrieved from the URL.
         /// </summary>
+        [FieldName("Stream")]
         public Stream Stream { get; set; }
     }
 

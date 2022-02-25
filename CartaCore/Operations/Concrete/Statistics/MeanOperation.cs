@@ -13,6 +13,7 @@ namespace CartaCore.Operations
         /// <summary>
         /// The list of numeric values to compute the mean of.
         /// </summary>
+        [FieldName("Values")]
         public IAsyncEnumerable<double> Values { get; set; }
     }
     /// <summary>
@@ -23,6 +24,7 @@ namespace CartaCore.Operations
         /// <summary>
         /// The computed mean.
         /// </summary>
+        [FieldName("Mean")]
         public double Mean { get; set; }
     }
 

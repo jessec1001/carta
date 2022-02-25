@@ -13,6 +13,7 @@ namespace CartaCore.Operations
         /// <summary>
         /// The list of numeric values to compute the median of.
         /// </summary>
+        [FieldName("Values")]
         public IAsyncEnumerable<double> Values { get; set; }
     }
     /// <summary>
@@ -23,6 +24,7 @@ namespace CartaCore.Operations
         /// <summary>
         /// The computed median.
         /// </summary>
+        [FieldName("Median")]
         public double Median { get; set; }
     }
 
