@@ -136,7 +136,7 @@ namespace CartaCore.Integration.Hyperthought.Api
         /// <param name="accessKey">The API access key.</param>
         /// <param name="httpTimeout">The HTTP time out in sectods</param>
         public HyperthoughtApi(string accessKey, double httpTimeout)
-            : this(ParseAccessKey(accessKey))
+            : this(accessKey)
         {
             Client.Timeout = TimeSpan.FromSeconds(httpTimeout);
         }
