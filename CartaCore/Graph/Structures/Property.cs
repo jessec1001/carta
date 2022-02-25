@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace CartaCore.Data
+namespace CartaCore.Graph
 {
     /// <summary>
     /// Represents a property with any number of observations. This property may be attached to any element of a graph

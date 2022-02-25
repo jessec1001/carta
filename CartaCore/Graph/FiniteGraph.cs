@@ -2,9 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CartaCore.Graph.Components;
 using MorseCode.ITask;
 
-namespace CartaCore.Data
+namespace CartaCore.Graph
 {
     // TODO: Fix this by adjusting the generic typing on dynamic graph interfaces.
     /// <summary>
@@ -13,10 +14,11 @@ namespace CartaCore.Data
     /// <typeparam name="TVertex">The type of vertex.</typeparam>
     /// <typeparam name="TEdge">The type of edge.</typeparam>
     public class FiniteGraph<TVertex, TEdge> : Graph,
-        IRootedGraph,
-        IEntireGraph<TVertex, TEdge>,
-        IDynamicInGraph<TVertex, TEdge>,
-        IDynamicOutGraph<TVertex, TEdge>
+        IRootedComponent,
+        IEnumerableComponent<TVertex, TEdge>,
+        IDynamicLocalComponent<TVertex, TEdge>,
+        IDynamicInComponent<TVertex, TEdge>,
+        IDynamicOutComponent<TVertex, TEdge>
         where TVertex : IVertex<TEdge>
         where TEdge : IEdge
     {
@@ -39,7 +41,7 @@ namespace CartaCore.Data
         /// <param name="properties">The properties assigned to the graph.</param>
         public FiniteGraph(
             string id,
-            ISet<IProperty> properties
+            IDictionary<string, IProperty> properties
         ) : base(id, properties)
         {
             VertexSet = new Dictionary<string, TVertex>();
@@ -53,7 +55,7 @@ namespace CartaCore.Data
         /// <param name="id">The graph identifier.</param>
         public FiniteGraph(
             string id
-        ) : base(id, new HashSet<IProperty>()) { }
+        ) : base(id, new Dictionary<string, IProperty>()) { }
 
         /// <summary>
         /// Adds a vertex to the graph.
@@ -304,12 +306,12 @@ namespace CartaCore.Data
             // Get all of the vertex identifiers in the edge set.
             // Notice that this may differ from the vertex identifiers in the vertex set because vertices are allowed to
             // not have a value assigned to them but still have edges.
-            foreach (string id in InEdgeSet.Keys)
+            foreach (string id in OutEdgeSet.Keys)
             {
-                // Get the in-edges for the vertex.
+                // Get the out-edges for the vertex.
                 // Iterate over them and return.
-                if (InEdgeSet.TryGetValue(id, out HashSet<TEdge> inEdges))
-                    foreach (TEdge edge in inEdges) yield return await Task.FromResult(edge);
+                if (OutEdgeSet.TryGetValue(id, out HashSet<TEdge> outEdges))
+                    foreach (TEdge edge in outEdges) yield return await Task.FromResult(edge);
             }
         }
 
@@ -365,7 +367,7 @@ namespace CartaCore.Data
         /// <param name="properties">The properties assigned to the graph.</param>
         public FiniteGraph(
             string id,
-            ISet<IProperty> properties
+            IDictionary<string, IProperty> properties
         ) : base(id, properties) { }
         /// <summary>
         /// Initializes an instance of the <see cref="FiniteGraph"/> class with the specified

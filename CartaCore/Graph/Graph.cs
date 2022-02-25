@@ -1,6 +1,7 @@
 using System.Collections.Generic;
+using CartaCore.Graph.Components;
 
-namespace CartaCore.Data
+namespace CartaCore.Graph
 {
     /// <summary>
     /// Represents a graph structure that flexibly retrieves vertex and edge values containing properties with numerous
@@ -11,14 +12,17 @@ namespace CartaCore.Data
         /// <inheritdoc />
         public abstract GraphAttributes Attributes { get; }
 
+        /// <inheritdoc />
+        public ComponentStack Components { get; protected init; } = new();
+
         /// <summary>
         /// Initializes an instance of the <see cref="Graph"/> class with its specified identifier and a set of
         /// properties assigned to it.
         /// </summary>
         /// <param name="id">The identifier of this graph.</param>
         /// <param name="properties">The properties assigned to this element.</param>
-        protected Graph(string id, ISet<IProperty> properties)
-            : base(id, properties) { }
+        protected Graph(string id, IDictionary<string, IProperty> properties)
+            : base(id, properties) => Components.AddTop(this);
         /// <summary>
         /// Initializes an instance of the <see cref="Graph"/> class with its specified identifier.
         /// </summary>

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace CartaCore.Data
+namespace CartaCore.Graph
 {
     /// <summary>
     /// Represents a graph element that has a set of properties with numerous observations assigned to it.
@@ -18,7 +18,7 @@ namespace CartaCore.Data
         public virtual object Value { get; set; }
 
         /// <inheritdoc />
-        public ISet<IProperty> Properties { get; init; }
+        public IDictionary<string, IProperty> Properties { get; init; }
 
         /// <summary>
         /// Initializes an instance of the <see cref="Element{T}"/> class with its specified identifier and a set of
@@ -26,7 +26,7 @@ namespace CartaCore.Data
         /// </summary>
         /// <param name="id">The identifier of this element.</param>
         /// <param name="properties">The properties assigned to this element.</param>
-        protected Element(string id, ISet<IProperty> properties) : base(id)
+        protected Element(string id, IDictionary<string, IProperty> properties) : base(id)
         {
             // Check that properties is not null before assigning.
             if (properties is null) throw new ArgumentNullException(nameof(properties));
@@ -37,6 +37,6 @@ namespace CartaCore.Data
         /// </summary>
         /// <param name="id">The identifier of this element.</param>
         protected Element(string id)
-            : this(id, new HashSet<IProperty>()) { }
+            : this(id, new Dictionary<string, IProperty>()) { }
     }
 }

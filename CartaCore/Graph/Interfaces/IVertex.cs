@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace CartaCore.Data
+namespace CartaCore.Graph
 {
     /// <summary>
     /// Represents the base functionality of a vertex.

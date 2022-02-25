@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace CartaCore.Data
+namespace CartaCore.Graph
 {
     /// <summary>
     /// Represents a graph vertex that can be identified, and takes on properties with numerous observations.

@@ -1,9 +1,9 @@
-namespace CartaCore.Data
+namespace CartaCore.Graph
 {
     /// <summary>
     /// Represents the base structure of a graph element with properties assigned to it.
     /// </summary>
-    public interface IElement : IProperty
+    public interface IElement : IIdentifiable, IProperty
     {
         /// <summary>
         /// The label visible in visualizations of the element.

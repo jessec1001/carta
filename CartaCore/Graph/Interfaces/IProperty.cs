@@ -1,20 +1,20 @@
 using System.Collections.Generic;
 
-namespace CartaCore.Data
+namespace CartaCore.Graph
 {
     /// <summary>
     /// Represents the base structure of a property on an element.
     /// </summary>
-    public interface IProperty : IIdentifiable
+    public interface IProperty
     {
         /// <summary>
         /// The value of the property.
         /// </summary>
         object Value { get; }
-
+        
         /// <summary>
         /// The subproperties of this property.
         /// </summary>
-        ISet<IProperty> Properties { get; }
+        IDictionary<string, IProperty> Properties { get; }
     }
 }

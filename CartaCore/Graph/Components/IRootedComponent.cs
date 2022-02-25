@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 
-namespace CartaCore.Data
+namespace CartaCore.Graph.Components
 {
     /// <summary>
-    /// Represents a graph that has specified roots with in-degree zero that can be used to improve retrieval speed.
+    /// A graph component that allows retrieval of the root vertex identifiers.
     /// </summary>
-    public interface IRootedGraph : IGraph
+    public interface IRootedComponent
     {
         /// <summary>
         /// Enumerates over the identities of root vertices.

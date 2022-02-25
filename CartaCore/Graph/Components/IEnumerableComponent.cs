@@ -1,14 +1,13 @@
 using System.Collections.Generic;
-using System.Linq;
 
-namespace CartaCore.Data
+namespace CartaCore.Graph.Components
 {
     /// <summary>
-    /// Represents a graph where the entirety of the vertices can be enumerated over.
+    /// A graph component that allows enumeration over vertices and edges.
     /// </summary>
     /// <typeparam name="TVertex">The type of vertex.</typeparam>
     /// <typeparam name="TEdge">The type of edge.</typeparam>
-    public interface IEntireGraph<out TVertex, out TEdge> : IGraph
+    public interface IEnumerableComponent<out TVertex, out TEdge>
         where TVertex : IVertex<TEdge>
         where TEdge : IEdge
     {
@@ -21,15 +20,15 @@ namespace CartaCore.Data
         /// Gets the enumeration of all edges in the graph.
         /// </summary>
         /// <value>All graph edges.</value>
-        IAsyncEnumerable<TEdge> GetEdges()
+        async IAsyncEnumerable<TEdge> GetEdges()
         {
-            return GetVertices()
-                .SelectMany(vertex => vertex.Edges.ToAsyncEnumerable())
-                .Distinct();
+            await foreach (TVertex vertex in GetVertices())
+                foreach (TEdge edge in vertex.OutEdges)
+                    yield return edge;
         }
     }
     /// <summary>
-    /// Represents a graph where the entirety of the vertices can be enumerated over.
+    /// A graph component that allows enumeration over vertices and edges.
     /// </summary>
-    public interface IEntireGraph : IEntireGraph<IVertex, IEdge> { }
+    public interface IEnumerableComponent : IEnumerableComponent<IVertex<IEdge>, IEdge> { }
 }

@@ -1,6 +1,6 @@
 using System;
 
-namespace CartaCore.Data
+namespace CartaCore.Graph
 {
     /// <summary>
     /// Represents an object that must be constructed with an identity that can be used to order and assert this object

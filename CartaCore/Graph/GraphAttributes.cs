@@ -1,4 +1,4 @@
-namespace CartaCore.Data
+namespace CartaCore.Graph
 {
     /// <summary>
     /// Represents the properties that a graph can take on that determine how the graph must be retrieved or processed.

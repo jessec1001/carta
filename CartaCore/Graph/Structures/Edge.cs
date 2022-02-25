@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace CartaCore.Data
+namespace CartaCore.Graph
 {
     /// <summary>
     /// Represents a graph edge that connects a pair of vertices that can be identified, and takes on properties with
