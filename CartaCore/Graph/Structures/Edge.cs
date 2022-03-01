@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace CartaCore.Graph
+namespace CartaCore.Graphs
 {
     /// <summary>
     /// Represents a graph edge that connects a pair of vertices that can be identified, and takes on properties with
@@ -29,7 +29,7 @@ namespace CartaCore.Graph
         /// <param name="source">The source vertex identifier.</param>
         /// <param name="target">The target vertex identifier.</param>
         /// <param name="properties">The properties assigned to the edge.</param>
-        public Edge(string id, string source, string target, ISet<IProperty> properties)
+        public Edge(string id, string source, string target, IDictionary<string, IProperty> properties)
             : base(id, properties)
         {
             Source = source;
@@ -42,7 +42,7 @@ namespace CartaCore.Graph
         /// <param name="source">The source vertex identifier.</param>
         /// <param name="target">The target vertex identifier.</param>
         /// <param name="properties">The properties assigned to the edge.</param>
-        public Edge(string source, string target, ISet<IProperty> properties)
+        public Edge(string source, string target, IDictionary<string, IProperty> properties)
             : base($"{source}::{target}", properties)
         {
             Source = source;
@@ -54,7 +54,7 @@ namespace CartaCore.Graph
         /// <param name="source">The source vertex identifier.</param>
         /// <param name="target">The target vertex identifier.</param>
         public Edge(string source, string target)
-            : this(source, target, new HashSet<IProperty>()) { }
+            : this(source, target, new Dictionary<string, IProperty>()) { }
         /// <summary>
         /// Initializes an instance of the <see cref="Edge"/> class with the specified source and target vertices and
         /// assigned properties.
@@ -62,7 +62,7 @@ namespace CartaCore.Graph
         /// <param name="source">The source vertex.</param>
         /// <param name="target">The target vertex.</param>
         /// <param name="properties">The properties assigned to the edge.</param>
-        public Edge(Vertex source, Vertex target, ISet<IProperty> properties)
+        public Edge(Vertex source, Vertex target, IDictionary<string, IProperty> properties)
             : this(source.Id, target.Id, properties) { }
         /// <summary>
         /// Initializes an instance of the <see cref="Edge"/> class with the specified source and target vertices.

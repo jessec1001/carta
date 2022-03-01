@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using MorseCode.ITask;
-using CartaCore.Data;
 using CartaCore.Integration.Hyperthought.Data;
 using CartaCore.Integration.Hyperthought.Api;
+using CartaCore.Graphs.Components;
+using CartaCore.Graphs;
 
 namespace CartaCore.Integration.Hyperthought
 {
@@ -13,9 +14,10 @@ namespace CartaCore.Integration.Hyperthought
     /// Represents a sampled graph generated from data contained in a HyperThought workflow.
     /// </summary>
     public class HyperthoughtWorkflowGraph : Graph,
-        IRootedGraph,
-        IDynamicInGraph<Vertex>,
-        IDynamicOutGraph<Vertex>
+        IRootedComponent,
+        IDynamicLocalComponent<Vertex, Edge>,
+        IDynamicInComponent<Vertex, Edge>,
+        IDynamicOutComponent<Vertex, Edge>
     {
         /// <summary>
         /// The connector to the HyperThought API. 
@@ -64,138 +66,133 @@ namespace CartaCore.Integration.Hyperthought
         {
             // Properties are compiled from the contents read from the data source.
             // This depends on the schema for this data source.
-            HashSet<IProperty> subproperties = new();
+            Dictionary<string, IProperty> metaProperties = new();
 
             #region Triples
-            List<object> subjects = new(workflow.Triples.Count);
-            List<object> predicates = new(workflow.Triples.Count);
-            List<object> objects = new(workflow.Triples.Count);
+            List<string> subjects = new(workflow.Triples.Count);
+            List<string> predicates = new(workflow.Triples.Count);
+            List<string> objects = new(workflow.Triples.Count);
             foreach (HyperthoughtTriple triple in workflow.Triples)
             {
                 subjects.Add(triple.Content.Subject.Data);
                 predicates.Add(triple.Content.Predicate.Data);
                 objects.Add(triple.Content.Object.Data);
             }
-            Property triples = new("Triples")
+            Property triples = new()
             {
-                Properties = new HashSet<IProperty>
+                Properties = new Dictionary<string, IProperty>
                 {
-                    new Property("Subjects", subjects),
-                    new Property("Predicates", predicates),
-                    new Property("Objects", objects)
+                    ["Subjects"] = new Property(subjects),
+                    ["Predicates"] = new Property(predicates),
+                    ["Objects"] = new Property(objects)
                 }
             };
-            subproperties.Add(triples);
+            metaProperties["Triples"] = triples;
             #endregion
 
             #region Headers
-            Property headers = new("Headers")
+            Property headers = new()
             {
-                Properties = new HashSet<IProperty>
+                Properties = new Dictionary<string, IProperty>
                 {
-                    new Property("Canonical URI", workflow.Headers.CanonicalUri),
-                    new Property("URI", workflow.Headers.Uri),
-                    new Property("System Creation Time", workflow.Headers.CreationTime),
-                    new Property("System Last Modification Time", workflow.Headers.LastModifiedTime),
-                    new Property("Created By", workflow.Headers.CreatedBy),
-                    new Property("Modified By", workflow.Headers.LastModifiedBy),
-                    new Property("Process ID", workflow.Headers.ProcessId)
+                    ["Canonical URI"] = new Property(workflow.Headers.CanonicalUri),
+                    ["URI"] = new Property(workflow.Headers.Uri),
+                    ["System Creation Time"] = new Property(workflow.Headers.CreationTime),
+                    ["System Last Modification Time"] = new Property(workflow.Headers.LastModifiedTime),
+                    ["Created By"] = new Property(workflow.Headers.CreatedBy),
+                    ["Modified By"] = new Property(workflow.Headers.LastModifiedBy),
+                    ["Process ID"] = new Property(workflow.Headers.ProcessId)
                 }
             };
-            subproperties.Add(headers);
+            metaProperties["Headers"] = headers;
             #endregion
 
             #region Permissions
             // Structure permissions so that each permission entry is a property of the appropriate permissions field.
-            HashSet<IProperty> workspaceSubproperties = new();
+            Dictionary<string, IProperty> workspaceSubproperties = new();
             foreach (string key in workflow.Permissions.Workspaces.Keys)
-                workspaceSubproperties.Add(new Property(key, workflow.Permissions.Workspaces[key]));
+                workspaceSubproperties[key] = new Property(workflow.Permissions.Workspaces[key]);
             workspaceSubproperties.TrimExcess();
 
-            HashSet<IProperty> userSubproperties = new();
+            Dictionary<string, IProperty> userSubproperties = new();
             foreach (string key in workflow.Permissions.Users.Keys)
-                userSubproperties.Add(new Property(key, workflow.Permissions.Users[key]));
+                userSubproperties[key] = new Property(workflow.Permissions.Users[key]);
             userSubproperties.TrimExcess();
 
-            Property workspacePermissions = new("Workspaces") { Properties = workspaceSubproperties };
-            Property userPermissions = new("Users") { Properties = userSubproperties };
-
-            Property permissions = new ("Permissions")
+            Property workspacePermissions = new() { Properties = workspaceSubproperties };
+            Property userPermissions = new() { Properties = userSubproperties };
+            Property permissions = new()
             {
-                Properties = new HashSet<IProperty>
+                Properties = new Dictionary<string, IProperty>
                 {
-                    workspacePermissions,
-                    userPermissions
+                    ["Workspaces"] = workspacePermissions,
+                    ["Users"] = userPermissions
                 }
             };
-            subproperties.Add(permissions);
+            metaProperties["Permissions"] = permissions;
             #endregion
 
             #region Restrictions
-            Property restrictions = new("Restrictions")
+            Property restrictions = new()
             {
-                Properties = new HashSet<IProperty>
+                Properties = new Dictionary<string, IProperty>
                 {
-                    new Property("Distribution", workflow.Restrictions.Distribution),
-                    new Property("Export Control", workflow.Restrictions.ExportControl),
-                    new Property("Security Marking", workflow.Restrictions.SecurityMarking)
+                    ["Distribution"] = new Property(workflow.Restrictions.Distribution),
+                    ["Export Control"] = new Property(workflow.Restrictions.ExportControl),
+                    ["Security Marking"] = new Property(workflow.Restrictions.SecurityMarking)
                 }
             };
-            subproperties.Add(restrictions);
+            metaProperties["Restrictions"] = restrictions;
             #endregion
 
             #region Content
-            HashSet<IProperty> content = new()
+            Dictionary<string, IProperty> content = new()
             {
                 // ID, and name and description are excluded because they are included in the vertex structure itself.
-                new Property("Process ID", workflow.Content.ProcessId),
-                new Property("Parent Process", workflow.Content.ParentProcessId),
-                new Property("Client ID", workflow.Content.ClientId),
-                new Property("Successors", workflow.Content.SuccessorIds),
-                new Property("Predecessors", workflow.Content.PredecessorIds),
-                new Property("Children", workflow.Content.ChildrenIds),
-                new Property("Process Type", workflow.Content.Type),
-                new Property("Template", workflow.Content.Template),
-                new Property("Created By", workflow.Content.CreatedBy),
-                new Property("Creation Time", workflow.Content.CreatedTime),
-                new Property("Last Modified By", workflow.Content.LastModifiedBy),
-                new Property("Last Modification Time", workflow.Content.LastModifiedTime),
-                new Property("Assignee", workflow.Content.Assignee),
-                new Property("Status", workflow.Content.Status),
-                new Property("Started", workflow.Content.StartedTime),
-                new Property("Completed", workflow.Content.CompletedTime),
-                new Property("XML", workflow.Content.Xml),
+                ["Process ID"] = new Property(workflow.Content.ProcessId),
+                ["Parent Process"] = new Property(workflow.Content.ParentProcessId),
+                ["Client ID"] = new Property(workflow.Content.ClientId),
+                ["Successors"] = new Property(workflow.Content.SuccessorIds),
+                ["Predecessors"] = new Property(workflow.Content.PredecessorIds),
+                ["Children"] = new Property(workflow.Content.ChildrenIds),
+                ["Process Type"] = new Property(workflow.Content.Type),
+                ["Template"] = new Property(workflow.Content.Template),
+                ["Created By"] = new Property(workflow.Content.CreatedBy),
+                ["Creation Time"] = new Property(workflow.Content.CreatedTime),
+                ["Last Modified By"] = new Property(workflow.Content.LastModifiedBy),
+                ["Last Modification Time"] = new Property(workflow.Content.LastModifiedTime),
+                ["Assignee"] = new Property(workflow.Content.Assignee),
+                ["Status"] = new Property(workflow.Content.Status),
+                ["Started"] = new Property(workflow.Content.StartedTime),
+                ["Completed"] = new Property(workflow.Content.CompletedTime),
+                ["XML"] = new Property(workflow.Content.Xml),
             };
 
             // Add any fields not explicitly part of the schema.
             foreach (string key in workflow.Content.Extensions.Keys)
-                content.Add(new Property(key, workflow.Content.Extensions[key]));
+                content[key] = new Property(workflow.Content.Extensions[key]);
 
-            subproperties.Add(new Property("Content") { Properties = content });
+            metaProperties["Content"] = new Property() { Properties = content };
             #endregion
 
             #region Process Metadata
             // We find the properties for the vertex from the metadata.
-            HashSet<IProperty> metadataProperties = new(workflow.Metadata.Count);
+            Dictionary<string, IProperty> standardProperties = new(workflow.Metadata.Count);
             foreach (HyperthoughtMetadata metadata in workflow.Metadata)
             {
-                // If properties end up having the same name, we need to make sure that the values are unique.
-                // Thus, we ignore every value except the first.
-                HyperthoughtMetadataValue value = metadata.Value;
-                if (metadataProperties.Any(property => property.Id == metadata.Key)) continue;
-
                 // Get extension data for this property.
-                HashSet<IProperty> metadataSubproperties = new();
+                Dictionary<string, IProperty> suproperties = new();
                 foreach (string key in metadata.Extensions.Keys)
-                    metadataSubproperties.Add(new Property(key, metadata.Extensions[key]));
-                metadataSubproperties.TrimExcess();
+                    suproperties[key] = new Property(metadata.Extensions[key]);
+                suproperties.TrimExcess();
 
                 // We create a new property.
-                Property property = new(metadata.Key, value.Link) { Properties = metadataSubproperties };
-                metadataProperties.Add(property);
+                HyperthoughtMetadataValue value = metadata.Value;
+                Property property = new(value.Link) { Properties = suproperties };
+                standardProperties[metadata.Key] = property;
             }
-            metadataProperties.Add(new Property("HyperThought Metadata") { Properties = subproperties });
-            metadataProperties.TrimExcess();
+            standardProperties["HyperThought Metadata"] = new Property() { Properties = metaProperties };
+            standardProperties.TrimExcess();
             #endregion
 
             // Get the identifier of this vertex.
@@ -222,7 +219,7 @@ namespace CartaCore.Integration.Hyperthought
                 edges.Add(new Edge(id, successorId.ToString()));
 
             // Create the vertex with the name and notes as labels and description respectively.
-            return new(id, metadataProperties, edges)
+            return new(id, standardProperties, edges)
             {
                 Label = workflow.Content.Name,
                 Description = workflow.Content.Notes

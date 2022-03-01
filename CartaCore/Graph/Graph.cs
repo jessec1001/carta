@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using CartaCore.Graph.Components;
+using CartaCore.Graphs.Components;
 
-namespace CartaCore.Graph
+namespace CartaCore.Graphs
 {
     /// <summary>
     /// Represents a graph structure that flexibly retrieves vertex and edge values containing properties with numerous

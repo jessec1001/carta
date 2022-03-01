@@ -2,8 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using MorseCode.ITask;
-using CartaCore.Data;
+using CartaCore.Graphs;
 using CartaCore.Statistics;
+using CartaCore.Graphs.Components;
 
 namespace CartaCore.Integration.Synthetic
 {
@@ -11,11 +12,12 @@ namespace CartaCore.Integration.Synthetic
     /// Represents graph data of a random, (practically) infinite, directed graph. Both the vertices and edges are
     /// randomly generated and connected.
     /// </summary>
-    public class InfiniteDirectedGraph : Graph,
-        IRootedGraph,
-        IDynamicGraph<Vertex>,
-        IDynamicOutGraph<Vertex>,
-        IParameterizedGraph<InfiniteDirectedGraphParameters>
+    public class InfiniteDirectedGraph :
+        Graph,
+        IRootedComponent,
+        IDynamicLocalComponent<Vertex, Edge>,
+        IDynamicOutComponent<Vertex, Edge>,
+        IParameterizedComponent<InfiniteDirectedGraphParameters>
     {
         /// <inheritdoc />
         public InfiniteDirectedGraphParameters Parameters { get; set; }
@@ -115,15 +117,15 @@ namespace CartaCore.Integration.Synthetic
             CompoundRandom random = new(Parameters.Seed, guid);
 
             // Create properties from the set of graph properties.
-            HashSet<IProperty> properties = new(capacity: NamedPropertyTypes.Count);
+            Dictionary<string, IProperty> properties = new(capacity: NamedPropertyTypes.Count);
             foreach (KeyValuePair<string, Type> namedPropertyType in NamedPropertyTypes)
             {
                 if (random.NextDouble() < Parameters.PropertyInclusionProbability)
                 {
                     // Add the observation value to the property.
                     object value = GenerateRandomValue(random, namedPropertyType.Value);
-                    Property property = new(namedPropertyType.Key, value);
-                    properties.Add(property);
+                    Property property = new(value);
+                    properties[namedPropertyType.Key] = property;
                 }
             }
             properties.TrimExcess();

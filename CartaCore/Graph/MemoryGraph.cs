@@ -2,18 +2,17 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using CartaCore.Graph.Components;
+using CartaCore.Graphs.Components;
 using MorseCode.ITask;
 
-namespace CartaCore.Graph
+namespace CartaCore.Graphs
 {
-    // TODO: Fix this by adjusting the generic typing on dynamic graph interfaces.
     /// <summary>
     /// Represents a graph that has finitely many vertices and edges.
     /// </summary>
     /// <typeparam name="TVertex">The type of vertex.</typeparam>
     /// <typeparam name="TEdge">The type of edge.</typeparam>
-    public class FiniteGraph<TVertex, TEdge> : Graph,
+    public class MemoryGraph<TVertex, TEdge> : Graph,
         IRootedComponent,
         IEnumerableComponent<TVertex, TEdge>,
         IDynamicLocalComponent<TVertex, TEdge>,
@@ -34,12 +33,12 @@ namespace CartaCore.Graph
         private Dictionary<string, HashSet<TEdge>> OutEdgeSet { get; init; }
 
         /// <summary>
-        /// Initializes an instance of the <see cref="FiniteGraph{TVertex, TEdge}"/> class with the specified identifier
+        /// Initializes an instance of the <see cref="MemoryGraph{TVertex, TEdge}"/> class with the specified identifier
         /// and properties.
         /// </summary>
         /// <param name="id">The graph identifier.</param>
         /// <param name="properties">The properties assigned to the graph.</param>
-        public FiniteGraph(
+        public MemoryGraph(
             string id,
             IDictionary<string, IProperty> properties
         ) : base(id, properties)
@@ -49,11 +48,11 @@ namespace CartaCore.Graph
             OutEdgeSet = new Dictionary<string, HashSet<TEdge>>();
         }
         /// <summary>
-        /// Initializes an instance of the <see cref="FiniteGraph{TVertex, TEdge}"/> class with the specified
+        /// Initializes an instance of the <see cref="MemoryGraph{TVertex, TEdge}"/> class with the specified
         /// identifier.
         /// </summary>
         /// <param name="id">The graph identifier.</param>
-        public FiniteGraph(
+        public MemoryGraph(
             string id
         ) : base(id, new Dictionary<string, IProperty>()) { }
 
@@ -357,7 +356,7 @@ namespace CartaCore.Graph
     /// <summary>
     /// Represents a graph that has finitely many vertices and edges.
     /// </summary>
-    public class FiniteGraph : FiniteGraph<Vertex, Edge>
+    public class FiniteGraph : MemoryGraph<Vertex, Edge>
     {
         /// <summary>
         /// Initializes an instance of the <see cref="FiniteGraph"/> class with the specified identifier

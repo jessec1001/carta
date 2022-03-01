@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using CartaCore.Operations.Attributes;
-using CartaCore.Typing.Conversion;
+using CartaCore.Typing;
 
 namespace CartaCore.Extensions.Typing
 {

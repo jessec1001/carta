@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace CartaCore.Graph
+namespace CartaCore.Graphs
 {
     /// <summary>
     /// Represents the base structure of a property on an element.

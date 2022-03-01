@@ -34,7 +34,7 @@ namespace CartaCore.Integration.Hyperthought.Api
         public async Task<IList<HyperthoughtGroup>> GetGroupsAsync()
         {
             Uri requestUri = GetApiUri();
-            return await Api.GetJsonObjectAsync<IList<HyperthoughtGroup>>(requestUri);
+            return await Api.GetJsonAsync<IList<HyperthoughtGroup>>(requestUri);
         }
     }
 }

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using MorseCode.ITask;
 
-namespace CartaCore.Graph.Components
+namespace CartaCore.Graphs.Components
 {
     /// <summary>
     /// A graph component that allows retrieval of a vertex specified by an identifier.
@@ -33,5 +33,5 @@ namespace CartaCore.Graph.Components
     /// <summary>
     /// A graph component that allows retrieval of a vertex specified by an identifier.
     /// </summary>
-    public interface IDynamicOutComponent : IDynamicOutComponent<IVertex<IEdge>, IEdge> { }
+    public interface IDynamicLocalComponent : IDynamicOutComponent<IVertex<IEdge>, IEdge> { }
 }

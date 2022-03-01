@@ -1,10 +1,3 @@
-using System;
-using System.Linq;
-using System.Reflection;
-using CartaCore.Documentation;
-using CartaCore.Extensions.Documentation;
-using CartaCore.Operations.Attributes;
-
 namespace CartaCore.Operations
 {
     /// <summary>
@@ -23,6 +16,7 @@ namespace CartaCore.Operations
         /// </summary>
         public string Subtype { get; set; }
 
+        // TODO: Can we move this selector information somewhere else?
         /// <summary>
         /// The name of this operation when used as a selector for a graph. If the operation is not a selector, this
         /// value will be null.
@@ -47,85 +41,5 @@ namespace CartaCore.Operations
         /// additional context clues to the nature of an operation. 
         /// </summary>
         public string[] Tags { get; set; }
-
-        /// <summary>
-        /// Create a description from a particular type of operation.
-        /// </summary>
-        /// <param name="type">The type of operation.</param>
-        /// <returns>The generated description.</returns>
-        public static OperationDescription FromType(Type type)
-        {
-            // Create an operation description. 
-            OperationDescription description = new() { Tags = Array.Empty<string>() };
-
-            // Get the default description from the XML documentation.
-            // We ignore errors here because they are more like warnings in this context and will be caught by tests.
-            try
-            {
-                description.Description = type.GetDocumentation<StandardDocumentation>().Summary;
-            }
-            catch { }
-
-            // Apply all description modifying attributes.
-            foreach (Attribute attr in type.GetCustomAttributes())
-            {
-                if (attr is IOperationDescribingAttribute describer)
-                    description = describer.Modify(description);
-            }
-
-            return description;
-        }
-        /// <summary>
-        /// Create a description from a particular type of operation.
-        /// </summary>
-        /// <typeparam name="T">The type of operation.</typeparam>
-        /// <returns>The generated description.</returns>
-        public static OperationDescription FromType<T>() where T : Operation
-        {
-            return FromType(typeof(T));
-        }
-
-        /// <summary>
-        /// Create a description from a particular instance of an operation.
-        /// </summary>
-        /// <param name="operation">The operation instance.</param>
-        /// <returns>The generated description.</returns>
-        public static OperationDescription FromInstance(Operation operation)
-        {
-            // Get the base description.
-            OperationDescription description = FromType(operation.GetType());
-
-            // TODO: Implement.
-            // // If the operation is a workflow, add a subtype to the description.
-            // if (operation is WorkflowOperation workflowOperation)
-            //     description.Subtype = operation.Identifier;
-
-            return description;
-        }
-
-        /// <summary>
-        /// Creates the descriptions for all concretely-implemented public operations.
-        /// </summary>
-        /// <returns>A list operation descriptions for all operation types.</returns>
-        public static OperationDescription[] FromOperationTypes(Assembly assembly = null)
-        {
-            // Use the specified or default assembly.
-            assembly ??= Assembly.GetAssembly(typeof(Operation));
-
-            // Get the concrete types which are implementations of an operation.
-            Type[] assemblyTypes = assembly.GetTypes();
-            Type[] operationTypes = assemblyTypes
-                .Where(type =>
-                    type.IsAssignableTo(typeof(Operation)) &&
-                    type.IsPublic &&
-                    !(type.IsAbstract || type.IsInterface))
-                .ToArray();
-
-            // Generate the descriptions for each of the operation implementation types.
-            OperationDescription[] descriptions = new OperationDescription[operationTypes.Length];
-            for (int k = 0; k < operationTypes.Length; k++)
-                descriptions[k] = FromType(operationTypes[k]);
-            return descriptions;
-        }
     }
 }

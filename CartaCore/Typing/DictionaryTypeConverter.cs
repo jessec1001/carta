@@ -5,7 +5,7 @@ using System.Reflection;
 using CartaCore.Extensions.Typing;
 using CartaCore.Operations.Attributes;
 
-namespace CartaCore.Typing.Conversion
+namespace CartaCore.Typing
 {
     // TODO: Should we split converters of this form into two classes?
     /// <summary>

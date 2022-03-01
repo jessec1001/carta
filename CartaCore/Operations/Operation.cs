@@ -1,15 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using CartaCore.Data;
 using CartaCore.Extensions.Typing;
 using CartaCore.Operations.Attributes;
-using CartaCore.Typing.Conversion;
-using NJsonSchema;
-using NJsonSchema.Generation;
 
 namespace CartaCore.Operations
 {
@@ -22,43 +17,14 @@ namespace CartaCore.Operations
     /// </summary>
     public abstract class Operation
     {
-        // TODO: Can we make this readonly?
         /// <summary>
         /// A unique identifier for this operation that should be used for specifying references to this operation.
         /// </summary>
-        public string Id { get; set; }
+        public string Id { get; init; }
         /// <summary>
         /// The default values of the operation.
         /// </summary>
         public Dictionary<string, object> DefaultValues { get; set; } = new();
-
-        /// <summary>
-        /// The initial values of the operation.
-        /// Concrete operations should override this property to provide the initial values of the operation.
-        /// </summary>
-        public virtual Dictionary<string, object> InitialValues { get => new(); }
-
-        /// <summary>
-        /// The default type converter.
-        /// </summary>
-        protected static readonly TypeConverterContext DefaultTypeConverter = new(
-            new EnumTypeConverter(),
-            new NumericTypeConverter(),
-            new ArrayTypeConverter(),
-            new DictionaryTypeConverter()
-        );
-
-        // TODO: This needs to be done better to support passing the holistic information about typing, naming, and
-        //       schema back to calling code.
-
-        /// <summary>
-        /// An enumeration of inputs that this operation requires within the parent context.
-        /// </summary>
-        public virtual IEnumerable<string> ExternalInputs => Enumerable.Empty<string>();
-        /// <summary>
-        /// An enumeration of outputs that this operation produces within the parent context.
-        /// </summary>
-        public virtual IEnumerable<string> ExternalOutputs => Enumerable.Empty<string>();
 
         /// <summary>
         /// Operates on a specified operation context containing input and output mappings. Most operations will use the
@@ -98,6 +64,35 @@ namespace CartaCore.Operations
         /// <param name="context">The executing operation context.</param>
         /// <returns>An enumeration of output field descriptors.</returns>
         public abstract IAsyncEnumerable<OperationFieldDescriptor> GetOutputFields(OperationContext context);
+
+        /// <summary>
+        /// Gets the input fields of the executing context and their descriptors for this operation.
+        /// </summary>
+        /// <param name="context">The executing operation context.</param>
+        /// <returns>An enumeration of external input field descriptors.</returns>
+        public virtual IAsyncEnumerable<OperationFieldDescriptor> GetExternalInputFields(OperationContext context)
+        {
+            return Enumerable.Empty<OperationFieldDescriptor>().ToAsyncEnumerable();
+        }
+        /// <summary>
+        /// Gets the output fields of the executing context and their descriptors for this operation.
+        /// </summary>
+        /// <param name="context">The executing operation context.</param>
+        /// <returns>An enumeration of external output field descriptors.</returns>
+        public virtual IAsyncEnumerable<OperationFieldDescriptor> GetExternalOutputFields(OperationContext context)
+        {
+            return Enumerable.Empty<OperationFieldDescriptor>().ToAsyncEnumerable();
+        }
+
+        /// <summary>
+        /// Get the tasks that need to be executed in order for the operation to complete.
+        /// </summary>
+        /// <param name="context">The context under which the operation is executing.</param>
+        /// <returns>A list of tasks.</returns>
+        public virtual IAsyncEnumerable<OperationTask> GetTasks(OperationContext context)
+        {
+            return Enumerable.Empty<OperationTask>().ToAsyncEnumerable();
+        }
 
         // // TODO: Reimplement elsewhere.
         // /// <summary>
@@ -161,123 +156,9 @@ namespace CartaCore.Operations
         //     jsonSchema.Title = field;
         //     return jsonSchema;
         // }
+        
 
-        // TODO: Provide a better way to retrieve tasks for an operation before executing the operation itself.
-        /// <summary>
-        /// Get the tasks that need to be executed in order for the operation to complete.
-        /// </summary>
-        /// <param name="context">The context under which the operation is executing.</param>
-        /// <returns>A list of tasks.</returns>
-        public virtual async IAsyncEnumerable<OperationTask> GetTasks(OperationContext context)
-        {
-            yield break;
-
-            // // TODO: Support tasks being added by individual operations at any stage in the workflow execution. For now,
-            // //       we will only consider tasks induced by missing inputs to the entire operation.
-            // Dictionary<string, object> total = context.Total;
-            // foreach (KeyValuePair<string, object> entry in total)
-            // {
-            //     // This check for tasks should really only be available for `InputOperation`.
-            //     if (entry.Value is Stream stream && stream == Stream.Null)
-            //     {
-            //         yield return new OperationTask()
-            //         {
-            //             Type = OperationTaskType.File,
-            //             Field = entry.Key
-            //         };
-            //     }
-            // }
-        }
-
-        /// <summary>
-        /// Gets an operation type by its type name if it exists.
-        /// </summary>
-        /// <returns>
-        /// The type which is assignable to type <see cref="Operation" />. May be null if such a type does not exist.
-        /// </returns>
-        public static Type TypeFromName(string name)
-        {
-            Type[] assemblyTypes = Assembly.GetAssembly(typeof(Operation)).GetTypes();
-            Type operationType = assemblyTypes
-                .FirstOrDefault(type =>
-                    type.IsAssignableTo(typeof(Operation)) &&
-                    type.IsPublic &&
-                    !(type.IsAbstract || type.IsInterface) &&
-                    type.GetCustomAttribute<OperationNameAttribute>()?.Type == name
-                );
-            return operationType;
-        }
-
-        // TODO: Implement constructing generic operations if necessary.
-        /// <summary>
-        /// Constructs a new operation from a specified type.
-        /// </summary>
-        /// <param name="type">The type name of the operation to construct.</param>
-        /// <param name="input">The default input for the operation.</param>
-        /// <param name="output">The default output for the operation.</param>
-        /// <param name="assembly">The assembly to find the operation inside of.</param>
-        /// <returns>The newly constructed operation.</returns>
-        public static Operation Construct(string type, out object input, out object output, Assembly assembly = null)
-        {
-            // TODO: This contains mostly duplicated code from `OperationDescription`.
-            // Assign the assembly to the current assembly if it is not specified.
-            assembly ??= Assembly.GetAssembly(typeof(Operation));
-
-            // Get the concrete types which are implementations of an operation.
-            Type[] assemblyTypes = assembly.GetTypes();
-            Type[] operationTypes = assemblyTypes
-                .Where(type =>
-                    type.IsAssignableTo(typeof(Operation)) &&
-                    type.IsPublic &&
-                    !(type.IsAbstract || type.IsInterface))
-                .ToArray();
-
-            // Generate the descriptions for each of the operation implementation types.
-            OperationDescription[] descriptions = new OperationDescription[operationTypes.Length];
-            for (int k = 0; k < operationTypes.Length; k++)
-            {
-                descriptions[k] = OperationDescription.FromType(operationTypes[k]);
-
-                // Find the operation type corresponding to the specified type.
-                if (descriptions[k].Type == type)
-                {
-                    // Construct the operation.
-                    Operation operation = (Operation)Activator.CreateInstance(operationTypes[k]);
-
-                    // Construct the input and output values if the operation is a typed operation.
-                    Type baseType = operation.GetType().BaseType;
-                    if (baseType.IsAssignableTo(typeof(TypedOperation<,>)))
-                    {
-                        // Get the input and output types.
-                        Type inputType = baseType.GetGenericArguments()[0];
-                        Type outputType = baseType.GetGenericArguments()[1];
-
-                        // Construct the input and output values.
-                        input = Activator.CreateInstance(inputType);
-                        output = Activator.CreateInstance(outputType);
-                    }
-                    else
-                    {
-                        input = null;
-                        output = null;
-                    }
-                }
-            }
-
-            // If the operation type was not found, return null.
-            input = output = null;
-            return null;
-        }
-        /// <summary>
-        /// Contructs a new operation from a specified type.
-        /// </summary>
-        /// <param name="type">The type name of the operation to construct.</param>
-        /// <param name="assembly">The assembly to find the operation inside of.</param>
-        /// <returns>The newly constructed operation.</returns>
-        public static Operation Construct(string type, Assembly assembly = null)
-        {
-            return Construct(type, out _, out _, assembly);
-        }
+        // TODO: Move into helpers.
         /// <summary>
         /// Constructs a new selector operation from a specified selector type.
         /// </summary>
@@ -337,6 +218,7 @@ namespace CartaCore.Operations
             input = output = null;
             return null;
         }
+        // TODO: Move into helpers.
         /// <summary>
         /// Executes a selector operation by setting and getting the preset selector graph on the operation.
         /// </summary>

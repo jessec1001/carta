@@ -1,27 +1,31 @@
-namespace CartaCore.Graph
+using System.Collections.Generic;
+
+namespace CartaCore.Graphs
 {
     /// <summary>
     /// Represents a property with any number of observations. This property may be attached to any element of a graph
     /// such as a vertex, an edge, or the graph itself.
     /// </summary>
-    public class Property : Element<Property>, IProperty
+    public class Property : IProperty
     {
+        /// <inheritdoc />
+        public virtual object Value { get; set; }
+
+        /// <inheritdoc />
+        public IDictionary<string, IProperty> Properties { get; init; }
+
         /// <summary>
-        /// Initializes an instance of the <see cref="Property"/> class with its specified identifier and a set of
-        /// observations recorded for it.
+        /// Initializes an instance of the <see cref="Property"/> class with a specified value.
         /// </summary>
-        /// <param name="id">The identifier of this property.</param>
         /// <param name="value">The observation recorded for this property.</param>
-        public Property(string id, object value)
-            : base(id)
+        public Property(object value)
         {
             Value = value;
         }
         /// <summary>
-        /// Initializes an instance of the <see cref="Property"/> class with its specified identifier.
+        /// Initializes an instance of the <see cref="Property"/> class with no value.
         /// </summary>
-        /// <param name="id">The identifier of this property.</param>
-        public Property(string id)
-            : this(id, null) { }
+        public Property()
+            : this(null) { }
     }
 }

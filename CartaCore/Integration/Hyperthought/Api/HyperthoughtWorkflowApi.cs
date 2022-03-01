@@ -49,7 +49,7 @@ namespace CartaCore.Integration.Hyperthought.Api
         public async Task<IList<HyperthoughtWorkflowTemplate>> GetWorkflowTemplatesAsync(Guid workspaceId)
         {
             Uri requestUri = new(GetProcessesUri(), $"templates/?workspaceId={workspaceId}");
-            return await Api.GetJsonObjectAsync<IList<HyperthoughtWorkflowTemplate>>(requestUri);
+            return await Api.GetJsonAsync<IList<HyperthoughtWorkflowTemplate>>(requestUri);
         }
         /// <summary>
         /// Obtains the list of HyperThought workflow templates that exist within a HyperThought workspace.
@@ -71,7 +71,7 @@ namespace CartaCore.Integration.Hyperthought.Api
         public async Task<HyperthoughtProcess> GetProcessAsync(Guid processId)
         {
             Uri requestUri = GetProcessUri(processId);
-            return await Api.GetJsonObjectAsync<HyperthoughtProcess>(requestUri);
+            return await Api.GetJsonAsync<HyperthoughtProcess>(requestUri);
         }
         /// <summary>
         /// Obtains a HyperThought process specified by the workflow template.
@@ -151,7 +151,7 @@ namespace CartaCore.Integration.Hyperthought.Api
 
             // Make the PATCH request to update.
             Uri requestUri = GetProcessUri(process.Content.PrimaryKey);
-            await Api.PatchJsonObjectAsync(requestUri, processDto);
+            await Api.PatchJsonAsync(requestUri, processDto);
 
             // Append new connections.
             await AppendProcessConnectionsAsync(process);
@@ -174,7 +174,7 @@ namespace CartaCore.Integration.Hyperthought.Api
             // Make the POST request to create.
             Uri requestUri = GetProcessesUri();
             HyperthoughtProcess newProcess = await Api
-                .PostJsonObjectAsync<HyperthoughtPostProcess, HyperthoughtProcess>(requestUri, processDto);
+                .PostJsonAsync<HyperthoughtPostProcess, HyperthoughtProcess>(requestUri, processDto);
 
             // If we have extra fields assigned on the process, we need to make a PATCH request to update.
             if (process.Metadata is not null)
@@ -306,7 +306,7 @@ namespace CartaCore.Integration.Hyperthought.Api
         public async Task<IList<HyperthoughtProcess>> GetWorkflowChildrenProcessesAsync(Guid workflowId)
         {
             Uri requestUri = new(GetProcessUri(workflowId), $"children/");
-            return await Api.GetJsonObjectAsync<IList<HyperthoughtProcess>>(requestUri);
+            return await Api.GetJsonAsync<IList<HyperthoughtProcess>>(requestUri);
         }
         /// <summary>
         /// Obtains the list of children HyperThought processes that exist within a HyperThought template specified by

@@ -38,7 +38,7 @@ namespace CartaCore.Integration.Hyperthought.Api
         public async Task<HyperthoughtUserInfo> GetUserInfoAsync()
         {
             Uri requestUri = new Uri(Api.GetBaseUri(), "auth/userinfo/");
-            return await Api.GetJsonObjectAsync<HyperthoughtUserInfo>(requestUri);
+            return await Api.GetJsonAsync<HyperthoughtUserInfo>(requestUri);
         }
 
         /// <summary>
@@ -53,7 +53,7 @@ namespace CartaCore.Integration.Hyperthought.Api
             // Grab the new access information.
             Uri requestUri = new Uri(GetOidcUri(), "token/");
             HyperthoughtPostRefreshResponse response = await Api
-                .PostJsonObjectAsync<HyperthoughtPostRefreshRequest, HyperthoughtPostRefreshResponse>(requestUri, request);
+                .PostJsonAsync<HyperthoughtPostRefreshRequest, HyperthoughtPostRefreshResponse>(requestUri, request);
 
             // Update the API access from the response DTO.
             HyperthoughtApiAccess oldAccess = Api.Access;

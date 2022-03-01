@@ -1,4 +1,4 @@
-namespace CartaCore.Graph
+namespace CartaCore.Graphs
 {
     /// <summary>
     /// Represents an object that contains an identity that can be used to order and assert this object in relation to

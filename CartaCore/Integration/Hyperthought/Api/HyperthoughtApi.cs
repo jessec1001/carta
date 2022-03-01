@@ -16,8 +16,9 @@ namespace CartaCore.Integration.Hyperthought.Api
     /// </summary>
     public class HyperthoughtApi
     {
-        private HttpClientHandler ClientHandler;
-        private HttpClient Client;
+        // TODO: We should use a `HttpClientFactory` to create `HttpClient` instances for thread performance issues.
+        private readonly HttpClientHandler ClientHandler;
+        private readonly HttpClient Client;
         private HyperthoughtApiAccess ApiAccess;
 
         private readonly JsonSerializerOptions JsonOptions;
@@ -84,7 +85,7 @@ namespace CartaCore.Integration.Hyperthought.Api
         /// <summary>
         /// The base URL from which the HyperThought instance is running.
         /// </summary>
-        public Uri GetBaseUri() => new Uri(new Uri(Access?.BaseUrl), "api/");
+        public Uri GetBaseUri() => new(new Uri(Access?.BaseUrl), "api/");
 
         /// <summary>
         /// Constructs an instance of the HyperThought API with specified access properties.
@@ -100,7 +101,7 @@ namespace CartaCore.Integration.Hyperthought.Api
             Client = new HttpClient(ClientHandler);
 
             // Set the DOD cookie.
-            CookieContainer cookies = new CookieContainer();
+            CookieContainer cookies = new();
             cookies.Add(new Cookie("dodAccessBanner", "true") { Domain = GetBaseUri().Host });
             ClientHandler.CookieContainer = cookies;
             ClientHandler.AllowAutoRedirect = true;
@@ -142,6 +143,21 @@ namespace CartaCore.Integration.Hyperthought.Api
         }
 
         /// <summary>
+        /// Sets the HTTP content to a deserialized JSON value, with the standard JSON headers.
+        /// </summary>
+        /// <param name="value">The value of the data.</param>
+        /// <returns>The HTTP content.</returns>
+        private async Task<HttpContent> CreateHttpContent<T>(T value)
+        {
+            // TODO: We should not be reading the length of requests here.
+            // TODO: This method should not be necessary if all requests are JSON.
+            HttpContent content = JsonContent.Create(value, options: JsonOptions);
+            byte[] b = await content.ReadAsByteArrayAsync();
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+            content.Headers.ContentLength = b.Length;
+            return content;
+        }
+        /// <summary>
         /// Reads an object from a specified URI and tries to convert it to a JSON object. Throws an HTTP error if one
         /// has occurred. Will attempt to run multiple times in case of HTTP error.
         /// </summary>
@@ -152,7 +168,7 @@ namespace CartaCore.Integration.Hyperthought.Api
         /// </param>
         /// <typeparam name="T">The type of object to deserialize from JSON.</typeparam>
         /// <returns>The deserialized object returned from the endpoint.</returns>
-        public async Task<T> GetJsonObjectAsync<T>(Uri uri, int? attempts = null)
+        public async Task<T> GetJsonAsync<T>(Uri uri, int? attempts = null)
         {
             // Try to make the request multiple times if HTTP errors occur.
             if (!attempts.HasValue) attempts = RetryAttempts;
@@ -165,7 +181,7 @@ namespace CartaCore.Integration.Hyperthought.Api
             catch (HttpRequestException)
             {
                 if (--attempts <= 0) throw;
-                else return await GetJsonObjectAsync<T>(uri, attempts);
+                else return await GetJsonAsync<T>(uri, attempts);
             }
         }
         /// <summary>
@@ -205,15 +221,15 @@ namespace CartaCore.Integration.Hyperthought.Api
         /// </param>
         /// <typeparam name="T">The type of object to serialize to request JSON.</typeparam>
         /// <returns>Nothing.</returns>
-        public async Task DeleteAsync<T>(Uri uri, T value, int? attempts = null)
+        public async Task DeleteJsonAsync<T>(Uri uri, T value, int? attempts = null)
         {
             // Try to make the request multiple times if HTTP errors occur.
             if (!attempts.HasValue) attempts = RetryAttempts;
             try
             {
-                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Delete, uri)
+                HttpRequestMessage request = new(HttpMethod.Delete, uri)
                 {
-                    Content = JsonContent.Create<T>(value, options: JsonOptions)
+                    Content = JsonContent.Create(value, options: JsonOptions)
                 };
                 HttpResponseMessage response = await Client.SendAsync(request);
                 response.EnsureSuccessStatusCode();
@@ -237,13 +253,13 @@ namespace CartaCore.Integration.Hyperthought.Api
         /// <typeparam name="T">The type of object to serialize to request JSON.</typeparam>
         /// <typeparam name="U">The type of object to deserialize from response JSON.</typeparam>
         /// <returns>The deserialized object returned from the endpoint.</returns>
-        public async Task<U> PatchJsonObjectAsync<T, U>(Uri uri, T value, int? attempts = null)
+        public async Task<U> PatchJsonAsync<T, U>(Uri uri, T value, int? attempts = null)
         {
             // Try to make the request multiple times if HTTP errors occur.
             if (!attempts.HasValue) attempts = RetryAttempts;
             try
             {
-                HttpContent content = await GetHttpContent<T>(value);
+                HttpContent content = await CreateHttpContent<T>(value);
                 HttpResponseMessage response = await Client.PatchAsync(uri, content);
                 response.EnsureSuccessStatusCode();
                 return await response.Content.ReadFromJsonAsync<U>(options: JsonOptions);
@@ -251,7 +267,7 @@ namespace CartaCore.Integration.Hyperthought.Api
             catch (HttpRequestException)
             {
                 if (--attempts <= 0) throw;
-                else return await PatchJsonObjectAsync<T, U>(uri, value, attempts);
+                else return await PatchJsonAsync<T, U>(uri, value, attempts);
             }
         }
         /// <summary>
@@ -266,20 +282,20 @@ namespace CartaCore.Integration.Hyperthought.Api
         /// </param>
         /// <typeparam name="T">The type of object to serialize to request JSON.</typeparam>
         /// <returns>Nothing.</returns>
-        public async Task PatchJsonObjectAsync<T>(Uri uri, T value, int? attempts = null)
+        public async Task PatchJsonAsync<T>(Uri uri, T value, int? attempts = null)
         {
             // Try to make the request multiple times if HTTP errors occur.
             if (!attempts.HasValue) attempts = RetryAttempts;
             try
             {
-                HttpContent content = await GetHttpContent<T>(value);
+                HttpContent content = await CreateHttpContent<T>(value);
                 HttpResponseMessage response = await Client.PatchAsync(uri, content);
                 response.EnsureSuccessStatusCode();
             }
             catch (HttpRequestException)
             {
                 if (--attempts <= 0) throw;
-                else await PatchJsonObjectAsync<T>(uri, value, attempts);
+                else await PatchJsonAsync(uri, value, attempts);
             }
         }
         /// <summary>
@@ -295,13 +311,13 @@ namespace CartaCore.Integration.Hyperthought.Api
         /// <typeparam name="T">The type of object to serialize to request JSON.</typeparam>
         /// <typeparam name="U">The type of object to deserialize from response JSON.</typeparam>
         /// <returns>The deserialized object returned from the endpoint.</returns>
-        public async Task<U> PostJsonObjectAsync<T, U>(Uri uri, T value, int? attempts = null)
+        public async Task<U> PostJsonAsync<T, U>(Uri uri, T value, int? attempts = null)
         {
             // Try to make the request multiple times if HTTP errors occur.
             if (!attempts.HasValue) attempts = RetryAttempts;
             try
             {
-                HttpContent content = await GetHttpContent<T>(value);
+                HttpContent content = await CreateHttpContent<T>(value);
                 HttpResponseMessage response = await Client.PostAsync(uri, content);
                 response.EnsureSuccessStatusCode();
                 return await response.Content.ReadFromJsonAsync<U>(options: JsonOptions);
@@ -309,7 +325,7 @@ namespace CartaCore.Integration.Hyperthought.Api
             catch (HttpRequestException)
             {
                 if (--attempts <= 0) throw;
-                else return await PostJsonObjectAsync<T, U>(uri, value, attempts);
+                else return await PostJsonAsync<T, U>(uri, value, attempts);
             }
         }
         /// <summary>
@@ -324,23 +340,33 @@ namespace CartaCore.Integration.Hyperthought.Api
         /// </param>
         /// <typeparam name="T">The type of object to serialize to request JSON.</typeparam>
         /// <returns>Nothing.</returns>
-        public async Task PostJsonObjectAsync<T>(Uri uri, T value, int? attempts = null)
+        public async Task PostJsonAsync<T>(Uri uri, T value, int? attempts = null)
         {
             // Try to make the request multiple times if HTTP errors occur.
             if (!attempts.HasValue) attempts = RetryAttempts;
             try
             {
-                HttpContent content = await GetHttpContent<T>(value);
+                HttpContent content = await CreateHttpContent(value);
                 HttpResponseMessage response = await Client.PostAsync(uri, content);
                 response.EnsureSuccessStatusCode();
             }
             catch (HttpRequestException)
             {
                 if (--attempts <= 0) throw;
-                else await PostJsonObjectAsync<T>(uri, value, attempts);
+                else await PostJsonAsync<T>(uri, value, attempts);
             }
         }
 
+        // TODO: Implement retry attempts for this method.
+        /// <summary>
+        /// Downloads a stream from the given URI.
+        /// </summary>
+        /// <param name="uri">The URI to download the file from.</param>
+        /// <returns>The deserialized object returned from the endpoint.</returns>
+        public async Task<Stream> GetStreamAsync(Uri uri)
+        {
+            return await Client.GetStreamAsync(uri);
+        }
         /// <summary>
         /// Uploads a stream to the given URI.
         /// </summary>
@@ -357,10 +383,11 @@ namespace CartaCore.Integration.Hyperthought.Api
             if (!attempts.HasValue) attempts = RetryAttempts;
             try
             {
+                // TODO: Potentially add an argument for headers rather than needing to specify a filename.
+                // TODO: We should not be reading the length of the stream here.
                 HttpContent content = new StreamContent(stream);
-                content.Headers.ContentDisposition = new ContentDispositionHeaderValue("inline");
-                content.Headers.ContentDisposition.FileName = fileName;
                 byte[] b = await content.ReadAsByteArrayAsync();
+                content.Headers.ContentDisposition = new ContentDispositionHeaderValue("inline") { FileName = fileName };
                 content.Headers.ContentLength = b.Length;
                 HttpResponseMessage response = await Client.PutAsync(uri, content);
                 response.EnsureSuccessStatusCode();
@@ -370,31 +397,6 @@ namespace CartaCore.Integration.Hyperthought.Api
                 if (--attempts <= 0) throw;
                 else await PutStreamAsync(uri, stream, fileName, attempts);
             }
-        }
-
-        /// <summary>
-        /// Downloads a stream from the given URI.
-        /// </summary>
-        /// <param name="uri">The URI to download the file from.</param>
-        /// <returns>The deserialized object returned from the endpoint.</returns>
-        public async Task<Stream> DownloadFileAsync(Uri uri)
-        {
-            return await Client.GetStreamAsync(uri);
-        }
-
-        /// <summary>
-        /// Sets the HTTP content to a deserialized JSON value, with the necessary headers expected
-        /// by Hyperthought
-        /// </summary>
-        /// <param name="value">The value of the data.</param>
-        /// <returns>The HTTP content.</returns>
-        private async Task<HttpContent> GetHttpContent<T>(T value)
-        {
-            HttpContent content = JsonContent.Create<T>(value, options: JsonOptions);
-            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-            byte[] b = await content.ReadAsByteArrayAsync();
-            content.Headers.ContentLength = b.Length;
-            return content;
         }
 
         /// <summary>

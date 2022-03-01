@@ -1,6 +1,6 @@
 using System;
 
-namespace CartaCore.Typing.Conversion
+namespace CartaCore.Typing
 {
     /// <summary>
     /// Converts values between a string and an enumeration.

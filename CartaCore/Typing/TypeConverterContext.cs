@@ -1,7 +1,7 @@
 using System;
 using System.Collections.ObjectModel;
 
-namespace CartaCore.Typing.Conversion
+namespace CartaCore.Typing
 {
     /// <summary>
     /// A context for type conversion. Contains all available type converters.

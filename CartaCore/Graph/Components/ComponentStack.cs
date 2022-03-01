@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace CartaCore.Graph.Components
+namespace CartaCore.Graphs.Components
 {
     /// <summary>
     /// A stack of components that can be retrieved via type.

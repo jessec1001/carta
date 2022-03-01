@@ -1,4 +1,4 @@
-namespace CartaCore.Graph
+namespace CartaCore.Graphs
 {
     /// <summary>
     /// Represents the base structure of a graph element with properties assigned to it.

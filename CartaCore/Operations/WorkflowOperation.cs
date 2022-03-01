@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using CartaCore.Data;
+using CartaCore.Graphs;
 using CartaCore.Operations.Attributes;
 
 namespace CartaCore.Operations
@@ -102,17 +102,9 @@ namespace CartaCore.Operations
         // TODO: Instead of treating the `InputOperation` or `OutputOperation` specially, we should do a prepass with
         //       the context that helps to determine the structure of the workflow (exposes operations that needs inputs
         //       or produce outputs).
-        // TODO: It wouldn't hurt to make some of these methods produce enumerables rather than arrays to give a small
-        //       boost to efficiency.
-        // TODO: We may want to optimize the usage of a workflow to compile it to a graph structure so it is easier to
-        //       get the out- or in-edges for vertices (operations). This might also just be useful for abstraction
-        //       purposes of the graph elsewhere in development.
-
-        // TODO: Change 'Get{Input/Output}{Details}' into a single method that returns an enumeration of structures full
-        //       of details for specific fields containing naming, typing, schema, etc.
 
         /// <inheritdoc />
-        public override async Task<string[]> GetInputFields(OperationContext context)
+        public override async IAsyncEnumerable<OperationFieldDescriptor> GetInputFields(OperationContext context)
         {
             // TODO: Completely rewrite.
             List<string> inputs = new();
@@ -128,7 +120,7 @@ namespace CartaCore.Operations
             return inputs.ToArray();
         }
         /// <inheritdoc />
-        public override async Task<string[]> GetOutputFields(OperationContext context)
+        public override async IAsyncEnumerable<OperationFieldDescriptor> GetOutputFields(OperationContext context)
         {
             // TODO: Completely rewrite.
             List<string> outputs = new();
@@ -222,10 +214,25 @@ namespace CartaCore.Operations
         /// <inheritdoc />
         public IEnumerable<WorkflowDependencyEdge> Edges { get; set; }
 
+        /// <summary>
+        /// The operation that this vertex represents.
+        /// </summary>
         public Operation Operation { get; init; }
+        // TODO: Use these fields.
+        /// <summary>
+        /// Whether this dependency has started execution.
+        /// </summary>
         public bool Started { get; set; }
+        /// <summary>
+        /// Whether this dependency has finished execution.
+        /// </summary>
         public bool Finished { get; set; }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="WorkflowDependencyVertex"/> class based on the specified
+        /// operation.
+        /// </summary>
+        /// <param name="operation">The operation that the dependency represents.</param>
         public WorkflowDependencyVertex(Operation operation)
         {
             Operation = operation;
@@ -248,9 +255,20 @@ namespace CartaCore.Operations
         /// <inheritdoc />
         public string Target => TargetPoint.Operation;
 
+        /// <summary>
+        /// The source point information of the workflow connection.
+        /// </summary>
         public WorkflowOperationConnectionPoint SourcePoint { get; init; }
+        /// <summary>
+        /// The target point information of the workflow connection.
+        /// </summary>
         public WorkflowOperationConnectionPoint TargetPoint { get; init; }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="WorkflowDependencyEdge"/> class based on the specified
+        /// workflow connection.
+        /// </summary>
+        /// <param name="connection">The connection.</param>
         public WorkflowDependencyEdge(WorkflowOperationConnection connection)
         {
             SourcePoint = connection.Source;
@@ -272,10 +290,9 @@ namespace CartaCore.Operations
         private OperationContext Context { get; init; }
 
         /// <summary>
-        /// The graph 
+        /// The graph of dependencies between workflow operations.
         /// </summary>
-        /// <value></value>
-        private FiniteGraph<WorkflowDependencyVertex, WorkflowDependencyEdge> DependencyGraph { get; init; }
+        private MemoryGraph<WorkflowDependencyVertex, WorkflowDependencyEdge> DependencyGraph { get; init; }
 
         /// <summary>
         /// Stores the results of executed suboperations.
@@ -299,9 +316,9 @@ namespace CartaCore.Operations
         /// Constructs a dependency graph for the workflow operation.
         /// </summary>
         /// <returns>The constructed dependency graph.</returns>
-        private FiniteGraph<WorkflowDependencyVertex, WorkflowDependencyEdge> ConstructDependencyGraph()
+        private MemoryGraph<WorkflowDependencyVertex, WorkflowDependencyEdge> ConstructDependencyGraph()
         {
-            FiniteGraph<WorkflowDependencyVertex, WorkflowDependencyEdge> dependencies = new(nameof(WorkflowOperation));
+            MemoryGraph<WorkflowDependencyVertex, WorkflowDependencyEdge> dependencies = new(nameof(WorkflowOperation));
             foreach (Operation operation in Workflow.Operations)
                 dependencies.AddVertex(new WorkflowDependencyVertex(operation));
             foreach (WorkflowOperationConnection connection in Workflow.Connections)
@@ -336,10 +353,12 @@ namespace CartaCore.Operations
                 if (source is null || target is null) return false;
 
                 // Check that the source and target operations have the specified fields.
-                string[] sourceFields = await source.Operation.GetOutputFields(Context);
-                string[] targetFields = await target.Operation.GetInputFields(Context);
-                if (!sourceFields.Contains(edge.SourcePoint.Field)) return false;
-                if (!targetFields.Contains(edge.TargetPoint.Field)) return false;
+                if (!await source.Operation
+                    .GetOutputFields(Context)
+                    .AnyAsync((field) => field.Name == edge.SourcePoint.Field)) return false;
+                if (!await target.Operation
+                    .GetInputFields(Context)
+                    .AnyAsync((field) => field.Name == edge.TargetPoint.Field)) return false;
             }
             return true;
         }

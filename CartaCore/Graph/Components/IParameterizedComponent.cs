@@ -1,4 +1,4 @@
-namespace CartaCore.Graph.Components
+namespace CartaCore.Graphs.Components
 {
     /// <summary>
     /// A graph component that is parameterized.

@@ -1,6 +1,6 @@
 using System;
 
-namespace CartaCore.Typing.Conversion
+namespace CartaCore.Typing
 {
     /// <summary>
     /// A general base class for type converters.

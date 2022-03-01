@@ -38,7 +38,7 @@ namespace CartaCore.Integration.Hyperthought.Api
         public async Task<IList<HyperthoughtWorkspace>> GetWorkspacesAsync()
         {
             Uri requestUri = GetApiUri();
-            return await Api.GetJsonObjectAsync<IList<HyperthoughtWorkspace>>(requestUri);
+            return await Api.GetJsonAsync<IList<HyperthoughtWorkspace>>(requestUri);
         }
         /// <summary>
         /// Obtains a HyperThought workspace specified by a unique identifier.
@@ -48,7 +48,7 @@ namespace CartaCore.Integration.Hyperthought.Api
         public async Task<HyperthoughtWorkspace> GetWorkspaceAsync(Guid workspaceId)
         {
             Uri requestUri = GetWorkspaceUri(workspaceId);
-            return await Api.GetJsonObjectAsync<HyperthoughtWorkspace>(requestUri);
+            return await Api.GetJsonAsync<HyperthoughtWorkspace>(requestUri);
         }
         
         /// <summary>
@@ -59,7 +59,7 @@ namespace CartaCore.Integration.Hyperthought.Api
         public async Task<IList<HyperthoughtUserReference>> GetWorkspaceUsersAsync(Guid workspaceId)
         {
             Uri requestUri = new(GetWorkspaceUri(workspaceId), "/users");
-            return await Api.GetJsonObjectAsync<IList<HyperthoughtUserReference>>(requestUri);
+            return await Api.GetJsonAsync<IList<HyperthoughtUserReference>>(requestUri);
         }
     }
 }

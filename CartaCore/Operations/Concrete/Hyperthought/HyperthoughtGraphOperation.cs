@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using CartaCore.Data;
+using CartaCore.Graphs;
 using CartaCore.Integration.Hyperthought;
 using CartaCore.Integration.Hyperthought.Api;
 using CartaCore.Operations.Attributes;

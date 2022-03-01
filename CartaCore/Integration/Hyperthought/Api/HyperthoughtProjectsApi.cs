@@ -34,7 +34,7 @@ namespace CartaCore.Integration.Hyperthought.Api
         public async Task<IList<HyperthoughtProject>> GetProjectsAsync()
         {
             Uri requestUri = new Uri(GetApiUri(), "project/");
-            return await Api.GetJsonObjectAsync<IList<HyperthoughtProject>>(requestUri);
+            return await Api.GetJsonAsync<IList<HyperthoughtProject>>(requestUri);
         }
     }
 }

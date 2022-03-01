@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace CartaCore.Graph.Components
+namespace CartaCore.Graphs.Components
 {
     /// <summary>
     /// A graph component that allows enumeration over vertices and edges.

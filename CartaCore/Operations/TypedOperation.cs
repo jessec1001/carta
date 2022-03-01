@@ -8,6 +8,8 @@ using CartaCore.Operations.Attributes;
 
 namespace CartaCore.Operations
 {
+    // TODO: Figure out how to handle the type conversion.
+    // TODO: Make this inherit from an operation template potentially.
     /// <summary>
     /// Represents an abstract operation that takes a particular typed input and produces a particular typed output.
     /// </summary>
@@ -66,13 +68,6 @@ namespace CartaCore.Operations
             set => DefaultValues = value.AsDictionary();
         }
 
-        /// <summary>
-        /// The typed initial values of the operation.
-        /// </summary>
-        public virtual TInput InitialValuesTyped => default;
-        /// <inheritdoc />
-        public override Dictionary<string, object> InitialValues => InitialValuesTyped.AsDictionary();
-
         // TODO: We need to incorporate the attributes into the following methods.  
         /// <inheritdoc />
         public override async IAsyncEnumerable<OperationFieldDescriptor> GetInputFields(OperationContext context)
@@ -125,6 +120,7 @@ namespace CartaCore.Operations
             }
         }
 
+        // TODO: Check if there is a better/updated structure for dynamic fields.
         /// <summary>
         /// Gets the names of the dynamic input fields corresponding to particular input field.
         /// </summary>

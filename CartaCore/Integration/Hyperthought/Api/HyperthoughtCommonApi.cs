@@ -34,7 +34,7 @@ namespace CartaCore.Integration.Hyperthought.Api
         public async Task<IList<HyperthoughtUnit>> GetUnitsAsync()
         {
             Uri requestUri = new Uri(GetApiUri(), "units/");
-            return await Api.GetJsonObjectAsync<IList<HyperthoughtUnit>>(requestUri);
+            return await Api.GetJsonAsync<IList<HyperthoughtUnit>>(requestUri);
         }
         /// <summary>
         /// Obtains a list of defined vocabulary available to HyperThought metadata properties.
@@ -43,7 +43,7 @@ namespace CartaCore.Integration.Hyperthought.Api
         public async Task<IList<HyperthoughtVocabularyDefinition>> GetVocabularyAsync()
         {
             Uri requestUri = new Uri(GetApiUri(), "afrl-vocab/");
-            return await Api.GetJsonObjectAsync<IList<HyperthoughtVocabularyDefinition>>(requestUri);
+            return await Api.GetJsonAsync<IList<HyperthoughtVocabularyDefinition>>(requestUri);
         }
         /// <summary>
         /// Obtains a list of basic user information for all HyperThought users.
@@ -52,7 +52,7 @@ namespace CartaCore.Integration.Hyperthought.Api
         public async Task<IList<HyperthoughtUserReference>> GetUsersAsync()
         {
             Uri requestUri = new Uri(GetApiUri(), "user/");
-            return await Api.GetJsonObjectAsync<IList<HyperthoughtUserReference>>(requestUri);
+            return await Api.GetJsonAsync<IList<HyperthoughtUserReference>>(requestUri);
         }
     }
 }

@@ -1,6 +1,6 @@
-using CartaCore.Graph.Components;
+using CartaCore.Graphs.Components;
 
-namespace CartaCore.Graph
+namespace CartaCore.Graphs
 {
     /// <summary>
     /// Represents the base functionality and characteristics of a graph object.

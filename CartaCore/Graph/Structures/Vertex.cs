@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace CartaCore.Graph
+namespace CartaCore.Graphs
 {
     /// <summary>
     /// Represents a graph vertex that can be identified, and takes on properties with numerous observations.
@@ -11,6 +11,10 @@ namespace CartaCore.Graph
     {
         /// <inheritdoc />
         public IEnumerable<TEdge> Edges { get; protected init; } = Enumerable.Empty<TEdge>();
+        /// <inheritdoc />
+        public IEnumerable<TEdge> InEdges => Edges.Where(edge => edge.Target == Id);
+        /// <inheritdoc />
+        public IEnumerable<TEdge> OutEdges => Edges.Where(edge => edge.Source == Id);
 
         /// <summary>
         /// Initializes an instance of the <see cref="Vertex"/> class with its specified identifier, a set of properties
@@ -19,7 +23,7 @@ namespace CartaCore.Graph
         /// <param name="id">The identifier of this vertex.</param>
         /// <param name="properties">The properties assigned to this vertex.</param>
         /// <param name="edges">The edges that the vertex is adjacent to.</param>
-        public Vertex(string id, ISet<IProperty> properties, IEnumerable<TEdge> edges)
+        public Vertex(string id, IDictionary<string, IProperty> properties, IEnumerable<TEdge> edges)
             : base(id, properties)
         {
             Edges = edges;
@@ -41,7 +45,7 @@ namespace CartaCore.Graph
         /// </summary>
         /// <param name="id">The identifier of this vertex.</param>
         /// <param name="properties">The properties assigned to this vertex.</param>
-        public Vertex(string id, ISet<IProperty> properties)
+        public Vertex(string id, IDictionary<string, IProperty> properties)
             : base(id, properties) { }
         /// <summary>
         /// Initializes an instance of the <see cref="Vertex"/> class with its specified identifier.
@@ -73,7 +77,7 @@ namespace CartaCore.Graph
         /// <param name="id">The identifier of this vertex.</param>
         /// <param name="properties">The properties assigned to this vertex.</param>
         /// <param name="edges">The edges that the vertex is adjacent to.</param>
-        public Vertex(string id, ISet<IProperty> properties, IEnumerable<Edge> edges)
+        public Vertex(string id, IDictionary<string, IProperty> properties, IEnumerable<Edge> edges)
             : base(id, properties, edges) { }
         /// <summary>
         /// Initializes an instance of the <see cref="Vertex"/> class with its specified identifier and a set of edges
@@ -89,7 +93,7 @@ namespace CartaCore.Graph
         /// </summary>
         /// <param name="id">The identifier of this vertex.</param>
         /// <param name="properties">The properties assigned to this vertex.</param>
-        public Vertex(string id, ISet<IProperty> properties)
+        public Vertex(string id, IDictionary<string, IProperty> properties)
             : base(id, properties) { }
         /// <summary>
         /// Initializes an instance of the <see cref="Vertex"/> class with its specified identifier.

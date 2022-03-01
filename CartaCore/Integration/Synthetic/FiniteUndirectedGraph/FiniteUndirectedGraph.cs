@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using CartaCore.Data;
+using CartaCore.Graphs;
+using CartaCore.Graphs.Components;
 using CartaCore.Statistics;
 
 namespace CartaCore.Integration.Synthetic
@@ -10,7 +11,9 @@ namespace CartaCore.Integration.Synthetic
     /// Represents graph data of a random, finite, undirected graph. Both the vertices and edges are randomly generated
     /// and connected.
     /// </summary>
-    public class FiniteUndirectedGraph : FiniteGraph<Vertex, Edge>, IParameterizedGraph<FiniteUndirectedGraphParameters>
+    public class FiniteUndirectedGraph :
+        MemoryGraph<Vertex, Edge>,
+        IParameterizedComponent<FiniteUndirectedGraphParameters>
     {
         /// <inheritdoc />
         public FiniteUndirectedGraphParameters Parameters { get; set; }

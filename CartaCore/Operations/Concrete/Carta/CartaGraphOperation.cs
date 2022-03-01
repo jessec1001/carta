@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using CartaCore.Data;
+using CartaCore.Graphs;
 using CartaCore.Operations.Attributes;
 
 namespace CartaCore.Operations
