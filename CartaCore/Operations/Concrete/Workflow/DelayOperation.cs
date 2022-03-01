@@ -58,13 +58,13 @@ namespace CartaCore.Operations
 
         // TODO: See if we can make this method pass an input instead of a context.
         /// <inheritdoc />
-        public override async IAsyncEnumerable<OperationFieldDescriptor> GetInputFields(OperationContext context)
+        public override async IAsyncEnumerable<OperationFieldDescriptor> GetInputFields(OperationJob job)
         {
             // TODO: Check if the value is enumerable.
             bool enumerable = true;
 
             // Only if the type is enumerable, we expose the per item option.
-            await foreach(OperationFieldDescriptor descriptor in base.GetInputFields(context))
+            await foreach(OperationFieldDescriptor descriptor in base.GetInputFields(job))
             {
                 if (descriptor.Name == nameof(DelayOperationIn<TValue>.PerItem))
                 {

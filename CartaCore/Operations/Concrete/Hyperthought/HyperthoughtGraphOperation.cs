@@ -51,7 +51,8 @@ namespace CartaCore.Operations
             {
             }
 
-            public OperationContext Context { get; set; }
+            // TODO: This graph should not use the job.
+            public OperationJob Job { get; set; }
             public Guid Root { get; set; }
             public HyperthoughtWorkflowGraph Graph { get; set; }
             protected override IGraph WrappedGraph => Graph;
@@ -73,10 +74,10 @@ namespace CartaCore.Operations
                 while (pendingIds.Count > 0)
                 {
                     // Check if there are any selectors in the priority queue.
-                    while (!Context.Selectors.IsEmpty)
+                    while (!Job.Selectors.IsEmpty)
                     {
                         // Get the next selector.
-                        if (!Context.Selectors.TryDequeue(out (Selector selector, object selectorInput) item)) continue;
+                        if (!Job.Selectors.TryDequeue(out (Selector selector, object selectorInput) item)) continue;
 
                         // Get the vertices in the selector.
                         Graph selectorGraph = await item.selector.Select(Graph, item.selectorInput);
@@ -111,7 +112,7 @@ namespace CartaCore.Operations
 
         // TODO: Make it clear that operations need to be performed asynchronously.
         /// <inheritdoc />
-        public override async Task<HyperthoughtGraphOperationOut> Perform(HyperthoughtGraphOperationIn input, OperationContext context)
+        public override async Task<HyperthoughtGraphOperationOut> Perform(HyperthoughtGraphOperationIn input, OperationJob job)
         {
             // Get the UUID of the graph.
             Guid uuid = await input.Api.Workflow.GetProcessIdFromPathAsync(input.Path);
@@ -122,7 +123,7 @@ namespace CartaCore.Operations
             // Return the wrapped graph.
             HyperthoughtGraph wrappedGraph = new(graph.Id, graph.Properties)
             {
-                Context = context,
+                Job = job,
                 Graph = graph,
                 Root = uuid
             };

@@ -7,9 +7,9 @@ namespace CartaCore.Operations.Attributes
     /// An attribute that marks a field as being a dynamic field.
     /// </summary>
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false)]
-    public class DynamicFieldAttribute : Attribute, IOperationContextAttribute, ISchemaModifierAttribute
+    public class FieldDynamicAttribute : Attribute, IOperationJobAttribute, ISchemaModifierAttribute
     {
-        public OperationContext Context { set => throw new NotImplementedException(); }
+        public OperationJob Job { set => throw new NotImplementedException(); }
 
         public JsonSchema ModifySchema(JsonSchema schema)
         {

@@ -15,7 +15,6 @@ namespace CartaCore.Operations
         Authenticate,
     }
 
-    // TODO: We will need to rework this to work with operations that exist mid-workflow.
     /// <summary>
     /// Represents a task that needs to be performed for an operation before it can continue to execute. 
     /// </summary>

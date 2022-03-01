@@ -116,7 +116,7 @@ namespace CartaCore.Operations.Visualization
         /// <inheritdoc />
         public override Task<PlotHistogramOperationOut> Perform(
             PlotHistogramOperationIn input,
-            OperationContext callingContext)
+            OperationJob job)
         {
             // Interpret the axes styles if specified.
             // Notice that we ignore the stroke width because it does not have meaning for the axes yet.

@@ -12,10 +12,12 @@ namespace CartaCore.Operations.Conversion
         /// <summary>
         /// The text to convert to a number.
         /// </summary>
+        [FieldName("Text")]
         public string Text { get; set; }
         /// <summary>
         /// The default value to use if the conversion fails. 
         /// </summary>
+        [FieldName("Default")]
         public double? Default { get; set; }
     }
     /// <summary>
@@ -26,6 +28,7 @@ namespace CartaCore.Operations.Conversion
         /// <summary>
         /// The parsed number.
         /// </summary>
+        [FieldName("Number")]
         public double Number { get; set; }
     }
 

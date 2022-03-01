@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using CartaCore.Documentation;
 using CartaCore.Operations.Attributes;
 
 namespace CartaCore.Operations
@@ -16,6 +17,12 @@ namespace CartaCore.Operations
         [FieldRequired]
         [FieldName("Name")]
         public string Name { get; set; }
+        /// <summary>
+        /// The description of the input value.
+        /// This is displayed to users of the containing workflow. 
+        /// </summary>
+        [FieldName("Description")]
+        public string Description { get; set; }
         /// <summary>
         /// Whether the input value is required.
         /// </summary>
@@ -49,13 +56,13 @@ namespace CartaCore.Operations
     >
     {
         /// <inheritdoc />
-        public override Task<InputOperationOut<TValue>> Perform(InputOperationIn input, OperationContext context)
+        public override Task<InputOperationOut<TValue>> Perform(InputOperationIn input, OperationJob job)
         {
             // Notice that if the value is not required, it will default to the default value of the type.
-            OperationContext parentContext = context?.Parent;
-            if (parentContext is null)
-                throw new ArgumentNullException(nameof(context), "The input operation can not be executed independently.");
-            if (!parentContext.Input.TryGetValue(input.Name, out object value))
+            OperationJob parentJob = job?.Parent;
+            if (parentJob is null)
+                throw new ArgumentNullException(nameof(job), "The input operation can not be executed independently.");
+            if (!parentJob.Input.TryGetValue(input.Name, out object value))
             {
                 if (input.Required)
                     throw new KeyNotFoundException($"Input '{input.Name}' was required but not provided.");
@@ -66,6 +73,30 @@ namespace CartaCore.Operations
                 throw new InvalidCastException();
 
             return Task.FromResult(new InputOperationOut<TValue> { Value = typedValue });
+        }
+
+        // TODO: We need a typed version of this method.
+        /// <inheritdoc />
+        public override async IAsyncEnumerable<OperationFieldDescriptor> GetExternalInputFields(
+            InputOperationIn input,
+            OperationJob job)
+        {
+            // Construct the relevant attributes for the input value.
+            List<Attribute> attributes = new();
+            if (input.Required) attributes.Add(new FieldRequiredAttribute());
+
+            // Construct the relevant documentation for the input value.
+            StandardDocumentation documentation = new() { Summary = input.Description };
+
+            // Construct and yield the field descriptor for the external field.
+            yield return await Task.FromResult(new OperationFieldDescriptor
+            {
+                Name = input.Name,
+                Type = typeof(TValue),
+                Documentation = documentation,
+                Schema = null, // TODO: Add a method that helps generate schema.
+                Attributes = attributes
+            });
         }
     }
 }

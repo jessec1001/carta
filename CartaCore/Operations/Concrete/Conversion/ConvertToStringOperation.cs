@@ -11,11 +11,13 @@ namespace CartaCore.Operations.Conversion
         /// <summary>
         /// The number to convert to a string.
         /// </summary>
+        [FieldName("Number")]
         public double Number { get; set; }
         /// <summary>
         /// The format to use when converting the number to a string. See
         /// [standard numeric format strings](https://docs.microsoft.com/en-us/dotnet/standard/base-types/standard-numeric-format-strings)
         /// </summary>
+        [FieldName("Format")]
         public string Format { get; set; }
     }
     /// <summary>
@@ -26,6 +28,7 @@ namespace CartaCore.Operations.Conversion
         /// <summary>
         /// The string representation.
         /// </summary>
+        [FieldName("Text")]
         public string Text { get; set; }
     }
 

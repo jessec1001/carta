@@ -356,24 +356,24 @@ namespace CartaCore.Graphs
     /// <summary>
     /// Represents a graph that has finitely many vertices and edges.
     /// </summary>
-    public class FiniteGraph : MemoryGraph<Vertex, Edge>
+    public class MemoryGraph : MemoryGraph<Vertex, Edge>
     {
         /// <summary>
-        /// Initializes an instance of the <see cref="FiniteGraph"/> class with the specified identifier
+        /// Initializes an instance of the <see cref="MemoryGraph"/> class with the specified identifier
         /// and properties.
         /// </summary>
         /// <param name="id">The graph identifier.</param>
         /// <param name="properties">The properties assigned to the graph.</param>
-        public FiniteGraph(
+        public MemoryGraph(
             string id,
             IDictionary<string, IProperty> properties
         ) : base(id, properties) { }
         /// <summary>
-        /// Initializes an instance of the <see cref="FiniteGraph"/> class with the specified
+        /// Initializes an instance of the <see cref="MemoryGraph"/> class with the specified
         /// identifier.
         /// </summary>
         /// <param name="id">The graph identifier.</param>
-        public FiniteGraph(
+        public MemoryGraph(
             string id
         ) : base(id) { }
     }

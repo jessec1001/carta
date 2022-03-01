@@ -1,11 +1,10 @@
 using System.Threading.Tasks;
-using CartaCore.Data;
+using CartaCore.Graphs;
 using CartaCore.Operations.Attributes;
 
 namespace CartaCore.Operations
 {
     // TODO: Implement support for pipelining this graph.
-
     /// <summary>
     /// The input for the <see cref="CompleteGraphOperation" /> operation.
     /// </summary>
@@ -14,6 +13,8 @@ namespace CartaCore.Operations
         /// <summary>
         /// The number of vertices to use in generating the complete graph.
         /// </summary>
+        [FieldRange(Minimum = 1)]
+        [FieldName("Vertex Count")]
         public int VertexCount { get; set; }
     }
     /// <summary>
@@ -24,7 +25,8 @@ namespace CartaCore.Operations
         /// <summary>
         /// The generated complete graph.
         /// </summary>
-        public FiniteGraph Graph { get; set; }
+        [FieldName("Graph")]
+        public MemoryGraph Graph { get; set; }
     }
 
     /// <summary>
@@ -44,7 +46,7 @@ namespace CartaCore.Operations
         public override Task<CompleteGraphOperationOut> Perform(CompleteGraphOperationIn input)
         {
             // Create the graph structure.
-            FiniteGraph graph = new($"K_{input.VertexCount}");
+            MemoryGraph graph = new($"K_{input.VertexCount}");
 
             // Generate the vertices of the graph.
             for (int m = 0; m < input.VertexCount; m++)

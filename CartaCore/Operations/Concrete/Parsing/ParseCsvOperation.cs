@@ -2,15 +2,13 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
-using CartaCore.Data;
+using CartaCore.Graphs;
 using CartaCore.Operations.Attributes;
 using CsvHelper;
 using CsvHelper.Configuration;
 
 namespace CartaCore.Operations
 {
-    // TODO: Implement pipelining support for this graph.
-    
     /// <summary>
     /// The input for the <see cref="ParseCsvOperation" /> operation.
     /// </summary>
@@ -19,21 +17,29 @@ namespace CartaCore.Operations
         /// <summary>
         /// The stream of data to retrieve the CSV from.
         /// </summary>
+        [FieldName("Stream")]
         public Stream Stream { get; set; }
 
         /// <summary>
         /// The delimiter for the CSV file.
         /// </summary>
+        [FieldRequired]
+        [FieldDefault(",")]
+        [FieldName("Delimiter")]
         public string Delimiter { get; set; }
         /// <summary>
         /// Whether the CSV file contains a header row.
         /// </summary>
+        [FieldDefault(true)]
+        [FieldName("Contains Header")]
         public bool ContainsHeader { get; set; }
 
         /// <summary>
         /// Whether the parser should infer the types of entries.
         /// If not true, all entries will be interpreted as text values.
         /// </summary>
+        [FieldDefault(true)]
+        [FieldName("Infer Types")]
         public bool InferTypes { get; set; }
     }
     /// <summary>
@@ -44,7 +50,8 @@ namespace CartaCore.Operations
         /// <summary>
         /// The graph dataset parsed from the CSV file.
         /// </summary>
-        public FiniteGraph Graph { get; set; }
+        [FieldName("Graph")]
+        public MemoryGraph Graph { get; set; }
     }
 
     /// <summary>
@@ -75,8 +82,9 @@ namespace CartaCore.Operations
             using StreamReader streamReader = new(input.Stream);
             using CsvReader csvReader = new(streamReader, csvConfig);
 
+            // Notice that we need to construct the graph in memory because we have a possibly read-only stream. 
             // Construct the graph structure by reading all of the samples/rows.
-            FiniteGraph graph = new(nameof(ParseCsvOperation));
+            MemoryGraph graph = new(nameof(ParseCsvOperation));
 
             // If the input should contain a header, try to read it.
             if (input.ContainsHeader)
@@ -90,7 +98,7 @@ namespace CartaCore.Operations
             while (await csvReader.ReadAsync())
             {
                 // Read each field as a property.
-                HashSet<IProperty> properties = new();
+                Dictionary<string, IProperty> properties = new();
                 for (int index = 0; index < csvReader.ColumnCount; index++)
                 {
                     // Read the field value; if we should infer types, do that here.
@@ -103,7 +111,7 @@ namespace CartaCore.Operations
                         : fieldValue;
 
                     // Set the property.
-                    properties.Add(new Property(propertyName, propertyValue));
+                    properties.Add(propertyName, new Property(propertyValue));
                 }
 
                 // Construct the vertex with its properties and add it to the graph.

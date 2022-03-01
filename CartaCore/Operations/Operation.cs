@@ -24,62 +24,62 @@ namespace CartaCore.Operations
         /// <summary>
         /// The default values of the operation.
         /// </summary>
-        public Dictionary<string, object> DefaultValues { get; set; } = new();
+        public Dictionary<string, object> Defaults { get; set; } = new();
 
         /// <summary>
-        /// Operates on a specified operation context containing input and output mappings. Most operations will use the
+        /// Operates on a specified operation job containing input and output mappings. Most operations will use the
         /// input mapping to produce an output mapping. This method is implemented by concrete subclasses.
         /// </summary>
-        /// <param name="context">
-        /// The context for the calling operation. Will be assigned to a value that provides access to inputs, outputs,
-        /// defaults, and configurations for the current operation. When operation inside of a workflow, a parent
-        /// context is also provided.
+        /// <param name="job">
+        /// The job for the calling operation. Will be assigned to a value that provides access to inputs, outputs,
+        /// defaults, and configurations for the current operation. When operation inside of a workflow, a parent job is
+        /// also provided.
         /// </param>
         /// <returns>
-        /// Nothing. The implementation is expected to set values on the input or output of the context.
+        /// Nothing. The implementation is expected to set values on the input or output of the job.
         /// </returns>
-        public abstract Task Perform(OperationContext context);
+        public abstract Task Perform(OperationJob job);
 
         /// <summary>
-        /// Determines whether the operation is deterministic or non-deterministic on a specified context. This allows
+        /// Determines whether the operation is deterministic or non-deterministic on a specified job. This allows
         /// for operations to be memoized. By default, operations are assumed to be deterministic, and thus, memoized.
         /// </summary>
-        /// <param name="context">
-        /// The context for the calling operation. Will be assigned to a value that provides access to inputs, outputs,
+        /// <param name="job">
+        /// The job for the calling operation. Will be assigned to a value that provides access to inputs, outputs,
         /// defaults, and configurations for the current operation. When operation inside of a workflow, a parent
-        /// context is also provided.
+        /// job is also provided.
         /// </param>
-        /// <returns><c>true</c> if the operation is deterministic on a context; otherwise <c>false</c>.</returns>
-        public virtual bool IsDeterministic(OperationContext context) => true;
+        /// <returns><c>true</c> if the operation is deterministic on a job; otherwise <c>false</c>.</returns>
+        public virtual bool IsDeterministic(OperationJob job) => true;
 
         /// <summary>
         /// Gets the input fields and their descriptors for this operation.
         /// </summary>
-        /// <param name="context">The executing operation context.</param>
+        /// <param name="job">The executing operation job.</param>
         /// <returns>An enumeration of input field descriptors.</returns>
-        public abstract IAsyncEnumerable<OperationFieldDescriptor> GetInputFields(OperationContext context);
+        public abstract IAsyncEnumerable<OperationFieldDescriptor> GetInputFields(OperationJob job);
         /// <summary>
         /// Gets the output fields and their descriptors for this operation.
         /// </summary>
-        /// <param name="context">The executing operation context.</param>
+        /// <param name="job">The executing operation job.</param>
         /// <returns>An enumeration of output field descriptors.</returns>
-        public abstract IAsyncEnumerable<OperationFieldDescriptor> GetOutputFields(OperationContext context);
+        public abstract IAsyncEnumerable<OperationFieldDescriptor> GetOutputFields(OperationJob job);
 
         /// <summary>
-        /// Gets the input fields of the executing context and their descriptors for this operation.
+        /// Gets the input fields of the executing job and their descriptors for this operation.
         /// </summary>
-        /// <param name="context">The executing operation context.</param>
+        /// <param name="job">The executing operation job.</param>
         /// <returns>An enumeration of external input field descriptors.</returns>
-        public virtual IAsyncEnumerable<OperationFieldDescriptor> GetExternalInputFields(OperationContext context)
+        public virtual IAsyncEnumerable<OperationFieldDescriptor> GetExternalInputFields(OperationJob job)
         {
             return Enumerable.Empty<OperationFieldDescriptor>().ToAsyncEnumerable();
         }
         /// <summary>
-        /// Gets the output fields of the executing context and their descriptors for this operation.
+        /// Gets the output fields of the executing job and their descriptors for this operation.
         /// </summary>
-        /// <param name="context">The executing operation context.</param>
+        /// <param name="job">The executing operation job.</param>
         /// <returns>An enumeration of external output field descriptors.</returns>
-        public virtual IAsyncEnumerable<OperationFieldDescriptor> GetExternalOutputFields(OperationContext context)
+        public virtual IAsyncEnumerable<OperationFieldDescriptor> GetExternalOutputFields(OperationJob job)
         {
             return Enumerable.Empty<OperationFieldDescriptor>().ToAsyncEnumerable();
         }
@@ -87,9 +87,9 @@ namespace CartaCore.Operations
         /// <summary>
         /// Get the tasks that need to be executed in order for the operation to complete.
         /// </summary>
-        /// <param name="context">The context under which the operation is executing.</param>
+        /// <param name="job">The job under which the operation is executing.</param>
         /// <returns>A list of tasks.</returns>
-        public virtual IAsyncEnumerable<OperationTask> GetTasks(OperationContext context)
+        public virtual IAsyncEnumerable<OperationTask> GetTasks(OperationJob job)
         {
             return Enumerable.Empty<OperationTask>().ToAsyncEnumerable();
         }
@@ -250,10 +250,10 @@ namespace CartaCore.Operations
 
             // TODO: We need to inherit execution settings from the calling API.
             // Execute the operation.
-            OperationContext context = new() { Operation = operation };
-            context.Input = input.AsDictionary(inputType, DefaultTypeConverter);
-            await operation.Perform(context);
-            object output = context.Output.AsTyped(outputType, DefaultTypeConverter);
+            OperationJob job = new() { Operation = operation };
+            job.Input = input.AsDictionary(inputType, DefaultTypeConverter);
+            await operation.Perform(job);
+            object output = job.Output.AsTyped(outputType, DefaultTypeConverter);
 
             // Find the field on the output object that corresponds to the selector graph.
             foreach (PropertyInfo property in output.GetType().GetProperties())

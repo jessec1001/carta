@@ -7,7 +7,7 @@ using CliWrap;
 
 namespace CartaCore.Operations.Parser
 {
-
+    // TODO: Rewrite.
     /// <summary>
     /// The input for the <see cref="PythonParserOperation" /> operation.
     /// </summary>

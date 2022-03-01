@@ -1,11 +1,9 @@
 using System.Threading.Tasks;
-using CartaCore.Data;
+using CartaCore.Graphs;
 using CartaCore.Operations.Attributes;
 
 namespace CartaCore.Operations
 {
-    // TODO: Implement support for pipelining this graph.
-
     /// <summary>
     /// The input for the <see cref="NullGraphOperation" /> operation.
     /// </summary>
@@ -14,6 +12,8 @@ namespace CartaCore.Operations
         /// <summary>
         /// The number of vertices to use in generating the null graph.
         /// </summary>
+        [FieldRange(Minimum = 1)]
+        [FieldName("Vertex Count")]
         public int VertexCount { get; set; }
     }
     /// <summary>
@@ -24,7 +24,8 @@ namespace CartaCore.Operations
         /// <summary>
         /// The generated null graph. 
         /// </summary>
-        public FiniteGraph Graph { get; set; }
+        [FieldName("Graph")]
+        public MemoryGraph Graph { get; set; }
     }
 
     /// <summary>
@@ -44,7 +45,7 @@ namespace CartaCore.Operations
         public override Task<NullGraphOperationOut> Perform(NullGraphOperationIn input)
         {
             // Generate the graph structure.
-            FiniteGraph graph = new($"N_{input.VertexCount}");
+            MemoryGraph graph = new($"N_{input.VertexCount}");
 
             // Generate the vertices of the graph.
             for (int k = 0; k < input.VertexCount; k++)

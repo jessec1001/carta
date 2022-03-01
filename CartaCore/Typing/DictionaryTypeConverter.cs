@@ -3,7 +3,6 @@ using System.Collections;
 using System.Linq;
 using System.Reflection;
 using CartaCore.Extensions.Typing;
-using CartaCore.Operations.Attributes;
 
 namespace CartaCore.Typing
 {

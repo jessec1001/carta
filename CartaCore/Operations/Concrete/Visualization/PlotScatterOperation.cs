@@ -146,7 +146,7 @@ namespace CartaCore.Operations.Visualization
         /// <inheritdoc />
         public override Task<ScatterPlotOperationOut> Perform(
             ScatterPlotOperationIn input,
-            OperationContext callingContext)
+            OperationJob job)
         {
             // Interpret the axes styles if specified.
             // Notice that we ignore the stroke width because it does not have meaning for the axes yet.

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using CartaCore.Extensions.Array;
+using CartaCore.Extensions.Arrays;
 using CartaCore.Extensions.Hashing;
 using CartaCore.Extensions.String;
 using CartaCore.Operations;
@@ -49,7 +49,7 @@ namespace CartaWeb.Controllers
         }
 
         #region Persistence
-        // TODO: Convert upload/download file persistence to use S3.
+        // TODO: Convert upload/download file persistence to use S3 or otherwise.
         private static readonly string JobsPath = @"jobs";
 
         /// <summary>

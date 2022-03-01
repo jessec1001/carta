@@ -7,7 +7,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using CartaCore.Data;
+using CartaCore.Graphs;
 using CartaCore.Integration.Synthetic;
 using CartaCore.Persistence;
 using CartaCore.Serialization.Json;
@@ -84,11 +84,11 @@ namespace CartaWeb.Controllers
         /// Loads all of the stored graphs asynchronously.
         /// </summary>
         /// <returns>A list of all stored graphs.</returns>
-        public static async Task<List<FiniteGraph>> LoadGraphsAsync()
+        public static async Task<List<MemoryGraph>> LoadGraphsAsync()
         {
             // Read all of the files.
             string graphDir = Path.Combine(BaseDirectory, GraphDirectory);
-            if (!Directory.Exists(graphDir)) return new List<FiniteGraph>();
+            if (!Directory.Exists(graphDir)) return new List<MemoryGraph>();
             return await Directory.GetFiles(graphDir)
                 .Select(filePath => int.Parse(Path.GetFileNameWithoutExtension(filePath)))
                 .ToAsyncEnumerable()
@@ -102,14 +102,14 @@ namespace CartaWeb.Controllers
         /// <returns>
         /// The loaded graph or <c>null</c> if there is no graph corresponding to the specified identifier.
         /// </returns>
-        public static async Task<FiniteGraph> LoadGraphAsync(int id)
+        public static async Task<MemoryGraph> LoadGraphAsync(int id)
         {
             // Try to read the JSON file.
             string graphPath = Path.Combine(BaseDirectory, GraphDirectory, $"{id}.json");
             if (!System.IO.File.Exists(graphPath)) return null;
             using StreamReader file = new(graphPath);
-            FiniteGraph graph = JsonSerializer.Deserialize<VisFormat>(await file.ReadToEndAsync(), JsonOptions).Graph;
-            graph.Identifier = Identity.Create(id);
+            MemoryGraph graph = JsonSerializer.Deserialize<VisFormat>(await file.ReadToEndAsync(), JsonOptions).Graph;
+            graph.Id = id;
             return graph;
         }
         /// <summary>
@@ -119,7 +119,7 @@ namespace CartaWeb.Controllers
         /// <param name="graph">The graph object.</param>
         /// <param name="existingId">An existing graph identifier, if applicable.</param>
         /// <returns>The identifier of the saved graph.</returns>
-        public static async Task<int> SaveGraphAsync(FiniteGraph graph, int? existingId = null)
+        public static async Task<int> SaveGraphAsync(MemoryGraph graph, int? existingId = null)
         {
             // Find out what identifier we should assign to this graph.
             string graphDir = Path.Combine(BaseDirectory, GraphDirectory);
@@ -132,7 +132,7 @@ namespace CartaWeb.Controllers
             string graphPath = Path.Combine(graphDir, $"{id}.json");
             using (StreamWriter file = new(graphPath))
             {
-                graph.Identifier = Identity.Create(id);
+                graph.Id = id;
                 string json = JsonSerializer.Serialize(await VisFormat.CreateAsync(graph), JsonOptions);
                 await file.WriteAsync(json);
             }
@@ -238,9 +238,9 @@ namespace CartaWeb.Controllers
         /// <returns status="400">Occurs when the specified data source does not allow data creation.</returns>
         [Authorize]
         [HttpPost("{source}")]
-        public async Task<ActionResult<FiniteGraph>> PostGraph(
+        public async Task<ActionResult<MemoryGraph>> PostGraph(
             [FromRoute] DataSource source,
-            [FromBody] FiniteGraph graph
+            [FromBody] MemoryGraph graph
         )
         {
             // TODO: (Permissions) This endpoint should only be accessible to users with the appropriate permissions to

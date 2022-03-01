@@ -1,7 +1,7 @@
-using System;
-using System.Linq;
+using System.Collections.Generic;
 using System.Threading.Tasks;
-using CartaCore.Data;
+using CartaCore.Graphs;
+using CartaCore.Graphs.Components;
 using CartaCore.Operations.Attributes;
 
 namespace CartaCore.Operations
@@ -16,10 +16,13 @@ namespace CartaCore.Operations
         /// <summary>
         /// The name of the property to find.
         /// </summary>
+        [FieldRequired]
+        [FieldName("Name")]
         public string Name { get; set; }
         /// <summary>
         /// The graph to search.
         /// </summary>
+        [FieldName("Graph")]
         public Graph Graph { get; set; }
     }
     /// <summary>
@@ -29,8 +32,10 @@ namespace CartaCore.Operations
     {
         /// <summary>
         /// The list of values of the property.
+        /// If a vertex is missing the specified property, then null will represent the value.
         /// </summary>
-        public object[] Values { get; set; }
+        [FieldName("Values")]
+        public IAsyncEnumerable<object> Values { get; set; }
     }
 
     /// <summary>
@@ -44,29 +49,26 @@ namespace CartaCore.Operations
         FindPropertyOperationOut
     >
     {
+        private static async IAsyncEnumerable<object> FindProperties(Graph graph, string name)
+        {
+            if (graph.Components.TryFind(out IEnumerableComponent<Vertex, IEdge> enumerableGraph))
+            {
+                await foreach (Vertex vertex in enumerableGraph.GetVertices())
+                {
+                    vertex.Properties.TryGetValue(name, out IProperty property);
+                    yield return property.Value;
+                }
+            }
+            else yield break;
+        }
+
         /// <inheritdoc />
         public override async Task<FindPropertyOperationOut> Perform(FindPropertyOperationIn input)
         {
-            // Create an empty list of values
-            object[] values;
-
-            // TODO: Improve fetching properties by an identifier.
-            // Check if the graph can be enumerated over.
-            // If so, grab the values from its vertices.
-            IGraph graph = input.Graph;
-            if (graph.TryProvide(out IEntireGraph<Vertex, IEdge> entireGraph))
+            return await Task.FromResult(new FindPropertyOperationOut
             {
-                values = await entireGraph.GetVertices()
-                    .Select(vertex => vertex
-                        .Properties
-                        .FirstOrDefault(property => property.Id == input.Name)
-                        .Value
-                    )
-                    .ToArrayAsync();
-            }
-            else values = Array.Empty<object>();
-
-            return await Task.FromResult(new FindPropertyOperationOut() { Values = values });
+                Values = FindProperties(input.Graph, input.Name)
+            });
         }
     }
 }

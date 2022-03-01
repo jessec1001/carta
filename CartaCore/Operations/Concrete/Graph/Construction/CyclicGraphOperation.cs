@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using CartaCore.Data;
+using CartaCore.Graphs;
 using CartaCore.Operations.Attributes;
 
 namespace CartaCore.Operations
@@ -14,10 +14,13 @@ namespace CartaCore.Operations
         /// <summary>
         /// The number of vertices to use in generating the cyclic graph.
         /// </summary>
+        [FieldRange(Minimum = 1)]
+        [FieldName("Vertex Count")]
         public int VertexCount { get; set; }
         /// <summary>
         /// Whether the resulting graph should be directed or undirected.
         /// </summary>
+        [FieldName("Directed")]
         public bool Directed { get; set; }
     }
     /// <summary>
@@ -28,7 +31,8 @@ namespace CartaCore.Operations
         /// <summary>
         /// The generated cyclic graph.
         /// </summary>
-        public FiniteGraph Graph { get; set; }
+        [FieldName("Graph")]
+        public MemoryGraph Graph { get; set; }
     }
 
     /// <summary>
@@ -48,7 +52,7 @@ namespace CartaCore.Operations
         public override Task<CyclicGraphOperationOut> Perform(CyclicGraphOperationIn input)
         {
             // Create the graph structure.
-            FiniteGraph graph = new($"C_{input.VertexCount}");
+            MemoryGraph graph = new($"C_{input.VertexCount}");
 
             // Generate the vertices of the graph.
             for (int k = 0; k < input.VertexCount; k++)

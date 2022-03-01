@@ -56,10 +56,19 @@ namespace CartaCore.Operations
             : this(Array.Empty<Operation>(), Array.Empty<WorkflowOperationConnection>()) { }
 
         /// <inheritdoc />
-        public override async Task Perform(OperationContext context)
+        public override async Task Perform(OperationJob job)
         {
             // To perform the actual execution of a workflow, we delegate this functionality to a workflow runner.
-            WorkflowRunner runner = new(this, context);
+            WorkflowRunner runner = new(this, job);
+
+            // Setup the status for this workflow operation.
+            OperationStatus workflowStatus = new()
+            {
+                Started = true,
+                RootId = Id,
+                OperationId = Id
+            };
+            job.Status.TryAdd(Id, workflowStatus);
 
             // We need to verify the structure of the workflow before trying to execute it. This will capture any
             // anomolies such as invalid or missing connections, wrongly specified input or outputs, etc.
@@ -69,7 +78,16 @@ namespace CartaCore.Operations
             }
             catch (ArgumentException argumentEx)
             {
-                // TODO: Handle this exception which should only be thrown if the workflow is malformed.
+                // Handle this exception which should only be thrown if the workflow is malformed.
+                job.Status.TryGetValue(Id, out OperationStatus status);
+                job.Status.TryUpdate(Id, status with
+                {
+                    Finished = true,
+                    Exception = argumentEx,
+                }, status);
+
+                // TODO: Update the job.
+                return;
             }
 
             // Note, we separate the runner from the workflow because the workflow should only be in charge of
@@ -81,15 +99,24 @@ namespace CartaCore.Operations
             }
             catch (Exception unknownEx)
             {
-                // TODO: Handle this exception which should never be thrown.
+                // Handle this exception which should never be thrown.
+                job.Status.TryGetValue(Id, out OperationStatus status);
+                job.Status.TryUpdate(Id, new OperationStatus
+                {
+                    Finished = true,
+                    Exception = unknownEx,
+                }, status);
+
+                // TODO: Update the job.
+                return;
             }
         }
 
         /// <inheritdoc />
-        public override bool IsDeterministic(OperationContext context)
+        public override bool IsDeterministic(OperationJob job)
         {
             // The workflow is deterministic if all of its operations are deterministic.
-            return Operations.All(operation => operation.IsDeterministic(context));
+            return Operations.All(operation => operation.IsDeterministic(job));
         }
 
         // TODO: We need to resolve types based on the connections that are formed between operations.
@@ -99,107 +126,20 @@ namespace CartaCore.Operations
         //       neither field I is assignable to field II nor field II is assignable to field I, then there is a type error
         //       that is catchable at compile-time.
 
-        // TODO: Instead of treating the `InputOperation` or `OutputOperation` specially, we should do a prepass with
-        //       the context that helps to determine the structure of the workflow (exposes operations that needs inputs
-        //       or produce outputs).
-
         /// <inheritdoc />
-        public override async IAsyncEnumerable<OperationFieldDescriptor> GetInputFields(OperationContext context)
+        public override async IAsyncEnumerable<OperationFieldDescriptor> GetInputFields(OperationJob job)
         {
-            // TODO: Completely rewrite.
-            List<string> inputs = new();
             foreach (Operation operation in Operations)
-            {
-                if (operation is InputOperation inputOperation &&
-                    inputOperation.DefaultValues.ContainsKey("Name"))
-                {
-                    string name = inputOperation.DefaultValues["Name"] as string;
-                    if (name is not null) inputs.Add(name);
-                }
-            }
-            return inputs.ToArray();
+                await foreach (OperationFieldDescriptor inputField in operation.GetExternalInputFields(job))
+                    yield return inputField;
         }
         /// <inheritdoc />
-        public override async IAsyncEnumerable<OperationFieldDescriptor> GetOutputFields(OperationContext context)
+        public override async IAsyncEnumerable<OperationFieldDescriptor> GetOutputFields(OperationJob job)
         {
-            // TODO: Completely rewrite.
-            List<string> outputs = new();
             foreach (Operation operation in Operations)
-            {
-                if (operation is OutputOperation outputOperation &&
-                    outputOperation.DefaultValues.ContainsKey("Name"))
-                {
-                    string name = outputOperation.DefaultValues["Name"] as string;
-                    if (name is not null) outputs.Add(name);
-                }
-            }
-            return outputs.ToArray();
+                await foreach (OperationFieldDescriptor outputField in operation.GetExternalOutputFields(job))
+                    yield return outputField;
         }
-
-        /// <inheritdoc />
-        public override Type GetInputFieldType(string field)
-        {
-            // TODO: Completely rewrite.
-            foreach (Operation operation in Operations)
-            {
-                if (operation is InputOperation inputOperation &&
-                    inputOperation.DefaultValues.ContainsKey("Name") &&
-                    (string)inputOperation.DefaultValues["Name"] == field)
-                {
-                    foreach (WorkflowOperationConnection connection in Connections)
-                    {
-                        if (
-                            connection.Source.Operation == inputOperation.Id &&
-                            connection.Source.Field == "Value"
-                        )
-                        {
-                            Operation target = Operations.First(operation => operation.Id == connection.Target.Operation);
-                            Type targetType = target.GetInputFieldType(connection.Target.Field);
-                            return targetType;
-                        }
-                    }
-                }
-            }
-            // If there were no connections to the input object, we assume any type will do.
-            return typeof(object);
-        }
-        /// <inheritdoc />
-        public override Type GetOutputFieldType(string field)
-        {
-            // TODO: Completely rewrite.
-            foreach (Operation operation in Operations)
-            {
-                if (operation is OutputOperation outputOperation &&
-                    outputOperation.DefaultValues.ContainsKey("Name") &&
-                    (string)outputOperation.DefaultValues["Name"] == field)
-                {
-                    foreach (WorkflowOperationConnection connection in Connections)
-                    {
-                        if (
-                            connection.Target.Operation == outputOperation.Id &&
-                            connection.Target.Field == "Value"
-                        )
-                        {
-                            Operation source = Operations.First(operation => operation.Id == connection.Source.Operation);
-                            Type sourceType = source.GetOutputFieldType(connection.Source.Field);
-                            return sourceType;
-                        }
-                    }
-                }
-            }
-            // If there were no connections to the output object, we assume any type will do.
-            return typeof(object);
-        }
-
-        // TODO: Provide custom implementations for the following methods.
-        // public override JsonSchema GetInputFieldSchema(string field)
-        // {
-        //     return base.GetInputFieldSchema(field);
-        // }
-        // public override JsonSchema GetOutputFieldSchema(string field)
-        // {
-        //     return base.GetOutputFieldSchema(field);
-        // }
     }
 
     /// <summary>
@@ -285,9 +225,9 @@ namespace CartaCore.Operations
         /// </summary>
         private WorkflowOperation Workflow { get; init; }
         /// <summary>
-        /// The context of the workflow operation.
+        /// The job of the workflow operation.
         /// </summary>
-        private OperationContext Context { get; init; }
+        private OperationJob Job { get; init; }
 
         /// <summary>
         /// The graph of dependencies between workflow operations.
@@ -303,11 +243,11 @@ namespace CartaCore.Operations
         /// Initializes a new instance of the <see cref="WorkflowRunner"/> class.
         /// </summary>
         /// <param name="workflow">The workflow operation.</param>
-        /// <param name="context">The operation context.</param>
-        public WorkflowRunner(WorkflowOperation workflow, OperationContext context)
+        /// <param name="job">The operation job.</param>
+        public WorkflowRunner(WorkflowOperation workflow, OperationJob job)
         {
             Workflow = workflow;
-            Context = context;
+            Job = job;
 
             DependencyGraph = ConstructDependencyGraph();
         }
@@ -354,10 +294,10 @@ namespace CartaCore.Operations
 
                 // Check that the source and target operations have the specified fields.
                 if (!await source.Operation
-                    .GetOutputFields(Context)
+                    .GetOutputFields(Job)
                     .AnyAsync((field) => field.Name == edge.SourcePoint.Field)) return false;
                 if (!await target.Operation
-                    .GetInputFields(Context)
+                    .GetInputFields(Job)
                     .AnyAsync((field) => field.Name == edge.TargetPoint.Field)) return false;
             }
             return true;
@@ -408,7 +348,7 @@ namespace CartaCore.Operations
         /// <summary>
         /// Runs the workflow operation by executing all of its sub-operations in order.
         /// </summary>
-        /// <returns>Nothing but may modify the operation context.</returns>
+        /// <returns>Nothing but may modify the operation job.</returns>
         public async Task RunWorkflow()
         {
             /*
@@ -421,7 +361,7 @@ namespace CartaCore.Operations
                 This aids in making operations work consistently (i.e. there are no special operations). For instance,
                 instead of this workflow operation providing inputs to an `InputOperation` or extracting outputs from an
                 `OutputOperation`, we simply allow those operations to define logic that works with the operation
-                context.
+                job.
 
                 Additionally, in the interest of completely separating operations (modularism) from each other,
                 operating in a "when inputs are ready" fashion allows individual operations to not worry about grabbing
@@ -501,19 +441,19 @@ namespace CartaCore.Operations
             // TODO: For now we ignore multiplexing and indexing.
             // TODO: Implement pipelining execution.
 
-            // Create a context for the operation.
+            // Create a job for the operation.
             Dictionary<string, object> inputs = await GetOperationInputs(id);
             Dictionary<string, object> outputs = new();
-            OperationContext context = new(inputs, outputs)
+            OperationJob job = new(inputs, outputs)
             {
-                Parent = Context,
+                Parent = job,
                 Operation = operation,
             };
 
             // TODO: Can we delete intermediate results to operations that are no longer dependencies?
             // Execute the operation and add the results to our collection.
-            await operation.Perform(context);
-            Results.TryAdd(id, context.Output);
+            await operation.Perform(job);
+            Results.TryAdd(id, job.Output);
 
             return id;
         }
@@ -541,7 +481,7 @@ namespace CartaCore.Operations
 
             // TODO: Temporary.
             // Forward the authentication settings.
-            if (Context.Input.TryGetValue("authentication", out object authentication))
+            if (Job.Input.TryGetValue("authentication", out object authentication))
                 inputs.Add("authentication", authentication);
 
             return inputs;

@@ -17,6 +17,7 @@ There is an issue preventing the manual (programmatic not browser) refresh for o
 - Donut plot and box plot.
 
 # Upcoming Work
+- Implement color picker widget for string schema values.
 - Add statistics operation to compute raw, central, and standardized moments.
 - Add a static class utility containing a list of all UI widgets and descriptions of what they do.
 - Consider if we need to change the supported version of JSON schema in the front-end or back-end and check if there is any necessary configuration that needs to be added.

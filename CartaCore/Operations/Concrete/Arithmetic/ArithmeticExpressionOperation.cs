@@ -22,7 +22,7 @@ namespace CartaCore.Operations.Arithmetic
         /// <summary>
         /// The values that should be substituted for variable symbols in the mathematical expression.
         /// </summary>
-        [DynamicField]
+        [FieldDynamic]
         public Dictionary<string, double> Values { get; set; }
     }
     /// <summary>
@@ -399,7 +399,7 @@ namespace CartaCore.Operations.Arithmetic
         /// <inheritdoc />
         public override string[] GetDynamicInputFields(string field, ArithmeticExpressionOperationIn input)
         {
-            if (string.Equals(nameof(ArithmeticExpressionOperationIn.Expression), field, StringComparison.Ordinal))
+            if (string.Equals(nameof(ArithmeticExpressionOperationIn.Values), field, StringComparison.Ordinal))
             {
                 // The interpreter detects the symbols/fields in the expression.
                 ArithmeticInterpreter interpreter = new(input.Expression);

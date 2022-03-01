@@ -168,7 +168,7 @@ namespace CartaCore.Operations.Visualization
         /// <inheritdoc />
         public override async Task<PlotGraphOperationOut> Perform(
             PlotGraphOperationIn input,
-            OperationContext callingContext)
+            OperationJob job)
         {
             // Check if the graph is enumerable.
             if (input.Graph is not IEntireGraph<IVertex, IEdge> entireGraph)

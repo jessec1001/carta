@@ -13,6 +13,14 @@ namespace CartaCore.Operations
     public static class OperationHelper
     {
         #region Reflection
+        /// <summary>
+        /// Finds all of the concretely-implemented, public, operation types within a particular assembly.
+        /// </summary>
+        /// <param name="assembly">
+        /// The assembly to search for operation types within.
+        /// If not specified, the executing assembly is used.
+        /// </param>
+        /// <returns>An enumeration of operation types.</returns>
         public static IEnumerable<Type> FindOperationTypes(Assembly assembly = null)
         {
             // Default to this assembly if no assembly is specified.
@@ -27,6 +35,18 @@ namespace CartaCore.Operations
                     type.IsPublic && !type.IsAbstract && !type.IsInterface) yield return type;
             }
         }
+        /// <summary>
+        /// Finds a particular operation type within a particular assembly.
+        /// </summary>
+        /// <param name="name">
+        /// The name of the operation to find.
+        /// This is specified via the <see cref="OperationNameAttribute" />.
+        /// </param>
+        /// <param name="assembly">
+        /// The assembly to search for operation types within.
+        /// If not specified, the executing assembly is used.
+        /// </param>
+        /// <returns>An enumeration of operation types.</returns>
         public static Type FindOperationType(string name, Assembly assembly = null)
         {
             // Get the types of operations.
@@ -43,7 +63,7 @@ namespace CartaCore.Operations
         }
 
         /// <summary>
-        /// Create a description from a particular type of operation.
+        /// Creates a description from a particular type of operation.
         /// </summary>
         /// <param name="type">The type of operation.</param>
         /// <returns>The generated description.</returns>
@@ -54,10 +74,7 @@ namespace CartaCore.Operations
 
             // Get the default description from the XML documentation.
             // We ignore errors here because they are more like warnings in this context and will be caught by tests.
-            try
-            {
-                description.Description = type.GetDocumentation<StandardDocumentation>().Summary;
-            }
+            try { description.Description = type.GetDocumentation<StandardDocumentation>().Summary; }
             catch { }
 
             // Apply all description modifying attributes.
@@ -70,7 +87,7 @@ namespace CartaCore.Operations
             return description;
         }
         /// <summary>
-        /// Create a description from a particular type of operation.
+        /// Creates a description from a particular type of operation.
         /// </summary>
         /// <typeparam name="T">The type of operation.</typeparam>
         /// <returns>The generated description.</returns>
@@ -78,6 +95,14 @@ namespace CartaCore.Operations
         {
             return DescribeOperationType(typeof(T));
         }
+        /// <summary>
+        /// Creates descriptions of all concretely-implemented, public, operation types within a particular assembly.
+        /// </summary>
+        /// <param name="assembly">
+        /// The assembly to search for operation types within.
+        /// If not specified, the executing assembly is used.
+        /// </param>
+        /// <returns>An enumeration of operation descriptions.</returns>
         public static IEnumerable<OperationDescription> DescribeOperationTypes(Assembly assembly = null)
         {
             // Get the types of operations.
@@ -94,85 +119,64 @@ namespace CartaCore.Operations
             }
         }
         #endregion
-    
-        #region Construction
-        public static Operation Construct(
-            Type type,
-            out object input,
-            out object output,
-            WorkflowOperation workflow = null)
-        {
 
-        }
-        // TODO: Implement constructing generic operations if necessary.
+        #region Construction
+        // TODO: Add documentation and method for resolving types within a workflow.
         /// <summary>
         /// Constructs a new operation from a specified type.
+        /// If the operation type contains any generic type parameters, they are replaced with <see cref="object" />.
         /// </summary>
-        /// <param name="type">The type name of the operation to construct.</param>
+        /// <param name="type">The type of the operation to construct.</param>
         /// <param name="input">The default input for the operation.</param>
         /// <param name="output">The default output for the operation.</param>
-        /// <param name="assembly">The assembly to find the operation inside of.</param>
         /// <returns>The newly constructed operation.</returns>
-        public static Operation Construct(string type, out object input, out object output, Assembly assembly = null)
+        public static Operation Construct(Type type, out object input, out object output)
         {
-            // TODO: This contains mostly duplicated code from `OperationDescription`.
-            // Assign the assembly to the current assembly if it is not specified.
-            assembly ??= Assembly.GetAssembly(typeof(Operation));
+            // Check if the type is null.
+            if (type is null) throw new ArgumentNullException(nameof(type));
 
-            // Get the concrete types which are implementations of an operation.
-            Type[] assemblyTypes = assembly.GetTypes();
-            Type[] operationTypes = assemblyTypes
-                .Where(type =>
-                    type.IsAssignableTo(typeof(Operation)) &&
-                    type.IsPublic &&
-                    !(type.IsAbstract || type.IsInterface))
-                .ToArray();
-
-            // Generate the descriptions for each of the operation implementation types.
-            OperationDescription[] descriptions = new OperationDescription[operationTypes.Length];
-            for (int k = 0; k < operationTypes.Length; k++)
+            // We need to check if the type is generic.
+            // If it is, we assign all of the generic parameters to `object`.
+            if (type.ContainsGenericParameters)
             {
-                descriptions[k] = OperationDescription.FromType(operationTypes[k]);
-
-                // Find the operation type corresponding to the specified type.
-                if (descriptions[k].Type == type)
-                {
-                    // Construct the operation.
-                    Operation operation = (Operation)Activator.CreateInstance(operationTypes[k]);
-
-                    // Construct the input and output values if the operation is a typed operation.
-                    Type baseType = operation.GetType().BaseType;
-                    if (baseType.IsAssignableTo(typeof(TypedOperation<,>)))
-                    {
-                        // Get the input and output types.
-                        Type inputType = baseType.GetGenericArguments()[0];
-                        Type outputType = baseType.GetGenericArguments()[1];
-
-                        // Construct the input and output values.
-                        input = Activator.CreateInstance(inputType);
-                        output = Activator.CreateInstance(outputType);
-                    }
-                    else
-                    {
-                        input = null;
-                        output = null;
-                    }
-                }
+                // Create the generic type with the `object` parameters.
+                Type[] typeArguments = new Type[type.GetGenericArguments().Length];
+                for (int i = 0; i < typeArguments.Length; i++)
+                    typeArguments[i] = typeof(object);
+                type = type.MakeGenericType(typeArguments);
             }
 
-            // If the operation type was not found, return null.
-            input = output = null;
-            return null;
+            // Create an instance of the operation.
+            Operation operation = (Operation)Activator.CreateInstance(type);
+
+            // Construct the input and output values depending on the operation type.
+            Type baseType = type.BaseType;
+            if (baseType.IsAssignableTo(typeof(TypedOperation<,>)))
+            {
+                // Get the input and output types.
+                Type inputType = baseType.GetGenericArguments()[0];
+                Type outputType = baseType.GetGenericArguments()[1];
+
+                // Construct the input and output values.
+                input = Activator.CreateInstance(inputType);
+                output = Activator.CreateInstance(outputType);
+            }
+            else
+            {
+                input = output = null;
+            }
+
+            return operation;
         }
         /// <summary>
-        /// Contructs a new operation from a specified type.
+        /// Constructs a new operation from a specified type.
+        /// If the operation type contains any generic type parameters, they are replaced with <see cref="object" />.
         /// </summary>
-        /// <param name="type">The type name of the operation to construct.</param>
-        /// <param name="assembly">The assembly to find the operation inside of.</param>
+        /// <param name="type">The type of the operation to construct.</param>
         /// <returns>The newly constructed operation.</returns>
-        public static Operation Construct(string type, Assembly assembly = null)
+        public static Operation Construct(Type type)
         {
-            return Construct(type, out _, out _, assembly);
+            return Construct(type, out _, out _);
         }
         #endregion
     }
