@@ -101,7 +101,7 @@ namespace CartaCore.Operations
 
             // Get the default description from the XML documentation.
             // We ignore errors here because they are more like warnings in this context and will be caught by tests.
-            try { description.Description = type.GetDocumentation<StandardDocumentation>().Summary; }
+            try { description.Description = type.GetDocumentation<StandardDocumentation>().UncontractedSummary; }
             catch { }
 
             // Apply all description modifying attributes.
@@ -255,7 +255,7 @@ namespace CartaCore.Operations
                 GenerateAbstractSchemas = false,
                 FlattenInheritanceHierarchy = true,
             };
-            
+
             // The default treatment of streams as nullable objects needs to be overridden.
             // We assume that all streams are files.
             if (type.IsAssignableTo(typeof(Stream)))
@@ -311,7 +311,7 @@ namespace CartaCore.Operations
 
             // Apply the property name and description.
             schema.Title ??= property.Name;
-            schema.Description ??= documentation?.Summary;
+            schema.Description ??= documentation?.UncontractedSummary;
 
             return schema;
         }

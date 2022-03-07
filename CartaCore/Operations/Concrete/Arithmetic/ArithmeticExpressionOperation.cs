@@ -419,7 +419,7 @@ namespace CartaCore.Operations.Arithmetic
                 // Generate the schema for the value field.
                 JsonSchema schema = OperationHelper.GenerateSchema(typeof(double));
                 schema.Title = symbol;
-                schema.Description = documentation.Summary;
+                schema.Description = documentation.UncontractedSummary;
 
                 yield return new OperationFieldDescriptor()
                 {

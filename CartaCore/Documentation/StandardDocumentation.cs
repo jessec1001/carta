@@ -20,5 +20,14 @@ namespace CartaCore.Documentation
             get => _summary.ContractWhitespace();
             set => _summary = value;
         }
+        /// <summary>
+        /// The summary of the member without trimming applied.
+        /// </summary>
+        [XmlIgnore]
+        public string UncontractedSummary
+        {
+            get => _summary.Trim();
+            set => _summary = value;
+        }
     }
 }
