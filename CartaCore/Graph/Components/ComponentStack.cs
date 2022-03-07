@@ -3,7 +3,6 @@ using System.Collections.Generic;
 
 namespace CartaCore.Graphs.Components
 {
-    // TODO: Attach this component stack to components when adding.
     /// <summary>
     /// A stack of components that can be retrieved via type.
     /// </summary>
@@ -157,7 +156,7 @@ namespace CartaCore.Graphs.Components
             component = default;
             return false;
         }
-    
+
         /// <summary>
         /// Clears the component stack.
         /// </summary>

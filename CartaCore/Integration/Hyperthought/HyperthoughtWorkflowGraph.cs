@@ -228,13 +228,6 @@ namespace CartaCore.Integration.Hyperthought
         }
 
         /// <inheritdoc />
-        public override GraphAttributes Attributes => new()
-        {
-            Dynamic = true,
-            Finite = true
-        };
-
-        /// <inheritdoc />
         public async IAsyncEnumerable<string> Roots()
         {
             yield return await Task.FromResult(WorkflowId.ToString());

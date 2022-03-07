@@ -91,13 +91,6 @@ namespace CartaCore.Integration.Synthetic
         }
 
         /// <inheritdoc />
-        public override GraphAttributes Attributes => new()
-        {
-            Dynamic = true,
-            Finite = false
-        };
-
-        /// <inheritdoc />
         public async IAsyncEnumerable<string> Roots()
         {
             yield return await Task.FromResult(new CompoundRandom(Parameters.Seed).NextGuid().ToString());

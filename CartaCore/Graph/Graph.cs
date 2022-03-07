@@ -10,9 +10,6 @@ namespace CartaCore.Graphs
     public abstract class Graph : Element<Graph>, IGraph
     {
         /// <inheritdoc />
-        public abstract GraphAttributes Attributes { get; }
-
-        /// <inheritdoc />
         public ComponentStack Components { get; set; } = new();
 
         /// <summary>

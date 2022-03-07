@@ -21,13 +21,6 @@ namespace CartaCore.Graphs
         where TVertex : IVertex<TEdge>
         where TEdge : IEdge
     {
-        /// <inheritdoc />
-        public override GraphAttributes Attributes => new()
-        {
-            Dynamic = true,
-            Finite = true
-        };
-
         private Dictionary<string, TVertex> VertexSet { get; init; }
         private Dictionary<string, HashSet<TEdge>> InEdgeSet { get; init; }
         private Dictionary<string, HashSet<TEdge>> OutEdgeSet { get; init; }

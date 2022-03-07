@@ -8,10 +8,6 @@ namespace CartaCore.Graphs
     public interface IGraph
     {
         /// <summary>
-        /// The structural attributes of the graph.
-        /// </summary>
-        GraphAttributes Attributes { get; }
-        /// <summary>
         /// The components attached to the graph.
         /// </summary>
         ComponentStack Components { get; }
