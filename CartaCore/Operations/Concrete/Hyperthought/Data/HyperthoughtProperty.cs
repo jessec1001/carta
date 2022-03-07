@@ -9,7 +9,7 @@ namespace CartaCore.Operations.Hyperthought.Data
     public class HyperthoughtProperty
     {
         /// <summary>
-        /// The key (name) of the Hyperthought property.
+        /// The name of the Hyperthought property.
         /// </summary>
         public string Key { get; set; }
 

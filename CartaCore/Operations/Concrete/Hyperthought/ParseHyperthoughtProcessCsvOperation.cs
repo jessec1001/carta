@@ -19,6 +19,7 @@ namespace CartaCore.Operations.Hyperthought
         /// <summary>
         /// The stream of data to retrieve the CSV from.
         /// </summary>
+        [FieldName("Stream")]
         public Stream Stream { get; set; }
     }
     /// <summary>
@@ -29,10 +30,12 @@ namespace CartaCore.Operations.Hyperthought
         /// <summary>
         /// A list of HyperThought process paths. 
         /// </summary>
+        [FieldName("Process Paths")]
         public string[] ProcessPaths { get; set; }
         /// <summary>
         /// A list of sets of HyperThought process properties corresponding to the process paths.
         /// </summary>
+        [FieldName("Process Properties")]
         public HyperthoughtProperty[][] ProcessProperties { get; set; }
     }
 

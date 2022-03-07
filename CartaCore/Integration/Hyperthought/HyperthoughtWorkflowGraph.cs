@@ -10,6 +10,7 @@ using CartaCore.Graphs;
 
 namespace CartaCore.Integration.Hyperthought
 {
+    // TODO: Add support for optionally including HyperThought metadata.
     /// <summary>
     /// Represents a sampled graph generated from data contained in a HyperThought workflow.
     /// </summary>

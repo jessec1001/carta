@@ -7,7 +7,7 @@ namespace CartaCore.Graphs.Components
     /// </summary>
     /// <typeparam name="TVertex">The type of vertex.</typeparam>
     /// <typeparam name="TEdge">The type of edge.</typeparam>
-    public interface IDynamicInComponent<out TVertex, out TEdge>
+    public interface IDynamicInComponent<out TVertex, out TEdge> : IComponent
         where TVertex : IVertex<TEdge>
         where TEdge : IEdge
     {

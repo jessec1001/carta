@@ -2,6 +2,7 @@ using System;
 
 namespace CartaCore.Operations
 {
+    // TODO: See if there is a better way to represent the hierarchy of operations.
     /// <summary>
     /// The status of an operation that has been requested for execution.
     /// </summary>

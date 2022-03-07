@@ -5,7 +5,7 @@ namespace CartaCore.Graphs.Components
     /// <summary>
     /// A graph component that allows retrieval of the root vertex identifiers.
     /// </summary>
-    public interface IRootedComponent
+    public interface IRootedComponent : IComponent
     {
         /// <summary>
         /// Enumerates over the identities of root vertices.

@@ -4,17 +4,17 @@ using CartaCore.Operations.Attributes;
 
 namespace CartaCore.Operations.Arrays
 {
-    // TODO: Make this a generic operation that can be used for any array type.
     /// <summary>
-    /// The input for the <see cref="ArrayItemOperation" /> operation.
+    /// The input for the <see cref="ArrayItemOperation{TItem}" /> operation.
     /// </summary>
-    public struct ArrayItemOperationIn
+    /// <typeparam name="TItem">The type of array item.</typeparam>
+    public struct ArrayItemOperationIn<TItem>
     {
         /// <summary>
         /// The array of items to index.
         /// </summary>
         [FieldName("Items")]
-        public object[] Items { get; set; }
+        public TItem[] Items { get; set; }
         /// <summary>
         /// The index of the item to obtain.
         /// </summary>
@@ -22,15 +22,16 @@ namespace CartaCore.Operations.Arrays
         public int Index { get; set; }
     }
     /// <summary>
-    /// The output for the <see cref="ArrayItemOperation" /> operation.
+    /// The output for the <see cref="ArrayItemOperation{TItem}" /> operation.
     /// </summary>
-    public struct ArrayItemOperationOut
+    /// <typeparam name="TItem">The type of array item.</typeparam>
+    public struct ArrayItemOperationOut<TItem>
     {
         /// <summary>
         /// The item that was indexed from the array.
         /// </summary>
         [FieldName("Item")]
-        public object Item { get; set; }
+        public TItem Item { get; set; }
     }
 
     /// <summary>
@@ -38,14 +39,14 @@ namespace CartaCore.Operations.Arrays
     /// </summary>
     [OperationName(Display = "Array Item", Type = "arrayItem")]
     [OperationTag(OperationTags.Array)]
-    public class ArrayItemOperation : TypedOperation
+    public class ArrayItemOperation<TItem> : TypedOperation
     <
-        ArrayItemOperationIn,
-        ArrayItemOperationOut
+        ArrayItemOperationIn<TItem>,
+        ArrayItemOperationOut<TItem>
     >
     {
         /// <inheritdoc />
-        public override Task<ArrayItemOperationOut> Perform(ArrayItemOperationIn input)
+        public override Task<ArrayItemOperationOut<TItem>> Perform(ArrayItemOperationIn<TItem> input)
         {
             // Check for a null array.
             if (input.Items is null)
@@ -55,7 +56,7 @@ namespace CartaCore.Operations.Arrays
             if (input.Index < 0)
                 input.Index += input.Items.Length;
 
-            return Task.FromResult(new ArrayItemOperationOut() { Item = input.Items[input.Index] });
+            return Task.FromResult(new ArrayItemOperationOut<TItem>() { Item = input.Items[input.Index] });
         }
     }
 }

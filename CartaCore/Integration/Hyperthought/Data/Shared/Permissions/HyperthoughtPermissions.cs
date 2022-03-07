@@ -43,7 +43,7 @@ namespace CartaCore.Integration.Hyperthought.Data
         /// <returns>The constructed permissions.</returns>
         public static HyperthoughtPermissions FromWorkspace(HyperthoughtWorkspace workspace)
         {
-            return HyperthoughtPermissions.FromWorkspace(workspace.PrimaryKey);
+            return FromWorkspace(workspace.PrimaryKey);
         }
     }
 }

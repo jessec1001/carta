@@ -46,6 +46,13 @@ namespace CartaCore.Graphs
             VertexSet = new Dictionary<string, TVertex>();
             InEdgeSet = new Dictionary<string, HashSet<TEdge>>();
             OutEdgeSet = new Dictionary<string, HashSet<TEdge>>();
+
+            // Initialize all of the components.
+            Components.AddTop<IRootedComponent>(this);
+            Components.AddTop<IEnumerableComponent<TVertex, TEdge>>(this);
+            Components.AddTop<IDynamicLocalComponent<TVertex, TEdge>>(this);
+            Components.AddTop<IDynamicInComponent<TVertex, TEdge>>(this);
+            Components.AddTop<IDynamicOutComponent<TVertex, TEdge>>(this);
         }
         /// <summary>
         /// Initializes an instance of the <see cref="MemoryGraph{TVertex, TEdge}"/> class with the specified
@@ -54,7 +61,7 @@ namespace CartaCore.Graphs
         /// <param name="id">The graph identifier.</param>
         public MemoryGraph(
             string id
-        ) : base(id, new Dictionary<string, IProperty>()) { }
+        ) : this(id, new Dictionary<string, IProperty>()) { }
 
         /// <summary>
         /// Adds a vertex to the graph.

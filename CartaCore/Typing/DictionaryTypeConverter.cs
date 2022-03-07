@@ -88,33 +88,6 @@ namespace CartaCore.Typing
                 output = Activator.CreateInstance(targetType);
                 foreach (PropertyInfo property in targetType.GetProperties(BindingFlags.Public | BindingFlags.Instance))
                 {
-                    // TODO: This is temporary.
-                    OperationAuthenticationAttribute authAttribute = property.GetCustomAttribute<OperationAuthenticationAttribute>();
-                    if (authAttribute is not null)
-                    {
-                        // Get the referenced authentication value if possible.
-                        if (dictionary.Contains("authentication"))
-                        {
-                            object authObject = dictionary["authentication"];
-                            if (authObject is IDictionary authDictionary)
-                            {
-                                if (authDictionary.Contains(authAttribute.Key))
-                                {
-                                    // Using the authentication value, we call the appropriate constructor.
-                                    object authValue = authDictionary[authAttribute.Key];
-                                    object[] constructorArgs = new object[] { authValue };
-                                    object authInstance = Activator.CreateInstance(property.PropertyType, constructorArgs);
-
-                                    // We set the value of the property.
-                                    property.SetValue(output, authInstance);
-                                }
-                            }
-                        }
-
-                        // Do not allow overriding the authentication value.
-                        continue;
-                    }
-
                     // Check if the property is in the dictionary.
                     DictionaryEntry entry = default;
                     bool entryExists = false;

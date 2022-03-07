@@ -2,8 +2,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-
-using CartaCore.Data;
+using CartaCore.Graphs;
+using CartaCore.Graphs.Components;
 using CartaCore.Serialization.Json;
 
 namespace CartaWeb.Serialization.Json
@@ -18,57 +18,38 @@ namespace CartaWeb.Serialization.Json
     public class VisFormat
     {
         /// <summary>
-        /// Gets or sets the graph identifier.
+        /// The graph identifier.
         /// </summary>
-        /// <value>The graph identifier.</value>
         [JsonPropertyName("id")]
         public string Id { get; set; }
 
         /// <summary>
-        /// Gets or sets whether the graph is directed.
+        /// The attributes of the graph.
         /// </summary>
-        /// <value>
-        /// <c>true</c> if the graph is directed; otherwise <c>false</c>.
-        /// </value>
-        [JsonPropertyName("directed")]
-        public bool Directed { get; set; }
-        /// <summary>
-        /// Gets or sets whether the graph is dynamic.
-        /// </summary>
-        /// <value><c>true</c> if the graph is dynamic; otherwise <c>false</c>.</value>
-        [JsonPropertyName("dynamic")]
-        public bool Dynamic { get; set; }
+        [JsonPropertyName("attributes")]
+        public VisFormatAttributes Attributes { get; set; }
 
         /// <summary>
-        /// Gets or sets the graph nodes.
+        /// The nodes contained in the graph.
         /// </summary>
-        /// <value>
-        /// The graph nodes.
-        /// </value>
         [JsonPropertyName("nodes")]
-        public List<VisFormatNode> Nodes { get; set; }
+        public HashSet<VisFormatNode> Nodes { get; set; }
         /// <summary>
-        /// Gets or sets the graph edges.
+        /// The edges contained in the graph.
         /// </summary>
-        /// <value>
-        /// The graph edges.
-        /// </value>
         [JsonPropertyName("edges")]
-        public List<VisFormatEdge> Edges { get; set; }
+        public HashSet<VisFormatEdge> Edges { get; set; }
 
         /// <summary>
-        /// Gets the graph.
+        /// The generated graph structure.
         /// </summary>
-        /// <value>
-        /// The graph.
-        /// </value>
         [JsonIgnore]
-        public FiniteGraph Graph
+        public MemoryGraph Graph
         {
             get
             {
                 // Create a graph and add the vertices and edges.
-                FiniteGraph graph = new(Identity.Create(Id), Directed);
+                MemoryGraph graph = new(Id);
                 graph.AddVertexRange(Nodes.Select(node => node.Vertex));
                 graph.AddEdgeRange(Edges.Select(edge => edge.Edge));
 
@@ -77,180 +58,67 @@ namespace CartaWeb.Serialization.Json
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="VisFormat"/> class.
-        /// </summary>
-        public VisFormat() { }
-
-        /// <summary>
         /// Constructs a <see cref="VisFormat"/> version of the specified graph.
         /// </summary>
         /// <param name="graph">The graph to convert to Vis format.</param>
         /// <returns>The Vis formatted graph.</returns>
-        public static async Task<VisFormat> CreateAsync(IEntireGraph graph)
+        public static async Task<VisFormat> CreateAsync(IGraph graph)
         {
             VisFormat visFormat = new();
 
-            if (graph is Graph baseGraph) visFormat.Id = baseGraph.Identifier.ToString();
+            // Read the graph attributes.
+            if (graph is IIdentifiable identifiable) visFormat.Id = identifiable.Id;
+            visFormat.Attributes = new VisFormatAttributes(graph.Attributes);
 
-            visFormat.Directed = graph.GetProperties().Directed;
-            visFormat.Dynamic = graph.GetProperties().Dynamic;
-            visFormat.Nodes = await graph.GetVertices().SelectAwait
-            (
-                node => new ValueTask<VisFormatNode>(Task.FromResult(new VisFormatNode(node)))
-            ).ToListAsync();
-            visFormat.Edges = await graph.GetEdges().SelectAwait
-            (
-                edge => new ValueTask<VisFormatEdge>(Task.FromResult(new VisFormatEdge(edge)))
-            ).ToListAsync();
+            // Read the content of the graph.
+            if (graph.Components.TryFind(out IEnumerableComponent<Vertex, Edge> enumerableComponent))
+            {
+                // Initialize the nodes and edges.
+                visFormat.Nodes = new HashSet<VisFormatNode>();
+                visFormat.Edges = new HashSet<VisFormatEdge>();
+
+                // Add each of the vertices and edges to the graph.
+                await foreach (Vertex vertex in enumerableComponent.GetVertices())
+                {
+                    visFormat.Nodes.Add(new VisFormatNode(vertex));
+                    foreach (Edge edge in vertex.Edges)
+                        visFormat.Edges.Add(new VisFormatEdge(edge));
+                }
+            }
 
             return visFormat;
         }
     }
 
     /// <summary>
-    /// Represents a node in Vis format.
+    /// Represents the attributes of a graph in Vis format.
     /// </summary>
-    public class VisFormatNode
+    public class VisFormatAttributes
     {
         /// <summary>
-        /// Gets or sets the node ID.
+        /// Whether the graph is dynamic.
         /// </summary>
-        /// <value>
-        /// The node ID.
-        /// </value>
-        [JsonPropertyName("id")]
-        public string Id { get; set; }
+        [JsonPropertyName("dynamic")]
+        public bool Dynamic { get; set; }
+        /// <summary>
+        /// Whether the graph is finite.
+        /// </summary>
+        [JsonPropertyName("finite")]
+        public bool Finite { get; set; }
 
         /// <summary>
-        /// Gets or sets the vertex label.
+        /// Initializes a new instance of the <see cref="VisFormatAttributes"/> class.
         /// </summary>
-        /// <value>
-        /// The vertex label which is visible on vertex visualization.
-        /// </value>
-        [JsonPropertyName("label")]
-        public string Label { get; set; }
+        public VisFormatAttributes() { }
         /// <summary>
-        /// Gets or sets the vertex description.
+        /// Initializes a new instance of the <see cref="VisFormatAttributes"/> class.
         /// </summary>
-        /// <value>
-        /// The vertex description which pops up on vertex visualization.
-        /// </value>
-        [JsonPropertyName("title")]
-        public string Description { get; set; }
-
-        /// <summary>
-        /// Gets or sets the vertex properties.
-        /// </summary>
-        /// <value>
-        /// The vertex properties.
-        /// </value>
-        [JsonPropertyName("properties")]
-        public List<VisFormatProperty> Properties { get; set; }
-
-        /// <summary>
-        /// Gets the vertex.
-        /// </summary>
-        /// <value>
-        /// The vertex.
-        /// </value>
-        [JsonIgnore]
-        public IVertex Vertex
+        /// <param name="attributes">The graph attributes.</param>
+        public VisFormatAttributes(GraphAttributes attributes)
         {
-            get
-            {
-                return new Vertex
-                (
-                    Identity.Create(Id),
-                    Properties?.Select(property => property.Property) ?? Enumerable.Empty<Property>()
-                )
-                {
-                    Label = Label,
-                    Description = Description
-                };
-            }
+            Dynamic = attributes.Dynamic;
+            Finite = attributes.Finite;
         }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="VisFormatNode"/> class with the specified node.
-        /// </summary>
-        /// <param name="vertex">The vertex to convert to a new format.</param>
-        public VisFormatNode(IVertex vertex)
-        {
-            Id = vertex.Identifier?.ToString();
-            Label = vertex.Label;
-            Description = string.IsNullOrEmpty(vertex.Description) ? null : vertex.Description;
-            Properties = vertex.Properties?.Select(property => new VisFormatProperty(property)).ToList();
-        }
-        /// <summary>
-        /// Initializes a new instance of the <see cref="VisFormatNode"/> class.
-        /// </summary>
-        public VisFormatNode() { }
-    }
-
-    /// <summary>
-    /// Represents an edge in Vis format.
-    /// </summary>
-    public class VisFormatEdge
-    {
-        /// <summary>
-        /// Gets or sets the ID.
-        /// </summary>
-        /// <value>
-        /// The edge ID.
-        /// </value>
-        [JsonPropertyName("id")]
-        public string Id { get; set; }
-
-        /// <summary>
-        /// Gets or sets the source vertex ID.
-        /// </summary>
-        /// <value>
-        /// The source vertex ID.
-        /// </value>
-        [JsonPropertyName("from")]
-        public string Source { get; set; }
-        /// <summary>
-        /// Gets or sets the target vertex ID.
-        /// </summary>
-        /// <value>
-        /// The target vertex ID.
-        /// </value>
-        [JsonPropertyName("to")]
-        public string Target { get; set; }
-
-        /// <summary>
-        /// Gets the edge.
-        /// </summary>
-        /// <value>
-        /// The edge.
-        /// </value>
-        [JsonIgnore]
-        public Edge Edge
-        {
-            get
-            {
-                return new Edge
-                (
-                    Identity.Create(Source),
-                    Identity.Create(Target)
-                );
-            }
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="VisFormatEdge"/> class with the specified ID and endpoints.
-        /// </summary>
-        /// <param name="edge">The edge source and target to convert to a new format.</param>
-        public VisFormatEdge(Edge edge)
-        {
-            Id = edge.Identifier.ToString();
-            Source = edge.Source.ToString();
-            Target = edge.Target.ToString();
-        }
-        /// <summary>
-        /// Initializes a new instance of the <see cref="VisFormatEdge"/> class.
-        /// </summary>
-        public VisFormatEdge() { }
     }
 
     /// <summary>
@@ -259,29 +127,19 @@ namespace CartaWeb.Serialization.Json
     public class VisFormatProperty
     {
         /// <summary>
-        /// Gets or sets the property name.
+        /// The value of the property.
         /// </summary>
-        /// <value>
-        /// The property name.
-        /// </value>
-        [JsonPropertyName("id")]
-        public string Id { get; set; }
-        /// <summary>
-        /// Gets or sets the observations of the property.
-        /// </summary>
-        /// <value>The property observations.</value>
         [JsonPropertyName("value")]
         [JsonConverter(typeof(JsonObjectConverter))]
         public object Value { get; set; }
         /// <summary>
-        /// Gets or sets the subproperties of the property.
+        /// The subproperties of the property.
         /// </summary>
-        /// <value>The property metadata.</value>
         [JsonPropertyName("properties")]
-        public List<VisFormatProperty> Subproperties { get; set; }
+        public Dictionary<string, VisFormatProperty> Properties { get; set; }
 
         /// <summary>
-        /// Gets the property.
+        /// Constructs the property.
         /// </summary>
         /// <value>
         /// The property.
@@ -316,5 +174,121 @@ namespace CartaWeb.Serialization.Json
         /// Initializes a new instance of the <see cref="VisFormatProperty"/> class.
         /// </summary>
         public VisFormatProperty() { }
+    }
+
+    // TODO: Needs to reimplement equality and hashing. 
+    /// <summary>
+    /// Represents a node in Vis format.
+    /// </summary>
+    public class VisFormatNode : VisFormatProperty
+    {
+        /// <summary>
+        /// The node identifier.
+        /// </summary>
+        [JsonPropertyName("id")]
+        public string Id { get; set; }
+
+        /// <summary>
+        /// The node label which is visible on vertex visualization.
+        /// </summary>
+        [JsonPropertyName("label")]
+        public string Label { get; set; }
+        /// <summary>
+        /// The vertex description which pops up on vertex visualization.
+        /// </summary>
+        [JsonPropertyName("title")]
+        public string Description { get; set; }
+
+        /// <summary>
+        /// The vertex properties.
+        /// </summary>
+        /// <value>
+        /// The vertex properties.
+        /// </value>
+        [JsonPropertyName("properties")]
+        public Dictionary<string, VisFormatProperty> Properties { get; set; }
+
+        /// <summary>
+        /// Constructs the vertex.
+        /// </summary>
+        [JsonIgnore]
+        public Vertex Vertex => new(
+            Id,
+            Properties?.ToDictionary(
+                (KeyValuePair<string, VisFormatProperty> entry) => entry.Key,
+                (KeyValuePair<string, VisFormatProperty> entry) => entry.Value.Property
+            ) ?? new Dictionary<string, Property>()
+        )
+        {
+            Label = Label,
+            Description = Description
+        };
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="VisFormatNode"/> class.
+        /// </summary>
+        public VisFormatNode() { }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="VisFormatNode"/> class with the specified node.
+        /// </summary>
+        /// <param name="vertex">The vertex to convert to a new format.</param>
+        public VisFormatNode(Vertex vertex)
+        {
+            Id = vertex.Id;
+            Label = vertex.Label;
+            Description = vertex.Description;
+            Properties = vertex.Properties?.Select(property => new VisFormatProperty(property)).ToList();
+        }
+    }
+
+    // TODO: Needs to reimplement equality and hashing. 
+    /// <summary>
+    /// Represents an edge in Vis format.
+    /// </summary>
+    public class VisFormatEdge : VisFormatProperty
+    {
+        /// <summary>
+        /// The edge identifier.
+        /// </summary>
+        [JsonPropertyName("id")]
+        public string Id { get; set; }
+
+        /// <summary>
+        /// The source vertex identifier.
+        /// </summary>
+        [JsonPropertyName("from")]
+        public string Source { get; set; }
+        /// <summary>
+        /// The target vertex identifier.
+        /// </summary>
+        [JsonPropertyName("to")]
+        public string Target { get; set; }
+        /// <summary>
+        /// Whether the edge is directed or undirected.
+        /// </summary>
+        [JsonPropertyName("directed")]
+        public bool Directed { get; set; }
+
+        // TODO: Add properties here.
+        /// <summary>
+        /// Constructs the edge.
+        /// </summary>
+        [JsonIgnore]
+        public Edge Edge => new(Source, Target) { Directed = Directed };
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="VisFormatEdge"/> class with the specified ID and endpoints.
+        /// </summary>
+        /// <param name="edge">The edge source and target to convert to a new format.</param>
+        public VisFormatEdge(Edge edge)
+        {
+            Id = edge.Id;
+            Source = edge.Source;
+            Target = edge.Target;
+        }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="VisFormatEdge"/> class.
+        /// </summary>
+        public VisFormatEdge() { }
     }
 }

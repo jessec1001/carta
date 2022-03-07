@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using CartaCore.Documentation;
 using CartaCore.Operations.Attributes;
+using NJsonSchema;
 
 namespace CartaCore.Operations
 {
@@ -60,6 +61,8 @@ namespace CartaCore.Operations
         {
             // Notice that if the value is not required, it will default to the default value of the type.
             OperationJob parentJob = job?.Parent;
+            if (input.Name is null)
+                throw new ArgumentNullException(nameof(input.Name), "The name of the input value must be specified.");
             if (parentJob is null)
                 throw new ArgumentNullException(nameof(job), "The input operation can not be executed independently.");
             if (!parentJob.Input.TryGetValue(input.Name, out object value))
@@ -75,7 +78,6 @@ namespace CartaCore.Operations
             return Task.FromResult(new InputOperationOut<TValue> { Value = typedValue });
         }
 
-        // TODO: We need a typed version of this method.
         /// <inheritdoc />
         public override async IAsyncEnumerable<OperationFieldDescriptor> GetExternalInputFields(
             InputOperationIn input,
@@ -85,16 +87,17 @@ namespace CartaCore.Operations
             List<Attribute> attributes = new();
             if (input.Required) attributes.Add(new FieldRequiredAttribute());
 
-            // Construct the relevant documentation for the input value.
-            StandardDocumentation documentation = new() { Summary = input.Description };
+            // Construct the JSON schema for the input value.
+            JsonSchema schema = OperationHelper.GenerateSchema(typeof(TValue), attributes);
+            schema.Title = input.Name;
+            schema.Description = input.Description;
 
             // Construct and yield the field descriptor for the external field.
             yield return await Task.FromResult(new OperationFieldDescriptor
             {
                 Name = input.Name,
                 Type = typeof(TValue),
-                Documentation = documentation,
-                Schema = null, // TODO: Add a method that helps generate schema.
+                Schema = schema,
                 Attributes = attributes
             });
         }

@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace CartaCore.Integration.Hyperthought
 {
+    // TODO: This is a DTO not a standard data structure.
     /// <summary>
     /// Represents a request to queue a file for moving in Hyperthought
     /// </summary>

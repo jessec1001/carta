@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Text.Json.Serialization;
-using CartaCore.Serialization.Json;
 
 namespace CartaCore.Integration.Hyperthought
 {
+    // TODO: This is a DTO not a standard data structure.
     /// <summary>
     /// Represents a request for a file upload URL from Hyperthought
     /// </summary>

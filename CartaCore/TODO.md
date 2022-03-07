@@ -19,10 +19,9 @@ There is an issue preventing the manual (programmatic not browser) refresh for o
 # Upcoming Work
 - Implement color picker widget for string schema values.
 - Add statistics operation to compute raw, central, and standardized moments.
-- Add a static class utility containing a list of all UI widgets and descriptions of what they do.
 - Consider if we need to change the supported version of JSON schema in the front-end or back-end and check if there is any necessary configuration that needs to be added.
 - Implement copy/paste for operations across workflow editors.
-- Implement roots of function operation.
+- Implement algebraic roots of function operation.
 - Implement a lerp operation in a way so that there is a slider from 0 to 1 for the interpolation value.
 - Use `<kbd>` tag for keyboard shortcut descriptions. 
 - Allow operations to be deleted from a workspace.
@@ -31,23 +30,19 @@ There is an issue preventing the manual (programmatic not browser) refresh for o
 - Allow for opening the internal workflow of an operation if it is of type workflow.
 - Implement `DynamicFieldAttribute` schema and type conversion modification.
 - Implement schema modifications to include XML documentation.
-- Remove `Identity` class because it is not really used for anything and cumbersome to use.
-- Abstract graph classes to support generic vertex and edge types.
-- Condense some of the graph interface classes if possible.
 - Implement pipelining for `IAsyncEnumerable<T>` type fields.
 - Reimplement dependency graph for workflow operation execution.
 - Add attribute support for schema and type definitions.
-- Add attributes for naming operation fields.
-- Include XML documentation for operation fields in schema.
 - Implement Python code operation.
 - Implement attribute for dynamically generated inputs and outputs.
   - This should be used in the HyperThought graph operation.
 - Implement an `IAsyncPipeline<T>` interface that `IEntireGraph` implements and use it to support pipelining of vertices and reconstruction of a graph structure.
 - Allow synchronization of an operation status with a job item via its context.
 - Distinguish between broadcasting, multiplexing, and demultiplexing and implement generalized versions of these.
-- Implement some distinguished interface for "selectable" types and abstract this into "selection" operations.
   - Properly allow "selection" operations to be used to apply a prioritization to a particular pipeline in a workflow.
   - Allow any operation upstream of a pipeline to add their own prioritization to the pipeline.
-  - Rework `OperationSelectorAttribute` and `OperationSelectorGraphAttribute` attributes.
 - Look into solving Safari rendering issues.
 - Implement loading bar for HyperThought graph based on currently known vertices.
+- Allow for canceling a job from the API.
+- Implement suspending and resuming of a job.
+- Automatically close streams when operations that were using them are completed.

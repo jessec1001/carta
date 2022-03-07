@@ -16,7 +16,7 @@ namespace CartaCore.Integration.Hyperthought.Api
         /// <summary>
         /// Gets the projects API URI at the HyperThought instance.
         /// </summary>
-        protected Uri GetApiUri() => new Uri(Api.GetBaseUri(), "projects/");
+        protected Uri GetApiUri() => new(Api.GetBaseUri(), "projects/");
 
         /// <summary>
         /// Initializes an instance of the <see cref="HyperthoughtProjectsApi"/> class with the specified base API.
@@ -33,7 +33,7 @@ namespace CartaCore.Integration.Hyperthought.Api
         /// <returns>The list of projects obtained from the HyperThought API.</returns>
         public async Task<IList<HyperthoughtProject>> GetProjectsAsync()
         {
-            Uri requestUri = new Uri(GetApiUri(), "project/");
+            Uri requestUri = new(GetApiUri(), "project/");
             return await Api.GetJsonAsync<IList<HyperthoughtProject>>(requestUri);
         }
     }

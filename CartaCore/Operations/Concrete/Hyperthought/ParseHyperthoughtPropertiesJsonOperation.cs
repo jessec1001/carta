@@ -17,6 +17,7 @@ namespace CartaCore.Operations.Hyperthought
         /// <summary>
         /// A JSON stream that is a list of <see cref="HyperthoughtProperty"/> objects.
         /// </summary>
+        [FieldName("JSON Stream")]
         public Stream Stream { get; set; }
     }
     /// <summary>
@@ -27,6 +28,7 @@ namespace CartaCore.Operations.Hyperthought
         /// <summary>
         /// A list of <see cref="HyperthoughtProperty"/> objects.
         /// </summary>
+        [FieldName("Properties")]
         public List<HyperthoughtProperty> HyperthoughtProperties { get; set; }
     }
 

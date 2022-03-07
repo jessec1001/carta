@@ -67,7 +67,7 @@ namespace CartaCore.Operations.Distribution
             for (var k = 0; k < count; k++)
                 yield return random.NextDouble() * (max - min) + min;
         }
-        
+
         /// <inheritdoc />
         public override Task<SampleUniformOperationOut> Perform(SampleUniformOperationIn input)
         {
@@ -84,9 +84,10 @@ namespace CartaCore.Operations.Distribution
         }
 
         /// <inheritdoc />
-        public override bool IsDeterministic(SampleUniformOperationIn input)
+        public override Task<bool> IsDeterministic(SampleUniformOperationIn input)
         {
-            return input.Seed.HasValue;
+            // This operation is deterministic only if seeded.
+            return Task.FromResult(input.Seed.HasValue);
         }
     }
 }

@@ -2,6 +2,7 @@
 
 namespace CartaCore.Integration.Hyperthought.Data
 {
+    // TODO: This is a DTO not a standard data structure.
     /// <summary>
     /// Represents a Hyperthought create folder response
     /// </summary>
@@ -19,6 +20,7 @@ namespace CartaCore.Integration.Hyperthought.Data
         public string Message { get; set; }
     }
 
+    // TODO: This is a DTO not a standard data structure.
     /// <summary>
     /// Represents the document Hyperthought create folder response
     /// </summary>

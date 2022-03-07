@@ -16,7 +16,7 @@ namespace CartaCore.Integration.Hyperthought.Api
         /// <summary>
         /// Gets the groups API URI at the HyperThought instance.
         /// </summary>
-        protected Uri GetApiUri() => new Uri(Api.GetBaseUri(), "groups/");
+        protected Uri GetApiUri() => new(Api.GetBaseUri(), "groups/");
 
         /// <summary>
         /// Initializes an instance of the <see cref="HyperthoughtGroupsApi"/> class with the specified base API.

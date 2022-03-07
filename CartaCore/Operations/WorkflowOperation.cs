@@ -8,6 +8,7 @@ using CartaCore.Operations.Attributes;
 
 namespace CartaCore.Operations
 {
+    // TODO: Allow multiplexing a graph onto a vertex field.
     // TODO: We need to tee streams if we want to support multiple outputs.
 
     /// <summary>
@@ -19,15 +20,20 @@ namespace CartaCore.Operations
     public class WorkflowOperation : Operation
     {
         /// <summary>
+        /// A unique identifier for this workflow that defines the template for this workflow.
+        /// </summary>
+        public string SubId { get; set; }
+
+        /// <summary>
         /// The sub-operations that are contained within this workflow operation.
         /// All operations specified within the workflow, regardless of how they are connected, will be executed.
         /// </summary>
-        public Operation[] Operations { get; init; }
+        public Operation[] Operations { get; private set; }
         /// <summary>
         /// The connections that bind an output of an operation to an input of another operation.
         /// The connections determine the order and flow of calling operations.
         /// </summary>
-        public WorkflowOperationConnection[] Connections { get; init; }
+        public WorkflowOperationConnection[] Connections { get; private set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="WorkflowOperation"/> class with the specified operations and
@@ -69,6 +75,7 @@ namespace CartaCore.Operations
                 OperationId = Id
             };
             job.Status.TryAdd(Id, workflowStatus);
+            await job.OnUpdate(job);
 
             // We need to verify the structure of the workflow before trying to execute it. This will capture any
             // anomolies such as invalid or missing connections, wrongly specified input or outputs, etc.
@@ -85,8 +92,7 @@ namespace CartaCore.Operations
                     Finished = true,
                     Exception = argumentEx,
                 }, status);
-
-                // TODO: Update the job.
+                await job.OnUpdate(job);
                 return;
             }
 
@@ -106,25 +112,20 @@ namespace CartaCore.Operations
                     Finished = true,
                     Exception = unknownEx,
                 }, status);
-
-                // TODO: Update the job.
+                await job.OnUpdate(job);
                 return;
             }
         }
 
         /// <inheritdoc />
-        public override bool IsDeterministic(OperationJob job)
+        public override async Task<bool> IsDeterministic(OperationJob job)
         {
             // The workflow is deterministic if all of its operations are deterministic.
-            return Operations.All(operation => operation.IsDeterministic(job));
+            foreach (Operation operation in Operations)
+                if (!await operation.IsDeterministic(job))
+                    return false;
+            return true;
         }
-
-        // TODO: We need to resolve types based on the connections that are formed between operations.
-        //       For instance, if a connection connects an output of operation A with field I to operation B with field II
-        //       we do the following. If field I is assignable to field II but field II is not assignable to field I, then,
-        //       the type of both field I and II should be the type of field II because it is more specific. Notice, that if
-        //       neither field I is assignable to field II nor field II is assignable to field I, then there is a type error
-        //       that is catchable at compile-time.
 
         /// <inheritdoc />
         public override async IAsyncEnumerable<OperationFieldDescriptor> GetInputFields(OperationJob job)
@@ -139,6 +140,28 @@ namespace CartaCore.Operations
             foreach (Operation operation in Operations)
                 await foreach (OperationFieldDescriptor outputField in operation.GetExternalOutputFields(job))
                     yield return outputField;
+        }
+
+
+        /// <inheritdoc />
+        public override OperationTemplate GetTemplate(IDictionary<string, object> defaults = null)
+        {
+            // Get the base operation template.
+            OperationTemplate template = base.GetTemplate(defaults);
+            if (template is not null)
+                template.Subtype = SubId;
+            return template;
+        }
+
+        // TODO: We need to resolve types based on the connections that are formed between operations.
+        //       For instance, if a connection connects an output of operation A with field I to operation B with field II
+        //       we do the following. If field I is assignable to field II but field II is not assignable to field I, then,
+        //       the type of both field I and II should be the type of field II because it is more specific. Notice, that if
+        //       neither field I is assignable to field II nor field II is assignable to field I, then there is a type error
+        //       that is catchable at compile-time.
+        public void StabilizeTypes()
+        {
+
         }
     }
 
@@ -237,7 +260,7 @@ namespace CartaCore.Operations
         /// <summary>
         /// Stores the results of executed suboperations.
         /// </summary>
-        private readonly ConcurrentDictionary<string, Dictionary<string, object>> Results = new();
+        private readonly ConcurrentDictionary<string, IDictionary<string, object>> Results = new();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="WorkflowRunner"/> class.
@@ -369,8 +392,6 @@ namespace CartaCore.Operations
                 in the same run of a workflow.
             */
 
-            // TODO: Integrate the thread limit into operation execution.
-
             // TODO: Completely rewrite this.
             // Keep a list of currently running operation tasks.
             // Keep executing operations while there are tasks in this list.
@@ -444,11 +465,7 @@ namespace CartaCore.Operations
             // Create a job for the operation.
             Dictionary<string, object> inputs = await GetOperationInputs(id);
             Dictionary<string, object> outputs = new();
-            OperationJob job = new(inputs, outputs)
-            {
-                Parent = job,
-                Operation = operation,
-            };
+            OperationJob job = new(operation, Job.Id, inputs, outputs, Job);
 
             // TODO: Can we delete intermediate results to operations that are no longer dependencies?
             // Execute the operation and add the results to our collection.
@@ -458,7 +475,7 @@ namespace CartaCore.Operations
             return id;
         }
 
-         /// <summary>
+        /// <summary>
         /// Gets the input for an operation specified by identifier.
         /// </summary>
         /// <param name="id">The unique identifier of the operation.</param>
@@ -475,7 +492,7 @@ namespace CartaCore.Operations
                 // TODO: Check that the corresponding fields actually exist for type safety.
                 // Check if the edge targets the specified operation.
                 if (edge.Target != id) continue;
-                Dictionary<string, object> output = await GetOperationOutputs(edge.Source);
+                IDictionary<string, object> output = await GetOperationOutputs(edge.Source);
                 inputs.Add(edge.SourcePoint.Field, output[edge.TargetPoint.Field]);
             }
 
@@ -491,9 +508,9 @@ namespace CartaCore.Operations
         /// </summary>
         /// <param name="id">The unique identifier of the operation.</param>
         /// <returns>The output that the operation produced.</returns>
-        private async Task<Dictionary<string, object>> GetOperationOutputs(string id)
+        private async Task<IDictionary<string, object>> GetOperationOutputs(string id)
         {
-            if (Results.TryGetValue(id, out Dictionary<string, object> output))
+            if (Results.TryGetValue(id, out IDictionary<string, object> output))
                 return await Task.FromResult(output);
             else throw new KeyNotFoundException($"Could not find output for operation with ID '{id}'.");
         }

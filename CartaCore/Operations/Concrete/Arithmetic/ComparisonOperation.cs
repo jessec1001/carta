@@ -1,38 +1,46 @@
+using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using CartaCore.Operations.Attributes;
+using CartaCore.Serialization.Json;
 
 namespace CartaCore.Operations.Arithmetic
 {
     /// <summary>
     /// The type of comparison operation that may be performed in the <see cref="ComparisonOperation" /> operation.
     /// </summary>
-    [JsonConverter(typeof(JsonStringEnumConverter))]
+    [JsonConverter(typeof(JsonFullStringEnumConverter))]
     public enum ComparisonOperationType
     {
         /// <summary>
         /// The numeric less than comparison operation.
         /// </summary>
+        [EnumMember(Value = "Less than")]
         LessThan,
         /// <summary>
         /// The numeric less than or equal to comparison operation.
         /// </summary>
+        [EnumMember(Value = "Less than or equal to")]
         LessThanOrEqualTo,
         /// <summary>
         /// The numeric greater than comparison operation.
         /// </summary>
+        [EnumMember(Value = "Greater than")]
         GreaterThan,
         /// <summary>
         /// The numeric greater than or equal to comparison operation.
         /// </summary>
+        [EnumMember(Value = "Greater than or equal to")]
         GreaterThanOrEqualTo,
         /// <summary>
         /// The numeric equal to comparison operation.
         /// </summary>
+        [EnumMember(Value = "Equal to")]
         EqualTo,
         /// <summary>
         /// The numeric not equal to comparison operation.
         /// </summary>
+        [EnumMember(Value = "Not equal to")]
         NotEqualTo
     }
 
@@ -44,7 +52,7 @@ namespace CartaCore.Operations.Arithmetic
         /// <summary>
         /// The type of comparison to perform.
         /// </summary>
-        [FieldName("Type")]
+        [FieldName("Comparison")]
         public ComparisonOperationType Type { get; set; }
 
         /// <summary>
@@ -84,6 +92,7 @@ namespace CartaCore.Operations.Arithmetic
         /// <inheritdoc />
         public override Task<ComparisonOperationOut> Perform(ComparisonOperationIn input)
         {
+            // We get the result by evaluating each possible comparison operation type.
             bool result = input.Type switch
             {
                 ComparisonOperationType.LessThan => input.Input1 < input.Input2,

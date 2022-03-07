@@ -1,5 +1,6 @@
 namespace CartaCore.Operations
 {
+    // TODO: See if we need to provide different data structures for different types of tasks.
     /// <summary>
     /// The type of task that needs to be completed for an operation.
     /// </summary>

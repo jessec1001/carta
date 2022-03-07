@@ -2,13 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
-using CartaCore.Data;
+using CartaCore.Graphs;
+using CartaCore.Graphs.Components;
 using CartaCore.Operations.Attributes;
 
 namespace CartaCore.Operations.Visualization
 {
     // TODO: This operation will need to access previously pipelined results in order to update coloring schemes.
-    
+
     /// <summary>
     /// The strategy to use for coloring the graph.
     /// </summary>
@@ -171,7 +172,7 @@ namespace CartaCore.Operations.Visualization
             OperationJob job)
         {
             // Check if the graph is enumerable.
-            if (input.Graph is not IEntireGraph<IVertex, IEdge> entireGraph)
+            if (input.Graph is not IEnumerableComponent<IVertex, IEdge> enumerableComponent)
                 throw new ArgumentException("The graph must be a finite graph.");
 
             // Interpret the axes styles if specified.
@@ -187,7 +188,7 @@ namespace CartaCore.Operations.Visualization
             // Generate the data for the graph plot.
             List<GraphPlotVertex> graphPlotVertices = new();
             List<GraphPlotEdge> graphPlotEdges = new();
-            await foreach (Vertex vertex in entireGraph.GetVertices())
+            await foreach (Vertex vertex in enumerableComponent.GetVertices())
             {
                 // Create the data for the vertex.
                 GraphPlotVertex graphPlotVertex = new()

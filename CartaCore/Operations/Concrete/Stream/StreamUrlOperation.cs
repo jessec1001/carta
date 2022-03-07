@@ -43,6 +43,7 @@ namespace CartaCore.Operations
         /// <inheritdoc />
         public override async Task<StreamUrlOperationOut> Perform(StreamUrlOperationIn input)
         {
+            // TODO: Perhaps we need a HTTP client factory here provided by the job.
             // Simply return a stream directed at the URL.
             HttpClient httpClient = new();
             Stream httpStream = await httpClient.GetStreamAsync(input.Url);

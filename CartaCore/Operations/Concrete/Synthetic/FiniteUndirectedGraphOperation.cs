@@ -1,8 +1,8 @@
 using System.Threading.Tasks;
-using CartaCore.Data;
 using CartaCore.Integration.Synthetic;
 using CartaCore.Operations.Attributes;
 
+// TODO: Use the parameters for the graph generation as the input fields.
 // TODO: Improve support for these synthetic graph generators.
 namespace CartaCore.Operations
 {
@@ -18,13 +18,16 @@ namespace CartaCore.Operations
         /// <summary>
         /// The generated synthetic graph.
         /// </summary>
-        public Graph Graph { get; set; }
+        [FieldName("Graph")]
+        public FiniteUndirectedGraph Graph { get; set; }
     }
 
     /// <summary>
     /// Creates a synthetic finite undirected graph.
     /// </summary>
     [OperationName(Display = "Finite Undirected Graph", Type = "syntheticFug")]
+    [OperationTag(OperationTags.Graph)]
+    [OperationTag(OperationTags.Synthetic)]
     public class FiniteUndirectedGraphOperation : TypedOperation
     <
         FiniteUndirectedGraphOperationIn,
@@ -34,10 +37,7 @@ namespace CartaCore.Operations
         /// <inheritdoc />
         public override Task<FiniteUndirectedGraphOperationOut> Perform(FiniteUndirectedGraphOperationIn input)
         {
-            return Task.FromResult(
-                new FiniteUndirectedGraphOperationOut()
-                { Graph = new FiniteUndirectedGraph(new FiniteUndirectedGraphParameters()) }
-            );
+            return Task.FromResult(new FiniteUndirectedGraphOperationOut() { Graph = new FiniteUndirectedGraph() });
         }
     }
 }

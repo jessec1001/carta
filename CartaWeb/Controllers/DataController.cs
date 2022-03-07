@@ -109,7 +109,7 @@ namespace CartaWeb.Controllers
             if (!System.IO.File.Exists(graphPath)) return null;
             using StreamReader file = new(graphPath);
             MemoryGraph graph = JsonSerializer.Deserialize<VisFormat>(await file.ReadToEndAsync(), JsonOptions).Graph;
-            graph.Id = id;
+            graph.Id = id.ToString();
             return graph;
         }
         /// <summary>
@@ -132,7 +132,7 @@ namespace CartaWeb.Controllers
             string graphPath = Path.Combine(graphDir, $"{id}.json");
             using (StreamWriter file = new(graphPath))
             {
-                graph.Id = id;
+                graph.Id = id.ToString();
                 string json = JsonSerializer.Serialize(await VisFormat.CreateAsync(graph), JsonOptions);
                 await file.WriteAsync(json);
             }
@@ -376,13 +376,15 @@ namespace CartaWeb.Controllers
                 Graph graph = await LookupData(source, resource);
                 if (graph is null) return NotFound();
 
-                // TODO: Make constructing selectors more robust.
-                // TODO: Add a prefix to the selector model parameters to separate them from other query parameters.
                 // We find the appropriate selector class corresponding to the specified discriminant.
+                Type selectorType = OperationHelper.FindSelectorType(selector);
+                if (selectorType is null) return BadRequest();
+
                 // We wrap our original graph in this selector graph to provide selection-specific data retrieval.
-                Operation selectorOperation = Operation.ConstructSelector(selector, out object selectorInput, out object _);
-                await TryUpdateModelAsync(selectorInput, selectorInput.GetType(), "");
-                graph = await Operation.ExecuteSelector(selectorOperation, selectorInput, graph);
+                ISelector<Graph, Graph> selectorOperation =
+                    OperationHelper.ConstructSelector<Graph, Graph>(selectorType, out object selectorParameters);
+                await TryUpdateModelAsync(selectorParameters, selectorParameters.GetType(), "selector");
+                graph = await selectorOperation.Select(graph, selectorParameters);
 
                 // Return the graph with an okay status.
                 return Ok(graph);

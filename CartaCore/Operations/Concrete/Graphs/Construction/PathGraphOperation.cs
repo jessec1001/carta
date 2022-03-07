@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using CartaCore.Graphs;
 using CartaCore.Operations.Attributes;
 
-namespace CartaCore.Operations
+namespace CartaCore.Operations.Graphs
 {
     /// <summary>
     /// The input for the <see cref="PathGraphOperation" /> operation.

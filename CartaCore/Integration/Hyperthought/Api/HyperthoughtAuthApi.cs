@@ -1,7 +1,6 @@
 using System;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-
 using CartaCore.Integration.Hyperthought.Data;
 
 namespace CartaCore.Integration.Hyperthought.Api
@@ -25,11 +24,11 @@ namespace CartaCore.Integration.Hyperthought.Api
         /// <summary>
         /// Gets the auth API URI at the HyperThought instance.
         /// </summary>
-        protected Uri GetApiUri() => new Uri(Api.GetBaseUri(), "api/");
+        protected Uri GetApiUri() => new(Api.GetBaseUri(), "api/");
         /// <summary>
         /// Gets the OIDC URI at the HyperThought instance.
         /// </summary>
-        protected Uri GetOidcUri() => new Uri(new Uri(Api.Access?.BaseUrl), "openid/");
+        protected Uri GetOidcUri() => new(new Uri(Api.Access?.BaseUrl), "openid/");
 
         /// <summary>
         /// Obtains the user information of the currently authenticated HyperThought user.
@@ -37,7 +36,7 @@ namespace CartaCore.Integration.Hyperthought.Api
         /// <returns>The user information obtained from the HyperThought API.</returns>
         public async Task<HyperthoughtUserInfo> GetUserInfoAsync()
         {
-            Uri requestUri = new Uri(Api.GetBaseUri(), "auth/userinfo/");
+            Uri requestUri = new(Api.GetBaseUri(), "auth/userinfo/");
             return await Api.GetJsonAsync<HyperthoughtUserInfo>(requestUri);
         }
 
@@ -48,16 +47,16 @@ namespace CartaCore.Integration.Hyperthought.Api
         public async Task RefreshAccess()
         {
             // Construct the request DTO.
-            HyperthoughtPostRefreshRequest request = new HyperthoughtPostRefreshRequest(Api.Access);
+            HyperthoughtPostRefreshRequest request = new(Api.Access);
 
             // Grab the new access information.
-            Uri requestUri = new Uri(GetOidcUri(), "token/");
+            Uri requestUri = new(GetOidcUri(), "token/");
             HyperthoughtPostRefreshResponse response = await Api
                 .PostJsonAsync<HyperthoughtPostRefreshRequest, HyperthoughtPostRefreshResponse>(requestUri, request);
 
             // Update the API access from the response DTO.
             HyperthoughtApiAccess oldAccess = Api.Access;
-            HyperthoughtApiAccess newAccess = new HyperthoughtApiAccess
+            HyperthoughtApiAccess newAccess = new()
             {
                 AccessToken = response.AccessToken,
                 RefreshToken = response.RefreshToken,

@@ -93,5 +93,12 @@ namespace CartaCore.Operations.Distribution
             IEnumerator<double> samples = samplerOut.Samples.GetEnumerator();
             return new() { Samples = GenerateSamples(samples, input.DegreesOfFreedom, input.Count) };
         }
+
+        /// <inheritdoc />
+        public override Task<bool> IsDeterministic(SampleChiSquaredOperationIn input)
+        {
+            // This operation is deterministic only if seeded.
+            return Task.FromResult(input.Seed.HasValue);
+        }
     }
 }

@@ -5,8 +5,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-
-using CartaCore.Data;
+using CartaCore.Graphs;
 using CartaCore.Integration.Hyperthought;
 using CartaCore.Integration.Hyperthought.Api;
 using CartaCore.Integration.Hyperthought.Data;

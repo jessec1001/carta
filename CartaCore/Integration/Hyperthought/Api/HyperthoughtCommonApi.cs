@@ -16,7 +16,7 @@ namespace CartaCore.Integration.Hyperthought.Api
         /// <summary>
         /// Gets the common API URI at the HyperThought instance.
         /// </summary>
-        protected Uri GetApiUri() => new Uri(Api.GetBaseUri(), "common/");
+        protected Uri GetApiUri() => new(Api.GetBaseUri(), "common/");
 
         /// <summary>
         /// Initializes an instance of the <see cref="HyperthoughtCommonApi"/> class with the specified base API.
@@ -33,7 +33,7 @@ namespace CartaCore.Integration.Hyperthought.Api
         /// <returns>The list of common units obtained from the HyperThought API.</returns>
         public async Task<IList<HyperthoughtUnit>> GetUnitsAsync()
         {
-            Uri requestUri = new Uri(GetApiUri(), "units/");
+            Uri requestUri = new(GetApiUri(), "units/");
             return await Api.GetJsonAsync<IList<HyperthoughtUnit>>(requestUri);
         }
         /// <summary>
@@ -42,7 +42,7 @@ namespace CartaCore.Integration.Hyperthought.Api
         /// <returns>The list of common definitions obtained from the HyperThought API.</returns>
         public async Task<IList<HyperthoughtVocabularyDefinition>> GetVocabularyAsync()
         {
-            Uri requestUri = new Uri(GetApiUri(), "afrl-vocab/");
+            Uri requestUri = new(GetApiUri(), "afrl-vocab/");
             return await Api.GetJsonAsync<IList<HyperthoughtVocabularyDefinition>>(requestUri);
         }
         /// <summary>
@@ -51,7 +51,7 @@ namespace CartaCore.Integration.Hyperthought.Api
         /// <returns>The list of users obtained from the HyperThought API.</returns>
         public async Task<IList<HyperthoughtUserReference>> GetUsersAsync()
         {
-            Uri requestUri = new Uri(GetApiUri(), "user/");
+            Uri requestUri = new(GetApiUri(), "user/");
             return await Api.GetJsonAsync<IList<HyperthoughtUserReference>>(requestUri);
         }
     }

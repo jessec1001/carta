@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using CartaCore.Documentation;
 using CartaCore.Operations.Attributes;
+using NJsonSchema;
 
 namespace CartaCore.Operations
 {
@@ -51,11 +52,13 @@ namespace CartaCore.Operations
         public override Task<OutputOperationOut> Perform(OutputOperationIn<TValue> input, OperationJob job)
         {
             OperationJob parentJob = job?.Parent;
+            if (input.Name is null)
+                throw new ArgumentNullException(nameof(input.Name), "The name of the output value must be specified.");
             if (parentJob is null)
                 throw new ArgumentNullException(nameof(job), "The output operation can not be executed independently.");
             if (!parentJob.Output.TryAdd(input.Name, input.Value))
                 throw new KeyNotFoundException($"Output '{input.Name}' was already provided.");
-            
+
             return Task.FromResult(new OutputOperationOut());
         }
 
@@ -67,16 +70,17 @@ namespace CartaCore.Operations
             // Construct the relevant attributes for the output value.
             List<Attribute> attributes = new();
 
-            // Construct the relevant documentation for the output value.
-            StandardDocumentation documentation = new() { Summary = input.Description };
+            // Construct the JSON schema for the output value.
+            JsonSchema schema = OperationHelper.GenerateSchema(typeof(TValue), attributes);
+            schema.Title = input.Name;
+            schema.Description = input.Description;
 
             // Construct and yield the field descriptor for the external field.
             yield return await Task.FromResult(new OperationFieldDescriptor
             {
                 Name = input.Name,
                 Type = typeof(TValue),
-                Documentation = documentation,
-                Schema = null, // TODO: Add a method that helps generate schema.
+                Schema = schema,
                 Attributes = attributes
             });
         }

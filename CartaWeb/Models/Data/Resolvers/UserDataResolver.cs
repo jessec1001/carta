@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using CartaCore.Data;
+using CartaCore.Graphs;
 using CartaCore.Operations;
 using CartaWeb.Controllers;
 
@@ -17,9 +17,9 @@ namespace CartaWeb.Models.Data
         public async Task<IList<string>> FindResourcesAsync(ControllerBase controller)
         {
             // TODO: Optimize loading of user-uploaded graphs so that the aliases and identifiers are loaded but not the graph itself.
-            List<FiniteGraph> graphs = await DataController.LoadGraphsAsync();
+            List<MemoryGraph> graphs = await DataController.LoadGraphsAsync();
             return graphs
-                .Select(graph => graph.Identifier.ToString())
+                .Select(graph => graph.Id)
                 .ToList();
         }
 
@@ -33,9 +33,8 @@ namespace CartaWeb.Models.Data
         /// <inheritdoc />
         public Task<OperationTemplate> GenerateOperation(ControllerBase controller, string resource)
         {
-            return Task.FromResult(
-                new CartaGraphOperation().GetTemplate(new CartaGraphOperationIn() { Id = resource })
-            );
+            // TODO: This needs to be reimplemented after token authentication is implemented.
+            return Task.FromResult(new OperationTemplate());
         }
     }
 }

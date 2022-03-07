@@ -12,14 +12,31 @@ using CartaCore.Persistence;
 
 namespace CartaWeb.Services
 {
-    public class BackgroundOperationService : BackgroundService
+    // TODO: Implement something, perhaps in the task running service, that will automatically handle loading uploaded
+    //       files into streams and handle saving streams to downloadable files.
+    
+    /// <summary>
+    /// A service that is responsible for running operation jobs in the background across multiple threads.
+    /// </summary>
+    public class BackgroundJobService : BackgroundService
     {
         private OperationJobCollection TaskCollection;
-        private ILogger<BackgroundOperationService> Logger;
+        private ILogger<BackgroundJobService> Logger;
         private Persistence _persistence;
         private IServiceScopeFactory ServiceScopeFactory;
 
-        public BackgroundOperationService(OperationJobCollection taskCollection, ILogger<BackgroundOperationService> logger, INoSqlDbContext noSqlDbContext, IServiceScopeFactory serviceScopeFactory)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BackgroundJobService"/> service.
+        /// </summary>
+        /// <param name="taskCollection"></param>
+        /// <param name="logger"></param>
+        /// <param name="noSqlDbContext"></param>
+        /// <param name="serviceScopeFactory"></param>
+        public BackgroundJobService(
+            OperationJobCollection taskCollection,
+            ILogger<BackgroundJobService> logger,
+            INoSqlDbContext noSqlDbContext,
+            IServiceScopeFactory serviceScopeFactory)
         {
             TaskCollection = taskCollection;
             Logger = logger;

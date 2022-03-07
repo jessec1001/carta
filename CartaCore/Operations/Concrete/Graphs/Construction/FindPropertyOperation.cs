@@ -4,10 +4,8 @@ using CartaCore.Graphs;
 using CartaCore.Graphs.Components;
 using CartaCore.Operations.Attributes;
 
-namespace CartaCore.Operations
+namespace CartaCore.Operations.Graphs
 {
-    // TODO: Implement support for pipelining these values.
-
     /// <summary>
     /// The input for the <see cref="FindPropertyOperation"/> operation.
     /// </summary>

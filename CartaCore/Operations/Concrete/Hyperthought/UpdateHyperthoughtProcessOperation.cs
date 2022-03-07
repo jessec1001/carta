@@ -6,6 +6,7 @@ using CartaCore.Integration.Hyperthought.Api;
 using CartaCore.Integration.Hyperthought.Data;
 using CartaCore.Operations.Hyperthought.Data;
 using CartaCore.Operations.Attributes;
+using CartaCore.Operations.Authentication;
 
 namespace CartaCore.Operations.Hyperthought
 {
@@ -14,26 +15,30 @@ namespace CartaCore.Operations.Hyperthought
     /// </summary>
     public struct UpdateHyperthoughtProcessOperationIn
     {
-        // TODO: Implement authentication attribute to automatically fill this field in.
         /// <summary>
         /// The reference to the authenticated HyperThought API.
         /// </summary>
-        [OperationAuthentication("hyperthought")]
+        [FieldAuthentication(HyperthoughtAuthentication.Key, typeof(HyperthoughtAuthentication))]
         public HyperthoughtApi Api { get; set; }
 
         /// <summary>
         /// The full path of the process, e.g. /source/resource/workflow/builds/part/a1/results.
         /// </summary>
+        [FieldRequired]
+        [FieldName("Process Path")]
         public string ProcessPath { get; set; }
 
         /// <summary>
-        /// The process path seperator. Defaults to '.'.
+        /// The process path seperator.
         /// </summary>
+        [FieldDefault(".")]
+        [FieldName("Process Path Seperator")]
         public string PathSeperator { get; set; }
 
         /// <summary>
         /// A list of properties to add/update the HyperThought process with.
         /// </summary>
+        [FieldName("Properties")]
         public List<HyperthoughtProperty> Properties { get; set; }
 
         /// <summary>
@@ -41,7 +46,9 @@ namespace CartaCore.Operations.Hyperthought
         /// and any of the properties in the input list  already exists, the operation will not be performed, and
         /// the operation will exit with an error message.
         /// </summary>
-        public bool? OverwriteExisting { get; set; }
+        [FieldDefault(true)]
+        [FieldName("Overwrite Existing")]
+        public bool OverwriteExisting { get; set; }
     }
     /// <summary>
     /// The output for the <see cref="UpdateHyperthoughtProcessOperation" /> operation.
@@ -196,7 +203,6 @@ namespace CartaCore.Operations.Hyperthought
         {
             // Set default input values.
             input.PathSeperator ??= ".";
-            input.OverwriteExisting ??= true;
 
             // Hyperthought does not want the path to start with a seperator - strip that off if need be.
             if (input.ProcessPath.StartsWith(input.PathSeperator))
@@ -212,7 +218,7 @@ namespace CartaCore.Operations.Hyperthought
             }
 
             // Update the process with the given properties.
-            await PatchHyperthoughtProcessVertex(input.Properties, input.OverwriteExisting.Value, process, input.Api);
+            await PatchHyperthoughtProcessVertex(input.Properties, input.OverwriteExisting, process, input.Api);
 
             return new UpdateHyperthoughtProcessOperationOut();
         }

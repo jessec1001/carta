@@ -97,10 +97,10 @@ namespace CartaCore.Operations.Distribution
         }
 
         /// <inheritdoc />
-        public override bool IsDeterministic(SamplePoissonOperationIn input)
+        public override Task<bool> IsDeterministic(SamplePoissonOperationIn input)
         {
             // This operation is deterministic only if seeded.
-            return input.Seed.HasValue;
+            return Task.FromResult(input.Seed.HasValue);
         }
     }
 }

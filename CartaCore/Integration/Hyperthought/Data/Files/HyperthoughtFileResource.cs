@@ -1,8 +1,8 @@
-﻿using System;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 namespace CartaCore.Integration.Hyperthought.Data
 {
+    // TODO: Check if DTO, even necessary, or duplicates another structure.
     /// <summary>
     /// Represents resources used by workspace.
     /// </summary>

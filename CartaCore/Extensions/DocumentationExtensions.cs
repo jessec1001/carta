@@ -121,7 +121,8 @@ namespace CartaCore.Extensions.Documentation
         /// </summary>
         /// <param name="type">The type.</param>
         /// <returns>They key within the XML member documentation.</returns>
-        private static string GetKey(Type type) => $"T:{DocumentationKeyFormatter(type.FullName, null)}";
+        private static string GetKey(Type type)
+            => $"T:{DocumentationKeyFormatter(type.FullName, null)}";
         /// <summary>
         /// Gets the XML key for a specified method.
         /// </summary>
@@ -140,6 +141,13 @@ namespace CartaCore.Extensions.Documentation
             else
                 return $"M:{DocumentationKeyFormatter(method.DeclaringType.FullName, method.Name)}({paramsKey})";
         }
+        /// <summary>
+        /// Gets the XML key for a specified property.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <returns>The key with in the XML member documentation.</returns>
+        private static string GetKey(PropertyInfo property)
+            => $"P:{DocumentationKeyFormatter(property.DeclaringType.FullName, property.Name)}";
 
         /// <summary>
         /// Gets a node for an assembly under a specified member name.
@@ -237,6 +245,28 @@ namespace CartaCore.Extensions.Documentation
             XmlNode xmlNode = GetNode(memberAssembly, memberName);
             if (xmlNode is null)
                 throw new NullReferenceException($"Failed to find documentation for method '{method.Name}'.");
+
+            // Deserialize the documentation into a specified type.
+            XmlSerializer xmlSerializer = new(typeof(T));
+            using XmlNodeReader reader = new(xmlNode);
+            return (T)xmlSerializer.Deserialize(reader);
+        }
+        /// <summary>
+        /// Gets the documentation for a property as a specified type of object.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <typeparam name="T">The type of documentation.</typeparam>
+        /// <returns>The documentation object.</returns>
+        public static T GetDocumentation<T>(this PropertyInfo property)
+        {
+            // Get the member name of the property.
+            Assembly memberAssembly = property.DeclaringType.Assembly;
+            string memberName = GetKey(property);
+
+            // Load the node containing the property member.
+            XmlNode xmlNode = GetNode(memberAssembly, memberName);
+            if (xmlNode is null)
+                throw new NullReferenceException($"Failed to find documentation for property '{property.Name}'.");
 
             // Deserialize the documentation into a specified type.
             XmlSerializer xmlSerializer = new(typeof(T));

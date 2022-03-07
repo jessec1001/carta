@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using CartaCore.Operations.Attributes;
 
-// TODO Move operations to their appropriate subnamespace.
 namespace CartaCore.Operations.Visualization
 {
     /// <summary>

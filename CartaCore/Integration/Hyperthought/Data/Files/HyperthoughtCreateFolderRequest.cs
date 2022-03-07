@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
-using CartaCore.Serialization.Json;
 
 namespace CartaCore.Integration.Hyperthought.Data
 {
-
+    // TODO: This is a DTO not a standard data structure.
     /// <summary>
     /// Represents a Hyperthought create folder request.
     /// </summary>

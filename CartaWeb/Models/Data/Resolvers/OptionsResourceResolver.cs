@@ -1,7 +1,6 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-
-using CartaCore.Data;
+using CartaCore.Graphs;
 using CartaCore.Operations;
 
 namespace CartaWeb.Models.Data

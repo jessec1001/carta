@@ -2,9 +2,11 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using CartaCore.Graphs;
 
 namespace CartaCore.Operations
 {
+    // TODO: Provide authentication details.
     // TODO: Provide an `ILogger` in the context that allows for logging to be performed (if not null).
 
     /// <summary>
@@ -19,7 +21,6 @@ namespace CartaCore.Operations
     /// </summary>
     public class OperationJob
     {
-
         /// <summary>
         /// The unique identifier of this job.
         /// </summary>
@@ -53,6 +54,16 @@ namespace CartaCore.Operations
         }
 
         /// <summary>
+        /// Contains information about selections on fields that should be prioritized.
+        /// The keys represent the field name that should be prioritized.
+        /// The values are priority queues storing a list of selector/parameter pairs of the form
+        /// <see cref="ISelector{TSource, TTarget}" />.
+        /// The selectors are left to be interpreted by relevant operations.
+        /// </summary>
+        /// <value></value>
+        public ConcurrentDictionary<string, ConcurrentQueue<(object, object)>> PriorityQueue { get; private init; }
+
+        /// <summary>
         /// The input fields for the executing operation.
         /// </summary>
         public ConcurrentDictionary<string, object> Input { get; private init; }
@@ -64,7 +75,13 @@ namespace CartaCore.Operations
         /// <summary>
         /// The status for each operation that is executed as a result of this job.
         /// </summary>
-        public ConcurrentDictionary<string, OperationStatus> Status { get; private init; } 
+        public ConcurrentDictionary<string, OperationStatus> Status { get; private init; }
+        // TODO: This should be generalized to support all types of tasks.
+        // TODO: We really need to construct a generalized task structure.
+        /// <summary>
+        /// Contains authentication objects for each operation stored by key and value.
+        /// </summary>
+        public ConcurrentDictionary<string, ConcurrentDictionary<string, object>> Authentication { get; private init; }
 
         /// <summary>
         /// Handles updates that are made to the job.

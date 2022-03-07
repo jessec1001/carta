@@ -1,32 +1,45 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using CartaCore.Graphs;
+using CartaCore.Graphs.Components;
 using CartaCore.Integration.Hyperthought;
 using CartaCore.Integration.Hyperthought.Api;
 using CartaCore.Operations.Attributes;
+using CartaCore.Operations.Authentication;
 
 namespace CartaCore.Operations
 {
+    // TODO: Add a parameter for whether to add metadata or not.
+    // TODO: Try to allow the user to specify the path from an enumeration.
+    /// <summary>
+    /// The input for the <see cref="HyperthoughtGraphOperation" /> operation.
+    /// </summary>
     public struct HyperthoughtGraphOperationIn
     {
         /// <summary>
         /// The reference to the authenticated HyperThought API. 
         /// </summary>
-        [OperationAuthentication("hyperthought")]
+        [FieldAuthentication(HyperthoughtAuthentication.Key, typeof(HyperthoughtAuthentication))]
         public HyperthoughtApi Api { get; set; }
         /// <summary>
         /// The dot-separated path to the HyperThought workflow.
         /// </summary>
+        [FieldRequired]
+        [FieldName("Workflow Path")]
         public string Path { get; set; }
     }
+    /// <summary>
+    /// The output of the <see cref="HyperthoughtGraphOperation" /> operation.
+    /// </summary>
     public struct HyperthoughtGraphOperationOut
     {
         /// <summary>
-        /// The graph
+        /// A graph representing the HyperThought workflow.
         /// </summary>
-        /// <value></value>
-        public Graph Graph { get; set; }
+        [FieldName("Workflow Graph")]
+        public HyperthoughtWorkflowGraph Graph { get; set; }
     }
 
     /// <summary>
@@ -42,48 +55,60 @@ namespace CartaCore.Operations
         HyperthoughtGraphOperationOut
     >
     {
-        private class HyperthoughtGraph : WrapperGraph, IEntireGraph<Vertex, Edge>
+        private class PrioritizeHyperthoughtWorkflowGraph : IEnumerableComponent<Vertex, Edge>
         {
-            public HyperthoughtGraph(string id) : base(id)
-            {
-            }
-            public HyperthoughtGraph(string id, ISet<IProperty> properties) : base(id, properties)
-            {
-            }
+            /// <summary>
+            /// The base HyperThought graph to modify. 
+            /// </summary>
+            public Graph Graph { get; set; }
+            /// <inheritdoc />
+            public ComponentStack Components { get; set; }
 
-            // TODO: This graph should not use the job.
-            public OperationJob Job { get; set; }
-            public Guid Root { get; set; }
-            public HyperthoughtWorkflowGraph Graph { get; set; }
-            protected override IGraph WrappedGraph => Graph;
+            /// <summary>
+            /// Contains a priority queue containing prioritized selectors for the HyperThought workflow graph.
+            /// This may be null in which case, there are no prioritizations.
+            /// </summary>
+            private ConcurrentQueue<(object, object)> _queue;
 
+            /// <summary>
+            /// Initializes a new instance of the <see cref="PrioritizeHyperthoughtWorkflowGraph"/> class.
+            /// </summary>
+            /// <param name="queue">The priority queue that should be used.</param>
+            public PrioritizeHyperthoughtWorkflowGraph(ConcurrentQueue<(object, object)> queue) => _queue = queue;
+
+
+            /// <inheritdoc />
             public async IAsyncEnumerable<Vertex> GetVertices()
             {
+                // We make sure to not repeat any vertices.
                 // We execute a traversal algorithm over the graph while constantly checking the priority queue.
                 HashSet<Guid> completedIds = new();
                 Queue<Guid> pendingIds = new();
 
-                // Add the root node to the pending list.
-                pendingIds.Enqueue(Root);
+                // We get the roots from the rooted component.
+                if (Components.TryFind(out IRootedComponent rootedComponent))
+                {
+                    await foreach (string rootId in rootedComponent.Roots())
+                        pendingIds.Enqueue(Guid.Parse(rootId));
+                }
+                if (!Components.TryFind(out IDynamicOutComponent<IVertex, IEdge> dynamicOutComponent))
+                    yield break;
 
-                // Fetch the root node.
-                Vertex rootVertex = await Graph.GetVertex(Root.ToString());
-                yield return rootVertex;
-
-                // Keep going until we've completed all the nodes.
+                // Continue fetching data until we have completed all the nodes.
                 while (pendingIds.Count > 0)
                 {
                     // Check if there are any selectors in the priority queue.
-                    while (!Job.Selectors.IsEmpty)
+                    while (!_queue.IsEmpty)
                     {
                         // Get the next selector.
-                        if (!Job.Selectors.TryDequeue(out (Selector selector, object selectorInput) item)) continue;
+                        if (!_queue.TryDequeue(out (object selector, object parameter) item)) continue;
+                        if (!(item.selector is ISelector<Graph, Graph> selector)) continue;
 
                         // Get the vertices in the selector.
-                        Graph selectorGraph = await item.selector.Select(Graph, item.selectorInput);
-                        if (((IGraph)selectorGraph).TryProvide(out IEntireGraph entireGraph))
+                        Graph selectorGraph = await selector.Select(Graph, item.parameter);
+                        if (selectorGraph.Components.TryFind(out IEnumerableComponent<IVertex, IEdge> enumerableComponent))
                         {
-                            await foreach (Vertex vertex in entireGraph.GetVertices())
+                            await foreach (Vertex vertex in enumerableComponent.GetVertices())
                             {
                                 Guid vertexId = Guid.Parse(vertex.Id);
                                 if (completedIds.Contains(vertexId)) continue;
@@ -96,7 +121,7 @@ namespace CartaCore.Operations
                     Guid id = pendingIds.Dequeue();
 
                     // Get the vertex children.
-                    await foreach (Vertex childVertex in Graph.GetChildVertices(id.ToString()))
+                    await foreach (Vertex childVertex in dynamicOutComponent.GetChildVertices(id.ToString()))
                     {
                         // If the child is not already completed, add it to the pending list.
                         Guid childId = Guid.Parse(childVertex.Id);
@@ -110,24 +135,22 @@ namespace CartaCore.Operations
             }
         }
 
-        // TODO: Make it clear that operations need to be performed asynchronously.
         /// <inheritdoc />
         public override async Task<HyperthoughtGraphOperationOut> Perform(HyperthoughtGraphOperationIn input, OperationJob job)
         {
-            // Get the UUID of the graph.
+            // Get the UUID of the graph so that we may create the graph.
             Guid uuid = await input.Api.Workflow.GetProcessIdFromPathAsync(input.Path);
+            HyperthoughtWorkflowGraph graph = new(input.Api, uuid);
 
-            // Create the graph.
-            HyperthoughtWorkflowGraph graph = new HyperthoughtWorkflowGraph(input.Api, uuid);
+            // Try to get the priority queue for the graph field.
+            job.PriorityQueue.TryGetValue(
+                nameof(HyperthoughtGraphOperationOut.Graph),
+                out ConcurrentQueue<(object, object)> priorityQueue);
 
-            // Return the wrapped graph.
-            HyperthoughtGraph wrappedGraph = new(graph.Id, graph.Properties)
-            {
-                Job = job,
-                Graph = graph,
-                Root = uuid
-            };
-            return new HyperthoughtGraphOperationOut { Graph = wrappedGraph };
+            // We need to patch the graph so that it has prioritization.
+            graph.Components.AddTop(new PrioritizeHyperthoughtWorkflowGraph(priorityQueue) { Graph = graph });
+
+            return new HyperthoughtGraphOperationOut { Graph = graph };
         }
     }
 }

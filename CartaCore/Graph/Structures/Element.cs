@@ -16,7 +16,7 @@ namespace CartaCore.Graphs
         where T : Element<T>
     {
         /// <inheritdoc />
-        public string Id { get; init; }
+        public string Id { get; set; }
 
         /// <inheritdoc />
         public string Label { get; set; }

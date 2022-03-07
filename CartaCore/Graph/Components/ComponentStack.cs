@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 
 namespace CartaCore.Graphs.Components
 {
+    // TODO: Attach this component stack to components when adding.
     /// <summary>
     /// A stack of components that can be retrieved via type.
     /// </summary>
@@ -10,8 +12,17 @@ namespace CartaCore.Graphs.Components
         /// <summary>
         /// Used to store the components in the stack.
         /// </summary>
-        private readonly LinkedList<object> _components = new();
+        private readonly LinkedList<(Type, IComponent)> _components = new();
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ComponentStack"/> class by cloning another stack.
+        /// </summary>
+        /// <param name="components">The components.</param>
+        private ComponentStack(LinkedList<(Type, IComponent)> components)
+        {
+            foreach ((Type, IComponent) component in components)
+                _components.AddLast(component);
+        }
         /// <summary>
         /// Initializes a new instance of the <see cref="ComponentStack"/> class.
         /// </summary>
@@ -20,25 +31,28 @@ namespace CartaCore.Graphs.Components
         /// Initializes a new instance of the <see cref="ComponentStack"/> class from a specified collection.
         /// </summary>
         /// <param name="collection">The collection of components.</param>
-        public ComponentStack(IEnumerable<object> collection) => _components = new LinkedList<object>(collection);
+        public ComponentStack(IEnumerable<(Type, IComponent)> collection)
+            => _components = new LinkedList<(Type, IComponent)>(collection);
 
         /// <summary>
         /// Adds a component to the top of the stack.
         /// </summary>
         /// <param name="component">The component.</param>
         /// <typeparam name="T">The type of component.</typeparam>
-        public void AddTop<T>(T component)
+        public void AddTop<T>(T component) where T : IComponent
         {
-            _components.AddFirst(component);
+            _components.AddFirst((typeof(T), component));
+            component.Components = new(_components);
         }
         /// <summary>
         /// Adds a component to the bottom of the stack.
         /// </summary>
         /// <param name="component">The component.</param>
         /// <typeparam name="T">The type of component.</typeparam>
-        public void AddBottom<T>(T component)
+        public void AddBottom<T>(T component) where T : IComponent
         {
-            _components.AddLast(component);
+            _components.AddLast((typeof(T), component));
+            component.Components = new(_components);
         }
 
         /// <summary>
@@ -68,9 +82,9 @@ namespace CartaCore.Graphs.Components
         /// </summary>
         /// <typeparam name="T">The type of component.</typeparam>
         /// <returns>Whether the removal was successful.</returns>
-        public bool Remove<T>()
+        public bool Remove<T>() where T : IComponent
         {
-            LinkedListNode<object> componentNode = _components.First;
+            LinkedListNode<(Type, IComponent)> componentNode = _components.First;
             while (componentNode is not null)
             {
                 if (componentNode.Value is T)
@@ -87,10 +101,10 @@ namespace CartaCore.Graphs.Components
         /// </summary>
         /// <typeparam name="T">The type of component.</typeparam>
         /// <returns>The number of components removed.</returns>
-        public int RemoveAll<T>()
+        public int RemoveAll<T>() where T : IComponent
         {
             int count = 0;
-            LinkedListNode<object> componentNode = _components.First;
+            LinkedListNode<(Type, IComponent)> componentNode = _components.First;
             while (componentNode is not null)
             {
                 if (componentNode.Value is T)
@@ -108,7 +122,7 @@ namespace CartaCore.Graphs.Components
         /// </summary>
         /// <typeparam name="T">The type of component.</typeparam>
         /// <returns>The topmost component of the specified type if found; otherwise, the default value.</returns>
-        public T Find<T>()
+        public T Find<T>() where T : IComponent
         {
             foreach (var component in _components)
                 if (component is T found) return found;
@@ -119,7 +133,7 @@ namespace CartaCore.Graphs.Components
         /// </summary>
         /// <typeparam name="T">The type of component.</typeparam>
         /// <returns>The enumeration of components of the specified type.</returns>
-        public IEnumerable<T> FindAll<T>()
+        public IEnumerable<T> FindAll<T>() where T : IComponent
         {
             foreach (var component in _components)
                 if (component is T found) yield return found;
@@ -132,7 +146,7 @@ namespace CartaCore.Graphs.Components
         /// </param>
         /// <typeparam name="T">The type of component.</typeparam>
         /// <returns>Whether a component of the correct type was found.</returns>
-        public bool TryFind<T>(out T component)
+        public bool TryFind<T>(out T component) where T : IComponent
         {
             foreach (var c in _components)
                 if (c is T found)

@@ -1,6 +1,7 @@
 
 namespace CartaCore.Integration.Synthetic
 {
+    // TODO: Convert the vertex count and edge count to a distribution again.
     /// <summary>
     /// Represents the generation parameters of the <see cref="FiniteUndirectedGraph"/> object.
     /// </summary>

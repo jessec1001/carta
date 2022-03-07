@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace CartaCore.Integration.Hyperthought.Data
 {
+    // TODO: Check this type against `HyperthoughtFileContent` and make sure that no fields are duplicated.
     /// <summary>
     /// Represents a HyperThought file with its content, metadata, and structure.
     /// </summary>

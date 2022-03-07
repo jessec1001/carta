@@ -1,17 +1,14 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using CartaCore.Extensions.Typing;
-using CartaCore.Operations.Attributes;
+using CartaCore.Typing;
 
 namespace CartaCore.Operations
 {
-    // TODO: Consider configuring a type-optimized flag to indicate that we do not need to handle conversions.
-    // TODO: Figure out how to handle the type conversion. We probably need a method to perform all conversions that
-    //       relies on a type converter stack and relevant modifications.
-    // TODO: Make this inherit from an operation template potentially.
     /// <summary>
     /// Represents an abstract operation that takes a particular typed input and produces a particular typed output.
     /// </summary>
@@ -26,8 +23,47 @@ namespace CartaCore.Operations
         /// </summary>
         public TInput DefaultsTyped
         {
-            get => Defaults.AsTyped<TInput>(DefaultTypeConverter);
+            get => ConvertToTyped<TInput>(Defaults);
             set => Defaults = value.AsDictionary();
+        }
+
+        /// <summary>
+        /// The default type converter stack used for converting input and output values to the correct type.w
+        /// </summary>
+        /// <returns></returns>
+        protected static readonly TypeConverterContext TypeConverter = new(
+            new EnumTypeConverter(),
+            new NumericTypeConverter(),
+            new ArrayTypeConverter(),
+            new DictionaryTypeConverter()
+        );
+
+        // TODO: This conversion should happen field-by-field so as to catch type errors at the field level.
+        /// <summary>
+        /// Converts the specified dictionary to a typed value.
+        /// </summary>
+        /// <param name="dictionary">The dictionary.</param>
+        /// <typeparam name="T">The type of value.</typeparam>
+        /// <returns>The typed value.</returns>
+        protected virtual T ConvertToTyped<T>(IDictionary<string, object> dictionary)
+        {
+            if (TypeConverter.TryConvert<IDictionary<string, object>, T>(in dictionary, out T typed))
+                return typed;
+            else
+                throw new InvalidCastException("Failed to convert to the appropriate type.");
+        }
+        /// <summary>
+        /// Converts the specified typed value to a dictionary.
+        /// </summary>
+        /// <param name="typed">The typed value.</param>
+        /// <typeparam name="T">The type of value.</typeparam>
+        /// <returns>The dictionary.</returns>
+        protected virtual IDictionary<string, object> ConvertFromTyped<T>(T typed)
+        {
+            if (TypeConverter.TryConvert<T, IDictionary<string, object>>(in typed, out IDictionary<string, object> dictionary))
+                return dictionary;
+            else
+                throw new InvalidCastException("Failed to convert from the appropriate type.");
         }
 
         /// <summary>
@@ -51,9 +87,10 @@ namespace CartaCore.Operations
         /// <inheritdoc />
         public override async Task Perform(OperationJob job)
         {
-            TInput input = job.Input.AsTyped<TInput>(DefaultTypeConverter);
+            TInput input = ConvertToTyped<TInput>(job.Input);
             TOutput output = await Perform(input, job);
-            job.Output = output.AsDictionary(DefaultTypeConverter);
+            foreach (KeyValuePair<string, object> entry in ConvertFromTyped<TOutput>(output))
+                job.Output.TryAdd(entry.Key, entry.Value);
         }
 
         /// <summary>
@@ -62,12 +99,12 @@ namespace CartaCore.Operations
         /// </summary>
         /// <param name="input">The typed input to the operation.</param>
         /// <returns><c>true</c> if the operation is deterministic on a job; otherwise <c>false</c>.</returns>
-        public virtual bool IsDeterministic(TInput input) => true;
+        public virtual Task<bool> IsDeterministic(TInput input) => Task.FromResult(true);
         /// <inheritdoc />
-        public override bool IsDeterministic(OperationJob job)
+        public override async Task<bool> IsDeterministic(OperationJob job)
         {
-            TInput input = job.Input.AsTyped<TInput>(DefaultTypeConverter);
-            return IsDeterministic(input);
+            TInput input = ConvertToTyped<TInput>(job.Input);
+            return await IsDeterministic(input);
         }
 
         // TODO: We need to incorporate the attributes into the following methods.  
@@ -96,7 +133,7 @@ namespace CartaCore.Operations
                         Name = property.Name,
                         Type = property.PropertyType,
                         Attributes = property.GetCustomAttributes().ToList(),
-                        Schema = null
+                        Schema = OperationHelper.GenerateSchema(property)
                     }
                 );
             }
@@ -104,16 +141,16 @@ namespace CartaCore.Operations
         /// <inheritdoc />
         public override IAsyncEnumerable<OperationFieldDescriptor> GetInputFields(OperationJob job)
         {
-            TInput input; // TODO: Implement.
+            TInput input = ConvertToTyped<TInput>(job.Input);
             return GetInputFields(input, job);
         }
         /// <summary>
         /// Gets the output fields and their descriptors for this operation.
         /// </summary>
-        /// <param name="output">The typed output to the operation.</param>
+        /// <param name="input">The typed input to the operation.</param>
         /// <param name="job">The executing operation job.</param>
         /// <returns>An enumeration of output field descriptors.</returns>
-        public virtual async IAsyncEnumerable<OperationFieldDescriptor> GetOutputFields(TOutput output, OperationJob job)
+        public virtual async IAsyncEnumerable<OperationFieldDescriptor> GetOutputFields(TInput input, OperationJob job)
         {
             // Get the public properties by ignoring case for web portability.
             PropertyInfo[] properties = typeof(TOutput)
@@ -132,16 +169,16 @@ namespace CartaCore.Operations
                         Name = property.Name,
                         Type = property.PropertyType,
                         Attributes = property.GetCustomAttributes().ToList(),
-                        Schema = null
+                        Schema = OperationHelper.GenerateSchema(property)
                     }
                 );
             }
-        } 
+        }
         /// <inheritdoc />
         public override IAsyncEnumerable<OperationFieldDescriptor> GetOutputFields(OperationJob job)
         {
-            TOutput output; // TODO: Implement.
-            return GetOutputFields(output, job);
+            TInput input = ConvertToTyped<TInput>(job.Input);
+            return GetOutputFields(input, job);
         }
 
         /// <summary>
@@ -157,54 +194,36 @@ namespace CartaCore.Operations
         /// <inheritdoc />
         public override IAsyncEnumerable<OperationFieldDescriptor> GetExternalInputFields(OperationJob job)
         {
-            TInput input; // TODO: Implement.
+            TInput input = ConvertToTyped<TInput>(job.Input);
             return GetExternalInputFields(input, job);
         }
         /// <summary>
         /// Gets the output fields of the executing job and their descriptors for this operation.
         /// </summary>
-        /// <param name="output">The typed output to the operation.</param>
+        /// <param name="input">The typed input to the operation.</param>
         /// <param name="job">The executing operation job.</param>
         /// <returns>An enumeration of external output field descriptors.</returns>
-        public virtual IAsyncEnumerable<OperationFieldDescriptor> GetExternalOutputFields(TOutput output, OperationJob job)
+        public virtual IAsyncEnumerable<OperationFieldDescriptor> GetExternalOutputFields(TInput input, OperationJob job)
         {
             return Enumerable.Empty<OperationFieldDescriptor>().ToAsyncEnumerable();
         }
         /// <inheritdoc />
         public override IAsyncEnumerable<OperationFieldDescriptor> GetExternalOutputFields(OperationJob job)
         {
-            TOutput output; // TODO: Implement.
-            return GetExternalOutputFields(output, job);
+            TInput input = ConvertToTyped<TInput>(job.Input);
+            return GetExternalOutputFields(input, job);
         }
 
-        // TODO: Check if there is a better/updated structure for dynamic fields.
         /// <summary>
-        /// Gets the names of the dynamic input fields corresponding to particular input field.
+        /// Gets the template information associated with this operation.
+        /// This information contains precisely enough to instantiate an operation without knowing the type.
         /// </summary>
-        /// <param name="field">The input field to get the dynamic fields of.</param>
-        /// <param name="input">The input being passed to the operation.</param>
-        /// <returns>The dynamic input fields corresponding to a field.</returns>
-        public virtual string[] GetDynamicInputFields(string field, TInput input) => Array.Empty<string>();
-        /// <summary>
-        /// Gets the names of the dynamic output fields corresponding to particular output field.
-        /// </summary>
-        /// <param name="field">The output field to get the dynamic fields of.</param>
-        /// <param name="input">The input being passed to the operation.</param>
-        /// <returns>The dynamic output fields corresponding to a field.</returns>
-        public virtual string[] GetDynamicOutputFields(string field, TInput input) => Array.Empty<string>();
-
-        // TODO: Abstract this into the `Operation` class.
+        /// <param name="defaults">The default values for the operation. Optional.</param>
+        /// <returns>The operation template.</returns>
         public OperationTemplate GetTemplate(TInput defaults)
         {
-            // Get the operation name attribute assosicated with this operation.
-            OperationNameAttribute attr = GetType().GetCustomAttribute<OperationNameAttribute>();
-            if (attr is null) return null;
-            else return new OperationTemplate()
-            {
-                Type = attr.Type,
-                Subtype = null,
-                Defaults = defaults.AsDictionary() // TODO: Take into consideration the type.
-            };
+            IDictionary<string, object> untypedDefaults = ConvertFromTyped<TInput>(defaults);
+            return GetTemplate(untypedDefaults);
         }
     }
 }

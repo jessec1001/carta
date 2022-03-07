@@ -106,7 +106,7 @@ namespace CartaWeb
 
             // Background job service.
             services.AddSingleton<OperationJobCollection>();
-            services.AddHostedService<BackgroundOperationService>();
+            services.AddHostedService<BackgroundJobService>();
 
 
             // Formatting settings.

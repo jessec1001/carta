@@ -16,12 +16,6 @@ namespace CartaCore.Operations
         /// </summary>
         public string Subtype { get; set; }
 
-        // TODO: Can we move this selector information somewhere else?
-        /// <summary>
-        /// The name of this operation when used as a selector for a graph. If the operation is not a selector, this
-        /// value will be null.
-        /// </summary>
-        public string Selector { get; set; }
         /// <summary>
         /// The display name of an operation. This need not be unique across all operations. However, it should provide
         /// a self-explanatory name to an operation that allows a user to intuitively guess the functionality of an

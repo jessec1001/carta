@@ -21,8 +21,6 @@ namespace CartaWeb.Controllers
     // TODO: Make sure that operation defaults are added to the internal representation of operations once created.
     // TODO: Prevent overposting to the default fields of operations.
     // TODO: Add searching for workflows in search endpoint
-    // TODO: Implement destroying results records manually.
-    // TODO: Updating an operation causes the containing workflow to become cache invalid.
 
     /// <summary>
     /// A controller that manages creating, updating, retrieving, and deleting operations that can be executed with
@@ -249,32 +247,31 @@ namespace CartaWeb.Controllers
                     Source = new WorkflowOperationConnectionPoint()
                     {
                         Operation = item.Source.Operation,
-                        Field = item.Source.Field
+                        Field = item.Source.Field,
+                        Multiplicity = item.Multiplex ? new (int, int?)[] { (0, null) } : new (int, int?)[] { }
                     },
                     Target = new WorkflowOperationConnectionPoint()
                     {
                         Operation = item.Target.Operation,
-                        Field = item.Target.Field
+                        Field = item.Target.Field,
+                        Multiplicity = new (int, int?)[] { }
                     },
-                    Multiplexer = item.Multiplex
                 }).ToArray();
 
-                WorkflowOperation operation = new(suboperations.ToArray(), connections)
-                {
-                    Identifier = operationItem.Id
-                };
-                operation.DefaultValues = operationItem.Default;
+                WorkflowOperation operation = new(suboperations.ToArray(), connections) { Id = operationItem.Id };
+                operation.Defaults = operationItem.Default;
 
                 return operation;
             }
             else
             {
-                // TODO: Clean up and make private init members private init again.
-                Type operationType = Operation.TypeFromName(operationItem.Type);
+                // TODO: Use the `OperationHelper` construction methods to create the operation with an ID and defaults
+                //       properly.
+                Type operationType = OperationHelper.FindOperationType(operationItem.Type, typeof(Operation).Assembly);
 
                 Operation operation = (Operation)Activator.CreateInstance(operationType);
-                operation.Identifier = operationItem.Id;
-                operation.DefaultValues = operationItem.Default;
+                operation.Id = operationItem.Id;
+                operation.Defaults = operationItem.Default;
 
                 return operation;
             }

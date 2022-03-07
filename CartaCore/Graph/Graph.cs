@@ -13,7 +13,7 @@ namespace CartaCore.Graphs
         public abstract GraphAttributes Attributes { get; }
 
         /// <inheritdoc />
-        public ComponentStack Components { get; protected init; } = new();
+        public ComponentStack Components { get; set; } = new();
 
         /// <summary>
         /// Initializes an instance of the <see cref="Graph"/> class with its specified identifier and a set of
@@ -22,7 +22,7 @@ namespace CartaCore.Graphs
         /// <param name="id">The identifier of this graph.</param>
         /// <param name="properties">The properties assigned to this element.</param>
         protected Graph(string id, IDictionary<string, IProperty> properties)
-            : base(id, properties) => Components.AddTop(this);
+            : base(id, properties) { }
         /// <summary>
         /// Initializes an instance of the <see cref="Graph"/> class with its specified identifier.
         /// </summary>

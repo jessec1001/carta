@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using CartaCore.Integration.Hyperthought.Api;
 using CartaCore.Integration.Hyperthought.Data;
 using CartaCore.Operations.Attributes;
+using CartaCore.Operations.Authentication;
 
 namespace CartaCore.Operations.Hyperthought
 {
@@ -14,26 +15,30 @@ namespace CartaCore.Operations.Hyperthought
     /// </summary>
     public struct HyperthoughtFileOperationIn
     {
-        // TODO: Implement authentication attribute to automatically fill this field in.
         /// <summary>
         /// The reference to the authenticated HyperThought API.
         /// </summary>
-        [OperationAuthentication("hyperthought")]
+        [FieldAuthentication(HyperthoughtAuthentication.Key, typeof(HyperthoughtAuthentication))]
         public HyperthoughtApi Api { get; set; }
 
         /// <summary>
         /// The file path, e.g. /dirname/subdirname/filename.txt
         /// </summary>
+        [FieldRequired]
+        [FieldName("File Path")]
         public string FilePath { get; set; }
 
         /// <summary>
         /// The alias of the workspace the file lives under.
         /// </summary>
+        [FieldRequired]
+        [FieldName("Workspace Alias")]
         public string WorkspaceAlias { get; set; }
 
         /// <summary>
         /// The stream of data to be uploaded to HyperThought. If not specified, no data is uploaded.
         /// </summary>
+        [FieldName("Stream")]
         public Stream Stream { get; set; }
     }
 
@@ -44,21 +49,12 @@ namespace CartaCore.Operations.Hyperthought
     {
         // TODO: For this type of operation, we need a way of specifying a connection that creates a dependency without
         //       necessarily needing to pass data. For this, we can specify null for the connection target (or source)
-        //       field. 
-
-        /// <summary>
-        /// The file path, e.g. /dirname/subdirname/filename.txt, where the file was uploaded.
-        /// </summary>
-        public string FilePath { get; set; }
-
-        /// <summary>
-        /// The alias of the workspace the file lives under.
-        /// </summary>
-        public string WorkspaceAlias { get; set; }
+        //       field.
 
         /// <summary>
         /// The stream of data downloaded from HyperThought.
         /// </summary>
+        [FieldName("Stream")]
         public Stream OutputStream { get; set; }
     }
 
@@ -131,42 +127,6 @@ namespace CartaCore.Operations.Hyperthought
                 await api.Files.GetFileAsync(uuidPath, fileName, workspaceId);
             if (hyperthoughtFile is null) return Guid.Empty;
             else return hyperthoughtFile.PrimaryKey;
-        }
-
-        /// <summary>
-        /// Obtains the HyperThought file download URL for the given file path and workspace ID.
-        /// </summary>
-        /// <param name="filePath">
-        /// The file name, including the file path, e.g. /dirname/subdirname/filename.txt.
-        /// </param>
-        /// <param name="workspaceId">The workspace ID of the file.</param>
-        /// <param name="api">The authenticated HyperThought API.</param>
-        /// <returns>The file download URL.</returns>
-        private static async Task<Uri> GetDownloadUrlAsync(
-            string filePath,
-            Guid workspaceId,
-            HyperthoughtApi api
-        )
-        {
-            if (filePath is null) return null;
-
-            Console.WriteLine($"Getting the UUID for file {filePath}...");
-            // First construct the UUID directory path
-            string[] pathParts = filePath.Split(@"/");
-            string fileName = pathParts[^1];
-            string uuidPath = ",";
-            for (int k = 1; k < (pathParts.Length - 1); k++)
-            {
-                Console.WriteLine($"...Getting UUIDPath for folder {pathParts[k]} under UUIDPath {uuidPath}...");
-                uuidPath = await GetDirectoryIdPathAsync(uuidPath, pathParts[k], workspaceId, api);
-            }
-
-            // Get and return the file download URL
-            Console.WriteLine($"...Getting the download URL for file {fileName} under UUIDPath {uuidPath}...");
-            HyperthoughtFile hyperthoughtFile =
-                await api.Files.GetFileAsync(uuidPath, fileName, workspaceId);
-            if (hyperthoughtFile is null) return null;
-            else return new Uri(hyperthoughtFile.Resources.DownloadUrl);
         }
 
         /// <summary>
@@ -346,24 +306,8 @@ namespace CartaCore.Operations.Hyperthought
                     throw new ArgumentException($"File path does not start with '/'.");
             }
 
-            // If the stream was not specified as an input, download an existing file.
-            if (input.Stream is null)
-            {
-                Stream outputStream = await DownloadFileAsync
-                (
-                    input.FilePath,
-                    workspaceId,
-                    input.Api
-                );
-                return new HyperthoughtFileOperationOut
-                {
-                    FilePath = input.FilePath,
-                    WorkspaceAlias = input.WorkspaceAlias,
-                    OutputStream = outputStream
-                };
-            }
-            // If the stream was specified as an input, upload a new file.
-            else
+            // If the stream was specified as an input, upload the file.
+            if (input.Stream is not null)
             {
                 await UploadFileAsync
                 (
@@ -372,15 +316,16 @@ namespace CartaCore.Operations.Hyperthought
                     workspaceId,
                     input.Api
                 );
-                // TODO: This won't always work for readonly streams.
-                input.Stream.Seek(0, SeekOrigin.Begin);
-                return new HyperthoughtFileOperationOut
-                {
-                    FilePath = input.FilePath,
-                    WorkspaceAlias = input.WorkspaceAlias,
-                    OutputStream = input.Stream
-                };
             }
+
+            // Download an existing file whether it was just uploaded or not.
+            Stream outputStream = await DownloadFileAsync
+            (
+                input.FilePath,
+                workspaceId,
+                input.Api
+            );
+            return new HyperthoughtFileOperationOut { OutputStream = outputStream };
         }
     }
 }

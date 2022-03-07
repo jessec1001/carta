@@ -3,7 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using CartaCore.Documentation;
+using CartaCore.Extensions.Documentation;
 using CartaCore.Operations.Attributes;
+using NJsonSchema;
 
 namespace CartaCore.Operations.Arithmetic
 {
@@ -20,9 +23,8 @@ namespace CartaCore.Operations.Arithmetic
         public string Expression { get; set; }
 
         /// <summary>
-        /// The values that should be substituted for variable symbols in the mathematical expression.
+        /// The value that should be substituted for the corresponding variable symbol in the mathematical expression.
         /// </summary>
-        [FieldDynamic]
         public Dictionary<string, double> Values { get; set; }
     }
     /// <summary>
@@ -37,9 +39,6 @@ namespace CartaCore.Operations.Arithmetic
         public double Result { get; set; }
     }
 
-    // TODO: Try to make the expression be parsed only once when the operation is constructed.
-    //       Then, all subsequent requests to execute the operation should use the parsed expression.
-    //       Perhaps this can be done when the operation is broadcasted.
     /// <summary>
     /// An operation that computes the result of an arithmetic expression by substituting values for variables that were
     /// specified in the expression.
@@ -397,15 +396,39 @@ namespace CartaCore.Operations.Arithmetic
         }
 
         /// <inheritdoc />
-        public override string[] GetDynamicInputFields(string field, ArithmeticExpressionOperationIn input)
+        public override async IAsyncEnumerable<OperationFieldDescriptor> GetInputFields(
+            ArithmeticExpressionOperationIn input,
+            OperationJob job)
         {
-            if (string.Equals(nameof(ArithmeticExpressionOperationIn.Values), field, StringComparison.Ordinal))
+            // Hide the values dictionary from the inputs.
+            await foreach (OperationFieldDescriptor inputDescriptor in base.GetInputFields(input, job))
             {
-                // The interpreter detects the symbols/fields in the expression.
-                ArithmeticInterpreter interpreter = new(input.Expression);
-                return interpreter.FindSymbols();
+                if (inputDescriptor.Name != nameof(ArithmeticExpressionOperationIn.Values))
+                    yield return inputDescriptor;
             }
-            return Array.Empty<string>();
+
+            // Fetch the documentation for the value field.
+            StandardDocumentation documentation = typeof(ArithmeticExpressionOperationIn)
+                .GetProperty(nameof(ArithmeticExpressionOperationIn.Values))
+                .GetDocumentation<StandardDocumentation>();
+
+            // Yield the value inputs based on the interpreted expression.
+            ArithmeticInterpreter interpreter = new(input.Expression);
+            foreach (string symbol in interpreter.FindSymbols())
+            {
+                // Generate the schema for the value field.
+                JsonSchema schema = OperationHelper.GenerateSchema(typeof(double));
+                schema.Title = symbol;
+                schema.Description = documentation.Summary;
+
+                yield return new OperationFieldDescriptor()
+                {
+                    Name = symbol,
+                    Type = typeof(double),
+                    Schema = schema,
+                    Attributes = new List<Attribute>()
+                };
+            }
         }
     }
 }

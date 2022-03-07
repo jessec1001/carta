@@ -2,6 +2,7 @@ using CartaCore.Operations.Attributes;
 
 namespace CartaCore.Operations
 {
+    // TODO: Create a UI widget for graphs that allows easy creation/modification. 
     /// <summary>
     /// Contains a set of possible UI widgets that can be used for operation fields. This list should be maintained in
     /// order to be consistent with the schema form generation library. A UI widget may be chosen from the relevant

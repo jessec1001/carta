@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+using System;
 using System.Threading.Tasks;
 using CartaCore.Operations.Attributes;
 
@@ -12,19 +12,15 @@ namespace CartaCore.Operations
         /// <summary>
         /// The value to pass along.
         /// </summary>
-        [FieldPipelined]
         [FieldName("Value")]
         public TValue Value { get; set; }
         /// <summary>
         /// The amount of time to delay in milliseconds.
         /// </summary>
+        [FieldDefault(1000)]
+        [FieldRange(Minimum = 0, Maximum = 60000)]
         [FieldName("Delay")]
         public int Delay { get; set; }
-        /// <summary>
-        /// Whether there should be a delay between each item in the value.
-        /// </summary>
-        [FieldName("Per Item")]
-        public bool PerItem { get; set; }
     }
     /// <summary>
     /// The output for the <see cref="DelayOperation{TValue}"/> operation.
@@ -52,26 +48,11 @@ namespace CartaCore.Operations
         /// <inheritdoc />
         public override async Task<DelayOperationOut<TValue>> Perform(DelayOperationIn<TValue> input)
         {
-            await Task.Delay(input.Delay);
+            // Clamp the delay to a reasonable range.
+            int delay = Math.Max(Math.Min(input.Delay, 60000), 0);
+
+            await Task.Delay(delay);
             return new DelayOperationOut<TValue> { Value = input.Value };
-        }
-
-        // TODO: See if we can make this method pass an input instead of a context.
-        /// <inheritdoc />
-        public override async IAsyncEnumerable<OperationFieldDescriptor> GetInputFields(OperationJob job)
-        {
-            // TODO: Check if the value is enumerable.
-            bool enumerable = true;
-
-            // Only if the type is enumerable, we expose the per item option.
-            await foreach(OperationFieldDescriptor descriptor in base.GetInputFields(job))
-            {
-                if (descriptor.Name == nameof(DelayOperationIn<TValue>.PerItem))
-                {
-                    if (enumerable) yield return descriptor;
-                }
-                else yield return descriptor;
-            }
         }
     }
 }

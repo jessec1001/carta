@@ -46,6 +46,7 @@ namespace CartaCore.Integration.Hyperthought.Api
         /// <value>The number of times to retry attempting to access a resource.</value>
         public int RetryAttempts { get; set; } = 3;
 
+        // TODO: Check that all of these API modules are up-to-date.
         /// <summary>
         /// Gets the HyperThought auth API.
         /// </summary>

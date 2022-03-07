@@ -39,16 +39,15 @@ namespace CartaWeb.Models.DocumentItem
         /// </summary>
         /// <param name="operation">The operation instance.</param>
         public OperationItem(Operation operation)
-            : base(operation.Identifier)
+            : base(operation.Id)
         {
             // Get a description of the operation.
-            OperationDescription description = OperationDescription.FromInstance(operation);
+            OperationDescription description = OperationHelper.DescribeOperationInstance(operation);
 
             // Set the values from the description.
             Type = description.Type;
             Subtype = description.Subtype;
-
-            Default = operation.DefaultValues;
+            Default = operation.Defaults;
         }
         /// <summary>
         /// Initializes a new instance of the <see cref="OperationItem"/> class with specified owning user from an
