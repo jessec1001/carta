@@ -27,7 +27,7 @@ namespace CartaWeb.Models.Data
         /// <summary>
         /// The operation template to use for retrieving the resource.
         /// </summary>
-        public OperationTemplate Operation { get; set; }
+        public OperationTemplate Template { get; protected init; }
 
     }
     /// <summary>
@@ -46,17 +46,19 @@ namespace CartaWeb.Models.Data
         /// resource resolver.
         /// </summary>
         /// <param name="resolver">The resource resolver function.</param>
-        public OptionsResourceResolver(OptionsResourceResolverFunction<TOptions> resolver)
+        /// <param name="template">The operation template to use for retrieving the resource.</param>
+        public OptionsResourceResolver(OptionsResourceResolverFunction<TOptions> resolver, OperationTemplate template)
         {
             Resolver = resolver;
+            Template = template;
         }
 
         /// <inheritdoc />
         public override async Task<Graph> GenerateAsync(ControllerBase controller)
         {
             // Load the options from the controller.
-            TOptions options = new TOptions();
-            await controller.TryUpdateModelAsync<TOptions>(options);
+            TOptions options = new();
+            await controller.TryUpdateModelAsync(options);
 
             // Return the results of the resolver.
             return Resolver(options);

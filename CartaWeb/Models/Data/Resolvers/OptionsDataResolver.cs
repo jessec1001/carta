@@ -45,7 +45,7 @@ namespace CartaWeb.Models.Data
         public Task<OperationTemplate> GenerateOperation(ControllerBase controller, string resource)
         {
             if (Resolvers.TryGetValue(resource, out OptionsResourceResolver resolver))
-                return Task.FromResult(resolver.Operation);
+                return Task.FromResult(resolver.Template);
             return null;
         }
     }

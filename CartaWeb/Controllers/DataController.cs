@@ -61,12 +61,18 @@ namespace CartaWeb.Controllers
                         (
                             new Dictionary<string, OptionsResourceResolver>
                             {
-                                [nameof(FiniteUndirectedGraph)] = new OptionsResourceResolver<FiniteUndirectedGraphParameters>
-                                    (options => new FiniteUndirectedGraph(options))
-                                    { Operation = new FiniteUndirectedGraphOperation().GetTemplate(new FiniteUndirectedGraphOperationIn()) },
-                                [nameof(InfiniteDirectedGraph)] = new OptionsResourceResolver<InfiniteDirectedGraphParameters>
-                                    (options => new InfiniteDirectedGraph(options))
-                                    { Operation = new InfiniteDirectedGraphOperation().GetTemplate(new InfiniteDirectedGraphOperationIn()) },
+                                [nameof(FiniteUndirectedGraph)] =
+                                    new OptionsResourceResolver<FiniteUndirectedGraphParameters>(
+                                        options => new FiniteUndirectedGraph(options),
+                                        new FiniteUndirectedGraphOperation()
+                                            .GetTemplate(new FiniteUndirectedGraphOperationIn())
+                                    ),
+                                [nameof(InfiniteDirectedGraph)] =
+                                    new OptionsResourceResolver<InfiniteDirectedGraphParameters>(
+                                        options => new InfiniteDirectedGraph(options),
+                                        new InfiniteDirectedGraphOperation()
+                                            .GetTemplate(new InfiniteDirectedGraphOperationIn())
+                                    )
                             },
                             StringComparer.OrdinalIgnoreCase
                         )

@@ -120,7 +120,7 @@ namespace CartaWeb.Models.DocumentItem
                 GetPartitionKey(),
                 sortKey,
                 JsonSerializer.Serialize(this, GetType(), JsonOptions),
-                DbOperationEnumeration.Create
+                DbOperationType.Create
             );
             return dbDocument;
         }
@@ -136,7 +136,7 @@ namespace CartaWeb.Models.DocumentItem
                 GetPartitionKey(),
                 GetSortKey(),
                 JsonSerializer.Serialize(this, GetType(), JsonOptions),
-                DbOperationEnumeration.Update
+                DbOperationType.Update
             );
         }
 
@@ -152,7 +152,7 @@ namespace CartaWeb.Models.DocumentItem
                 GetPartitionKey(),
                 GetSortKey(),
                 JsonSerializer.Serialize(this, GetType(), JsonOptions),
-                DbOperationEnumeration.Save
+                DbOperationType.Save
             );
         }
 
@@ -166,7 +166,7 @@ namespace CartaWeb.Models.DocumentItem
             (
                 GetPartitionKey(),
                 GetSortKey(),
-                DbOperationEnumeration.Delete
+                DbOperationType.Delete
             );
         }
 

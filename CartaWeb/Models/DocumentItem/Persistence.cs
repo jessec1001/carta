@@ -45,13 +45,11 @@ namespace CartaWeb.Models.DocumentItem
         /// <returns>A list of document items read from the database.</returns>
         public async Task<IEnumerable<Item>> LoadItemsAsync(Item item)
         {
-            IEnumerable<DbDocument> dbDocuments =
-                await _noSqlDbContext.ReadDocumentsAsync(item.GetPartitionKey(), item.SortKeyPrefix);
+            IAsyncEnumerable<DbDocument> dbDocuments = _noSqlDbContext
+                .ReadDocumentsAsync(item.GetPartitionKey(), item.SortKeyPrefix);
             List<Item> items = new() { };
-            foreach (DbDocument dbDocument in dbDocuments)
-            {
+            await foreach (DbDocument dbDocument in dbDocuments)
                 items.Add((Item)JsonSerializer.Deserialize(dbDocument.JsonString, item.GetType(), Item.JsonOptions));
-            }
             return items;
         }
 

@@ -9,6 +9,7 @@ using CartaCore.Extensions.Hashing;
 using CartaCore.Extensions.String;
 using CartaCore.Operations;
 using CartaCore.Persistence;
+using CartaWeb.Errors;
 using CartaWeb.Models.DocumentItem;
 using CartaWeb.Services;
 using Microsoft.AspNetCore.Http;
@@ -21,7 +22,10 @@ namespace CartaWeb.Controllers
 {
     // TODO: Make sure that operation defaults are added to the internal representation of operations once created.
     // TODO: Prevent overposting to the default fields of operations.
-    // TODO: Add searching for workflows in search endpoint
+    // TODO: Add searching for workflows in search endpoint. Make it so that an optional workspace parameter can be
+    //       passed to the endpoint that will restrict workflow findings to a relevant workspace.
+    // TODO: Take into account the default settings for each operation into a hash of a workflow. This means that
+    //       whenever operations inside a workflow are updated, future jobs will have a different hash.
 
     /// <summary>
     /// A controller that manages creating, updating, retrieving, and deleting operations that can be executed with
@@ -706,22 +710,18 @@ namespace CartaWeb.Controllers
             OperationItem operationItem = await LoadOperationAsync(operationId, _persistence);
             if (operationItem is null)
             {
-                return NotFound(new
-                {
-                    Error = "Operation with specified identifier could not be found.",
-                    Id = operationId
-                });
+                return NotFound(new ItemNotFoundError(
+                    "Operation with specified identifier could not be found.", operationId
+                ));
             }
 
             // Get the result if it exists.
             JobItem job = await LoadJobAsync(jobId, operationId, _persistence);
             if (job is null)
             {
-                return NotFound(new
-                {
-                    Error = "Job with specified identifier could not be found.",
-                    Id = operationId
-                });
+                return NotFound(new ItemNotFoundError(
+                    "Job with specified identifier could not be found.", jobId
+                ));
             }
             else
             {
@@ -938,16 +938,16 @@ namespace CartaWeb.Controllers
             OperationItem operationItem = await LoadOperationAsync(operationId, _persistence);
             if (operationItem is null)
             {
-                return NotFound(new
-                {
-                    Error = "Operation with specified identifier could not be found.",
-                    Id = operationId
-                });
+                return NotFound(new ItemNotFoundError(
+                    "Operation with specified identifier could not be found.", operationId
+                ));
             }
 
-            // Instantiate the operation and retrieve each of the field schemas.
+            // Instantiate the operation and job.
             Operation operation = await InstantiateOperation(operationItem, _persistence);
             OperationJob job = new(operation, null);
+
+            // Construct the schema for each input and output field found.
             Dictionary<string, JsonSchema> inputSchemas = new();
             await foreach (OperationFieldDescriptor descriptor in operation.GetInputFields(job))
                 inputSchemas.Add(descriptor.Name, descriptor.Schema);

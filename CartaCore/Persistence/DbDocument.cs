@@ -26,38 +26,38 @@ namespace CartaCore.Persistence
         /// <summary>
         /// The type of database operation - Create, Read, Update, Save or Delete.
         /// </summary>
-        public DbOperationEnumeration DbOperation { get; set; }
+        public DbOperationType Operation { get; set; }
 
         /// <summary>
         /// Constructor for Create, Read, Updated and Save operations.
         /// <param name="partitionKey">The partition key under which the document is stored.</param>
         /// <param name="sortKey">The sort key under which the document is stored.</param>
         /// <param name="jsonString">A text representation of the JSON document.</param>
-        /// <param name="dbOperation">The type of database operation - Create, Read, Update, Save.</param>
+        /// <param name="operation">The type of database operation - Create, Read, Update, Save.</param>
         /// </summary>
-        public DbDocument(string partitionKey, string sortKey, string jsonString, DbOperationEnumeration dbOperation)
+        public DbDocument(string partitionKey, string sortKey, string jsonString, DbOperationType operation)
         {
-            if (dbOperation == DbOperationEnumeration.Delete)
+            if (operation == DbOperationType.Delete)
                 throw new NotSupportedException("Delete operations are not supported by this constructor");
             PartitionKey = partitionKey;
             SortKey = sortKey;
             JsonString = jsonString;
-            DbOperation = dbOperation;
+            Operation = operation;
         }
 
         /// <summary>
         /// Constructor for Delete operations.
         /// <param name="partitionKey">The partition key under which the document is stored.</param>
         /// <param name="sortKey">The sort key under which the document is stored.</param>
-        /// <param name="dbOperation">The type of database operation - must be set to Delete.</param>
+        /// <param name="operation">The type of database operation - must be set to Delete.</param>
         /// </summary>
-        public DbDocument(string partitionKey, string sortKey, DbOperationEnumeration dbOperation)
+        public DbDocument(string partitionKey, string sortKey, DbOperationType operation)
         {
-            if (dbOperation != DbOperationEnumeration.Delete)
+            if (operation != DbOperationType.Delete)
                 throw new NotSupportedException("Only delete operations are supported by this constructor");
             PartitionKey = partitionKey;
             SortKey = sortKey;
-            DbOperation = dbOperation;
+            Operation = operation;
         }
     }
 }

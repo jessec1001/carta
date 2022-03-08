@@ -1,9 +1,9 @@
 ﻿namespace CartaCore.Persistence
 {
     /// <summary>
-    /// Enumerates the possible database operations.
+    /// An enumeration of the possible database operations.
     /// </summary>
-    public enum DbOperationEnumeration
+    public enum DbOperationType
     {
         /// <summary>
         /// Create operation.

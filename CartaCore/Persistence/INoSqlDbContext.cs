@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using MorseCode.ITask;
+using System.Threading.Tasks;
 
 namespace CartaCore.Persistence
 {
@@ -14,7 +14,7 @@ namespace CartaCore.Persistence
         /// <param name="partitionKey">The partition key of the document</param>
         /// <param name="sortKey">The sort key of the document</param>
         /// <returns>A database document object</returns>
-        ITask<DbDocument> ReadDocumentAsync(string partitionKey, string sortKey);
+        Task<DbDocument> ReadDocumentAsync(string partitionKey, string sortKey);
 
         /// <summary>
         /// Reads all of the documents for the given keys asynchronously.
@@ -22,7 +22,7 @@ namespace CartaCore.Persistence
         /// <param name="partitionKey">The partition key of the documents</param>
         /// <param name="sortKeyPrefix">The sort key prefix of the documents</param>
         /// <returns>A list of database document objects</returns>
-        ITask<IEnumerable<DbDocument>> ReadDocumentsAsync(string partitionKey, string sortKeyPrefix);
+        IAsyncEnumerable<DbDocument> ReadDocumentsAsync(string partitionKey, string sortKeyPrefix);
 
         /// <summary>
         /// Performs a database write operation.
@@ -30,7 +30,7 @@ namespace CartaCore.Persistence
         /// <param name="dbDocument">A database document object, containing the partition and sort key, JSON
         /// document string, and type of write operation (Create, Save, Update or Delete) to perform.</param>
         /// <returns>true if the write operation completed successfully, else false</returns>
-        ITask<bool> WriteDocumentAsync(DbDocument dbDocument);
+        Task<bool> WriteDocumentAsync(DbDocument dbDocument);
 
         /// <summary>
         /// Performs a list of database write operations within a single database transaction.
@@ -39,7 +39,7 @@ namespace CartaCore.Persistence
         /// sort key, JSON document string, and type of write operation (Create, Save, Update or Delete) to
         /// perform.</param>
         /// <returns>true if the write operations all completed successfully, else false.</returns>
-        ITask<bool> WriteDocumentsAsync(IEnumerable<DbDocument> dbDocuments);
+        Task<bool> WriteDocumentsAsync(IEnumerable<DbDocument> dbDocuments);
 
     }
 }
