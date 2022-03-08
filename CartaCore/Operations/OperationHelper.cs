@@ -222,6 +222,38 @@ namespace CartaCore.Operations
         /// </summary>
         /// <param name="type">The type of selector to construct.</param>
         /// <param name="parameters">The default parameters for the selector.</param>
+        /// <returns>The newly constructed selector.</returns>
+        public static object ConstructSelector(Type type, out object parameters)
+        {
+            // Check if the type is null and is assignable to the correct ype.
+            if (type is null)
+                throw new ArgumentNullException(nameof(type));
+            bool typeCheckPassed = false;
+            Type[] implInterfaces = type.GetInterfaces();
+            foreach (Type implInterface in implInterfaces)
+            {
+                if (implInterface.IsGenericType && implInterface.GetGenericTypeDefinition() == typeof(ISelector<,>))
+                {
+                    typeCheckPassed = true;
+                    break;
+                }
+            }
+            if (!typeCheckPassed)
+                throw new ArgumentException("The specified type is not a selector.", nameof(type));
+
+            // Create an instance of the selector and parameters.
+            object selector = Activator.CreateInstance(type);
+            Type selectorParameterType = (Type)type
+                .GetProperty(nameof(ISelector<object, object>.ParameterType))
+                .GetValue(selector);
+            parameters = Activator.CreateInstance(selectorParameterType);
+            return selector;
+        }
+        /// <summary>
+        /// Constructs a new selector operation from a specified type.
+        /// </summary>
+        /// <param name="type">The type of selector to construct.</param>
+        /// <param name="parameters">The default parameters for the selector.</param>
         /// <typeparam name="TSource">The source type of the selector.</typeparam>
         /// <typeparam name="TTarget">The target type of the selector.</typeparam>
         /// <returns>The newly constructed selector.</returns>

@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.Net.Http.Headers;
 using CartaCore.Graphs;
-using CartaCore.Serialization.Json;
 using CartaWeb.Serialization.Json;
 using CartaWeb.Serialization.Xml;
 
@@ -21,7 +20,7 @@ namespace CartaWeb.Formatters
     /// </summary>
     /// <param name="graph">The graph.</param>
     /// <returns>The formatted string representation.</returns>
-    public delegate Task<string> MediaFormatter(IEntireGraph graph);
+    public delegate Task<string> MediaFormatter(IGraph graph);
 
     /// <summary>
     /// Represents a text output formatter that is able to perform content negotiation and formatting for graphs.
@@ -60,7 +59,7 @@ namespace CartaWeb.Formatters
         /// <inheritdoc />
         protected override bool CanWriteType(Type type)
         {
-            if (typeof(IEntireGraph).IsAssignableFrom(type))
+            if (typeof(IGraph).IsAssignableFrom(type))
                 return base.CanWriteType(type);
             return false;
         }
@@ -72,7 +71,7 @@ namespace CartaWeb.Formatters
 
             // Find the correct formatter and use it to write the content.
             string content = string.Empty;
-            if (context.Object is IEntireGraph graph)
+            if (context.Object is IGraph graph)
             {
                 foreach (var (MediaHeader, Formatter) in MediaFormatters)
                 {
@@ -103,8 +102,8 @@ namespace CartaWeb.Formatters
             return sw.ToString();
         }
 
-        private static async Task<string> FormatJg(IEntireGraph graph) => SerializeJson(await JgFormat.CreateAsync(graph));
-        private static async Task<string> FormatVis(IEntireGraph graph) => SerializeJson(await VisFormat.CreateAsync(graph));
-        private static async Task<string> FormatGex(IEntireGraph graph) => SerializeXml(await GexFormat.CreateAsync(graph));
+        private static async Task<string> FormatJg(IGraph graph) => SerializeJson(await JgFormat.CreateAsync(graph));
+        private static async Task<string> FormatVis(IGraph graph) => SerializeJson(await VisFormat.CreateAsync(graph));
+        private static async Task<string> FormatGex(IGraph graph) => SerializeXml(await GexFormat.CreateAsync(graph));
     }
 }

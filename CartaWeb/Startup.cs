@@ -105,7 +105,7 @@ namespace CartaWeb
             services.Configure<AwsCdkOptions>(Configuration.GetSection("ResourceStack"));
 
             // Background job service.
-            services.AddSingleton<OperationJobCollection>();
+            services.AddSingleton<BackgroundJobQueue>();
             services.AddHostedService<BackgroundJobService>();
 
 

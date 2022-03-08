@@ -2,8 +2,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-
-using CartaCore.Data;
+using CartaCore.Graphs;
+using CartaCore.Graphs.Components;
 
 namespace CartaWeb.Serialization.Json
 {
@@ -17,30 +17,21 @@ namespace CartaWeb.Serialization.Json
     public class JgFormat
     {
         /// <summary>
-        /// Gets or sets the single graph.
-        /// </summary>
-        /// <value>
         /// The single graph.
-        /// </value>
+        /// </summary>
         [JsonPropertyName("graph")]
         public JgFormatGraph GraphSingle { get; set; }
         /// <summary>
-        /// Gets or sets the multiple graphs.
-        /// </summary>
-        /// <value>
         /// The multiple graphs.
-        /// </value>
+        /// </summary>
         [JsonPropertyName("graphs")]
         public List<JgFormatGraph> GraphsMultiple { get; set; }
 
         /// <summary>
-        /// Gets the graph.
+        /// Constructs the graph.
         /// </summary>
-        /// <value>
-        /// The graph.
-        /// </value>
         [JsonIgnore]
-        public SubGraph Graph
+        public MemoryGraph Graph
         {
             get
             {
@@ -51,13 +42,10 @@ namespace CartaWeb.Serialization.Json
             }
         }
         /// <summary>
-        /// Gets the graphs.
+        /// Constructs the graphs.
         /// </summary>
-        /// <value>
-        /// The graphs.
-        /// </value>
         [JsonIgnore]
-        public IEnumerable<SubGraph> Graphs
+        public IEnumerable<MemoryGraph> Graphs
         {
             get
             {
@@ -78,7 +66,7 @@ namespace CartaWeb.Serialization.Json
         /// </summary>
         /// <param name="graph">The graph to convert to JG format.</param>
         /// <returns>The JG formatted graph.</returns>
-        public static async Task<JgFormat> CreateAsync(IEntireGraph graph)
+        public static async Task<JgFormat> CreateAsync(IGraph graph)
         {
             JgFormat jgFormat = new();
             jgFormat.GraphSingle = await JgFormatGraph.CreateAsync(graph);
@@ -89,7 +77,7 @@ namespace CartaWeb.Serialization.Json
         /// </summary>
         /// <param name="graphs">The enumerable of graphs to convert to JG format.</param>
         /// <returns>The JG formatted graphs.</returns>
-        public static async Task<JgFormat> CreateAsync(IEnumerable<IEntireGraph> graphs)
+        public static async Task<JgFormat> CreateAsync(IEnumerable<IGraph> graphs)
         {
             JgFormat jgFormat = new();
             jgFormat.GraphsMultiple = new List<JgFormatGraph>
@@ -106,47 +94,29 @@ namespace CartaWeb.Serialization.Json
     public class JgFormatGraph
     {
         /// <summary>
-        /// Gets or sets the whether the graph is directed.
+        /// The graph vertices.
         /// </summary>
-        /// <value>
-        /// <c>true</c> if the graph is directed; otherwise <c>false</c>.
-        /// </value>
-        [JsonPropertyName("directed")]
-        public bool Directed { get; set; }
-
-        /// <summary>
-        /// Gets or sets the graph vertices.
-        /// </summary>
-        /// <value>
-        /// The map of identifier-vertex pairs of graph vertices.
-        /// </value>
         [JsonPropertyName("nodes")]
         public Dictionary<string, JgFormatNode> Nodes { get; set; }
         /// <summary>
-        /// Gets or sets the graph edges.
-        /// </summary>
-        /// <value>
         /// The graph edges.
-        /// </value>
+        /// </summary>
         [JsonPropertyName("edges")]
         public List<JgFormatEdge> Edges { get; set; }
 
         /// <summary>
-        /// Gets the graph.
+        /// Constructs the graph.
         /// </summary>
-        /// <value>
-        /// The graph.
-        /// </value>
         [JsonIgnore]
-        public SubGraph Graph
+        public MemoryGraph Graph
         {
             get
             {
                 // Create a graph and add the vertices and edges.
-                SubGraph graph = new(null, Directed);
+                MemoryGraph graph = new(null);
                 graph.AddVertexRange(Nodes.Select(pair => new Vertex
                 (
-                    Identity.Create(pair.Key),
+                    pair.Key,
                     pair.Value.Properties
                 )
                 {
@@ -169,20 +139,27 @@ namespace CartaWeb.Serialization.Json
         /// </summary>
         /// <param name="graph">The graph to convert to JG format.</param>
         /// <returns>The JG formatted graph.</returns>
-        public static async Task<JgFormatGraph> CreateAsync(IEntireGraph graph)
+        public static async Task<JgFormatGraph> CreateAsync(IGraph graph)
         {
             JgFormatGraph jgFormatGraph = new();
 
-            jgFormatGraph.Directed = graph.GetProperties().Directed;
-            jgFormatGraph.Nodes = await graph.GetVertices().ToDictionaryAwaitAsync
-            (
-                node => new ValueTask<string>(Task.FromResult(node.Identifier.ToString())),
-                node => new ValueTask<JgFormatNode>(Task.FromResult(new JgFormatNode(node)))
-            );
-            jgFormatGraph.Edges = await graph.GetEdges().SelectAwait
-            (
-                edge => new ValueTask<JgFormatEdge>(Task.FromResult(new JgFormatEdge(edge)))
-            ).ToListAsync();
+            // Read the content of the graph.
+            if (graph.Components.TryFind(out IEnumerableComponent<IVertex, IEdge> enumerableComponent))
+            {
+                // Initialize the nodes and edges.
+                jgFormatGraph.Nodes = new Dictionary<string, JgFormatNode>();
+                jgFormatGraph.Edges = new List<JgFormatEdge>();
+
+                await foreach (IVertex vertex in enumerableComponent.GetVertices())
+                {
+                    // Add the vertex to the nodes.
+                    jgFormatGraph.Nodes.Add(vertex.Id, new JgFormatNode(vertex));
+
+                    // Add each of the edges to the graph.
+                    foreach (IEdge edge in vertex.Edges)
+                        jgFormatGraph.Edges.Add(new JgFormatEdge(edge));
+                }
+            }
 
             return jgFormatGraph;
         }
@@ -194,53 +171,39 @@ namespace CartaWeb.Serialization.Json
     public class JgFormatNode
     {
         /// <summary>
-        /// Gets or sets the vertex label.
-        /// </summary>
-        /// <value>
         /// The vertex label which is visible on vertex visualization.
-        /// </value>
+        /// </summary>
         [JsonPropertyName("label")]
         public string Label { get; set; }
         /// <summary>
-        /// Gets or sets the vertex description.
-        /// </summary>
-        /// <value>
         /// The vertex description which pops up on vertex visualization.
-        /// </value>
+        /// </summary>
         [JsonPropertyName("title")]
         public string Description { get; set; }
 
         /// <summary>
-        /// Gets or sets the vertex metadata.
-        /// </summary>
-        /// <value>
         /// The vertex metadata.
-        /// </value>
+        /// </summary>
         [JsonPropertyName("metadata")]
         public Dictionary<string, object> Metadata { get; set; }
 
         /// <summary>
-        /// Gets the properties.
+        /// Constructs the properties.
         /// </summary>
-        /// <value>
-        /// The properties.
-        /// </value>
         [JsonIgnore]
-        public List<Property> Properties
+        public Dictionary<string, IProperty> Properties
         {
             get
             {
                 // Check for no metadata before trying to read it.
                 if (Metadata is null)
-                    return new List<Property>();
+                    return new Dictionary<string, IProperty>();
 
                 // Return the metadata parsed into a sorted list.
-                return Metadata
-                    .Select(pair => new Property
-                    (
-                        Identity.Create(pair.Key),
-                        pair.Value
-                    )).ToList();
+                return Metadata.ToDictionary(
+                    pair => (string)pair.Key,
+                    pair => (IProperty)new Property(pair.Value)
+                );
             }
         }
 
@@ -250,15 +213,17 @@ namespace CartaWeb.Serialization.Json
         /// <param name="vertex">The vertex to convert to a new format.</param>
         public JgFormatNode(IVertex vertex)
         {
-            Label = vertex.Label;
-            Description = vertex.Description;
-
-            if (vertex.Properties is not null)
+            if (vertex is IElement element)
             {
-                Metadata = vertex.Properties
+                Label = element.Label;
+                Description = element.Description;
+            }
+            if (vertex is IProperty property)
+            {
+                Metadata = property.Properties
                     .ToDictionary(
-                        property => property.Identifier.ToString(),
-                        property => property.Value
+                        pair => pair.Key,
+                        pair => pair.Value.Value
                     );
             }
         }
@@ -274,57 +239,42 @@ namespace CartaWeb.Serialization.Json
     public class JgFormatEdge
     {
         /// <summary>
-        /// Gets or sets the ID.
+        /// The edge identifier.
         /// </summary>
-        /// <value>The edge ID.</value>
         [JsonPropertyName("id")]
         public string Id { get; set; }
 
         /// <summary>
-        /// Gets or sets the source vertex ID.
+        /// The source vertex identifier.
         /// </summary>
-        /// <value>
-        /// The source vertex ID.
-        /// </value>
         [JsonPropertyName("source")]
         public string Source { get; set; }
         /// <summary>
-        /// Gets or sets the target vertex ID.
+        /// The target vertex identifier.
         /// </summary>
-        /// <value>
-        /// The target vertex ID.
-        /// </value>
         [JsonPropertyName("target")]
         public string Target { get; set; }
+        /// <summary>
+        /// Whether the edge is directed.
+        /// </summary>
+        [JsonPropertyName("directed")]
+        public bool Directed { get; set; }
 
         /// <summary>
-        /// Gets the edge.
+        /// Constructs the edge.
         /// </summary>
-        /// <value>
-        /// The edge.
-        /// </value>
         [JsonIgnore]
-        public Edge Edge
-        {
-            get
-            {
-                return new Edge
-                (
-                    Identity.Create(Source),
-                    Identity.Create(Target)
-                );
-            }
-        }
+        public Edge Edge => new(Source, Target);
 
         /// <summary>
         /// Initializes a new instance of the <see cref="JgFormatEdge"/> class with the specified edge.
         /// </summary>
         /// <param name="edge">The edge to convert to a new format.</param>
-        public JgFormatEdge(Edge edge)
+        public JgFormatEdge(IEdge edge)
         {
-            Id = edge.Identifier.ToString();
-            Source = edge.Source.ToString();
-            Target = edge.Target.ToString();
+            Id = edge.Id;
+            Source = edge.Source;
+            Target = edge.Target;
         }
         /// <summary>
         /// Initializes a new instance of the <see cref="JgFormatEdge"/> class.

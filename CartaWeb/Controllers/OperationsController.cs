@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -31,7 +32,7 @@ namespace CartaWeb.Controllers
     public class OperationsController : ControllerBase
     {
         // TODO: This singleton service should probably be interface-ified and should be given a better name.
-        private readonly OperationJobCollection _jobCollection;
+        private readonly BackgroundJobQueue _jobCollection;
         private readonly ILogger<OperationsController> _logger;
         private readonly Persistence _persistence;
 
@@ -39,7 +40,7 @@ namespace CartaWeb.Controllers
         public OperationsController(
             ILogger<OperationsController> logger,
             INoSqlDbContext noSqlDbContext,
-            OperationJobCollection taskCollection)
+            BackgroundJobQueue taskCollection)
         {
             _jobCollection = taskCollection;
             _logger = logger;
@@ -308,7 +309,7 @@ namespace CartaWeb.Controllers
             //       For now, until we add permissions on the toolbox level, every operation type is available.
 
             // Get the descriptions for all of the operations.
-            OperationDescription[] descriptionsSimple = OperationDescription.FromOperationTypes();
+            OperationDescription[] descriptionsSimple = OperationHelper.DescribeOperationTypes().ToArray();
             OperationDescription[] descriptionsWorkflow = await WorkflowsController.LoadWorkflowDescriptionsAsync(_persistence);
             OperationDescription[] descriptions = new OperationDescription
             [
@@ -383,8 +384,8 @@ namespace CartaWeb.Controllers
 
             // Create the operation instance.
             // The defaults for this instance should be automatically generated when constructed.
-            Type operationType = Operation.TypeFromName(operationItem.Type);
-            OperationDescription description = OperationDescription.FromType(operationType);
+            Type operationType = OperationHelper.FindOperationType(operationItem.Type);
+            OperationDescription description = OperationHelper.DescribeOperationType(operationType);
 
             // If we did not find an operation type, we return a bad request error.
             if (operationType is null)
@@ -429,7 +430,7 @@ namespace CartaWeb.Controllers
             // Set a new identifier and defaults for the operation.
             Operation operation = await InstantiateOperation(operationItem, _persistence);
             operationItem.Id = Ulid.NewUlid().ToString();
-            operationItem.Default ??= operation.InitialValues;
+            operationItem.Default ??= operation.Defaults;
 
             // Save the created operation item and return its internal representation.
             _ = await SaveOperationAsync(operationItem, _persistence);
@@ -604,23 +605,13 @@ namespace CartaWeb.Controllers
                 });
             }
 
+            // Get an job ID for the operation.
+            byte[] hash = await input.ComputeByteArray().ComputeHashAsync();
+            string jobId = hash.ToHexadecimalString();
+
             // We construct an actual operation instance from the operation item and construct an execution context.
             Operation operation = await InstantiateOperation(operationItem, _persistence);
-            OperationContext context = new()
-            {
-                Parent = null,
-                Operation = operation,
-
-                Default = operationItem.Default,
-                Input = input,
-                Output = new Dictionary<string, object>(),
-
-                Threads = 32,
-            };
-            await foreach (OperationTask task in operation.GetTasks(context))
-                context.Tasks.Add(task);
-            context.SaveFile = SaveJobFileAsync;
-            context.LoadFile = LoadJobFileAsync;
+            OperationJob context = new(operation, jobId, input, new Dictionary<string, object>());
 
             // TODO: Implement memoization of results using the hash of the input.
             //       - Account for whether the operation is deterministic.
@@ -634,19 +625,13 @@ namespace CartaWeb.Controllers
 
 
             // Construct a job item for the executing operation instance.
-            byte[] hash = await context.Total.ComputeByteArray().ComputeHashAsync();
-            string jobId = hash.ToHexadecimalString();
             JobItem job = new(jobId, operationId)
             {
                 Completed = false,
-                Value = context.Total,
+                Value = input,
                 Result = null,
                 Tasks = new List<OperationTask>(),
             };
-
-            // Add the identifiers to the context.
-            context.OperationId = operationId;
-            context.JobId = jobId;
 
             // We save the job item to the store and push the job onto the job collection.
             // This queues the operation for execution on a separate thread so that we can return the job immediately.
@@ -763,7 +748,7 @@ namespace CartaWeb.Controllers
             //       the referenced operation instance.
 
             // Get the job if it exists.
-            (JobItem job, Operation operation, OperationContext context) = _jobCollection.Seek(jobId);
+            (JobItem job, Operation operation, OperationJob context) = _jobCollection.Seek(jobId);
             if (job is null)
             {
                 return NotFound(new
@@ -774,12 +759,16 @@ namespace CartaWeb.Controllers
             }
 
             // Compute the selector.
-            Operation selectorOperation = Operation.ConstructSelector(selector, out object selectorInput, out object _);
-            await TryUpdateModelAsync(selectorInput, selectorInput.GetType(), "");
-            Selector selectorInstance = new Selector(selectorOperation);
+            Type selectorType = OperationHelper.FindSelectorType(selector);
+            Operation selectorOperation = OperationHelper.ConstructSelector(selectorType, out object selectorParameters);
+            await TryUpdateModelAsync(selectorParameters, selectorParameters.GetType(), "selector");
 
             // Add the selector to the priority queue of the context.
-            context.Selectors.Enqueue(new(selectorInstance, selectorInput));
+            if (!context.PriorityQueue.ContainsKey(field))
+                context.PriorityQueue.TryAdd(field, new ConcurrentQueue<(object, object)>());
+            
+            context.PriorityQueue.TryGetValue(field, out ConcurrentQueue<(object, object)> queue);
+            queue.Enqueue((selectorOperation, selectorParameters));
 
             return Ok();
         }
@@ -832,22 +821,7 @@ namespace CartaWeb.Controllers
 
             // Construct the operation and executing context.
             Operation operation = await InstantiateOperation(operationItem, _persistence);
-            OperationContext context = new()
-            {
-                Parent = null,
-                Operation = operation,
-
-                OperationId = operationItem.Id,
-                JobId = jobItem.Id,
-
-                Default = new Dictionary<string, object>(operationItem.Default),
-                Input = new Dictionary<string, object>(jobItem.Value),
-                Output = new Dictionary<string, object>()
-            };
-            await foreach (OperationTask task in operation.GetTasks(context))
-                context.Tasks.Add(task);
-            context.SaveFile = SaveJobFileAsync;
-            context.LoadFile = LoadJobFileAsync;
+            OperationJob context = new(operation, jobItem.Id, jobItem.Value, new Dictionary<string, object>());
 
             // Add back all of the tasks except for the upload task just completed.
             OperationTask currentTask = jobItem.Tasks.Find((task) =>
@@ -861,7 +835,7 @@ namespace CartaWeb.Controllers
             _ = jobItem.Tasks.Remove(currentTask);
             foreach (OperationTask task in jobItem.Tasks)
             {
-                context.Tasks.Add(task);
+                // context.Tasks.Add(task);
             }
 
             // Save the job item and requeue the operation.
@@ -973,18 +947,13 @@ namespace CartaWeb.Controllers
 
             // Instantiate the operation and retrieve each of the field schemas.
             Operation operation = await InstantiateOperation(operationItem, _persistence);
-            Dictionary<string, JsonSchema> inputSchemas = operation
-                .GetInputFields()
-                .ToDictionary(
-                    field => field,
-                    field => operation.GetInputFieldSchema(field)
-                );
-            Dictionary<string, JsonSchema> outputSchemas = operation
-                .GetOutputFields()
-                .ToDictionary(
-                    field => field,
-                    field => operation.GetOutputFieldSchema(field)
-                );
+            OperationJob job = new(operation, null);
+            Dictionary<string, JsonSchema> inputSchemas = new();
+            await foreach (OperationFieldDescriptor descriptor in operation.GetInputFields(job))
+                inputSchemas.Add(descriptor.Name, descriptor.Schema);
+            Dictionary<string, JsonSchema> outputSchemas = new();
+            await foreach (OperationFieldDescriptor descriptor in operation.GetOutputFields(job))
+                outputSchemas.Add(descriptor.Name, descriptor.Schema);
 
             // Return the operation schema.
             OperationSchema schema = new()

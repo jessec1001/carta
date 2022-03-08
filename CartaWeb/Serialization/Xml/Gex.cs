@@ -3,8 +3,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
-
-using CartaCore.Data;
+using CartaCore.Graphs;
+using CartaCore.Graphs.Components;
 
 namespace CartaWeb.Serialization.Xml
 {
@@ -15,22 +15,16 @@ namespace CartaWeb.Serialization.Xml
     public class GexFormat
     {
         /// <summary>
-        /// Gets or sets the graph data.
-        /// </summary>
-        /// <value>
         /// The graph data.
-        /// </value>
+        /// </summary>
         [XmlElement(ElementName = "graph")]
         public GexFormatGraph Data { get; set; }
 
         /// <summary>
-        /// Gets the graph.
+        /// Constructs the graph.
         /// </summary>
-        /// <value>
-        /// The graph.
-        /// </value>
         [XmlIgnore]
-        public SubGraph Graph
+        public MemoryGraph Graph
         {
             get => Data.Graph;
         }
@@ -45,7 +39,7 @@ namespace CartaWeb.Serialization.Xml
         /// </summary>
         /// <param name="graph">The graph to convert to GEX format.</param>
         /// <returns>The GEX formatted graph.</returns>
-        public static async Task<GexFormat> CreateAsync(IEntireGraph graph)
+        public static async Task<GexFormat> CreateAsync(IGraph graph)
         {
             GexFormat gexFormat = new();
             gexFormat.Data = await GexFormatGraph.CreateAsync(graph);
@@ -88,20 +82,14 @@ namespace CartaWeb.Serialization.Xml
     public class GexFormatGraph
     {
         /// <summary>
-        /// Gets or sets the graph nodes.
-        /// </summary>
-        /// <value>
         /// The graph nodes.
-        /// </value>
+        /// </summary>
         [XmlArray(ElementName = "nodes")]
         [XmlArrayItem(ElementName = "node")]
         public List<GexFormatNode> Nodes { get; set; }
         /// <summary>
-        /// Gets or sets the graph edges.
-        /// </summary>
-        /// <value>
         /// The graph edges.
-        /// </value>
+        /// </summary>
         [XmlArray(ElementName = "edges")]
         [XmlArrayItem(ElementName = "edge")]
         public List<GexFormatEdge> Edges { get; set; }
@@ -118,49 +106,38 @@ namespace CartaWeb.Serialization.Xml
         public GexFormatEdgeType EdgeType { get; set; }
 
         /// <summary>
-        /// Gets or sets the property definitions.
-        /// </summary>
-        /// <value>
         /// The property definitions.
-        /// </value>
+        /// </summary>
         [XmlElement(ElementName = "attributes")]
         public GexFormatPropertyDefinitionList PropertyDefinitions { get; set; }
 
         /// <summary>
-        /// Gets the graph.
+        /// Constructs the graph.
         /// </summary>
-        /// <value>
-        /// The graph.
-        /// </value>
-        public SubGraph Graph
+        public MemoryGraph Graph
         {
             get
             {
                 // Create a graph.
-                SubGraph graph = new(null, EdgeType == GexFormatEdgeType.Directed);
+                MemoryGraph graph = new(null);
 
                 // Get the property mapping.
-                Dictionary<int, (string Name, Property Property)> properties = PropertyDefinitions.Definitions
+                Dictionary<int, string> propertyNames = PropertyDefinitions.Definitions
                     .ToDictionary
                     (
                         def => def.Id,
-                        def => (def.Name,
-                        new Property(Identity.Create(def.Name)))
+                        def => def.Name
                     );
 
                 // Add the vertices and edges.
                 graph.AddVertexRange(Nodes.Select(node =>
                     new Vertex
                     (
-                        Identity.Create(node.Id),
-                        node.Properties.Select
-                        (
-                            property => new Property
-                            (
-                                Identity.Create(property.Id),
-                                property.Observations
-                            )
-                        ).ToList()
+                        node.Id,
+                        node.Properties.ToDictionary(
+                            property => (string)propertyNames[property.Id],
+                            property => (IProperty)new Property(property.Value)
+                        )
                     )
                     {
                         Label = node.Label,
@@ -182,47 +159,44 @@ namespace CartaWeb.Serialization.Xml
         /// </summary>
         /// <param name="graph">The graph to convert to GEX format.</param>
         /// <returns>The GEX formatted graph.</returns>
-        public static async Task<GexFormatGraph> CreateAsync(IEntireGraph graph)
+        public static async Task<GexFormatGraph> CreateAsync(IGraph graph)
         {
             GexFormatGraph gexFormatGraph = new();
 
-            // We need the property mapping before creating the nodes.
-            Dictionary<string, (int index, Property prop)> properties = new();
-            await foreach (Vertex vertex in graph.GetVertices())
+            // Set the nodes and edges.
+            if (graph.Components.TryFind(out IEnumerableComponent<IVertex, IEdge> enumerableComponent))
             {
-                foreach (Property property in vertex.Properties)
+                // We need the property mapping before creating the nodes.
+                SortedList<string, IProperty> properties = new();
+                await foreach (Vertex vertex in enumerableComponent.GetVertices())
                 {
-                    if (!properties.ContainsKey(property.Identifier.ToString()))
+                    foreach (KeyValuePair<string, IProperty> pair in vertex.Properties)
                     {
-                        properties.Add
-                        (
-                            property.Identifier.ToString(),
-                            (
-                                properties.Count,
-                                property
-                            )
-                        );
+                        if (!properties.ContainsKey(pair.Key))
+                            properties.Add(pair.Key, pair.Value);
                     }
                 }
+                Dictionary<string, int> propertyIds = new();
+                for (int k = 0; k < properties.Count; k++)
+                    propertyIds.Add(properties.Keys[k], k);
+
+                // Initialize the nodes and edges.
+                gexFormatGraph.Nodes = new List<GexFormatNode>();
+                gexFormatGraph.Edges = new List<GexFormatEdge>();
+
+                // Add each of the vertices and edges to the graph.
+                await foreach (IVertex vertex in enumerableComponent.GetVertices())
+                {
+                    gexFormatGraph.Nodes.Add(new GexFormatNode(vertex, propertyIds));
+                    foreach (IEdge edge in vertex.Edges)
+                        gexFormatGraph.Edges.Add(new GexFormatEdge(edge));
+                }
+
+                // Set the graph properties.
+                gexFormatGraph.Mode = GexFormatMode.Static;
+                gexFormatGraph.EdgeType = GexFormatEdgeType.Directed;
+                gexFormatGraph.PropertyDefinitions = new GexFormatPropertyDefinitionList(properties);
             }
-            Dictionary<string, int> propertyIds = properties.ToDictionary
-            (
-                pair => pair.Key,
-                pair => pair.Value.index
-            );
-
-            // Set the nodes and edges.
-            gexFormatGraph.Nodes = await graph.GetVertices()
-                .Select(vertex => new GexFormatNode(vertex, propertyIds))
-                .ToListAsync();
-            gexFormatGraph.Edges = await graph.GetEdges()
-                .Select(edge => new GexFormatEdge(edge))
-                .ToListAsync();
-
-            // Set the graph properties.
-            gexFormatGraph.Mode = GexFormatMode.Static;
-            gexFormatGraph.EdgeType = graph.GetProperties().Directed ? GexFormatEdgeType.Directed : GexFormatEdgeType.Undirected;
-            gexFormatGraph.PropertyDefinitions = new GexFormatPropertyDefinitionList(properties);
 
             return gexFormatGraph;
         }
@@ -277,15 +251,19 @@ namespace CartaWeb.Serialization.Xml
         /// <param name="properties">The property mapping.</param>
         public GexFormatNode(IVertex vertex, Dictionary<string, int> properties)
         {
-            Id = vertex.Identifier.ToString();
-
-            Label = vertex.Label;
-            Description = vertex.Description;
-
-            Properties = vertex.Properties.Select(property =>
+            Id = vertex.Id;
+            if (vertex is IElement element)
             {
-                return new GexFormatProperty(properties[property.Identifier.ToString()], property);
-            }).ToList();
+                Label = element.Label;
+                Description = element.Description;
+            }
+            if (vertex is IProperty property)
+            {
+                Properties = property.Properties.Select(pair =>
+                {
+                    return new GexFormatProperty(properties[pair.Key], pair.Value);
+                }).ToList();
+            }
         }
         /// <summary>
         /// Initializes a new instance of the <see cref="GexFormatNode"/> class.
@@ -325,33 +303,20 @@ namespace CartaWeb.Serialization.Xml
         public string Target { get; set; }
 
         /// <summary>
-        /// Gets the edge.
+        /// Constructs the edge.
         /// </summary>
-        /// <value>
-        /// The edge.
-        /// </value>
         [XmlIgnore]
-        public Edge Edge
-        {
-            get
-            {
-                return new Edge
-                (
-                    Identity.Create(Source),
-                    Identity.Create(Target)
-                );
-            }
-        }
+        public Edge Edge => new(Source, Target);
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GexFormatEdge"/> class with the specified ID and endpoints.
         /// </summary>
         /// <param name="edge">The edge source and target to convert to a new format.</param>
-        public GexFormatEdge(Edge edge)
+        public GexFormatEdge(IEdge edge)
         {
-            Id = edge.Identifier.ToString();
-            Source = edge.Source.ToString();
-            Target = edge.Target.ToString();
+            Id = edge.Id;
+            Source = edge.Source;
+            Target = edge.Target;
         }
         /// <summary>
         /// Initializes a new instance of the <see cref="GexFormatEdge"/> class.
@@ -404,11 +369,11 @@ namespace CartaWeb.Serialization.Xml
         /// properties.
         /// </summary>
         /// <param name="properties">The properties to convert to a new format.</param>
-        public GexFormatPropertyDefinitionList(Dictionary<string, (int index, Property prop)> properties)
+        public GexFormatPropertyDefinitionList(SortedList<string, IProperty> properties)
         {
             Class = GexFormatClassType.Node;
             Definitions = properties
-                .Select(pair => new GexFormatPropertyDefinition(pair.Value.index, pair.Key))
+                .Select((pair, index) => new GexFormatPropertyDefinition(index, pair.Key))
                 .ToList();
         }
         /// <summary>
@@ -473,37 +438,23 @@ namespace CartaWeb.Serialization.Xml
     public class GexFormatProperty
     {
         /// <summary>
-        /// Gets or sets the property ID.
+        /// The property identifier. This must match an ID specified in a <see cref="GexFormatPropertyDefinition" />.
         /// </summary>
-        /// <value>
-        /// The property ID. This must match an ID specified in a <see cref="GexFormatPropertyDefinition" />.
-        /// </value>
         [XmlAttribute(AttributeName = "for")]
         public int Id { get; set; }
 
         /// <summary>
-        /// Gets or sets the property observations.
+        /// The property value.
         /// </summary>
-        /// <value>The property observations.</value>
         [XmlAttribute(AttributeName = "value")]
         public object Value { get; set; }
-
-        /// <summary>
-        /// Gets the property observations.
-        /// </summary>
-        /// <value>The property observations.</value>
-        [XmlIgnore]
-        public object Observations
-        {
-            get => Value;
-        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GexFormatProperty"/> class with the specified ID and property.
         /// </summary>
         /// <param name="id">The property ID.</param>
         /// <param name="property">The property to convert to a new format.</param>
-        public GexFormatProperty(int id, Property property)
+        public GexFormatProperty(int id, IProperty property)
         {
             Id = id;
             Value = property.Value;

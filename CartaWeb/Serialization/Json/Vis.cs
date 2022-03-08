@@ -68,7 +68,7 @@ namespace CartaWeb.Serialization.Json
 
             // Read the graph attributes.
             if (graph is IIdentifiable identifiable) visFormat.Id = identifiable.Id;
-            visFormat.Attributes = new VisFormatAttributes(graph.Attributes);
+            visFormat.Attributes = new VisFormatAttributes(graph);
 
             // Read the content of the graph.
             if (graph.Components.TryFind(out IEnumerableComponent<Vertex, Edge> enumerableComponent))
@@ -113,16 +113,21 @@ namespace CartaWeb.Serialization.Json
         /// <summary>
         /// Initializes a new instance of the <see cref="VisFormatAttributes"/> class.
         /// </summary>
-        /// <param name="attributes">The graph attributes.</param>
-        public VisFormatAttributes(GraphAttributes attributes)
+        /// <param name="graph">The graph.</param>
+        public VisFormatAttributes(IGraph graph)
         {
-            Dynamic = attributes.Dynamic;
-            Finite = attributes.Finite;
+            // We should probably store some extra information here about the directionality of dynamic fetching.
+            Dynamic =
+                graph.Components.TryFind(out IDynamicLocalComponent<IVertex, IEdge> _) ||
+                graph.Components.TryFind(out IDynamicInComponent<IVertex, IEdge> _) ||
+                graph.Components.TryFind(out IDynamicOutComponent<IVertex, IEdge> _);
+            Finite =
+                graph.Components.TryFind(out IEnumerableComponent<IVertex, IEdge> _);
         }
     }
 
     /// <summary>
-    /// Represents a vertex property in Vis format.
+    /// Represents a property in Vis format.
     /// </summary>
     public class VisFormatProperty
     {
@@ -145,30 +150,26 @@ namespace CartaWeb.Serialization.Json
         /// The property.
         /// </value>
         [JsonIgnore]
-        public Property Property
+        public Property Property => new(Value)
         {
-            get
-            {
-                return new Property
-                (
-                    Identity.Create(Id),
-                    Value
-                )
-                {
-                    Subproperties = Subproperties?.Select(subproperty => subproperty.Property)
-                };
-            }
-        }
+            Properties = Properties?.ToDictionary(
+                (KeyValuePair<string, VisFormatProperty> entry) => (string)entry.Key,
+                (KeyValuePair<string, VisFormatProperty> entry) => (IProperty)entry.Value.Property
+            ) ?? new Dictionary<string, IProperty>()
+        };
 
         /// <summary>
         /// Initializes a new instance of the <see cref="VisFormatProperty"/> class with the specified key and value.
         /// </summary>
         /// <param name="property">The property.</param>
-        public VisFormatProperty(Property property)
+        public VisFormatProperty(IProperty property)
         {
-            Id = property.Identifier.ToString();
             Value = property.Value;
-            Subproperties = property.Subproperties?.Select(subproperty => new VisFormatProperty(subproperty)).ToList();
+            Properties = property.Properties?
+                .ToDictionary(
+                    pair => pair.Key,
+                    pair => new VisFormatProperty(pair.Value)
+                );
         }
         /// <summary>
         /// Initializes a new instance of the <see cref="VisFormatProperty"/> class.
@@ -176,7 +177,6 @@ namespace CartaWeb.Serialization.Json
         public VisFormatProperty() { }
     }
 
-    // TODO: Needs to reimplement equality and hashing. 
     /// <summary>
     /// Represents a node in Vis format.
     /// </summary>
@@ -200,34 +200,21 @@ namespace CartaWeb.Serialization.Json
         public string Description { get; set; }
 
         /// <summary>
-        /// The vertex properties.
-        /// </summary>
-        /// <value>
-        /// The vertex properties.
-        /// </value>
-        [JsonPropertyName("properties")]
-        public Dictionary<string, VisFormatProperty> Properties { get; set; }
-
-        /// <summary>
         /// Constructs the vertex.
         /// </summary>
         [JsonIgnore]
         public Vertex Vertex => new(
             Id,
             Properties?.ToDictionary(
-                (KeyValuePair<string, VisFormatProperty> entry) => entry.Key,
-                (KeyValuePair<string, VisFormatProperty> entry) => entry.Value.Property
-            ) ?? new Dictionary<string, Property>()
+                (KeyValuePair<string, VisFormatProperty> entry) => (string)entry.Key,
+                (KeyValuePair<string, VisFormatProperty> entry) => (IProperty)entry.Value.Property
+            ) ?? new Dictionary<string, IProperty>()
         )
         {
             Label = Label,
             Description = Description
         };
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="VisFormatNode"/> class.
-        /// </summary>
-        public VisFormatNode() { }
         /// <summary>
         /// Initializes a new instance of the <see cref="VisFormatNode"/> class with the specified node.
         /// </summary>
@@ -237,11 +224,38 @@ namespace CartaWeb.Serialization.Json
             Id = vertex.Id;
             Label = vertex.Label;
             Description = vertex.Description;
-            Properties = vertex.Properties?.Select(property => new VisFormatProperty(property)).ToList();
+            Properties = vertex.Properties?
+                .ToDictionary(
+                    pair => pair.Key,
+                    pair => new VisFormatProperty(pair.Value)
+                );
+        }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="VisFormatNode"/> class.
+        /// </summary>
+        public VisFormatNode() { }
+
+        /// <summary>
+        /// Determines whether the specified <see cref="VisFormatNode"/> is equal to the current <see cref="VisFormatNode"/>.
+        /// </summary>
+        /// <param name="other">The other node.</param>
+        /// <returns><c>true</c> if the identifiers are equal; otherwise <c>false</c>.</returns>
+        public bool Equals(VisFormatNode other)
+        {
+            return Id == other.Id;
+        }
+        /// <inheritdoc />
+        public override bool Equals(object obj)
+        {
+            return obj is VisFormatNode other && Equals(other);
+        }
+        /// <inheritdoc />
+        public override int GetHashCode()
+        {
+            return Id.GetHashCode();
         }
     }
 
-    // TODO: Needs to reimplement equality and hashing. 
     /// <summary>
     /// Represents an edge in Vis format.
     /// </summary>
@@ -269,12 +283,18 @@ namespace CartaWeb.Serialization.Json
         [JsonPropertyName("directed")]
         public bool Directed { get; set; }
 
-        // TODO: Add properties here.
         /// <summary>
         /// Constructs the edge.
         /// </summary>
         [JsonIgnore]
-        public Edge Edge => new(Source, Target) { Directed = Directed };
+        public Edge Edge => new(Source, Target)
+        {
+            Directed = Directed,
+            Properties = Properties?.ToDictionary(
+                (KeyValuePair<string, VisFormatProperty> entry) => (string)entry.Key,
+                (KeyValuePair<string, VisFormatProperty> entry) => (IProperty)entry.Value.Property
+            ) ?? new Dictionary<string, IProperty>()
+        };
 
         /// <summary>
         /// Initializes a new instance of the <see cref="VisFormatEdge"/> class with the specified ID and endpoints.
@@ -285,10 +305,35 @@ namespace CartaWeb.Serialization.Json
             Id = edge.Id;
             Source = edge.Source;
             Target = edge.Target;
+            Properties = edge.Properties?
+                .ToDictionary(
+                    pair => pair.Key,
+                    pair => new VisFormatProperty(pair.Value)
+                );
         }
         /// <summary>
         /// Initializes a new instance of the <see cref="VisFormatEdge"/> class.
         /// </summary>
         public VisFormatEdge() { }
+    
+        /// <summary>
+        /// Determines whether the specified <see cref="VisFormatEdge"/> is equal to the current <see cref="VisFormatEdge"/>.
+        /// </summary>
+        /// <param name="other">The other edge.</param>
+        /// <returns><c>true</c> if the identifiers are equal; otherwise <c>false</c>.</returns>
+        public bool Equals(VisFormatEdge other)
+        {
+            return Id == other.Id;
+        }
+        /// <inheritdoc />
+        public override bool Equals(object obj)
+        {
+            return obj is VisFormatEdge other && Equals(other);
+        }
+        /// <inheritdoc />
+        public override int GetHashCode()
+        {
+            return Id.GetHashCode();
+        }
     }
 }

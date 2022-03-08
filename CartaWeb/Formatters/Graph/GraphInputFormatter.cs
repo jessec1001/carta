@@ -11,7 +11,6 @@ using Microsoft.Net.Http.Headers;
 using CartaCore.Graphs;
 using CartaWeb.Serialization.Json;
 using CartaWeb.Serialization.Xml;
-using CartaCore.Graphs.Components;
 
 namespace CartaWeb.Formatters
 {
@@ -20,7 +19,7 @@ namespace CartaWeb.Formatters
     /// </summary>
     /// <param name="stream">The text stream.</param>
     /// <returns>The unformatted graph representation.</returns>
-    public delegate Task<IEnumerableComponent<Vertex, Edge>> MediaUnformatter(Stream stream);
+    public delegate Task<IGraph> MediaUnformatter(Stream stream);
 
     /// <summary>
     /// Represents a text input formatter that is able to perform content negotiation and formatting for graphs.
@@ -59,7 +58,7 @@ namespace CartaWeb.Formatters
         /// <inheritdoc />
         protected override bool CanReadType(Type type)
         {
-            if (typeof(IEnumerableComponent<IVertex, IEdge>).IsAssignableFrom(type))
+            if (typeof(IGraph).IsAssignableFrom(type))
                 return base.CanReadType(type);
             return false;
         }
@@ -71,8 +70,8 @@ namespace CartaWeb.Formatters
             Stream stream = context.HttpContext.Request.Body;
 
             // Find the correct unformatter and use it to read the content.
-            IEnumerableComponent<IVertex, IEdge> graph = null;
-            if (context.ModelType.IsAssignableTo(typeof(IEnumerableComponent<IVertex, IEdge>)))
+            IGraph graph = null;
+            if (context.ModelType.IsAssignableTo(typeof(IGraph)))
             {
                 foreach (var (MediaHeader, Formatter) in MediaUnformatters)
                 {
@@ -100,8 +99,8 @@ namespace CartaWeb.Formatters
             return await Task.FromResult((T)serializer.Deserialize(xr));
         }
 
-        private static async Task<IEnumerableComponent<IVertex, IEdge>> UnformatJg(Stream stream) => (await DeserializeJson<JgFormat>(stream)).Graph;
-        private static async Task<IEnumerableComponent<IVertex, IEdge>> UnformatVis(Stream stream) => (await DeserializeJson<VisFormat>(stream)).Graph;
-        private static async Task<IEnumerableComponent<IVertex, IEdge>> UnformatGex(Stream stream) => (await DeserializeXml<GexFormat>(stream)).Graph;
+        private static async Task<IGraph> UnformatJg(Stream stream) => (await DeserializeJson<JgFormat>(stream)).Graph;
+        private static async Task<IGraph> UnformatVis(Stream stream) => (await DeserializeJson<VisFormat>(stream)).Graph;
+        private static async Task<IGraph> UnformatGex(Stream stream) => (await DeserializeXml<GexFormat>(stream)).Graph;
     }
 }

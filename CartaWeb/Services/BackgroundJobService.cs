@@ -14,13 +14,15 @@ namespace CartaWeb.Services
 {
     // TODO: Implement something, perhaps in the task running service, that will automatically handle loading uploaded
     //       files into streams and handle saving streams to downloadable files.
+
+    // TODO: We are running a single background job at a time. We should be able to run multiple background jobs at once.
     
     /// <summary>
     /// A service that is responsible for running operation jobs in the background across multiple threads.
     /// </summary>
     public class BackgroundJobService : BackgroundService
     {
-        private OperationJobCollection TaskCollection;
+        private BackgroundJobQueue TaskCollection;
         private ILogger<BackgroundJobService> Logger;
         private Persistence _persistence;
         private IServiceScopeFactory ServiceScopeFactory;
@@ -33,7 +35,7 @@ namespace CartaWeb.Services
         /// <param name="noSqlDbContext"></param>
         /// <param name="serviceScopeFactory"></param>
         public BackgroundJobService(
-            OperationJobCollection taskCollection,
+            BackgroundJobQueue taskCollection,
             ILogger<BackgroundJobService> logger,
             INoSqlDbContext noSqlDbContext,
             IServiceScopeFactory serviceScopeFactory)
@@ -49,13 +51,13 @@ namespace CartaWeb.Services
             Logger.LogInformation("Background operations service started.");
             while (!stoppingToken.IsCancellationRequested)
             {
-                (JobItem jobItem, Operation operation, OperationContext context) = await TaskCollection.Pop();
+                (JobItem jobItem, Operation operation, OperationJob job) = await TaskCollection.Pop();
                 using IServiceScope scope = ServiceScopeFactory.CreateScope();
                 try
                 {
-                    await operation.Perform(context);
+                    await operation.Perform(job);
                     jobItem.Completed = true;
-                    jobItem.Result = context.Output;
+                    jobItem.Result = job.Output;
                     await OperationsController.UpdateJobAsync(jobItem, _persistence);
                 }
                 catch (Exception exception)

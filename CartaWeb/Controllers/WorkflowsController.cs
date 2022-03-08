@@ -595,21 +595,21 @@ namespace CartaWeb.Controllers
                 Subtype = workflowId,
                 Id = null
             }, _persistence);
-            if (workflow.IsMultiplexLike(connection.Target.Operation, new WorkflowOperationConnection()
-            {
-                Source = new WorkflowOperationConnectionPoint()
-                {
-                    Operation = connection.Source.Operation,
-                    Field = connection.Source.Field
-                },
-                Target = new WorkflowOperationConnectionPoint()
-                {
-                    Operation = connection.Target.Operation,
-                    Field = connection.Target.Field
-                },
-                Multiplexer = connection.Multiplex
-            }))
-                connection.Multiplex = true;
+            // if (workflow.IsMultiplexLike(connection.Target.Operation, new WorkflowOperationConnection()
+            // {
+            //     Source = new WorkflowOperationConnectionPoint()
+            //     {
+            //         Operation = connection.Source.Operation,
+            //         Field = connection.Source.Field
+            //     },
+            //     Target = new WorkflowOperationConnectionPoint()
+            //     {
+            //         Operation = connection.Target.Operation,
+            //         Field = connection.Target.Field
+            //     },
+            //     Multiplexer = connection.Multiplex
+            // }))
+            //     connection.Multiplex = true;
 
 
             // TODO: Implement
