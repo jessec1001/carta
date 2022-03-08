@@ -760,7 +760,7 @@ namespace CartaWeb.Controllers
 
             // Compute the selector.
             Type selectorType = OperationHelper.FindSelectorType(selector);
-            Operation selectorOperation = OperationHelper.ConstructSelector(selectorType, out object selectorParameters);
+            object selectorOperation = OperationHelper.ConstructSelector(selectorType, out object selectorParameters);
             await TryUpdateModelAsync(selectorParameters, selectorParameters.GetType(), "selector");
 
             // Add the selector to the priority queue of the context.
