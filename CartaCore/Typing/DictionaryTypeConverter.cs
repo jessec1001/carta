@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using CartaCore.Extensions.Typing;
@@ -19,7 +20,12 @@ namespace CartaCore.Typing
         /// <returns>
         /// <c>true</c> if the type is assignable to a dictionary with any generic types; otherwise <c>false</c>.
         /// </returns>
-        protected static bool IsDictionaryType(Type type) => type.IsAssignableTo(typeof(IDictionary));
+        protected static bool IsDictionaryType(Type type)
+        {
+            return
+                type.IsAssignableTo(typeof(IDictionary)) ||
+                type.IsAssignableTo(typeof(IDictionary<string, object>));
+        }
         /// <summary>
         /// Checks if a type is produced by a defined class.
         /// </summary>
@@ -78,57 +84,95 @@ namespace CartaCore.Typing
             else
             {
                 // Check if the value is a dictionary.
-                if (input is not IDictionary dictionary)
+                if (input is IDictionary<string, object> typedDict)
                 {
-                    output = null;
+                    // We create a new instance of the target type.
+                    output = Activator.CreateInstance(targetType);
+                    foreach (PropertyInfo property in targetType
+                        .GetProperties(BindingFlags.Public | BindingFlags.Instance))
+                    {
+                        // Check if the property is in the dictionary.
+                        if (typedDict.TryGetValue(property.Name, out object entryValue))
+                        {
+                            // We try to convert the property.
+                            object convertedValue;
+                            if (context is not null)
+                            {
+                                // By default, use the context to convert the value.
+                                TypeConverter converter = context;
+
+                                // Create a new type converter context based on the property attributes.
+                                TypeConverterContext subcontext = context.ApplyAttributes(property.GetCustomAttributes());
+
+                                // Convert the value.
+                                subcontext.TryConvert(
+                                    entryValue?.GetType() ?? typeof(object),
+                                    property.PropertyType,
+                                    entryValue,
+                                    out convertedValue
+                                );
+                            }
+                            else convertedValue = entryValue;
+
+                            // We set the value of the property.
+                            property.SetValue(output, convertedValue);
+                        }
+                    }
+                    return true;
+                }
+                else if (input is IDictionary nontypedDict)
+                {
+                    // We create a new instance of the target type.
+                    output = Activator.CreateInstance(targetType);
+                    foreach (PropertyInfo property in targetType.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+                    {
+                        // Check if the property is in the dictionary.
+                        DictionaryEntry entry = default;
+                        bool entryExists = false;
+                        foreach (DictionaryEntry dictionaryEntry in nontypedDict)
+                        {
+                            string key = dictionaryEntry.Key.ToString();
+                            if (key.Equals(property.Name, StringComparison.OrdinalIgnoreCase))
+                            {
+                                entry = dictionaryEntry;
+                                entryExists = true;
+                                break;
+                            }
+                        }
+
+                        // We attempt to convert the property.
+                        if (entryExists)
+                        {
+                            object convertedValue;
+                            if (context is not null)
+                            {
+                                // By default, use the context to convert the value.
+                                TypeConverter converter = context;
+
+                                // Create a new type converter context based on the property attributes.
+                                TypeConverterContext subcontext = context.ApplyAttributes(property.GetCustomAttributes());
+
+                                // Convert the value.
+                                subcontext.TryConvert(
+                                    entry.Value?.GetType() ?? typeof(object),
+                                    property.PropertyType,
+                                    entry.Value,
+                                    out convertedValue
+                                );
+                            }
+                            else convertedValue = entry.Value;
+
+                            // We set the value of the property.
+                            property.SetValue(output, convertedValue);
+                        }
+                    }
+                    return true;
+                }
+                else
+                {
+                    output = default;
                     return false;
                 }
-
-                // We create a new instance of the target type.
-                output = Activator.CreateInstance(targetType);
-                foreach (PropertyInfo property in targetType.GetProperties(BindingFlags.Public | BindingFlags.Instance))
-                {
-                    // Check if the property is in the dictionary.
-                    DictionaryEntry entry = default;
-                    bool entryExists = false;
-                    foreach (DictionaryEntry dictionaryEntry in dictionary)
-                    {
-                        string key = dictionaryEntry.Key.ToString();
-                        if (key.Equals(property.Name, StringComparison.OrdinalIgnoreCase))
-                        {
-                            entry = dictionaryEntry;
-                            entryExists = true;
-                            break;
-                        }
-                    }
-
-                    // We attempt to convert the property.
-                    if (entryExists)
-                    {
-                        object convertedValue;
-                        if (context is not null)
-                        {
-                            // By default, use the context to convert the value.
-                            TypeConverter converter = context;
-
-                            // Create a new type converter context based on the property attributes.
-                            TypeConverterContext subcontext = context.ApplyAttributes(property.GetCustomAttributes());
-
-                            // Convert the value.
-                            subcontext.TryConvert(
-                                entry.Value?.GetType() ?? typeof(object),
-                                property.PropertyType,
-                                entry.Value,
-                                out convertedValue
-                            );
-                        }
-                        else convertedValue = entry.Value;
-
-                        // We set the value of the property.
-                        property.SetValue(output, convertedValue);
-                    }
-                }
-                return true;
             }
         }
     }

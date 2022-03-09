@@ -1,5 +1,4 @@
 import { Accordian } from "components/accordian";
-import { Arrows } from "components/arrows";
 import {
   Button,
   ButtonGroup,
@@ -506,28 +505,10 @@ const Container: FunctionComponent = () => {
   );
 };
 
-const DoesBreakParent: FunctionComponent = () => {
-  const [element, setElement] = useState<HTMLElement | null>(null);
-  return (
-    <>
-      PARENT
-      <DoesBreakChild setRef={setElement} element={element} />
-    </>
-  );
-};
-const DoesBreakChild: FunctionComponent<{
-  setRef: (element: HTMLElement | null) => void;
-  element: HTMLElement | null;
-}> = ({ setRef, element }) => {
-  const data = element ? element.tagName : "NONE";
-  return <div ref={setRef}>CHILD: {data}</div>;
-};
-
 const TestPage: FunctionComponent = () => {
   return (
     <PageLayout header footer>
       <div style={{ height: "100%" }}>
-        {/* <DoesBreakParent /> */}
         <Container />
       </div>
     </PageLayout>
