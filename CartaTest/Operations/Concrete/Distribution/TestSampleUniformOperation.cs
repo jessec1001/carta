@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using CartaCore.Extensions.Statistics;
 using CartaCore.Operations.Distribution;
@@ -36,8 +37,8 @@ namespace CartaTest.Operations
             };
             SampleUniformOperationOut output = await operation.Perform(input);
 
-            double[] samples = output.Samples;
-            double sampleMean = StatisticsExtensions.ComputeMean(samples);
+            IEnumerable<double> samples = output.Samples;
+            (double sampleMean, int _) = samples.ComputeRawMoment(1);
             Assert.AreEqual((min + max) / 2.0, sampleMean, 8 * Math.Sqrt((double)1 / sampleCount));
         }
 
@@ -66,9 +67,10 @@ namespace CartaTest.Operations
             };
             SampleUniformOperationOut output = await operation.Perform(input);
 
-            double[] samples = output.Samples;
-            double sampleMean = Math.Sqrt(StatisticsExtensions.ComputeMoment(samples, 2));
-            Assert.AreEqual(Math.Abs(max - min) / Math.Sqrt(12.0), sampleMean, 4 * Math.Sqrt((double)4 / sampleCount));
+            IEnumerable<double> samples = output.Samples;
+            (double sampleVariance, int _) = samples.ComputeCentralMoment(2);
+            double sampleDeviation = Math.Sqrt(sampleVariance);
+            Assert.AreEqual(Math.Abs(max - min) / Math.Sqrt(12.0), sampleDeviation, 4 * Math.Sqrt((double)4 / sampleCount));
         }
 
         /// <summary>
@@ -95,8 +97,8 @@ namespace CartaTest.Operations
             };
             SampleUniformOperationOut output = await operation.Perform(input);
 
-            double[] samples = output.Samples;
-            double sampleSkewness = StatisticsExtensions.ComputeNormalizedMoment(samples, 3);
+            IEnumerable<double> samples = output.Samples;
+            (double sampleSkewness, int _) = samples.ComputeNormalizedMoment(3);
             Assert.AreEqual(0.0, sampleSkewness, 4 * Math.Sqrt((double)6 / sampleCount));
         }
 
@@ -124,8 +126,8 @@ namespace CartaTest.Operations
             };
             SampleUniformOperationOut output = await operation.Perform(input);
 
-            double[] samples = output.Samples;
-            double sampleKurtosis = StatisticsExtensions.ComputeNormalizedMoment(samples, 4);
+            IEnumerable<double> samples = output.Samples;
+            (double sampleKurtosis, int _) = samples.ComputeNormalizedMoment(4);
             Assert.AreEqual(3.0 - 6.0 / 5.0, sampleKurtosis, 4 * Math.Sqrt((double)24 / sampleCount));
         }
 

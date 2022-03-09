@@ -1,6 +1,6 @@
 using System;
 using System.Threading.Tasks;
-using CartaCore.Operations.Array;
+using CartaCore.Operations.Arrays;
 using NUnit.Framework;
 
 namespace CartaTest.Operations
@@ -9,12 +9,12 @@ namespace CartaTest.Operations
     //  the input array element type is the same as the output type when converting or checking.
 
     /// <summary>
-    /// Tests the performance of the <see cref="ArrayItemOperation" /> operation.
+    /// Tests the performance of the <see cref="ArrayItemOperation{T}" /> operation.
     /// </summary>
     public class TestArrayItemOperation
     {
         /// <summary>
-        /// Tests that the <see cref="ArrayItemOperation" /> returns the correct item from an array at a valid index.
+        /// Tests that the <see cref="ArrayItemOperation{T}" /> returns the correct item from an array at a valid index.
         /// </summary>
         /// <param name="expected">The expected item.</param>
         /// <param name="value">The array value.</param>
@@ -26,14 +26,14 @@ namespace CartaTest.Operations
         [TestCase("d", new object[] { "a", "b", "c", "d", "e", "f" }, -3)]
         public async Task TestValidIndex(object expected, object[] value, int index)
         {
-            ArrayItemOperation operation = new();
-            ArrayItemOperationIn input = new() { Items = value, Index = index };
-            ArrayItemOperationOut output = await operation.Perform(input);
+            ArrayItemOperation<object> operation = new();
+            ArrayItemOperationIn<object> input = new() { Items = value, Index = index };
+            ArrayItemOperationOut<object> output = await operation.Perform(input);
 
             Assert.AreEqual(expected, output.Item);
         }
         /// <summary>
-        /// Tests that the <see cref="ArrayItemOperation" /> throws an exception when the index is out of bounds.
+        /// Tests that the <see cref="ArrayItemOperation{T}" /> throws an exception when the index is out of bounds.
         /// </summary>
         /// <param name="value">The array value.</param>
         /// <param name="index">The index of the array. Can be negative.</param>
@@ -46,14 +46,14 @@ namespace CartaTest.Operations
         {
             Assert.ThrowsAsync<IndexOutOfRangeException>(async () =>
             {
-                ArrayItemOperation operation = new();
-                ArrayItemOperationIn input = new() { Items = value, Index = index };
-                ArrayItemOperationOut output = await operation.Perform(input);
+                ArrayItemOperation<object> operation = new();
+                ArrayItemOperationIn<object> input = new() { Items = value, Index = index };
+                ArrayItemOperationOut<object> output = await operation.Perform(input);
             });
         }
 
         /// <summary>
-        /// Tests that the <see cref="ArrayItemOperation" /> throws an exception when the array is null.
+        /// Tests that the <see cref="ArrayItemOperation{T}" /> throws an exception when the array is null.
         /// </summary>
         /// <param name="index">The index of the array. Can be negative.</param>
         [TestCase(0)]
@@ -63,9 +63,9 @@ namespace CartaTest.Operations
         {
             Assert.ThrowsAsync<ArgumentNullException>(async () =>
             {
-                ArrayItemOperation operation = new();
-                ArrayItemOperationIn input = new() { Items = null, Index = index };
-                ArrayItemOperationOut output = await operation.Perform(input);
+                ArrayItemOperation<object> operation = new();
+                ArrayItemOperationIn<object> input = new() { Items = null, Index = index };
+                ArrayItemOperationOut<object> output = await operation.Perform(input);
             });
         }
     }

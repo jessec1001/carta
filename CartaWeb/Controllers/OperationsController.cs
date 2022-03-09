@@ -270,11 +270,8 @@ namespace CartaWeb.Controllers
             }
             else
             {
-                // TODO: Use the `OperationHelper` construction methods to create the operation with an ID and defaults
-                //       properly.
                 Type operationType = OperationHelper.FindOperationType(operationItem.Type, typeof(Operation).Assembly);
-
-                Operation operation = (Operation)Activator.CreateInstance(operationType);
+                Operation operation = OperationHelper.Construct(operationType);
                 operation.Id = operationItem.Id;
                 operation.Defaults = operationItem.Default;
 

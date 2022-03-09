@@ -1,10 +1,9 @@
 using System.Linq;
 using System.Threading.Tasks;
-
 using NUnit.Framework;
-
-using CartaCore.Data;
 using CartaCore.Integration.Synthetic;
+using CartaCore.Graphs;
+using CartaCore.Graphs.Components;
 
 namespace CartaTest.Integration.Synthetic
 {
@@ -17,7 +16,7 @@ namespace CartaTest.Integration.Synthetic
         /// <summary>
         /// The graph generated to test on.
         /// </summary>
-        protected IEntireGraph Graph;
+        protected FiniteUndirectedGraph Graph;
 
         /// <summary>
         /// Sets up the test fixture.

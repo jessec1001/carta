@@ -1,6 +1,5 @@
 using System.Collections.Generic;
-
-using CartaCore.Data;
+using CartaCore.Graphs;
 
 namespace CartaTest
 {
@@ -13,7 +12,7 @@ namespace CartaTest
         /// Gets an undirected graph sample usable in testing.
         /// </summary>
         /// <value>An undirected graph with no properties on the vertices.</value>
-        public static FiniteGraph UndirectedGraphSample
+        public static MemoryGraph UndirectedGraphSample
         {
             get
             {
@@ -24,14 +23,14 @@ namespace CartaTest
                 */
 
                 // Setup the graph information.
-                FiniteGraph graph = new FiniteGraph(Identity.Create("Undirected w/o Properties"), false);
+                MemoryGraph graph = new("Undirected w/o Properties");
                 Vertex[] vertices = new Vertex[]
                 {
-                    new Vertex(Identity.Create(0)),
-                    new Vertex(Identity.Create(1)),
-                    new Vertex(Identity.Create(2)),
-                    new Vertex(Identity.Create(3)),
-                    new Vertex(Identity.Create(4)),
+                    new Vertex("0"),
+                    new Vertex("1"),
+                    new Vertex("2"),
+                    new Vertex("3"),
+                    new Vertex("4"),
                 };
 
                 // Construct the vertices and edges of the graph.
@@ -53,7 +52,7 @@ namespace CartaTest
         /// Gets a directed graph sample usable in testing.
         /// </summary>
         /// <value>A directed graph with no properties on the vertices.</value>
-        public static FiniteGraph DirectedGraphSample
+        public static MemoryGraph DirectedGraphSample
         {
             get
             {
@@ -63,23 +62,23 @@ namespace CartaTest
                 */
 
                 // Setup the graph information.
-                FiniteGraph graph = new FiniteGraph(Identity.Create("Directed w/o Properties"), true);
+                MemoryGraph graph = new("Directed w/o Properties");
                 Vertex[] vertices = new Vertex[]
                 {
-                    new Vertex(Identity.Create(0)),
-                    new Vertex(Identity.Create(1)),
-                    new Vertex(Identity.Create(2)),
-                    new Vertex(Identity.Create(3)),
+                    new Vertex("0"),
+                    new Vertex("1"),
+                    new Vertex("2"),
+                    new Vertex("3"),
                 };
 
                 // Construct the vertices and edges of the graph.
                 graph.AddVertexRange(vertices);
                 graph.AddEdgeRange(new Edge[]
                 {
-                    new Edge(vertices[0], vertices[1]),
-                    new Edge(vertices[0], vertices[2]),
-                    new Edge(vertices[1], vertices[2]),
-                    new Edge(vertices[2], vertices[3]),
+                    new Edge(vertices[0], vertices[1]) { Directed = true },
+                    new Edge(vertices[0], vertices[2]) { Directed = true },
+                    new Edge(vertices[1], vertices[2]) { Directed = true },
+                    new Edge(vertices[2], vertices[3]) { Directed = true },
                 });
 
                 return graph;
@@ -90,7 +89,7 @@ namespace CartaTest
         /// Gets an undirected graph sample with properties usable in testing.
         /// </summary>
         /// <value>An undirected graph with properties on the vertices.</value>
-        public static FiniteGraph UndirectedPropertyGraphSample
+        public static MemoryGraph UndirectedPropertyGraphSample
         {
             get
             {
@@ -99,37 +98,25 @@ namespace CartaTest
                 */
 
                 // Setup the graph information.
-                FiniteGraph graph = new FiniteGraph(Identity.Create("Undirected w/ Properties"), false);
+                MemoryGraph graph = new("Undirected w/ Properties");
                 Vertex[] vertices = new Vertex[]
                 {
                     new Vertex
                     (
-                        Identity.Create(0),
-                        new List<Property>()
+                        "0",
+                        new Dictionary<string, IProperty>
                         {
-                            new Property
-                            (
-                                Identity.Create("myNum"),
-                                new List<object> { 2, 5 }
-                            ),
-                            new Property
-                            (
-                                Identity.Create("myFruit"),
-                                new List<object> { "orange" }
-                            )
+                            ["myNum"] = new Property(new[] { 2, 5 }),
+                            ["myFruit"] = new Property("orange"),
                         }
                     ),
-                    new Vertex(Identity.Create(1)),
+                    new Vertex("1"),
                     new Vertex
                     (
-                        Identity.Create(2),
-                        new List<Property>()
+                        "2",
+                        new Dictionary<string, IProperty>
                         {
-                            new Property
-                            (
-                                Identity.Create("myShoeSize"),
-                                new List<object> { 11.50 }
-                            )
+                            ["myShoeSize"] = new Property(11.50)
                         }
                     )
                 };

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using CartaCore.Data;
+using CartaCore.Graphs;
 using CartaCore.Operations;
 using NUnit.Framework;
 
@@ -49,29 +49,29 @@ namespace CartaTest.Operations
 
             // Define the operations required.
             #region Operations
-            InputOperation opInputUrl = new()
+            InputOperation<string> opInputUrl = new()
             {
-                Identifier = "1",
-                DefaultValuesTyped = new() { Name = "Url" }
+                Id = "1",
+                DefaultsTyped = new() { Name = "Url" }
             };
             StreamUrlOperation opStreamUrl = new()
             {
-                Identifier = "2",
+                Id = "2",
             };
             ParseCsvOperation opParseCsv = new()
             {
-                Identifier = "3",
-                DefaultValuesTyped = new()
+                Id = "3",
+                DefaultsTyped = new()
                 {
                     Delimiter = ",",
                     ContainsHeader = true,
                     InferTypes = true
                 }
             };
-            OutputOperation opOutputGraph = new()
+            OutputOperation<Graph> opOutputGraph = new()
             {
-                Identifier = "4",
-                DefaultValuesTyped = new() { Name = "Graph" }
+                Id = "4",
+                DefaultsTyped = new() { Name = "Graph" }
             };
             #endregion
 
@@ -79,18 +79,18 @@ namespace CartaTest.Operations
             #region Connections
             WorkflowOperationConnection connUrlToStream = new()
             {
-                Source = new() { Operation = opInputUrl.Identifier, Field = nameof(InputOperationOut.Value) },
-                Target = new() { Operation = opStreamUrl.Identifier, Field = nameof(StreamUrlOperationIn.Url) }
+                Source = new() { Operation = opInputUrl.Id, Field = nameof(InputOperationOut<string>.Value) },
+                Target = new() { Operation = opStreamUrl.Id, Field = nameof(StreamUrlOperationIn.Url) }
             };
             WorkflowOperationConnection connStreamToCsv = new()
             {
-                Source = new() { Operation = opStreamUrl.Identifier, Field = nameof(StreamUrlOperationOut.Stream) },
-                Target = new() { Operation = opParseCsv.Identifier, Field = nameof(ParseCsvOperationIn.Stream) }
+                Source = new() { Operation = opStreamUrl.Id, Field = nameof(StreamUrlOperationOut.Stream) },
+                Target = new() { Operation = opParseCsv.Id, Field = nameof(ParseCsvOperationIn.Stream) }
             };
             WorkflowOperationConnection connCsvToGraph = new()
             {
-                Source = new() { Operation = opParseCsv.Identifier, Field = nameof(ParseCsvOperationOut.Graph) },
-                Target = new() { Operation = opOutputGraph.Identifier, Field = nameof(OutputOperationIn.Value) }
+                Source = new() { Operation = opParseCsv.Id, Field = nameof(ParseCsvOperationOut.Graph) },
+                Target = new() { Operation = opOutputGraph.Id, Field = nameof(OutputOperationIn<Graph>.Value) }
             };
             #endregion
 
@@ -118,17 +118,13 @@ namespace CartaTest.Operations
                 ["Url"] = csvUrl
             };
             Dictionary<string, object> output = new();
-            OperationContext context = new()
-            {
-                Input = input,
-                Output = output
-            };
-            await opWorkflow.Perform(context);
+            OperationJob job = new(opWorkflow, null, input, output);
+            await opWorkflow.Perform(job);
 
             // Get the graph from the output.
             Assert.Contains("Graph", output.Keys);
-            Assert.IsInstanceOf<FiniteGraph>(output["Graph"]);
-            FiniteGraph graph = output["Graph"] as FiniteGraph;
+            Assert.IsInstanceOf<MemoryGraph>(output["Graph"]);
+            MemoryGraph graph = output["Graph"] as MemoryGraph;
 
             // Check that there is the correct number of samples.
             Assert.AreEqual(128, await graph.GetVertices().CountAsync());
@@ -142,7 +138,7 @@ namespace CartaTest.Operations
 
                 // Assert property names.
                 string[] propertyNames = vertex.Properties
-                    .Select(prop => prop.Identifier.ToString())
+                    .Select(pair => pair.Key)
                     .ToArray();
                 Assert.Contains("LatD", propertyNames); // Latitude Degrees
                 Assert.Contains("LatM", propertyNames); // Latitude Minutes
@@ -156,13 +152,12 @@ namespace CartaTest.Operations
                 Assert.Contains("State", propertyNames);
 
                 // Assert property types.
-                // TODO: Make it easier to select a particular vertex from a graph.
-                object latD = vertex.Properties.First(prop => prop.Identifier.Equals("LatD")).Value;
-                object latM = vertex.Properties.First(prop => prop.Identifier.Equals("LatM")).Value;
-                object latS = vertex.Properties.First(prop => prop.Identifier.Equals("LatS")).Value;
-                object ns = vertex.Properties.First(prop => prop.Identifier.Equals("NS")).Value;
-                object city = vertex.Properties.First(prop => prop.Identifier.Equals("City")).Value;
-                object state = vertex.Properties.First(prop => prop.Identifier.Equals("State")).Value;
+                object latD = vertex.Properties["LatD"].Value;
+                object latM = vertex.Properties["LatM"].Value;
+                object latS = vertex.Properties["LatS"].Value;
+                object ns = vertex.Properties["NS"].Value;
+                object city = vertex.Properties["City"].Value;
+                object state = vertex.Properties["State"].Value;
                 Assert.IsInstanceOf<int>(latD);
                 Assert.IsInstanceOf<int>(latM);
                 Assert.IsInstanceOf<int>(latS);
@@ -172,23 +167,19 @@ namespace CartaTest.Operations
             }
 
             // Check some specific values.
-            IVertex wichitaVertex = await graph
+            Vertex wichitaVertex = await graph
                 .GetVertices()
-                .FirstAsync(vertex =>
-                    (string)vertex.Properties.First(prop => prop.Identifier.Equals("City")).Value == "Wichita"
-                );
-            Assert.AreEqual(37, (int)wichitaVertex.Properties.First(prop => prop.Identifier.Equals("LatD")).Value);
-            Assert.AreEqual(97, (int)wichitaVertex.Properties.First(prop => prop.Identifier.Equals("LonD")).Value);
-            Assert.AreEqual("KS", (string)wichitaVertex.Properties.First(prop => prop.Identifier.Equals("State")).Value);
+                .FirstAsync(vertex => (string)vertex.Properties["City"].Value == "Wichita");
+            Assert.AreEqual(37, (int)wichitaVertex.Properties["LatD"].Value);
+            Assert.AreEqual(97, (int)wichitaVertex.Properties["LonD"].Value);
+            Assert.AreEqual("KS", (string)wichitaVertex.Properties["State"].Value);
 
-            IVertex scrantonVertex = await graph
+            Vertex scrantonVertex = await graph
                 .GetVertices()
-                .FirstAsync(vertex =>
-                    (string)vertex.Properties.First(prop => prop.Identifier.Equals("City")).Value == "Scranton"
-                );
-            Assert.AreEqual(41, (int)scrantonVertex.Properties.First(prop => prop.Identifier.Equals("LatD")).Value);
-            Assert.AreEqual(75, (int)scrantonVertex.Properties.First(prop => prop.Identifier.Equals("LonD")).Value);
-            Assert.AreEqual("PA", (string)scrantonVertex.Properties.First(prop => prop.Identifier.Equals("State")).Value);
+                .FirstAsync(vertex => (string)vertex.Properties["City"].Value == "Scranton");
+            Assert.AreEqual(41, (int)scrantonVertex.Properties["LatD"].Value);
+            Assert.AreEqual(75, (int)scrantonVertex.Properties["LonD"].Value);
+            Assert.AreEqual("PA", (string)scrantonVertex.Properties["State"].Value);
         }
     }
 }

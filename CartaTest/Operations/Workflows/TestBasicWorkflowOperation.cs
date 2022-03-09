@@ -11,8 +11,8 @@ namespace CartaTest.Operations
     public class TestBasicWorkflowOperation
     {
         /// <summary>
-        /// Tests the functionality of the <see cref="InputOperation" /> and <see cref="OutputOperation" /> operation
-        /// when they are simply connected together as the only operations in a workflow.
+        /// Tests the functionality of the <see cref="InputOperation{T}" /> and <see cref="OutputOperation{T}" />
+        /// operation when they are simply connected together as the only operations in a workflow.
         /// </summary>
         [Test]
         public async Task TestBasicInputOutput()
@@ -20,23 +20,23 @@ namespace CartaTest.Operations
             // Create operations corresponding to the inputs and outputs of the workflow. In particular:
             // There is a single input "foo".
             // There is a single output "bar".
-            InputOperation opInput = new()
+            InputOperation<int> opInput = new()
             {
-                Identifier = "1",
-                DefaultValuesTyped = new() { Name = "foo" }
+                Id = "1",
+                DefaultsTyped = new() { Name = "foo" }
             };
-            OutputOperation opOutput = new()
+            OutputOperation<int> opOutput = new()
             {
-                Identifier = "2",
-                DefaultValuesTyped = new() { Name = "bar" }
+                Id = "2",
+                DefaultsTyped = new() { Name = "bar" }
             };
 
             // We generate the workflow operation itself.
             // We form a single connection from input to output so that "bar" is set to "foo".
             WorkflowOperationConnection connInputToOutput = new()
             {
-                Source = new() { Operation = opInput.Identifier, Field = nameof(InputOperationOut.Value) },
-                Target = new() { Operation = opOutput.Identifier, Field = nameof(OutputOperationIn.Value) },
+                Source = new() { Operation = opInput.Id, Field = nameof(InputOperationOut<int>.Value) },
+                Target = new() { Operation = opOutput.Id, Field = nameof(OutputOperationIn<int>.Value) },
             };
             WorkflowOperation opWorkflow = new(
                 new Operation[] { opInput, opOutput },
@@ -49,11 +49,7 @@ namespace CartaTest.Operations
                 ["foo"] = 42
             };
             Dictionary<string, object> output = new();
-            OperationContext context = new()
-            {
-                Input = input,
-                Output = output
-            };
+            OperationJob context = new(opWorkflow, null, input, output);
             await opWorkflow.Perform(context);
 
             Assert.Contains("bar", output.Keys);

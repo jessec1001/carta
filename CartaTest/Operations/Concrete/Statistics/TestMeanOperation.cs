@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using CartaCore.Operations;
 using NUnit.Framework;
@@ -22,7 +23,7 @@ namespace CartaTest.Operations
         public async Task TestMean(double expected, double[] values)
         {
             MeanOperation operation = new();
-            MeanOperationIn input = new() { Values = values };
+            MeanOperationIn input = new() { Values = values.ToAsyncEnumerable() };
             MeanOperationOut output = await operation.Perform(input);
 
             Assert.AreEqual(expected, output.Mean, 1.0e-4);

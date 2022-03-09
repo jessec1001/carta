@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using CartaCore.Operations;
 using NUnit.Framework;
@@ -22,7 +23,7 @@ namespace CartaTest.Operations
         public async Task TestDeviationWithoutBessel(double expected, double[] values)
         {
             DeviationOperation operation = new();
-            DeviationOperationIn input = new() { Values = values, UseBesselsCorrection = false };
+            DeviationOperationIn input = new() { Values = values.ToAsyncEnumerable(), UseBesselsCorrection = false };
             DeviationOperationOut output = await operation.Perform(input);
 
             Assert.AreEqual(expected, output.Deviation, 1.0e-4);
@@ -41,7 +42,7 @@ namespace CartaTest.Operations
         public async Task TestDeviationWithBessel(double expected, double[] values)
         {
             DeviationOperation operation = new();
-            DeviationOperationIn input = new() { Values = values, UseBesselsCorrection = true };
+            DeviationOperationIn input = new() { Values = values.ToAsyncEnumerable(), UseBesselsCorrection = true };
             DeviationOperationOut output = await operation.Perform(input);
 
             Assert.AreEqual(expected, output.Deviation, 1.0e-4);

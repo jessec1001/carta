@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using CartaCore.Operations;
 using NUnit.Framework;
@@ -6,7 +7,7 @@ using NUnit.Framework;
 namespace CartaTest.Operations
 {
     /// <summary>
-    /// Tests the performance of the <see cref="OutputOperation" /> operation.
+    /// Tests the performance of the <see cref="OutputOperation{T}" /> operation.
     /// </summary>
     public class TestOutputOperation
     {
@@ -34,33 +35,32 @@ namespace CartaTest.Operations
             bool excepts,
             bool equals)
         {
-            // Create a context that the operation can reference when executing.
-            OperationContext workflowContext = new()
-            {
-                Operation = null,
-                Input = new Dictionary<string, object>(),
-                Output = new Dictionary<string, object>()
-            };
-            OperationContext operationContext = new()
-            {
-                Parent = workflowContext,
-            };
-
             // Create the operation and input/output state.
-            OutputOperation operation = new();
-            OutputOperationIn input = new() { Name = key, Value = value };
-            await operation.Perform(input, operationContext);
+            OutputOperation<object> operation = new();
+
+            // Create a context that the operation can reference when executing.
+            OperationJob workflowJob = new(
+                null, null,
+                new Dictionary<string, object>(),
+                new Dictionary<string, object>()
+            );
+            OperationJob operationJob = new(operation, null, workflowJob);
+
+            // Run the operation.
+            OutputOperationIn<object> input = new() { Name = key, Value = value };
+            await operation.Perform(input, operationJob);
 
             if (excepts)
             {
                 // We should not expect the correct value to have been assigned.
-                Assert.IsFalse(workflowContext.Output.ContainsKey(expectedKey));
+                Assert.IsFalse(workflowJob.Output.ContainsKey(expectedKey));
             }
             else
             {
                 // If an exception was not thrown, check for equality between values output and expected.
-                Assert.Contains(expectedKey, workflowContext.Output.Keys);
-                object actualValue = workflowContext.Output[expectedKey];
+                ICollection<string> keys = workflowJob.Output.Keys;
+                Assert.Contains(expectedKey, keys.ToArray());
+                object actualValue = workflowJob.Output[expectedKey];
                 if (equals)
                     Assert.AreEqual(expectedValue, actualValue);
                 else

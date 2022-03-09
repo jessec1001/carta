@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using CartaCore.Extensions.Statistics;
 using CartaCore.Operations.Distribution;
@@ -33,8 +35,8 @@ namespace CartaTest.Operations
             };
             SamplePoissonOperationOut output = await operation.Perform(input);
 
-            double[] samples = Array.ConvertAll<int, double>(output.Samples, x => x);
-            double sampleMean = StatisticsExtensions.ComputeMean(samples);
+            IEnumerable<double> samples = output.Samples.Cast<double>();
+            (double sampleMean, int _) = samples.ComputeRawMoment(1);
             Assert.AreEqual(rate, sampleMean, 4 * Math.Sqrt((double)1 / sampleCount));
         }
         /// <summary>
@@ -59,8 +61,9 @@ namespace CartaTest.Operations
             };
             SamplePoissonOperationOut output = await operation.Perform(input);
 
-            double[] samples = Array.ConvertAll<int, double>(output.Samples, x => x);
-            double sampleDeviation = Math.Sqrt(StatisticsExtensions.ComputeMoment(samples, 2));
+            IEnumerable<double> samples = output.Samples.Cast<double>();
+            (double sampleVariance, int _) = samples.ComputeCentralMoment(2);
+            double sampleDeviation = Math.Sqrt(sampleVariance);
             Assert.AreEqual(Math.Sqrt(rate), sampleDeviation, 4 * Math.Sqrt((double)4 / sampleCount));
         }
 
@@ -86,8 +89,8 @@ namespace CartaTest.Operations
             };
             SamplePoissonOperationOut output = await operation.Perform(input);
 
-            double[] samples = Array.ConvertAll<int, double>(output.Samples, x => x);
-            double sampleSkewness = StatisticsExtensions.ComputeNormalizedMoment(samples, 3);
+            IEnumerable<double> samples = output.Samples.Cast<double>();
+            (double sampleSkewness, int _) = samples.ComputeNormalizedMoment(3);
             Assert.AreEqual(1.0 / Math.Sqrt(rate), sampleSkewness, 4 * Math.Sqrt((double)6 / sampleCount));
         }
 
@@ -112,8 +115,8 @@ namespace CartaTest.Operations
             };
             SamplePoissonOperationOut output = await operation.Perform(input);
 
-            double[] samples = Array.ConvertAll<int, double>(output.Samples, x => x);
-            double sampleKurtosis = StatisticsExtensions.ComputeNormalizedMoment(samples, 4);
+            IEnumerable<double> samples = output.Samples.Cast<double>();
+            (double sampleKurtosis, int _) = samples.ComputeNormalizedMoment(4);
             Assert.AreEqual(3 + 1.0 / rate, sampleKurtosis, 4 * Math.Sqrt((double)24 / sampleCount));
         }
 

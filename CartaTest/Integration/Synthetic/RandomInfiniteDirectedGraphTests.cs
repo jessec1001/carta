@@ -2,11 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-
 using NUnit.Framework;
-
-using CartaCore.Data;
+using CartaCore.Graphs;
 using CartaCore.Integration.Synthetic;
+using CartaCore.Graphs.Components;
 
 namespace CartaTest.Integration.Synthetic
 {
@@ -19,7 +18,7 @@ namespace CartaTest.Integration.Synthetic
         /// <summary>
         /// The graph generated to test on.
         /// </summary>
-        protected IDynamicOutGraph<Vertex> Graph;
+        protected InfiniteDirectedGraph Graph;
 
         /// <summary>
         /// Sets up the test fixture.
@@ -37,7 +36,7 @@ namespace CartaTest.Integration.Synthetic
         public async Task TestVertexGeneration()
         {
             // Get a random vertex ID.
-            Identity id = Identity.Create(Guid.NewGuid());
+            string id = Guid.NewGuid().ToString();
 
             // Generate the properties and edges of the vertex.
             Vertex vertex = await Graph.GetVertex(id);
@@ -54,22 +53,23 @@ namespace CartaTest.Integration.Synthetic
         public async Task TestDeterministic()
         {
             // Get a random vertex ID.
-            Identity id = Identity.Create(Guid.NewGuid());
+            string id = Guid.NewGuid().ToString();
 
             // Generate the two instances of the vertex properties and edges.
             Vertex vertex1 = await Graph.GetVertex(id);
             Vertex vertex2 = await Graph.GetVertex(id);
 
             // Check that the vertex properties are the same.
-            IList<Property> properties1 = vertex1.Properties.ToList();
-            IList<Property> properties2 = vertex2.Properties.ToList();
-            Assert.AreEqual(vertex1.Identifier, vertex2.Identifier);
+            IDictionary<string, IProperty> properties1 = vertex1.Properties;
+            IDictionary<string, IProperty> properties2 = vertex2.Properties;
+            Assert.AreEqual(vertex1.Id, vertex2.Id);
             Assert.AreEqual(properties1.Count, properties2.Count);
-            for (int k = 0; k < properties1.Count; k++)
+            foreach (string key in properties1.Keys)
             {
-                object value1 = properties1[k].Value;
-                object value2 = properties2[k].Value;
-                Assert.AreEqual(properties1[k].Identifier, properties2[k].Identifier);
+                Assert.IsTrue(properties1.ContainsKey(key));
+                Assert.IsTrue(properties2.ContainsKey(key));
+                object value1 = properties1[key].Value;
+                object value2 = properties2[key].Value;
                 Assert.AreEqual(value1, value2);
             }
 

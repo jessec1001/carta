@@ -5,7 +5,7 @@ using NUnit.Framework;
 namespace CartaTest.Operations
 {
     /// <summary>
-    /// Tests the performance of the <see cref="InputOperation" /> operation.
+    /// Tests the performance of the <see cref="InputOperation{T}" /> operation.
     /// </summary>
     public class TestInputOperation
     {
@@ -33,38 +33,33 @@ namespace CartaTest.Operations
             bool excepts,
             bool equals)
         {
-            // Create a context that the operation can reference when executing.
-            OperationContext workflowContext = new()
-            {
-                Operation = null,
-                Input = new Dictionary<string, object>()
-                {
-                    [key] = value
-                },
-                Output = new Dictionary<string, object>()
-            };
-            OperationContext operationContext = new()
-            {
-                Parent = workflowContext,
-            };
-
             // Create the operation and input/output state.
-            InputOperation operation = new();
+            InputOperation<object> operation = new();
+
+            // Create a context that the operation can reference when executing.
+            OperationJob workflowJob = new(
+                null, null,
+                new Dictionary<string, object>() { [key] = value },
+                new Dictionary<string, object>()
+            );
+            OperationJob operationJob = new(operation, null, workflowJob);
+
+            // Run the operation.
             InputOperationIn input = new() { Name = expectedKey };
-            InputOperationOut output;
+            InputOperationOut<object> output = default;
 
             // If we expect an error to be thrown, perform the appropriate assertion.
             if (excepts)
             {
                 Assert.ThrowsAsync<KeyNotFoundException>(async () =>
-                    output = await operation.Perform(input, operationContext)
+                    output = await operation.Perform(input, operationJob)
                 );
             }
             // Otherwise, expect no error to occur in the assertion. 
             else
             {
                 Assert.DoesNotThrowAsync(async () =>
-                    output = await operation.Perform(input, operationContext)
+                    output = await operation.Perform(input, operationJob)
                 );
 
                 // If an exception was not thrown, check for equality.

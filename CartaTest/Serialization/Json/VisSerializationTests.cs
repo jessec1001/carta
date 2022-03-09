@@ -1,10 +1,9 @@
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
-
 using NUnit.Framework;
-
-using CartaCore.Data;
+using CartaCore.Graphs;
+using CartaCore.Graphs.Components;
 using CartaWeb.Serialization.Json;
 
 namespace CartaTest.Serialization.Json
@@ -23,10 +22,10 @@ namespace CartaTest.Serialization.Json
         {
             VisFormat sample = await VisFormat.CreateAsync(GraphHelpers.UndirectedGraphSample);
 
-            string str = JsonSerializer.Serialize<VisFormat>(sample);
+            string str = JsonSerializer.Serialize(sample);
             VisFormat data = JsonSerializer.Deserialize<VisFormat>(str);
 
-            IEntireGraph graph = data.Graph;
+            IEnumerableComponent<Vertex, Edge> graph = data.Graph;
 
             Assert.NotNull(graph);
             Assert.AreEqual(5, await graph.GetVertices().CountAsync());

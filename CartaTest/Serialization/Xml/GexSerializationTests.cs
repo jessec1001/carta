@@ -1,13 +1,5 @@
-using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
-using System.Xml;
-using System.Xml.Serialization;
-
 using NUnit.Framework;
-
-using CartaCore.Data;
-using CartaWeb.Serialization.Xml;
 
 namespace CartaTest.Serialization.Xml
 {
@@ -23,6 +15,7 @@ namespace CartaTest.Serialization.Xml
         [Test]
         public async Task TestGexfReserialize()
         {
+            await Task.CompletedTask;
             // TODO: Redo this test to use XML object serialization.
             // XmlSerializer serializer = new XmlSerializer(typeof(GexFormat));
             // GexFormat sample = await GexFormat.CreateAsync(GraphHelpers.UndirectedGraphSample);

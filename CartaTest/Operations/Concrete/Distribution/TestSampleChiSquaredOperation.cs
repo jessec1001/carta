@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using CartaCore.Extensions.Statistics;
 using CartaCore.Operations.Distribution;
@@ -33,8 +34,8 @@ namespace CartaTest.Operations
             };
             SampleChiSquaredOperationOut output = await operation.Perform(input);
 
-            double[] samples = output.Samples;
-            double sampleMean = StatisticsExtensions.ComputeMean(samples);
+            IEnumerable<double> samples = output.Samples;
+            (double sampleMean, int _) = samples.ComputeRawMoment(1);
             Assert.AreEqual(degreesOfFreedom, sampleMean, 4 * Math.Sqrt((double)1 / sampleCount));
         }
 
@@ -60,8 +61,9 @@ namespace CartaTest.Operations
             };
             SampleChiSquaredOperationOut output = await operation.Perform(input);
 
-            double[] samples = output.Samples;
-            double sampleDeviation = Math.Sqrt(StatisticsExtensions.ComputeMoment(samples, 2));
+            IEnumerable<double> samples = output.Samples;
+            (double sampleVariance, int _) = samples.ComputeCentralMoment(2);
+            double sampleDeviation = Math.Sqrt(sampleVariance);
             Assert.AreEqual(Math.Sqrt(2.0 * degreesOfFreedom), sampleDeviation, 4 * Math.Sqrt((double)4 / sampleCount));
         }
 
@@ -87,8 +89,8 @@ namespace CartaTest.Operations
             };
             SampleChiSquaredOperationOut output = await operation.Perform(input);
 
-            double[] samples = output.Samples;
-            double sampleSkewness = StatisticsExtensions.ComputeNormalizedMoment(samples, 3);
+            IEnumerable<double> samples = output.Samples;
+            (double sampleSkewness, int _) = samples.ComputeNormalizedMoment(3);
             Assert.AreEqual(Math.Sqrt(8.0 / degreesOfFreedom), sampleSkewness, 4 * Math.Sqrt((double)6 / sampleCount));
         }
 
@@ -113,8 +115,8 @@ namespace CartaTest.Operations
             };
             SampleChiSquaredOperationOut output = await operation.Perform(input);
 
-            double[] samples = output.Samples;
-            double sampleKurtosis = StatisticsExtensions.ComputeNormalizedMoment(samples, 4);
+            IEnumerable<double> samples = output.Samples;
+            (double sampleKurtosis, int _) = samples.ComputeNormalizedMoment(4);
             Assert.AreEqual(3 + 12.0 / degreesOfFreedom, sampleKurtosis, 8 * Math.Sqrt((double)24 / sampleCount));
         }
 

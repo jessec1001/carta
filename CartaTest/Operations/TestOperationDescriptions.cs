@@ -27,7 +27,7 @@ namespace CartaTests.Operations
             // Get the concrete types which are implementations of an operation.
             Type[] assemblyTypes = Assembly.GetAssembly(typeof(Operation)).GetTypes();
             Type[] operationTypes = assemblyTypes
-                .Where(type => 
+                .Where(type =>
                     type.IsAssignableTo(typeof(Operation)) &&
                     type.IsPublic &&
                     !(type.IsAbstract || type.IsInterface))
@@ -44,7 +44,7 @@ namespace CartaTests.Operations
         {
             foreach (Type operationType in OperationTypes)
             {
-                OperationDescription description = OperationDescription.FromType(operationType);
+                OperationDescription description = OperationHelper.DescribeOperationType(operationType);
                 Assert.IsNotNull(
                     description.Type,
                     $"'{operationType.Name}' has a null type name. Set it using an `[OperationName]` attribute."
@@ -71,7 +71,7 @@ namespace CartaTests.Operations
             Dictionary<string, Type> typeNames = new();
             foreach (Type operationType in OperationTypes)
             {
-                OperationDescription description = OperationDescription.FromType(operationType);
+                OperationDescription description = OperationHelper.DescribeOperationType(operationType);
                 if (typeNames.TryGetValue(description.Type, out Type collisionType))
                     Assert.Fail(
                         $"Operations '{operationType.Name}' and '{collisionType.Name}' have identical type names." +

@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using CartaCore.Operations.Array;
+using CartaCore.Operations.Arrays;
 using NUnit.Framework;
 
 namespace CartaTest.Operations
@@ -25,7 +25,7 @@ namespace CartaTest.Operations
             ArrayLengthOperationIn input = new() { Items = value };
             ArrayLengthOperationOut output = await operation.Perform(input);
 
-            Assert.AreEqual(expected, output.Count);
+            Assert.AreEqual(expected, output.Length);
         }
 
         /// <summary>
@@ -38,7 +38,7 @@ namespace CartaTest.Operations
             ArrayLengthOperationIn input = new() { Items = null };
             ArrayLengthOperationOut output = await operation.Perform(input);
 
-            Assert.AreEqual(0, output.Count);
+            Assert.AreEqual(0, output.Length);
         }
     }
 }
