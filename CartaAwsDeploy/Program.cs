@@ -19,7 +19,8 @@ namespace CartaAwsDeploy
             // Create the stacks
             new ElasticBeanstalkStack( app, $"ElasticBeanstalkStack{stackSuffix}", new StackProps { });
             new ResourceStack( app, $"ResourceStack{stackSuffix}", new StackProps { });
-            
+            new UserSecretsTableTestStack(app, $"TestStack{stackSuffix}", new StackProps { }); //TODO: remove this line after internal testing
+
             // Synthesize the stacks
             app.Synth();
         }
