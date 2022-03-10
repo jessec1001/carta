@@ -1,6 +1,5 @@
 import React, { Component } from "react";
 
-import { MetaApi } from "library/api";
 import { MetaCollection } from "library/api/meta";
 
 import ApiCollectionView from "./ApiCollectionView";
@@ -21,7 +20,7 @@ export default class ApiVisualizer extends Component<{}, ApiVisualizerState> {
       api: [],
     };
 
-    MetaApi.getEndpointsAsync().then((value) => this.setState({ api: value }));
+    // MetaApi.getEndpointsAsync().then((value) => this.setState({ api: value }));
   }
 
   render() {

@@ -1,9 +1,9 @@
 import axios from "axios";
+import fileDownload from "js-file-download";
 import queryString from "query-string";
 import { flattenSchema } from "library/schema";
-import BaseAPI from "./BaseAPI";
 import { Job, Operation, OperationSchema, OperationType } from "./operations";
-import fileDownload from "js-file-download";
+import BaseAPI from "./BaseAPI";
 
 class OperationsAPI extends BaseAPI {
   protected getApiUrl() {

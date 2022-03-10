@@ -1,4 +1,13 @@
-import MetaApi from "./MetaApi";
+import MetaCollection from "./MetaCollection";
+import MetaEndpoint from "./MetaEndpoint";
+import MetaParameter from "./MetaParameter";
+import MetaRequest from "./MetaRequest";
+import MetaTypeEntry from "./MetaTypeEntry";
 
-export default MetaApi;
-export * from "./types";
+export type {
+  MetaCollection,
+  MetaEndpoint,
+  MetaParameter,
+  MetaRequest,
+  MetaTypeEntry,
+};

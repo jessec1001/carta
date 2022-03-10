@@ -20,15 +20,24 @@ const SortTimeIcon: FC<IconProps> = ({ children, ...props }) => (
         cy="16.934"
         rx="11.113"
         ry="11.113"
-        stroke-width="3.175"
+        style={{
+          strokeWidth: 3.175,
+        }}
       />
       <path
         d="m16.934 10.583v6.3501l-3.7042 3.175"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        stroke-width="2.1167"
+        style={{
+          strokeLinecap: "round",
+          strokeLinejoin: "round",
+          strokeWidth: 2.1167,
+        }}
       />
-      <g stroke-linejoin="round" stroke-width="1.0583">
+      <g
+        style={{
+          strokeLinejoin: "round",
+          strokeWidth: 1.0583,
+        }}
+      >
         <path d="m28.046 16.934h-2.6459" />
         <path d="m26.557 22.49-2.2914-1.3229" />
         <path d="m22.49 26.557-1.3229-2.2914" />
