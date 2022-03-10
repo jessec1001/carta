@@ -45,7 +45,11 @@ namespace CartaTest.Operations
             OperationJob operationJob = new(operation, null, workflowJob);
 
             // Run the operation.
-            InputOperationIn input = new() { Name = expectedKey };
+            InputOperationIn input = new()
+            {
+                Required = true,
+                Name = expectedKey
+            };
             InputOperationOut<object> output = default;
 
             // If we expect an error to be thrown, perform the appropriate assertion.

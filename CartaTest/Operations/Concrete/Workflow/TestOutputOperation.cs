@@ -40,11 +40,12 @@ namespace CartaTest.Operations
 
             // Create a context that the operation can reference when executing.
             OperationJob workflowJob = new(
-                null, null,
+                null,
+                "workJob",
                 new Dictionary<string, object>(),
                 new Dictionary<string, object>()
             );
-            OperationJob operationJob = new(operation, null, workflowJob);
+            OperationJob operationJob = new(operation, "opJob", workflowJob);
 
             // Run the operation.
             OutputOperationIn<object> input = new() { Name = key, Value = value };
