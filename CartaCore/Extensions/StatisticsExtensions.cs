@@ -103,7 +103,7 @@ namespace CartaCore.Extensions.Statistics
                 count++;
                 sum += value;
                 for (int i = 0; i <= order; i++)
-                    orders[i] += Math.Pow(value, i + 1);
+                    orders[i] += Math.Pow(value, i);
             }
 
             // To compute the moment, we derived a specialized formula.
@@ -120,7 +120,7 @@ namespace CartaCore.Extensions.Statistics
             {
                 moment += binom * sign * Math.Pow(mean, order - i) * orders[i] / count;
                 sign = -sign;
-                binom *= (order - i) / (i + 1);
+                binom = binom * (order - i) / (i + 1);
             }
 
             return (moment, count);
@@ -143,7 +143,7 @@ namespace CartaCore.Extensions.Statistics
                 count++;
                 sum += value;
                 for (int i = 0; i <= order; i++)
-                    orders[i] += Math.Pow(value, i + 1);
+                    orders[i] += Math.Pow(value, i);
             }
 
             // To compute the moment, we derived a specialized formula.
@@ -160,7 +160,7 @@ namespace CartaCore.Extensions.Statistics
             {
                 moment += binom * sign * Math.Pow(mean, order - i) * orders[i] / count;
                 sign = -sign;
-                binom *= (order - i) / (i + 1);
+                binom = binom * (order - i) / (i + 1);
             }
 
             return (moment, count);
@@ -185,7 +185,7 @@ namespace CartaCore.Extensions.Statistics
                 sum += value;
                 sumSquares += value * value;
                 for (int i = 0; i <= order; i++)
-                    orders[i] += Math.Pow(value, i + 1);
+                    orders[i] += Math.Pow(value, i);
             }
 
             // To compute the moment, we derived a specialized formula.
@@ -203,7 +203,7 @@ namespace CartaCore.Extensions.Statistics
             {
                 moment += binom * sign * Math.Pow(mean, order - i) * orders[i] / count;
                 sign = -sign;
-                binom *= (order - i) / (i + 1);
+                binom = binom * (order - i) / (i + 1);
             }
 
             return (moment / normalizer, count);
@@ -228,7 +228,7 @@ namespace CartaCore.Extensions.Statistics
                 sum += value;
                 sumSquares += value * value;
                 for (int i = 0; i <= order; i++)
-                    orders[i] += Math.Pow(value, i + 1);
+                    orders[i] += Math.Pow(value, i);
             }
 
             // To compute the moment, we derived a specialized formula.
@@ -246,7 +246,7 @@ namespace CartaCore.Extensions.Statistics
             {
                 moment += binom * sign * Math.Pow(mean, order - i) * orders[i] / count;
                 sign = -sign;
-                binom *= (order - i) / (i + 1);
+                binom = binom * (order - i) / (i + 1);
             }
 
             return (moment / normalizer, count);
