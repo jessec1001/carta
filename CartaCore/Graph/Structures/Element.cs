@@ -29,8 +29,11 @@ namespace CartaCore.Graphs
         /// </summary>
         /// <param name="id">The identifier of this element.</param>
         /// <param name="properties">The properties assigned to this element.</param>
-        protected Element(string id, IDictionary<string, IProperty> properties) : base(id)
+        protected Element(string id, IDictionary<string, IProperty> properties)
         {
+            // Assign the identifier.
+            Id = id;
+
             // Check that properties is not null before assigning.
             if (properties is null) throw new ArgumentNullException(nameof(properties));
             Properties = properties;
