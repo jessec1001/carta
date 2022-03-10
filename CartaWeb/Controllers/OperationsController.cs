@@ -887,8 +887,12 @@ namespace CartaWeb.Controllers
             return file is null ? StatusCode(423, new { Error = "File download is not ready." }) : File(file, "application/octet-stream", field);
         }
         // TODO: Implement.
+        // [HttpPost("{operationId}/jobs/{jobId}/authenticate?operations")]
         public async Task<ActionResult> AuthenticateOperation(
-
+            [FromRoute] string operationId,
+            [FromRoute] string jobId,
+            [FromQuery] string[] operations,
+            [FromBody] object credentials
         )
         {
             // TODO: (Permissions) This endpoint should only be accessible to someone who has "execute" permissions to

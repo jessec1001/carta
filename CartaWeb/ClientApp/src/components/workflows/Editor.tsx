@@ -8,7 +8,7 @@ import { Mosaic } from "components/mosaic";
 import EditorPalette from "./EditorPalette";
 import { useNotifications } from "components/notifications/Context";
 import { LogSeverity } from "library/logging";
-import { TileProps } from "components/mosaic/Tile";
+import { ITile } from "components/mosaic/Tile";
 import { LoadingIcon } from "components/icons";
 
 // TODO: Consider if the suboperations should be stored in the context.
@@ -34,7 +34,6 @@ const Editor: FC = () => {
     Record<string, OperationType>
   >(operationTypesFetch);
 
-  // TODO: Do some manual buffering of suboperations.
   // Fetch the suboperations of the workflow if possible.
   const suboperationsFetch = useCallback(async () => {
     if (workflow === undefined || workflow instanceof Error) return [];
@@ -90,7 +89,7 @@ const Editor: FC = () => {
   if (workflow && !(workflow instanceof Error))
     workflowLayoutKey = `workflow-layout-${workflow.id}`;
   const [operationLayouts, setOperationLayouts] = useStoredState<
-    Record<string, Omit<TileProps, "id">>
+    Record<string, ITile>
   >({}, workflowLayoutKey);
   const defaultDimensions: [number, number] = [8, 6];
 
@@ -101,7 +100,7 @@ const Editor: FC = () => {
   } | null>(null);
 
   // We use these handlers for events on the mosaic.
-  const onMenu = useCallback(
+  const handleMenu = useCallback(
     (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
       // If we have a right click, capture the the position of the click and open the palette.
       if (event.button === 2) {
@@ -115,7 +114,7 @@ const Editor: FC = () => {
     },
     []
   );
-  const onPickOperation = useCallback(
+  const handlePickOperation = useCallback(
     async (template: { type: string; subtype: string | null } | null) => {
       if (workflow && !(workflow instanceof Error) && template) {
         // We create a new operation and add it to the workflow.
@@ -143,12 +142,24 @@ const Editor: FC = () => {
     },
     [logger, suboperationsRefresh, workflow, operationsAPI, workflowsAPI]
   );
+  const handleLayoutOperation = useCallback(
+    (id: string, layout: ITile) => {
+      setOperationLayouts((operationLayouts) => ({
+        ...operationLayouts,
+        [id]: layout,
+      }));
+    },
+    [setOperationLayouts]
+  );
 
   return (
-    <Mosaic onContextMenu={onMenu}>
+    <Mosaic onContextMenu={handleMenu}>
       {/* Render the editor palette if it has a position set.*/}
       {palettePosition && (
-        <EditorPalette position={palettePosition} onPick={onPickOperation} />
+        <EditorPalette
+          position={palettePosition}
+          onPick={handlePickOperation}
+        />
       )}
 
       {/* Render the suboperations of the workflow. */}
@@ -161,19 +172,19 @@ const Editor: FC = () => {
             return null;
 
           // We fetch the layout information about the operation.
-          let operationLayout = operationLayouts[operation.id];
-          if (!operationLayout)
-            operationLayout = {
-              position: [0, 0],
-              dimensions: defaultDimensions,
-            };
+          let layout = operationLayouts[operation.id] || {
+            position: [0, 0],
+            dimensions: defaultDimensions,
+          };
 
           const operationInstance = operation.operation;
           return (
             <Mosaic.Tile
-              id={operation.id}
-              position={operationLayout.position}
-              dimensions={operationLayout.dimensions}
+              position={layout.position}
+              dimensions={layout.dimensions}
+              onLayoutChanged={(position, dimensions) => {
+                handleLayoutOperation(operation.id, { position, dimensions });
+              }}
             >
               {!operationInstance && (
                 <div
@@ -196,6 +207,15 @@ const Editor: FC = () => {
                   key={operation.id}
                   operation={operationInstance}
                   type={operationTypes[operationInstance.type]}
+                  onOffset={(offset) =>
+                    handleLayoutOperation(operation.id, {
+                      ...layout,
+                      position: [
+                        layout.position[0] + offset[0],
+                        layout.position[1] + offset[1],
+                      ],
+                    })
+                  }
                 />
               )}
             </Mosaic.Tile>

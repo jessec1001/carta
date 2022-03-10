@@ -41,6 +41,10 @@
   margin: 0.125em;
   width: 1em;
   height: 100%;
+
+  /* Round it out to look consistent. */
+  border-radius: var(--border-radius);
+  overflow: hidden;
 }
 .stripe {
   /* Each strip should be the same size. */

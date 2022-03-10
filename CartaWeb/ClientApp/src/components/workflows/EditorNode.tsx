@@ -147,16 +147,19 @@ interface EditorNodeProps extends ComponentProps<"div"> {
 
   /** Whether the node is currently selected. */
   selected?: boolean;
+
+  /** An event listener that is called when the node is offset on the grid. */
+  onOffset?: (offset: [number, number]) => void;
 }
 /** A component that renders an operation node in the workflow editor. */
 const EditorNode: FC<EditorNodeProps> = ({
   operation,
   type,
   selected,
+  onOffset,
   className,
   ...props
 }) => {
-  console.log(operation.schema);
   return (
     <div
       className={classNames(
@@ -167,7 +170,7 @@ const EditorNode: FC<EditorNodeProps> = ({
       {...props}
     >
       {/* Render a header with the operation name and */}
-      <Mosaic.Tile.Handle>
+      <Mosaic.Tile.Handle onOffset={onOffset}>
         <div className={styles.header}>
           <span>{type.display}</span>
           <EditorNodeStripes tags={type.tags} />

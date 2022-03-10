@@ -12,11 +12,12 @@ using CartaCore.Persistence;
 
 namespace CartaWeb.Services
 {
+    // TODO: Add authentication information from endpoints to jobs passed to this service.
     // TODO: Implement something, perhaps in the task running service, that will automatically handle loading uploaded
     //       files into streams and handle saving streams to downloadable files.
 
     // TODO: We are running a single background job at a time. We should be able to run multiple background jobs at once.
-    
+
     /// <summary>
     /// A service that is responsible for running operation jobs in the background across multiple threads.
     /// </summary>

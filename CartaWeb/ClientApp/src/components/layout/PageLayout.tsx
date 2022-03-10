@@ -1,7 +1,7 @@
 import { FunctionComponent } from "react";
+import { Notifications } from "components/notifications";
 import Header from "./Header";
 import Footer from "./Footer";
-
 import "./layout.css";
 
 /** The props used for the {@link PageLayout} component. */
@@ -21,6 +21,7 @@ const PageLayout: FunctionComponent<PageLayoutProps> = ({
 }) => {
   return (
     <div className="layout-container" {...props}>
+      <Notifications.Dock />
       {header && <Header />}
       <div className="layout-content">{children}</div>
       {footer && <Footer />}

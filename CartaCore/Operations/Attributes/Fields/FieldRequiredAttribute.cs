@@ -13,7 +13,8 @@ namespace CartaCore.Operations.Attributes
         /// <inheritdoc />
         public JsonSchema ModifySchema(JsonSchema schema)
         {
-            if (schema is not null) schema.IsNullableRaw = false;
+            if (schema is not null)
+                schema.Type &= ~JsonObjectType.Null;
             return schema;
         }
     }
