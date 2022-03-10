@@ -5,6 +5,7 @@ import { JsonSchema } from "library/schema";
 import { Theme, ThemeContext } from "components/theme";
 import styles from "./EditorNode.module.css";
 import { SchemaBaseInput } from "components/form/schema";
+import { Mosaic } from "components/mosaic";
 
 // TODO: Add popper message to hovering over the title of the node.
 // TODO: Add popper message to hovering over the tag strips of the node.
@@ -132,7 +133,7 @@ const EditorNodeConnector: FC<EditorNodeConnectorProps> = ({
   return (
     <div>
       <div />
-      <SchemaBaseInput schema={schema} />
+      {side === "input" && <SchemaBaseInput schema={schema} />}
     </div>
   );
 };
@@ -155,6 +156,7 @@ const EditorNode: FC<EditorNodeProps> = ({
   className,
   ...props
 }) => {
+  console.log(operation.schema);
   return (
     <div
       className={classNames(
@@ -165,28 +167,52 @@ const EditorNode: FC<EditorNodeProps> = ({
       {...props}
     >
       {/* Render a header with the operation name and */}
-      <div className={styles.header}>
-        <span>{type.display}</span>
-        <EditorNodeStripes tags={type.tags} />
-      </div>
+      <Mosaic.Tile.Handle>
+        <div className={styles.header}>
+          <span>{type.display}</span>
+          <EditorNodeStripes tags={type.tags} />
+        </div>
+      </Mosaic.Tile.Handle>
       <div className={styles.body}>
         {/* Render the input schema. */}
         {operation.schema &&
           Object.entries(operation.schema.inputs).map(([key, value]) => (
-            <EditorNodeConnector
-              key={`input-${key}`}
-              side="input"
-              schema={value}
-            />
+            <div
+              style={{
+                display: "flex",
+              }}
+            >
+              <span
+                style={{
+                  flexShrink: 0,
+                  width: "6em",
+                }}
+              >
+                {value.title}
+              </span>
+              <EditorNodeConnector
+                key={`input-${key}`}
+                side="input"
+                schema={value}
+              />
+            </div>
           ))}
         {/* Render the output schema. */}
         {operation.schema &&
           Object.entries(operation.schema.outputs).map(([key, value]) => (
-            <EditorNodeConnector
-              key={`output-${key}`}
-              side="output"
-              schema={value}
-            />
+            <div
+              style={{
+                display: "flex",
+                textAlign: "right",
+              }}
+            >
+              <span>{value.title}</span>
+              <EditorNodeConnector
+                key={`output-${key}`}
+                side="output"
+                schema={value}
+              />
+            </div>
           ))}
       </div>
     </div>

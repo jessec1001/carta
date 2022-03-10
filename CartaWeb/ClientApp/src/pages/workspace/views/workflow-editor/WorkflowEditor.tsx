@@ -5,7 +5,6 @@ import { useWorkflow } from "./WorkflowContext";
 import { useState } from "react";
 import OperationGrid from "./OperationGrid";
 import { useEffect } from "react";
-import OperationMenu from "./OperationMenu";
 import "./WorkflowEditor.css";
 
 const WorkflowEditor: FunctionComponent = () => {
@@ -157,12 +156,12 @@ const WorkflowEditor: FunctionComponent = () => {
           operationTypes={operationTypes}
         />
       </div>
-      {menuPosition && (
+      {/* {menuPosition && (
         <OperationMenu
           position={menuPosition}
           onSelect={handleCreateOperation}
         />
-      )}
+      )} */}
       <div
         id="mouse-pointer"
         style={{

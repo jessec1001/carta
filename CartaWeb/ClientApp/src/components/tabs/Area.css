@@ -30,6 +30,7 @@
   /* Force tabs to have some minimum size. */
   min-width: 6rem;
   min-height: initial;
+  padding: 0em 0.5em 0em 0em;
 
   /* Add a division between tabs. */
   border-right: 0.5px solid var(--color-stroke-hairline);
@@ -38,12 +39,13 @@
   border-top: 2px solid var(--status-color);
 }
 .TabArea.horizontal > .TabBar .Tab-Content {
-  margin-right: 0.5em;
+  margin: 0.5em;
 }
 .TabArea.vertical > .TabBar .Tab {
   /* Force tabs to have some minimum size. */
   min-height: 12ch;
   min-width: initial;
+  padding: 0.5em 0.25em;
 
   /* Add a division between tabs. */
   border-top: 0.5px solid var(--color-stroke-hairline);

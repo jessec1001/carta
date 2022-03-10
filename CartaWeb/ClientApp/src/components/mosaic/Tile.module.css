@@ -1,0 +1,22 @@
+.tile {
+  /* We initialize the grid position and dimension variables. */
+  --grid-x: 0;
+  --grid-y: 0;
+  --grid-width: 0;
+  --grid-height: 0;
+
+  /* We make the tile offset slightly to align with the grid. */
+  transform: translate(-0.5px, -0.5px);
+  overflow: hidden;
+
+  /* We use the variable `--grid-size` to define the size of the grid. */
+  position: absolute;
+  left: calc(var(--grid-x) * var(--grid-size));
+  top: calc(var(--grid-y) * var(--grid-size));
+  width: calc(var(--grid-width) * var(--grid-size));
+  height: calc(var(--grid-height) * var(--grid-size));
+}
+
+.handle {
+  cursor: pointer;
+}

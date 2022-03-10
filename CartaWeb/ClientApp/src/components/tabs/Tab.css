@@ -4,7 +4,6 @@
   position: relative;
   display: flex;
   flex-shrink: 0;
-  padding: 0.25em;
   white-space: nowrap;
   z-index: 0;
 
@@ -14,6 +13,13 @@
   /* Tabs should appear to be interactive. */
   cursor: pointer;
 }
+.Tab.active {
+  background: linear-gradient(
+    to bottom,
+    var(--color-stroke-hairline) 1px,
+    var(--color-fill-body) 1px
+  );
+}
 .Tab::after {
   content: "";
   position: absolute;
@@ -21,7 +27,7 @@
   background-color: transparent;
 }
 .Tab.active::after {
-  background-color: var(--color-fill-element);
+  background-color: var(--color-fill-body);
 }
 
 /* TODO: Eventually we might make the dragging more sophisticated with animated movement. */

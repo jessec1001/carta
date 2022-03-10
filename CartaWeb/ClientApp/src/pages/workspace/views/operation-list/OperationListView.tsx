@@ -99,6 +99,7 @@ const OperationItem: FC<OperationItemProps> = ({
             autoSelect
             value={name}
             onChange={onNameChanged}
+            placeholder={name}
           />
         ) : name.length > 0 ? (
           name

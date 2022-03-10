@@ -1,4 +1,4 @@
-.OperationMenu {
+.palette {
   /* This defines the number of items that should be shown at the same time. */
   --shown-items: 10;
 

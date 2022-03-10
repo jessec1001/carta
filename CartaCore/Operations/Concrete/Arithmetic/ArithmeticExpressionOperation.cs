@@ -45,7 +45,6 @@ namespace CartaCore.Operations.Arithmetic
     /// <summary>
     /// An operation that computes the result of an arithmetic expression by substituting values for variables that were
     /// specified in the expression.
-    /// 
     /// The following operations are supported:
     /// - Arithmetic (Add: `+`, Subtract: `-`, Multiply: `*`, Divide: `/`, Power: `^`, Remainder: `%`)
     /// - Comparison (Equal: `=`, Not Equal: `~=`, Less Than: `&lt;`, Less Than or Equal: `&lt;=`, Greater Than: `&gt;`, Greater Than or Equal: `&gt;=`)

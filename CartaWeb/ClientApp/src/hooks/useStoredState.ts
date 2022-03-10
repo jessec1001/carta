@@ -15,7 +15,7 @@ import {
  */
 const useStoredState = <T>(
   initialValue: T | (() => T),
-  storageKey: string,
+  storageKey?: string,
   storage?: Storage
 ): [T, Dispatch<SetStateAction<T>>] => {
   // We use local storage as the default storage. The hook user can pick another storage if desired.
@@ -24,10 +24,10 @@ const useStoredState = <T>(
   // Based on whether this is running client-side or server-side, we may not have access to the local storage
   // or otherwise. In this case, we should use the same behavior as a default state hooks as a fallback.
   const defaultValue = () => {
-    let json = stateStorageArea.getItem(storageKey);
+    let json = storageKey && stateStorageArea.getItem(storageKey);
 
     // If we couldn't find the value in local storage, we use the initial value.
-    if (json === null) {
+    if (!json) {
       // Notice that the initial value could be a function in which case we call it to get our value.
       const initial =
         typeof initialValue === "function"
@@ -36,7 +36,7 @@ const useStoredState = <T>(
 
       // We store this value into local storage to initialize it in this case.
       json = JSON.stringify(initial);
-      stateStorageArea.setItem(storageKey, json);
+      if (storageKey) stateStorageArea.setItem(storageKey, json);
 
       return initial;
     }
@@ -68,7 +68,7 @@ const useStoredState = <T>(
         // We check if the value has changed. If it has, we save it to local storage.
         if (!Object.is(prevValue, nextValue)) {
           const json = JSON.stringify(nextValue);
-          stateStorageArea.setItem(storageKey, json);
+          if (storageKey) stateStorageArea.setItem(storageKey, json);
         }
 
         // We return our newly computed value.

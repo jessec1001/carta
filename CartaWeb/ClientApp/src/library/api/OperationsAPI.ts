@@ -31,13 +31,15 @@ class OperationsAPI extends BaseAPI {
 
   public async getOperationTypes(
     filterName?: string,
-    filterTags?: string[]
+    filterTags?: string[],
+    workspaceId?: string
   ): Promise<OperationType[]> {
     const url = queryString.stringifyUrl({
       url: `${this.getApiUrl()}/types`,
       query: {
         name: filterName,
         tags: filterTags,
+        workspace: workspaceId,
       },
     });
     const response = await fetch(url, this.defaultFetchParameters("GET"));

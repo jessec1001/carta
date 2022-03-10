@@ -303,6 +303,7 @@ namespace CartaWeb.Controllers
         public async Task<ActionResult<OperationDescription[]>> GetOperationTypes(
             [FromQuery(Name = "name")] string filterName,
             [FromQuery(Name = "tags")] string[] filterTags,
+            [FromQuery(Name = "workspace")] string workspaceId,
             [FromQuery(Name = "limit")] int? limit
         )
         {
@@ -345,7 +346,7 @@ namespace CartaWeb.Controllers
                     .OrderByDescending((description) =>
                     {
                         string source = filterName;
-                        string target = description.Display.ToLower();
+                        string target = description.Display?.ToLower() ?? "";
 
                         return StringExtensions.SorensenDiceSimilarity(source, target, n: 2);
                     })

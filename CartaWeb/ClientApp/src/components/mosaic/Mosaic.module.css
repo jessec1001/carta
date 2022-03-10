@@ -1,0 +1,30 @@
+.mosaic {
+  /* Set a variable for the grid size. */
+  --grid-size: 2em;
+
+  /* Make the mosaic fill the entire space. */
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+
+  /* Setup the grid in the background */
+  background-size: var(--grid-size) var(--grid-size);
+  background-image: linear-gradient(
+      to left,
+      var(--color-stroke-hairline) 1px,
+      transparent 1px
+    ),
+    linear-gradient(to top, var(--color-stroke-hairline) 1px, transparent 1px);
+}
+.measure {
+  /* This element is not meant to be visible but only used for measurement. */
+  z-index: -8192;
+  width: var(--grid-size);
+  height: var(--grid-size);
+  color: transparent;
+  background-color: transparent;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+}
