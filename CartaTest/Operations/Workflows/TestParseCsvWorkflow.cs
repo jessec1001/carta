@@ -109,7 +109,8 @@ namespace CartaTest.Operations
                     connStreamToCsv,
                     connCsvToGraph
                 }
-            );
+            )
+            { Id = "workflow" };
 
             // Check that an input to the workflow is correctly processed and produces expected results.
             string csvUrl = "https://people.sc.fsu.edu/~jburkardt/data/csv/cities.csv";
@@ -118,7 +119,7 @@ namespace CartaTest.Operations
                 ["Url"] = csvUrl
             };
             Dictionary<string, object> output = new();
-            OperationJob job = new(opWorkflow, null, input, output);
+            OperationJob job = new(opWorkflow, "job", input, output);
             await opWorkflow.Perform(job);
 
             // Get the graph from the output.

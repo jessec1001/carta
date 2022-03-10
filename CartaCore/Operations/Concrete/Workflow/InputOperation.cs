@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using CartaCore.Documentation;
 using CartaCore.Operations.Attributes;
 using NJsonSchema;
 
@@ -73,7 +72,7 @@ namespace CartaCore.Operations
                     value = default(TValue);
             }
             if (value is not TValue typedValue)
-                throw new InvalidCastException();
+                throw new InvalidCastException($"Input '{input.Name}' was not of the expected type '{typeof(TValue).Name}'.");
 
             return Task.FromResult(new InputOperationOut<TValue> { Value = typedValue });
         }

@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using CartaCore.Operations;
-using CartaCore.Operations.Arithmetic;
 using CartaCore.Operations.Distribution;
 using NUnit.Framework;
 
@@ -211,7 +210,8 @@ namespace CartaTest.Operations
                     connMeanToMu,
                     connDeviationToSigma
                 }
-            );
+            )
+            { Id = "workflow" };
 
             // Check that an input to the workflow is correctly processed and produces expected results.
             Dictionary<string, object> input = new()
@@ -220,13 +220,13 @@ namespace CartaTest.Operations
                 ["SampleCount"] = 100000,
             };
             Dictionary<string, object> output = new();
-            OperationJob job = new(opWorkflow, null, input, output);
+            OperationJob job = new(opWorkflow, "job", input, output);
             await opWorkflow.Perform(job);
 
-            Assert.Contains("Mu", output.Keys);
-            Assert.Contains("Sigma", output.Keys);
-            Assert.AreEqual(1.0, (double)output["Mu"], 0.01);
-            Assert.AreEqual(2.0, (double)output["Sigma"], 0.01);
+            Assert.IsTrue(job.Output.ContainsKey("Mu"));
+            Assert.IsTrue(job.Output.ContainsKey("Sigma"));
+            Assert.AreEqual(1.0, (double)job.Output["Mu"], 0.01);
+            Assert.AreEqual(2.0, (double)job.Output["Sigma"], 0.01);
         }
 
         // TODO: Reimplement the following test once multiplicity on connections has been fully implemented. 

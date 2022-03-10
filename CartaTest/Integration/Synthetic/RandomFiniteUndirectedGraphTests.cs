@@ -50,9 +50,10 @@ namespace CartaTest.Integration.Synthetic
         {
             int vertexCount = await Graph.GetVertices().CountAsync();
             int edgeCountMax = vertexCount * (vertexCount - 1) / 2;
+            int edgeCountMin = 0;
+            int edgeCount = await Graph.GetEdges().Distinct().CountAsync();
 
-            Assert.IsTrue(edgeCountMax >= await Graph.GetEdges().CountAsync());
-            Assert.IsTrue(0 <= await Graph.GetEdges().CountAsync());
+            Assert.IsTrue(edgeCountMin <= edgeCount && edgeCount <= edgeCountMax);
         }
 
         /// <summary>

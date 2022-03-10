@@ -86,7 +86,7 @@ namespace CartaCore.Operations
         /// <summary>
         /// Handles updates that are made to the job.
         /// </summary>
-        public JobUpdateHandler OnUpdate { get; set; }
+        public JobUpdateHandler OnUpdate { get; set; } = (OperationJob job) => Task.CompletedTask;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="OperationJob"/> class.

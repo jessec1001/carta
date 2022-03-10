@@ -39,6 +39,9 @@ namespace CartaCore.Operations.Arithmetic
         public double Result { get; set; }
     }
 
+    // TODO: We can do an interpreter optimization by compiling the expression only once if it is defined in the
+    //       default values and not in the input values.
+
     /// <summary>
     /// An operation that computes the result of an arithmetic expression by substituting values for variables that were
     /// specified in the expression.

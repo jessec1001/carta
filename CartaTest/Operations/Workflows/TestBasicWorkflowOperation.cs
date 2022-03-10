@@ -41,7 +41,8 @@ namespace CartaTest.Operations
             WorkflowOperation opWorkflow = new(
                 new Operation[] { opInput, opOutput },
                 new WorkflowOperationConnection[] { connInputToOutput }
-            );
+            )
+            { Id = "workflow" };
 
             // This first test asserts that the value of "foo" is assigned to the value of "bar" which is 42.
             Dictionary<string, object> input = new()
@@ -49,11 +50,11 @@ namespace CartaTest.Operations
                 ["foo"] = 42
             };
             Dictionary<string, object> output = new();
-            OperationJob context = new(opWorkflow, null, input, output);
-            await opWorkflow.Perform(context);
+            OperationJob job = new(opWorkflow, "job", input, output);
+            await opWorkflow.Perform(job);
 
-            Assert.Contains("bar", output.Keys);
-            Assert.AreEqual(42, output["bar"]);
+            Assert.IsTrue(job.Output.ContainsKey("bar"));
+            Assert.AreEqual(42, job.Output["bar"]);
         }
     }
 }

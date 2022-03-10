@@ -74,6 +74,7 @@ namespace CartaCore.Operations
                 RootId = Id,
                 OperationId = Id
             };
+            // TODO: Condense this into a single unified update method.
             job.Status.TryAdd(Id, workflowStatus);
             await job.OnUpdate(job);
 
@@ -175,7 +176,7 @@ namespace CartaCore.Operations
         public string Id => Operation.Id;
 
         /// <inheritdoc />
-        public IEnumerable<WorkflowDependencyEdge> Edges { get; set; }
+        public IEnumerable<WorkflowDependencyEdge> Edges { get; private init; }
 
         /// <summary>
         /// The operation that this vertex represents.
@@ -196,9 +197,17 @@ namespace CartaCore.Operations
         /// operation.
         /// </summary>
         /// <param name="operation">The operation that the dependency represents.</param>
-        public WorkflowDependencyVertex(Operation operation)
+        public WorkflowDependencyVertex(Operation operation, IList<WorkflowDependencyEdge> edges)
         {
+            // Test for null arguments.
+            if (operation is null)
+                throw new ArgumentNullException(nameof(operation));
+            if (edges is null)
+                throw new ArgumentNullException(nameof(edges));
+
+            // Set the operation and edges.
             Operation = operation;
+            Edges = edges;
         }
     }
     /// <summary>
@@ -283,9 +292,20 @@ namespace CartaCore.Operations
         {
             MemoryGraph<WorkflowDependencyVertex, WorkflowDependencyEdge> dependencies = new(nameof(WorkflowOperation));
             foreach (Operation operation in Workflow.Operations)
-                dependencies.AddVertex(new WorkflowDependencyVertex(operation));
-            foreach (WorkflowOperationConnection connection in Workflow.Connections)
-                dependencies.AddEdge(new WorkflowDependencyEdge(connection));
+            {
+                // Fetch the operation dependencies across connections.
+                IList<WorkflowDependencyEdge> edges = new List<WorkflowDependencyEdge>();
+                foreach (WorkflowOperationConnection connection in Workflow.Connections)
+                {
+                    if (connection.Source.Operation == operation.Id)
+                        edges.Add(new WorkflowDependencyEdge(connection));
+                    if (connection.Target.Operation == operation.Id)
+                        edges.Add(new WorkflowDependencyEdge(connection));
+                }
+
+                // Add the operation to the dependency graph.
+                dependencies.AddVertex(new WorkflowDependencyVertex(operation, edges));
+            }
             return dependencies;
         }
 
@@ -493,7 +513,7 @@ namespace CartaCore.Operations
                 // Check if the edge targets the specified operation.
                 if (edge.Target != id) continue;
                 IDictionary<string, object> output = await GetOperationOutputs(edge.Source);
-                inputs.Add(edge.SourcePoint.Field, output[edge.TargetPoint.Field]);
+                inputs.Add(edge.TargetPoint.Field, output[edge.SourcePoint.Field]);
             }
 
             // TODO: Temporary.

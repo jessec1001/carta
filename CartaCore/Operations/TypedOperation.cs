@@ -41,12 +41,26 @@ namespace CartaCore.Operations
         /// <summary>
         /// Converts the specified dictionary to a typed value.
         /// </summary>
-        /// <param name="dictionary">The dictionary.</param>
+        /// <param name="values">The dictionary.</param>
+        /// <param name="defaults">The default values if any.</param>
         /// <typeparam name="T">The type of value.</typeparam>
         /// <returns>The typed value.</returns>
-        protected virtual T ConvertToTyped<T>(IDictionary<string, object> dictionary)
+        protected virtual T ConvertToTyped<T>(
+            IDictionary<string, object> values,
+            IDictionary<string, object> defaults = null)
         {
-            if (TypeConverter.TryConvert<IDictionary<string, object>, T>(in dictionary, out T typed))
+            IDictionary<string, object> totality = values;
+            if (defaults is not null)
+            {
+                totality = new Dictionary<string, object>(values);
+                foreach (KeyValuePair<string, object> pair in defaults)
+                {
+                    if (!totality.ContainsKey(pair.Key))
+                        totality.Add(pair.Key, pair.Value);
+                }
+            }
+
+            if (TypeConverter.TryConvert(in totality, out T typed))
                 return typed;
             else
                 throw new InvalidCastException("Failed to convert to the appropriate type.");
@@ -59,8 +73,8 @@ namespace CartaCore.Operations
         /// <returns>The dictionary.</returns>
         protected virtual IDictionary<string, object> ConvertFromTyped<T>(T typed)
         {
-            if (TypeConverter.TryConvert<T, IDictionary<string, object>>(in typed, out IDictionary<string, object> dictionary))
-                return dictionary;
+            if (TypeConverter.TryConvert(in typed, out IDictionary<string, object> values))
+                return values;
             else
                 throw new InvalidCastException("Failed to convert from the appropriate type.");
         }
@@ -86,7 +100,7 @@ namespace CartaCore.Operations
         /// <inheritdoc />
         public override async Task Perform(OperationJob job)
         {
-            TInput input = ConvertToTyped<TInput>(job.Input);
+            TInput input = ConvertToTyped<TInput>(job.Input, Defaults);
             TOutput output = await Perform(input, job);
             foreach (KeyValuePair<string, object> entry in ConvertFromTyped<TOutput>(output))
                 job.Output.TryAdd(entry.Key, entry.Value);
@@ -102,7 +116,7 @@ namespace CartaCore.Operations
         /// <inheritdoc />
         public override async Task<bool> IsDeterministic(OperationJob job)
         {
-            TInput input = ConvertToTyped<TInput>(job.Input);
+            TInput input = ConvertToTyped<TInput>(job.Input, Defaults);
             return await IsDeterministic(input);
         }
 
@@ -140,7 +154,7 @@ namespace CartaCore.Operations
         /// <inheritdoc />
         public override IAsyncEnumerable<OperationFieldDescriptor> GetInputFields(OperationJob job)
         {
-            TInput input = ConvertToTyped<TInput>(job.Input);
+            TInput input = ConvertToTyped<TInput>(job.Input, Defaults);
             return GetInputFields(input, job);
         }
         /// <summary>
@@ -176,7 +190,7 @@ namespace CartaCore.Operations
         /// <inheritdoc />
         public override IAsyncEnumerable<OperationFieldDescriptor> GetOutputFields(OperationJob job)
         {
-            TInput input = ConvertToTyped<TInput>(job.Input);
+            TInput input = ConvertToTyped<TInput>(job.Input, Defaults);
             return GetOutputFields(input, job);
         }
 
@@ -193,7 +207,7 @@ namespace CartaCore.Operations
         /// <inheritdoc />
         public override IAsyncEnumerable<OperationFieldDescriptor> GetExternalInputFields(OperationJob job)
         {
-            TInput input = ConvertToTyped<TInput>(job.Input);
+            TInput input = ConvertToTyped<TInput>(job.Input, Defaults);
             return GetExternalInputFields(input, job);
         }
         /// <summary>
@@ -209,7 +223,7 @@ namespace CartaCore.Operations
         /// <inheritdoc />
         public override IAsyncEnumerable<OperationFieldDescriptor> GetExternalOutputFields(OperationJob job)
         {
-            TInput input = ConvertToTyped<TInput>(job.Input);
+            TInput input = ConvertToTyped<TInput>(job.Input, Defaults);
             return GetExternalOutputFields(input, job);
         }
 
