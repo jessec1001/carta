@@ -9,7 +9,7 @@ import {
   WorkspaceNewPage,
 } from "pages";
 import { UserWrapper } from "components/user";
-import { NotificationWrapper } from "components/notifications";
+import { Notifications } from "components/notifications";
 import { ThemeWrapper } from "components/theme";
 
 import "styles/reset.css";
@@ -24,7 +24,7 @@ import "styles/app.css";
 const App: FunctionComponent = () => {
   return (
     <UserWrapper>
-      <NotificationWrapper>
+      <Notifications>
         <ThemeWrapper>
           <Switch>
             {/* Home page route. */}
@@ -39,7 +39,7 @@ const App: FunctionComponent = () => {
             <Route path="/workspace" component={WorkspaceAreaPage} />
           </Switch>
         </ThemeWrapper>
-      </NotificationWrapper>
+      </Notifications>
     </UserWrapper>
   );
 };

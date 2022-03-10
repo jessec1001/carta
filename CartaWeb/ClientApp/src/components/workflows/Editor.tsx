@@ -27,7 +27,6 @@ const Editor: FC = () => {
     if (workflow === undefined || workflow instanceof Error) return [];
     return workflow.operations.map((operationId) => async () => {
       const suboperation = await operationsAPI.getOperation(operationId);
-      console.log(suboperation);
       return suboperation;
     });
   }, [operationsAPI, workflow]);
@@ -35,7 +34,6 @@ const Editor: FC = () => {
     typeof suboperationsFetch,
     Operation[]
   >(suboperationsFetch, false, seconds(30));
-  console.log(suboperations);
 
   return (
     <>

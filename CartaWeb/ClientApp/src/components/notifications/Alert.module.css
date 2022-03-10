@@ -1,0 +1,33 @@
+.alert {
+  /* Give some spacing and make the alert stretch to the length of the dock. */
+  width: 100%;
+  margin: 0.25rem;
+  padding: 0.5rem;
+
+  /* Use slightly smaller font. */
+  color: var(--color-stroke-normal);
+  font-size: var(--font-small);
+
+  /* Style the notification to pop out slightly. */
+  border-radius: var(--border-radius);
+  background-color: var(--color-fill-body);
+  box-shadow: var(--shadow-offset);
+}
+.alert .header {
+  /* Center header elements. */
+  display: flex;
+  align-items: center;
+}
+.alert .severity {
+  /* Represent the severity as a small circular indicator. */
+  flex-shrink: 0;
+  display: block;
+  margin: 0.5rem;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 100%;
+}
+.alert .title {
+  /* The title should stretch across the header. */
+  flex-grow: 1;
+}

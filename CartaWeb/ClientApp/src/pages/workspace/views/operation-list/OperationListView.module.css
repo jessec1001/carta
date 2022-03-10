@@ -15,7 +15,7 @@
 
 /* Information displayed when an error occurs in the view. */
 .info {
-  margin: 1rem;
+  margin: 0rem 0.5rem;
 }
 
 /* An item in the list of operations. */

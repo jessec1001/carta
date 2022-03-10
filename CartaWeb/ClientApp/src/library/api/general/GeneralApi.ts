@@ -1,7 +1,6 @@
 import queryString from "query-string";
 import { ApiException } from "library/exceptions";
 import Logging, { LogSeverity, LogWidget } from "library/logging";
-import AuthenticationWidget from "library/logging/widgets/AuthenticationWidget";
 
 class GeneralApi {
   static $routes: {
@@ -117,7 +116,6 @@ class GeneralApi {
                   severity: LogSeverity.Error,
                   source: "General API",
                   title: "Authentication Required",
-                  widget: AuthenticationWidget(),
                   sticky: true,
                 } as LogWidget);
               }

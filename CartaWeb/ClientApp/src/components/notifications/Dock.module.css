@@ -1,4 +1,4 @@
-.notification-center {
+.dock {
   display: flex;
   flex-direction: column-reverse;
   position: fixed;

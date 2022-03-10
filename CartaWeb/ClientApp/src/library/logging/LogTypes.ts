@@ -13,7 +13,7 @@ interface LogEntry {
   data?: any;
 }
 interface LogWidget extends LogEntry {
-  widget: JSX.Element;
+  widget?: JSX.Element;
   sticky?: boolean;
 }
 

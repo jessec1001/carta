@@ -17,6 +17,9 @@ There is an issue preventing the manual (programmatic not browser) refresh for o
 - Donut plot and box plot.
 
 # Upcoming Work
+- Add a modal to the workspace page whenever the user becomes unauthenticated.
+- Changeup the workspace toolbar so that the title and settings are to the right and the dropdowns are to the left.
+  - The two separate lines should be condensed into a single line.
 - Implement color picker widget for string schema values.
 - Add statistics operation to compute raw, central, and standardized moments.
 - Consider if we need to change the supported version of JSON schema in the front-end or back-end and check if there is any necessary configuration that needs to be added.

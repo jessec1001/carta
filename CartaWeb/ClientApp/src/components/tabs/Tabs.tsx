@@ -1,4 +1,4 @@
-import { FunctionComponent, useState } from "react";
+import { FC, useState } from "react";
 import { useControllableState } from "hooks";
 import TabsContext from "./Context";
 import Panel from "./Panel";
@@ -64,7 +64,7 @@ interface TabsComposition {
  * </Tabs>
  * ```
  */
-const Tabs: FunctionComponent<TabsProps> & TabsComposition = ({
+const Tabs: FC<TabsProps> & TabsComposition = ({
   activeTab,
   initialTab = null,
   draggableTabs = false,

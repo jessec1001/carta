@@ -173,7 +173,6 @@ const useNestedAsync = <TPromise extends Promisable<TData>, TData>(
           resolved = promiseValue as Promised<TPromise, TData>;
         }
       } catch (error: any) {
-        console.log("ERROR", promise, path);
         throw error;
       }
 

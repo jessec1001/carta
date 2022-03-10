@@ -1,6 +1,5 @@
 import Logger, { LoggerOptions } from "../Logger";
 import { LogEntry, LogWidget } from "../LogTypes";
-import { DefaultWidget } from "../widgets";
 
 interface NotificationLoggerOptions extends LoggerOptions {
   maxEntries?: number;
@@ -50,9 +49,6 @@ class NotificationLogger extends Logger<NotificationLoggerEvents> {
 
   public log(entry: LogEntry | LogWidget) {
     if (this.logLevel <= entry.severity) {
-      // Assign a widget if there is not one already.
-      if (!("widget" in entry))
-        entry = { ...entry, widget: DefaultWidget(entry) };
       this.appendNotification(entry);
     }
   }

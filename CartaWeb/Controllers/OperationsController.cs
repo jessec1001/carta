@@ -498,6 +498,7 @@ namespace CartaWeb.Controllers
             mergingOperationItem.Id = operationItem.Id;
             mergingOperationItem.Type = operationItem.Type;
             mergingOperationItem.Subtype = operationItem.Subtype;
+            mergingOperationItem.Name ??= operationItem.Name;
             mergingOperationItem.Default ??= operationItem.Default;
 
             // TODO: Updating an operation may cause connections to become invalid (for instance in dynamic fields).
@@ -763,7 +764,7 @@ namespace CartaWeb.Controllers
             // Add the selector to the priority queue of the context.
             if (!context.PriorityQueue.ContainsKey(field))
                 context.PriorityQueue.TryAdd(field, new ConcurrentQueue<(object, object)>());
-            
+
             context.PriorityQueue.TryGetValue(field, out ConcurrentQueue<(object, object)> queue);
             queue.Enqueue((selectorOperation, selectorParameters));
 

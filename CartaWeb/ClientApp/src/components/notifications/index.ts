@@ -1,3 +1,4 @@
-import NotificationWrapper from "./NotificationWrapper";
+import NotificationsContext from "./Context";
+import Notifications from "./Notifications";
 
-export { NotificationWrapper };
+export { NotificationsContext, Notifications };

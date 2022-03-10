@@ -11,6 +11,7 @@ import React, {
 import { useAPI, useNestedAsync } from "hooks";
 import { Operation, WorkflowTemplate, WorkspaceOperation } from "library/api";
 import { ObjectFilter } from "library/search";
+import { LogSeverity } from "library/logging";
 import { seconds } from "library/utility";
 import {
   ArrowDownIcon,
@@ -22,13 +23,11 @@ import {
   SortTimeIcon,
   WorkflowIcon,
 } from "components/icons";
-import { SearchboxInput } from "components/input";
+import { SearchboxInput, TextFieldInput } from "components/input";
 import { Column, Row } from "components/structure";
 import { Loading, Text } from "components/text";
 import { useViews, Views } from "components/views";
 import { useWorkspace } from "components/workspace";
-import WorkflowEditorView from "../workflow-editor";
-import OperationFromDataView from "../operation-from-data";
 import {
   Dropdown,
   DropdownArea,
@@ -36,10 +35,12 @@ import {
   DropdownToggler,
 } from "components/dropdown";
 import { Link } from "components/link";
+import { useNotifications } from "components/notifications/Context";
+import WorkflowEditorView from "../workflow-editor";
+import OperationFromDataView from "../operation-from-data";
 import styles from "./OperationListView.module.css";
 
 // TODO: We need to allow renaming operations.
-// TODO: When an operation is initially created, it should immediately be placed in the renaming state.
 // TODO: We need to make sure that we remove operations that are no longer in the workspace.
 // TODO: Display a modal to confirm deletion of operations.
 // TODO: Add additional state to capture operations that are currently being created.
@@ -92,7 +93,18 @@ const OperationItem: FC<OperationItemProps> = ({
     >
       <Text align="middle">
         <OperationIcon padded />
-        {operation.name ?? <Text color="muted">(Unnamed)</Text>}
+        {renaming ? (
+          <TextFieldInput
+            autoFocus
+            autoSelect
+            value={name}
+            onChange={onNameChanged}
+          />
+        ) : name.length > 0 ? (
+          name
+        ) : (
+          <Text color="muted">(Unnamed)</Text>
+        )}
       </Text>
       <Text align="middle">
         {operation.type === "workflow" && (
@@ -154,6 +166,9 @@ const OperationListView: FC = () => {
   // We setup a query to filter the operations.
   const [query, setQuery] = useState("");
   const operationsFilter = new ObjectFilter(query, {});
+
+  // We use the notifications system to log errors that have occurred.
+  const { logger } = useNotifications();
 
   // We use the workspace to get the list of operations contained within.
   const { operationsAPI, workflowsAPI, workspaceAPI } = useAPI();
@@ -249,7 +264,6 @@ const OperationListView: FC = () => {
   // We use these methods to handle opening a new corresponding to an operation in the list.
   const openWorkflowView = useCallback(
     (operation: CompleteOperation) => {
-      // TODO: Refactor the workflow editor view to use an operation ID, workflow ID, and optional job ID.
       if (!operation.subtype) return;
       viewActions.addElementToContainer(
         rootId,
@@ -268,9 +282,23 @@ const OperationListView: FC = () => {
 
   // We use these methods for modifying the list of operations.
   const defaultOperationName = "New Operation";
-  const renameOperation = useCallback(() => {
-    // TODO: Implement.
-  }, []);
+  const renameOperation = useCallback(async () => {
+    // Send a request to rename the operation.
+    try {
+      // TODO: Indicate that the operation is being renamed with a loading indicator.
+      if (!renamingOp) return;
+      await operationsAPI.updateOperation({ id: renamingOp, name: name });
+      await operationsRefresh();
+    } catch (error: any) {
+      logger.log({
+        source: "Operation List View",
+        severity: LogSeverity.Error,
+        title: "Operation Creation Error",
+        message: "An error occurred while trying to create the new operation.",
+        data: error,
+      });
+    }
+  }, [logger, name, operationsAPI, operationsRefresh, renamingOp]);
   const deleteOperation = useCallback(() => {
     // TODO: Implement.
   }, []);
@@ -278,25 +306,47 @@ const OperationListView: FC = () => {
     // TODO: Before making API requests, tenatively add the new workflow to the list of operations.
     //       This will require linking a temporary identifier to be replaced.
 
-    // TODO: Capture errors from the API and report to the logging system.
+    let operation: Operation;
+    try {
+      // Create a new workflow.
+      const createdWorkflow = await workflowsAPI.createWorkflowFromTemplate(
+        { name: defaultOperationName },
+        template
+      );
 
-    // Create a new workflow.
-    const createdWorkflow = await workflowsAPI.createWorkflowFromTemplate(
-      { name: defaultOperationName },
-      template
-    );
+      // Create an operation instance to the workflow.
+      operation = await operationsAPI.createOperation(
+        "workflow",
+        createdWorkflow.id
+      );
+    } catch (error: any) {
+      logger.log({
+        source: "Operation List View",
+        severity: LogSeverity.Error,
+        title: "Operation Creation Error",
+        message: "An error occurred while trying to create the new operation.",
+        data: error,
+      });
+      return;
+    }
 
-    // Create an operation instance to the workflow.
-    const operation = await operationsAPI.createOperation(
-      "workflow",
-      createdWorkflow.id
-    );
+    // Autofocus and start renaming the newly created operation.
+    setRenamingOp(operation.id);
 
     // Add the operation instance to the workspace.
-    await workspaceAPI.addWorkspaceOperation(workspace.id, operation.id);
-    await operationsRefresh();
-
-    // TODO: Autofocus and start renaming the newly created operation.
+    try {
+      await workspaceAPI.addWorkspaceOperation(workspace.id, operation.id);
+      await operationsRefresh();
+    } catch (error: any) {
+      logger.log({
+        source: "Operation List View",
+        severity: LogSeverity.Error,
+        title: "Operation Addition Error",
+        message:
+          "An error occurred while trying to add the new operation to the workspace.",
+        data: error,
+      });
+    }
   };
   const configureWorkflow = async (type: "blank" | "data") => {
     switch (type) {
@@ -474,7 +524,6 @@ const OperationListView: FC = () => {
       ref={elementRef}
       onClick={() => viewActions.addHistory(viewId)}
     >
-      {/* TODO: Replace split button dropdown with a simple dropdown. */}
       {/* Display a searchbox for filtering the operations alongside a button to add more operations. */}
       <Row className={styles.header}>
         <span
@@ -532,11 +581,16 @@ const OperationListView: FC = () => {
           {operationsFilter
             .filter(operations)
             .sort((x, y) => (sortDirection ? -1 : +1) * sorts[sort](x, y))
-            .map(({ operation }) => {
+            .map(({ operation }, index) => {
               if (operation === undefined) {
-                return <OperationLoadingItem />;
+                return <OperationLoadingItem key={`load:${index}`} />;
               } else if (operation instanceof Error) {
-                return <OperationErrorItem error={operation} />;
+                return (
+                  <OperationErrorItem
+                    key={`error:${index}`}
+                    error={operation}
+                  />
+                );
               } else {
                 return (
                   <OperationItem
