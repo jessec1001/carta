@@ -9,12 +9,12 @@ type ArrowsId = string | number;
  */
 interface IArrowsContext {
   /** Sets the specified arrows node. */
-  setNode: <T extends HTMLElement>(id: ArrowsId, element: T | null) => void;
+  setNode: (id: ArrowsId, bounds: DOMRect | null) => void;
   /** Gets the specified arrows node. */
-  getNode: <T extends HTMLElement>(id: ArrowsId) => T | undefined;
+  getNode: (id: ArrowsId) => DOMRect | undefined;
   /** Remove the specified arrows node. */
   removeNode: (id: ArrowsId) => void;
-  /** Fetches the position of the specified arrows node. */
+  /** Computes the position of the specified arrows node. */
   positionNode: (id: ArrowsId) => [x: number, y: number] | undefined;
 }
 /**
@@ -24,9 +24,9 @@ interface IArrows {
   /** Accesses the methods applicable to a specific node. */
   nodes: (id: ArrowsId) => {
     /** Sets the node. */
-    set: <T extends HTMLElement>(element: T | null) => void;
+    set: (bounds: DOMRect | null) => void;
     /** Gets the node. */
-    get: <T extends HTMLElement>() => T | undefined;
+    get: () => DOMRect | undefined;
     /** Removes the node. */
     remove: () => void;
     /** Fetches the node position. */
@@ -56,9 +56,8 @@ const useArrows = (): IArrows => {
   const nodes = useCallback(
     (id: ArrowsId) => {
       return {
-        set: <T extends HTMLElement>(element: T | null) =>
-          setNode<T>(id, element),
-        get: <T extends HTMLElement>() => getNode<T>(id),
+        set: (bounds: DOMRect | null) => setNode(id, bounds),
+        get: () => getNode(id),
         remove: () => removeNode(id),
         position: () => positionNode(id),
       };

@@ -1,6 +1,6 @@
 .node {
   /* Stretch the node out to fill whatever container it is inside. */
-  z-index: 0;
+  z-index: 1;
   width: 100%;
   height: 100%;
 
@@ -12,6 +12,13 @@
 .node.selected {
   /* When a node is selected, give it a slight outline. */
   box-shadow: 0px 0px 1px 1px var(--color-primary-select);
+}
+.node.loading {
+  /* When a node is loading, center everything. */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
 .header {
@@ -41,9 +48,11 @@
 }
 .field.input {
   flex-direction: row;
+  padding-right: 0.5em;
 }
 .field.output {
   flex-direction: row-reverse;
+  padding-left: 0.5em;
 }
 .fieldLabel {
   width: 20%;

@@ -4,6 +4,7 @@
   --grid-y: 0;
   --grid-width: 0;
   --grid-height: 0;
+  z-index: 1;
 
   /* We make the tile offset slightly to align with the grid. */
   transform: translate(-0.5px, -0.5px);

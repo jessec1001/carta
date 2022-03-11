@@ -1,21 +1,23 @@
 import { FC, useCallback, useEffect, useRef, useState } from "react";
 import { useAPI, useNestedAsync, useStoredState } from "hooks";
 import { Operation, OperationType } from "library/api";
+import { LogSeverity } from "library/logging";
 import { seconds } from "library/utility";
+import { useNotifications } from "components/notifications";
+import { Mosaic } from "components/mosaic";
+import { ITile } from "components/mosaic/Tile";
 import { useWorkflows } from "./Context";
 import EditorNode from "./EditorNode";
-import { Mosaic } from "components/mosaic";
 import EditorPalette from "./EditorPalette";
-import { useNotifications } from "components/notifications/Context";
-import { LogSeverity } from "library/logging";
-import { ITile } from "components/mosaic/Tile";
-import { LoadingIcon } from "components/icons";
+import { schemaDefault } from "library/schema";
+import { Arrows } from "components/arrows";
 
 // TODO: Consider if the suboperations should be stored in the context.
 
 // This represents the type of an operation while possibly being loaded.
 type LoadableOperation = { id: string; operation: Operation };
 
+/** A component that renders an editor of a workflow. */
 const Editor: FC = () => {
   // We use a logger to log notifications.
   const { logger } = useNotifications();
@@ -36,8 +38,9 @@ const Editor: FC = () => {
 
   // Fetch the suboperations of the workflow if possible.
   const suboperationsFetch = useCallback(async () => {
-    if (workflow === undefined || workflow instanceof Error) return [];
-    return workflow.operations.map((operationId) => ({
+    if (workflow.value === undefined || workflow.value instanceof Error)
+      return [];
+    return workflow.value.operations.map((operationId) => ({
       id: operationId,
       operation: async () => await operationsAPI.getOperation(operationId),
     }));
@@ -86,12 +89,18 @@ const Editor: FC = () => {
 
   // We store the positions and sizes of each of the operation tiles in local storage.
   let workflowLayoutKey: string | undefined = undefined;
-  if (workflow && !(workflow instanceof Error))
-    workflowLayoutKey = `workflow-layout-${workflow.id}`;
+  if (workflow.value && !(workflow.value instanceof Error))
+    workflowLayoutKey = `workflow-layout-${workflow.value.id}`;
   const [operationLayouts, setOperationLayouts] = useStoredState<
     Record<string, ITile>
   >({}, workflowLayoutKey);
   const defaultDimensions: [number, number] = [8, 6];
+
+  // We store information about connections between fields.
+  const [activeConnection, setActiveConnection] = useState<{
+    operation: string;
+    field: string;
+  } | null>(null);
 
   // Store a menu position. When this position is non-null, the menu is open.
   const element = useRef<HTMLDivElement>(null);
@@ -118,19 +127,35 @@ const Editor: FC = () => {
     []
   );
   const handlePickOperation = useCallback(
-    // TODO: On initially creating a node, we should update it with its default values.
     async (template: { type: string; subtype: string | null } | null) => {
-      if (workflow && !(workflow instanceof Error) && template) {
+      if (workflow.value && !(workflow.value instanceof Error) && template) {
         // We create a new operation and add it to the workflow.
         try {
+          // On initially creating a node, we should update it with its default values.
           const operation = await operationsAPI.createOperation(
             template.type,
             template.subtype
           );
-          await workflowsAPI.addWorkflowOperation(workflow.id, operation.id);
-          await suboperationsRefresh();
+          const operationSchema = await operationsAPI.getOperationSchema(
+            operation.id
+          );
+          const operationDefaults: Record<string, any> = {};
+          for (const [field, fieldSchema] of Object.entries(
+            operationSchema.inputs
+          )) {
+            operationDefaults[field] = schemaDefault(fieldSchema);
+          }
+          await operationsAPI.updateOperation({
+            id: operation.id,
+            default: operationDefaults,
+          });
 
-          // We use the palette position to position the new operation.
+          // Add the new operation to the workflow.
+          await workflowsAPI.addWorkflowOperation(
+            workflow.value.id,
+            operation.id
+          );
+          await suboperationsRefresh();
         } catch (error: any) {
           logger.log({
             source: "Workflow Editor",
@@ -155,77 +180,131 @@ const Editor: FC = () => {
     },
     [setOperationLayouts]
   );
+  const handlePickField = useCallback(
+    async (operation: string, field: string, side: "input" | "output") => {
+      // Check that the workflow is loaded.
+      if (!workflow.value || workflow.value instanceof Error) return;
+
+      // Check if we are trying to connect to the wrong side of field.
+      if (!activeConnection && side === "input") return;
+      if (activeConnection && side === "output") return;
+
+      // Either start or finish the connection.
+      if (side === "output") {
+        setActiveConnection({ operation, field });
+      }
+      if (side === "input") {
+        if (activeConnection) {
+          // We are trying to connect to a field.
+          try {
+            setActiveConnection(null);
+            await workflowsAPI.addWorkflowConnection(workflow.value.id, {
+              source: {
+                operation: activeConnection.operation,
+                field: activeConnection.field,
+              },
+              target: {
+                operation,
+                field,
+              },
+            });
+          } catch (error: any) {
+            logger.log({
+              source: "Workflow Editor",
+              severity: LogSeverity.Error,
+              title: "Connection Creation Error",
+              message:
+                "An error occurred while trying to create the connection.",
+              data: error,
+            });
+          }
+          setActiveConnection(null);
+        } else {
+          // We are trying to connect to an input field.
+          setActiveConnection({ operation, field });
+        }
+      }
+    },
+    [activeConnection, logger, workflow, workflowsAPI]
+  );
 
   return (
     <Mosaic onContextMenu={handleMenu} ref={element}>
-      {/* Render the editor palette if it has a position set.*/}
-      {palettePosition && (
-        <EditorPalette
-          position={palettePosition}
-          onPick={handlePickOperation}
-        />
-      )}
+      {/* We wrap everything in an arrows component so as to render the connections. */}
+      <Arrows element={element.current}>
+        {/* Render the editor palette if it has a position set.*/}
+        {palettePosition && (
+          <EditorPalette
+            position={palettePosition}
+            onPick={handlePickOperation}
+          />
+        )}
 
-      {/* Render the suboperations of the workflow. */}
-      {!(suboperations instanceof Error) &&
-        suboperations &&
-        suboperations.map((operation) => {
-          if (operation === undefined || operation instanceof Error)
-            return null;
-          if (operationTypes === undefined || operationTypes instanceof Error)
-            return null;
+        {/* Render the suboperations of the workflow. */}
+        {!(suboperations instanceof Error) &&
+          suboperations &&
+          suboperations.map((operation) => {
+            if (operation === undefined || operation instanceof Error)
+              return null;
+            if (operationTypes === undefined || operationTypes instanceof Error)
+              return null;
 
-          // We fetch the layout information about the operation.
-          let layout = operationLayouts[operation.id] || {
-            position: [0, 0],
-            dimensions: defaultDimensions,
-          };
+            // We fetch the layout information about the operation.
+            // Assume that the operation type is either unloaded or loaded, never errored.
+            let layout = operationLayouts[operation.id] || {
+              position: [0, 0],
+              dimensions: defaultDimensions,
+            };
 
-          const operationInstance = operation.operation;
-          return (
-            <Mosaic.Tile
-              position={layout.position}
-              dimensions={layout.dimensions}
-              onLayoutChanged={(position, dimensions) => {
-                handleLayoutOperation(operation.id, { position, dimensions });
-              }}
-            >
-              {!operationInstance && (
-                <div
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    backgroundColor: "var(--color-fill-element)",
-                    borderRadius: "var(--border-radius)",
-                  }}
-                >
-                  <LoadingIcon />
-                </div>
-              )}
-              {operationInstance && !(operationInstance instanceof Error) && (
-                <EditorNode
-                  key={operation.id}
-                  operation={operationInstance}
-                  type={operationTypes[operationInstance.type]}
-                  layout={layout}
-                  onOffset={(offset) =>
-                    handleLayoutOperation(operation.id, {
-                      ...layout,
-                      position: [
-                        layout.position[0] + offset[0],
-                        layout.position[1] + offset[1],
-                      ],
-                    })
-                  }
-                />
-              )}
-            </Mosaic.Tile>
-          );
-        })}
+            const operationInstance = operation.operation;
+            const operationType =
+              !operationInstance || operationInstance instanceof Error
+                ? undefined
+                : operationTypes[operationInstance.type];
+            return (
+              <Mosaic.Tile
+                position={layout.position}
+                dimensions={layout.dimensions}
+                onLayoutChanged={(position, dimensions) => {
+                  handleLayoutOperation(operation.id, { position, dimensions });
+                }}
+              >
+                {
+                  <EditorNode
+                    key={operation.id}
+                    operation={operationInstance}
+                    type={operationType}
+                    layout={layout}
+                    onOffset={(offset) =>
+                      handleLayoutOperation(operation.id, {
+                        ...layout,
+                        position: [
+                          layout.position[0] + offset[0],
+                          layout.position[1] + offset[1],
+                        ],
+                      })
+                    }
+                    onPickField={(field, side) => {
+                      handlePickField(operation.id, field, side);
+                    }}
+                  />
+                }
+              </Mosaic.Tile>
+            );
+          })}
+
+        {/* Render the connections of the workflow. */}
+        {!(workflow.value instanceof Error) &&
+          workflow.value &&
+          workflow.value.connections.map((connection) => {
+            return (
+              <Arrows.Arrow
+                source={`${connection.source.operation}-output-${connection.source.field}`}
+                target={`${connection.target.operation}-input-${connection.target.field}`}
+              />
+            );
+          })}
+      </Arrows>
     </Mosaic>
   );
 };

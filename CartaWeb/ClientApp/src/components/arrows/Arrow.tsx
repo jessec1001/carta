@@ -1,5 +1,7 @@
+import classNames from "classnames";
 import { ComponentProps, FC } from "react";
 import { useArrows } from "./Context";
+import styles from "./Arrow.module.css";
 
 // TODO: Allow for the source and target props to instead be a position
 /** The props for the {@link Arrow} component. */
@@ -43,6 +45,7 @@ const Arrow: FC<ArrowProps> = ({
   target,
   // points = [],
   // curveRadius = 0,
+  className,
   ...props
 }) => {
   // Get the arrows context.
@@ -58,24 +61,14 @@ const Arrow: FC<ArrowProps> = ({
   // Check if the source and target positions are valid.
   if (sourcePos === undefined || targetPos === undefined) return null;
 
-  // TODO: In the future we will actually start at a source and end at a target with the points array representing
-  //       the control points along the way.
-
-  // We can calculate the width and height of the arrow from the bounds of the points.
-  const minX = Math.min(sourcePos[0], targetPos[0]);
-  const maxX = Math.max(sourcePos[0], targetPos[0]);
-  const minY = Math.min(sourcePos[1], targetPos[1]);
-  const maxY = Math.max(sourcePos[1], targetPos[1]);
-  const width = maxX - minX;
-  const height = maxY - minY;
-
   return (
-    <svg width={width} height={height} {...props}>
-      <path
-        d={arrowSvgData(sourcePos, targetPos)}
-        fill="none"
-        stroke="currentColor"
-      />
+    <svg
+      width={"100%"}
+      height={"100%"}
+      className={classNames(styles.arrow, className)}
+      {...props}
+    >
+      <path d={arrowSvgData(sourcePos, targetPos)} fill="none" stroke="white" />
     </svg>
   );
 };

@@ -52,7 +52,6 @@ const Tooltip: FC<TooltipProps> = ({
     }
   );
 
-  console.log(props);
   return (
     <Fragment>
       <div

@@ -52,17 +52,15 @@ const Workflows: FC<WorkflowsProps> & WorkflowsComposition = ({
   );
 
   // Start fetching and storing data for the operation, job, and workflow.
-  const [workflow] = useNestedAsync<typeof workflowFetch, Workflow>(
-    workflowFetch,
-    true,
-    seconds(10)
-  );
-  const [operation] = useNestedAsync<typeof operationFetch, Operation | null>(
-    operationFetch,
-    true,
-    seconds(10)
-  );
-  const [job] = useNestedAsync<typeof jobFetch, Job | null>(
+  const [workflow, workflowRefresh] = useNestedAsync<
+    typeof workflowFetch,
+    Workflow
+  >(workflowFetch, true, seconds(10));
+  const [operation, operationRefresh] = useNestedAsync<
+    typeof operationFetch,
+    Operation | null
+  >(operationFetch, true, seconds(10));
+  const [job, jobRefresh] = useNestedAsync<typeof jobFetch, Job | null>(
     jobFetch,
     true,
     seconds(10)
@@ -70,7 +68,16 @@ const Workflows: FC<WorkflowsProps> & WorkflowsComposition = ({
 
   // Wrap the children of this component in a workflows context.
   return (
-    <WorkflowsContext.Provider value={{ workflow, operation, job }}>
+    <WorkflowsContext.Provider
+      value={{
+        workflow,
+        workflowRefresh,
+        operation,
+        operationRefresh,
+        job,
+        jobRefresh,
+      }}
+    >
       {children}
     </WorkflowsContext.Provider>
   );

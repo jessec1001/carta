@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState } from "react";
 import { FunctionComponent } from "react";
 import LockIcon from "components/icons/LockIcon";
 import "./OperationNode.css";
-import OperationNodeConnector from "./OperationNodeConnector";
 import { useRef } from "react";
 import { ScatterPlot, HistogramPlot, GraphPlot } from "visualize-carta";
 import { useContext } from "react";
@@ -300,11 +299,6 @@ const OperationNode: FunctionComponent<OperationNodeProps> = ({
                       padding: "0.25rem 0rem",
                     }}
                   >
-                    <OperationNodeConnector
-                      operation={operation}
-                      connector={{ name: key, type: value.type as string }}
-                      attachment="input"
-                    />
                     {displayField && (
                       <div style={{ flexGrow: 1 }}>
                         <SchemaBaseInput
@@ -315,19 +309,6 @@ const OperationNode: FunctionComponent<OperationNodeProps> = ({
                       </div>
                     )}
                   </div>
-                );
-              }
-            )}
-          {operation.schema?.outputs &&
-            Object.entries(operation.schema.outputs ?? {}).map(
-              ([key, value]) => {
-                return (
-                  <OperationNodeConnector
-                    operation={operation}
-                    key={key}
-                    connector={{ name: key, type: value.type as string }}
-                    attachment="output"
-                  />
                 );
               }
             )}

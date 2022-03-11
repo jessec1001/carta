@@ -1,4 +1,4 @@
-import NotificationsContext from "./Context";
+import NotificationsContext, { useNotifications } from "./Context";
 import Notifications from "./Notifications";
 
-export { NotificationsContext, Notifications };
+export { NotificationsContext, Notifications, useNotifications };

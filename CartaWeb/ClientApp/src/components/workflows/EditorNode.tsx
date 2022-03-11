@@ -9,6 +9,9 @@ import { Mosaic } from "components/mosaic";
 import { Tooltip } from "components/tooltip";
 import { ITile } from "components/mosaic/Tile";
 import ReactMarkdown from "react-markdown";
+import { LoadingIcon } from "components/icons";
+import { Text } from "components/text";
+import { Arrows } from "components/arrows";
 
 // TODO: Add popper message to hovering over the title of the node.
 // TODO: Add popper message to hovering over the tag strips of the node.
@@ -119,13 +122,26 @@ const EditorNodeStripes: FC<EditorNodeStripesProps> = ({ tags }) => {
 
 /** The props used for the {@link EditorNodeField} component. */
 interface EditorNodeFieldProps {
+  /** The unique identifier for the operation field in the workflow. */
+  id: string;
+  /** The key for the field of the operation. */
+  field: string;
   /** The side of the node that this connector should be on. */
   side: "input" | "output";
   /** The schema to render for the field connector. */
   schema: JsonSchema;
+
+  /** An event listener that is called when a field connection point is picked. */
+  onPickField?: (field: string, side: "input" | "output") => void;
 }
 /** A component that renders a particular operation field for a node. */
-const EditorNodeField: FC<EditorNodeFieldProps> = ({ side, schema }) => {
+const EditorNodeField: FC<EditorNodeFieldProps> = ({
+  id,
+  field,
+  side,
+  schema,
+  onPickField = () => {},
+}) => {
   // We create a documentation tooltip for the field.
   const documentation = (
     <ReactMarkdown>{schema.description ?? ""}</ReactMarkdown>
@@ -133,14 +149,18 @@ const EditorNodeField: FC<EditorNodeFieldProps> = ({ side, schema }) => {
 
   return (
     <div className={classNames(styles.field, styles[side])}>
-      <div className={styles.fieldPoint} />
+      <Arrows.Node
+        id={id}
+        onClick={() => onPickField(field, side)}
+        className={styles.fieldPoint}
+      />
       <Tooltip
+        className={styles.fieldLabel}
         component={documentation}
         options={{
           placement: side === "input" ? "left" : "right",
         }}
         hover
-        className={styles.fieldLabel}
       >
         {schema.title}
       </Tooltip>
@@ -155,9 +175,9 @@ const EditorNodeField: FC<EditorNodeFieldProps> = ({ side, schema }) => {
 /** The props for the {@link EditorNode} component. */
 interface EditorNodeProps extends ComponentProps<"div"> {
   /** The operation instance to render in the node. */
-  operation: Operation;
+  operation?: Operation | Error;
   /** The operation type to render. */
-  type: OperationType;
+  type?: OperationType;
 
   /** Whether the node is currently selected. */
   selected?: boolean;
@@ -167,6 +187,8 @@ interface EditorNodeProps extends ComponentProps<"div"> {
 
   /** An event listener that is called when the node is offset on the grid. */
   onOffset?: (offset: [number, number]) => void;
+  /** An event listener that is called when a field connection point is picked. */
+  onPickField?: (field: string, side: "input" | "output") => void;
 }
 /** A component that renders an operation node in the workflow editor. */
 const EditorNode: FC<EditorNodeProps> = ({
@@ -174,10 +196,29 @@ const EditorNode: FC<EditorNodeProps> = ({
   type,
   selected,
   layout,
-  onOffset,
+  onOffset = () => {},
+  onPickField = () => {},
   className,
   ...props
 }) => {
+  // If the operation is not loaded yet, render a loading symbol.
+  if (!operation || !type) {
+    return (
+      <div className={classNames(styles.node, styles.loading, className)}>
+        <LoadingIcon />
+      </div>
+    );
+  }
+
+  // If the operation has an error, render an error message.
+  if (operation instanceof Error) {
+    return (
+      <div className={classNames(styles.node, className)}>
+        <Text color="error">{operation.message}</Text>
+      </div>
+    );
+  }
+
   // We create a documentation tooltip for the operation.
   const documentation = (
     <ReactMarkdown linkTarget="_blank">{type.description ?? ""}</ReactMarkdown>
@@ -208,12 +249,26 @@ const EditorNode: FC<EditorNodeProps> = ({
         {/* Render the input schema. */}
         {operation.schema &&
           Object.entries(operation.schema.inputs).map(([key, val]) => (
-            <EditorNodeField key={`input-${key}`} side="input" schema={val} />
+            <EditorNodeField
+              key={`input-${key}`}
+              id={`${operation.id}-input-${key}`}
+              field={key}
+              side="input"
+              schema={val}
+              onPickField={onPickField}
+            />
           ))}
         {/* Render the output schema. */}
         {operation.schema &&
           Object.entries(operation.schema.outputs).map(([key, val]) => (
-            <EditorNodeField key={`output-${key}`} side="output" schema={val} />
+            <EditorNodeField
+              key={`output-${key}`}
+              id={`${operation.id}-output-${key}`}
+              field={key}
+              side="output"
+              schema={val}
+              onPickField={onPickField}
+            />
           ))}
       </div>
     </div>

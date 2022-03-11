@@ -1,0 +1,9 @@
+.arrow {
+  /* Make the arrow stretch across the entire page. */
+  position: absolute;
+  left: 0;
+  top: 0;
+
+  /* Assign a z-index to make interactions not be blocked by the arrow SVG. */
+  z-index: 0;
+}
