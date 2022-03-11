@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { ComponentProps, FC, useCallback, useState } from "react";
+import { ComponentProps, FC, forwardRef, useCallback, useState } from "react";
 import Tile from "./Tile";
 import styles from "./Mosaic.module.css";
 import MosaicContext from "./Context";
@@ -19,13 +19,10 @@ interface MosaicComposition {
 }
 
 /** A component that renders a grid of mosaic-like tile components. */
-const Mosaic: FC<MosaicProps> & MosaicComposition = ({
-  gridSize,
-  className,
-  style,
-  children,
-  ...props
-}) => {
+const Mosaic: FC<MosaicProps> & MosaicComposition = forwardRef<
+  HTMLDivElement,
+  MosaicProps
+>(({ gridSize, className, style, children, ...props }, ref) => {
   // We reference an element whose purpose is to provide a measurement of the current grid size.
   const [measureSize, setMeasureSize] = useState<[number, number]>([0, 0]);
   const measure = useCallback((element: HTMLDivElement | null) => {
@@ -37,6 +34,7 @@ const Mosaic: FC<MosaicProps> & MosaicComposition = ({
     <div
       className={classNames(styles.mosaic, className)}
       style={{ ["--grid-size" as any]: gridSize, ...style }}
+      ref={ref}
       {...props}
     >
       <div ref={measure} className={styles.measure} />
@@ -49,7 +47,7 @@ const Mosaic: FC<MosaicProps> & MosaicComposition = ({
       </MosaicContext.Provider>
     </div>
   );
-};
+}) as any;
 Mosaic.Tile = Tile;
 
 export default Mosaic;

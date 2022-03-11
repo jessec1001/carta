@@ -7,7 +7,6 @@
 
   /* We make the tile offset slightly to align with the grid. */
   transform: translate(-0.5px, -0.5px);
-  overflow: hidden;
 
   /* We use the variable `--grid-size` to define the size of the grid. */
   position: absolute;

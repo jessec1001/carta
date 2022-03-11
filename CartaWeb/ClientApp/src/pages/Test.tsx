@@ -154,6 +154,9 @@ const Container: FunctionComponent = () => {
         <Tabs.Panel id={0}>
           <div style={{ padding: "1rem 2rem" }}>
             <section>
+              <Title>Popper</Title>
+            </section>
+            <section>
               <Title>Accordians</Title>
               <Accordian>
                 <Accordian.Header>

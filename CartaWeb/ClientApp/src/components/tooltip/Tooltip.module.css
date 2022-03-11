@@ -1,0 +1,55 @@
+.arrow,
+.arrow::before,
+.arrow::after {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  background: inherit;
+}
+.arrow {
+  visibility: hidden;
+}
+.arrow::before {
+  visibility: visible;
+  content: "";
+  transform: rotate(45deg);
+  background-color: var(--color-stroke-hairline);
+}
+.arrow::after {
+  visibility: visible;
+  content: "";
+}
+
+.tooltip {
+  z-index: 100;
+  padding: 16px;
+
+  background-color: var(--color-fill-element-lowlight);
+  border-radius: var(--border-radius);
+  border: 0.5px solid var(--color-stroke-hairline);
+  box-shadow: var(--shadow);
+}
+.tooltip[data-popper-placement^="top"] > .arrow {
+  bottom: -0.5em;
+}
+.tooltip[data-popper-placement^="top"] > .arrow::after {
+  transform: rotate(45deg) translate(-0.5px, -0.5px);
+}
+.tooltip[data-popper-placement^="bottom"] > .arrow {
+  top: -0.5em;
+}
+.tooltip[data-popper-placement^="bottom"] > .arrow::after {
+  transform: rotate(45deg) translate(0.5px, 0.5px);
+}
+.tooltip[data-popper-placement^="left"] > .arrow {
+  right: -0.5em;
+}
+.tooltip[data-popper-placement^="left"] > .arrow::after {
+  transform: rotate(45deg) translate(-0.5px, 0.5px);
+}
+.tooltip[data-popper-placement^="right"] > .arrow {
+  left: -0.5em;
+}
+.tooltip[data-popper-placement^="right"] > .arrow::after {
+  transform: rotate(45deg) translate(0.5px, -0.5px);
+}

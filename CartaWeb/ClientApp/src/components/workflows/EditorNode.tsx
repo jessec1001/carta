@@ -1,4 +1,4 @@
-import { ComponentProps, FC, useContext } from "react";
+import React, { ComponentProps, FC, useContext } from "react";
 import classNames from "classnames";
 import { Operation, OperationType } from "library/api";
 import { JsonSchema } from "library/schema";
@@ -6,16 +6,15 @@ import { Theme, ThemeContext } from "components/theme";
 import styles from "./EditorNode.module.css";
 import { SchemaBaseInput } from "components/form/schema";
 import { Mosaic } from "components/mosaic";
+import { Tooltip } from "components/tooltip";
+import { ITile } from "components/mosaic/Tile";
+import ReactMarkdown from "react-markdown";
 
 // TODO: Add popper message to hovering over the title of the node.
 // TODO: Add popper message to hovering over the tag strips of the node.
 //       This popper should contain links for tags that immediately open the operation palette to that tag.
 // TODO: Reintegrate logic for visualizing any data that may be associated with the node.
 //       This might better be placed in another visualization component.
-// TODO: Can we render the output schema of the operation? This would be used when the job is completed or
-//       partially completed and we want to visualize the output of intermediate operations.
-//       This would particularly be applicable for a debug mode for workflows.
-// TODO: Allow for collapsing the node.
 
 /**
  * Computes the hue and saturation values of the color that should represent a tag.
@@ -118,21 +117,36 @@ const EditorNodeStripes: FC<EditorNodeStripesProps> = ({ tags }) => {
   );
 };
 
-/** The props used for the {@link EditorNodeConnector} component. */
-interface EditorNodeConnectorProps {
+/** The props used for the {@link EditorNodeField} component. */
+interface EditorNodeFieldProps {
   /** The side of the node that this connector should be on. */
   side: "input" | "output";
   /** The schema to render for the field connector. */
   schema: JsonSchema;
 }
 /** A component that renders a particular operation field for a node. */
-const EditorNodeConnector: FC<EditorNodeConnectorProps> = ({
-  side,
-  schema,
-}) => {
+const EditorNodeField: FC<EditorNodeFieldProps> = ({ side, schema }) => {
+  // We create a documentation tooltip for the field.
+  const documentation = (
+    <ReactMarkdown>{schema.description ?? ""}</ReactMarkdown>
+  );
+
   return (
-    <div>
-      <div />
+    <div className={classNames(styles.field, styles[side])}>
+      <div className={styles.fieldPoint} />
+      <Tooltip
+        component={documentation}
+        options={{
+          placement: side === "input" ? "left" : "right",
+        }}
+        hover
+        className={styles.fieldLabel}
+      >
+        {schema.title}
+      </Tooltip>
+
+      {/* TODO: Implement a debugging view that can display partial results. */}
+      {/* We only render the schema for the input parameters. */}
       {side === "input" && <SchemaBaseInput schema={schema} />}
     </div>
   );
@@ -148,6 +162,9 @@ interface EditorNodeProps extends ComponentProps<"div"> {
   /** Whether the node is currently selected. */
   selected?: boolean;
 
+  /** The layout of the node. Relevant for updating connections and tooltips. */
+  layout?: ITile;
+
   /** An event listener that is called when the node is offset on the grid. */
   onOffset?: (offset: [number, number]) => void;
 }
@@ -156,10 +173,16 @@ const EditorNode: FC<EditorNodeProps> = ({
   operation,
   type,
   selected,
+  layout,
   onOffset,
   className,
   ...props
 }) => {
+  // We create a documentation tooltip for the operation.
+  const documentation = (
+    <ReactMarkdown linkTarget="_blank">{type.description ?? ""}</ReactMarkdown>
+  );
+
   return (
     <div
       className={classNames(
@@ -171,51 +194,26 @@ const EditorNode: FC<EditorNodeProps> = ({
     >
       {/* Render a header with the operation name and */}
       <Mosaic.Tile.Handle onOffset={onOffset}>
-        <div className={styles.header}>
+        <Tooltip
+          className={styles.header}
+          component={documentation}
+          options={{ placement: "right" }}
+          hover
+        >
           <span>{type.display}</span>
           <EditorNodeStripes tags={type.tags} />
-        </div>
+        </Tooltip>
       </Mosaic.Tile.Handle>
       <div className={styles.body}>
         {/* Render the input schema. */}
         {operation.schema &&
-          Object.entries(operation.schema.inputs).map(([key, value]) => (
-            <div
-              style={{
-                display: "flex",
-              }}
-            >
-              <span
-                style={{
-                  flexShrink: 0,
-                  width: "6em",
-                }}
-              >
-                {value.title}
-              </span>
-              <EditorNodeConnector
-                key={`input-${key}`}
-                side="input"
-                schema={value}
-              />
-            </div>
+          Object.entries(operation.schema.inputs).map(([key, val]) => (
+            <EditorNodeField key={`input-${key}`} side="input" schema={val} />
           ))}
         {/* Render the output schema. */}
         {operation.schema &&
-          Object.entries(operation.schema.outputs).map(([key, value]) => (
-            <div
-              style={{
-                display: "flex",
-                textAlign: "right",
-              }}
-            >
-              <span>{value.title}</span>
-              <EditorNodeConnector
-                key={`output-${key}`}
-                side="output"
-                schema={value}
-              />
-            </div>
+          Object.entries(operation.schema.outputs).map(([key, val]) => (
+            <EditorNodeField key={`output-${key}`} side="output" schema={val} />
           ))}
       </div>
     </div>

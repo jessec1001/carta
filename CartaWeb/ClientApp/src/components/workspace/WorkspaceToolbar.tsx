@@ -10,7 +10,6 @@ import { useViews } from "components/views";
 import { useWorkspace } from "./WorkspaceContext";
 import { WorkspaceSettingsView } from "pages/workspace/views";
 import VisualizerSelectionView from "pages/workspace/views/VisualizerSelectionView";
-import WorkflowCreateView from "pages/workspace/views/WorkflowCreateView";
 import SettingsIcon from "components/icons/SettingsIcon";
 
 const WorkspaceToolbar: FunctionComponent = () => {
@@ -65,13 +64,6 @@ const WorkspaceToolbar: FunctionComponent = () => {
           <DropdownToggler>View</DropdownToggler>
           <DropdownArea>
             <div className="toolbar-group-label">Workflows</div>
-            <DropdownItem
-              onClick={() => {
-                actions.addElementToContainer(rootId, <WorkflowCreateView />);
-              }}
-            >
-              Workflow Create
-            </DropdownItem>
             <div className="toolbar-group-label">Visualizers</div>
             <DropdownItem
               onClick={() => {

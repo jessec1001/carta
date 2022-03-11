@@ -48,8 +48,8 @@ const TileHandle: FC<TileHandleProps> = ({ onOffset = () => {}, children }) => {
         else {
           // Update the mouse remainder.
           const movement = [
-            event.clientX - position[0],
-            event.clientY - position[1],
+            (event.clientX - position[0]) / 2,
+            (event.clientY - position[1]) / 2,
           ];
           setMouseRemainder((remainder) => {
             const offset: [number, number] = [0, 0];

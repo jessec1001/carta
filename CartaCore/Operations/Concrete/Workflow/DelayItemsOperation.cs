@@ -41,6 +41,8 @@ namespace CartaCore.Operations
     /// Delays execution over a set of values by a specified amount of time.
     /// </summary>
     /// <typeparam name="TValue">The type of item.</typeparam>
+    [OperationName(Display = "Delay Items", Type = "delayItems")]
+    [OperationTag(OperationTags.Workflow)]
     public class DelayItemsOperation<TValue> : TypedOperation
     <
         DelayItemsOperationIn<TValue>,

@@ -1,4 +1,4 @@
-import { FC, useCallback, useEffect, useState } from "react";
+import { FC, useCallback, useEffect, useRef, useState } from "react";
 import { useAPI, useNestedAsync, useStoredState } from "hooks";
 import { Operation, OperationType } from "library/api";
 import { seconds } from "library/utility";
@@ -94,6 +94,7 @@ const Editor: FC = () => {
   const defaultDimensions: [number, number] = [8, 6];
 
   // Store a menu position. When this position is non-null, the menu is open.
+  const element = useRef<HTMLDivElement>(null);
   const [palettePosition, setPalettePosition] = useState<{
     x: number;
     y: number;
@@ -103,10 +104,12 @@ const Editor: FC = () => {
   const handleMenu = useCallback(
     (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
       // If we have a right click, capture the the position of the click and open the palette.
+      if (!element.current) return;
       if (event.button === 2) {
+        const rect = element.current.getBoundingClientRect();
         setPalettePosition({
-          x: event.nativeEvent.offsetX,
-          y: event.nativeEvent.offsetY,
+          x: event.clientX - rect.left,
+          y: event.clientY - rect.top,
         });
       }
 
@@ -115,6 +118,7 @@ const Editor: FC = () => {
     []
   );
   const handlePickOperation = useCallback(
+    // TODO: On initially creating a node, we should update it with its default values.
     async (template: { type: string; subtype: string | null } | null) => {
       if (workflow && !(workflow instanceof Error) && template) {
         // We create a new operation and add it to the workflow.
@@ -153,7 +157,7 @@ const Editor: FC = () => {
   );
 
   return (
-    <Mosaic onContextMenu={handleMenu}>
+    <Mosaic onContextMenu={handleMenu} ref={element}>
       {/* Render the editor palette if it has a position set.*/}
       {palettePosition && (
         <EditorPalette
@@ -207,6 +211,7 @@ const Editor: FC = () => {
                   key={operation.id}
                   operation={operationInstance}
                   type={operationTypes[operationInstance.type]}
+                  layout={layout}
                   onOffset={(offset) =>
                     handleLayoutOperation(operation.id, {
                       ...layout,

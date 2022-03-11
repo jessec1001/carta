@@ -3,6 +3,7 @@ import {
   SetStateAction,
   useCallback,
   useEffect,
+  useRef,
   useState,
 } from "react";
 
@@ -21,6 +22,14 @@ const useStoredState = <T>(
   // We use local storage as the default storage. The hook user can pick another storage if desired.
   const stateStorageArea = storage ?? localStorage;
 
+  // Store a reference to the initial value.
+  // Notice that the initial value could be a function in which case we call it to get our value.
+  const initial = useRef(
+    typeof initialValue === "function"
+      ? (initialValue as () => T)()
+      : initialValue
+  );
+
   // Based on whether this is running client-side or server-side, we may not have access to the local storage
   // or otherwise. In this case, we should use the same behavior as a default state hooks as a fallback.
   const defaultValue = () => {
@@ -28,17 +37,11 @@ const useStoredState = <T>(
 
     // If we couldn't find the value in local storage, we use the initial value.
     if (!json) {
-      // Notice that the initial value could be a function in which case we call it to get our value.
-      const initial =
-        typeof initialValue === "function"
-          ? (initialValue as () => T)()
-          : initialValue;
-
       // We store this value into local storage to initialize it in this case.
-      json = JSON.stringify(initial);
+      json = JSON.stringify(initial.current);
       if (storageKey) stateStorageArea.setItem(storageKey, json);
 
-      return initial;
+      return initial.current;
     }
 
     // If we found the value in local storage, assume it is parsed into the correct type.
@@ -46,13 +49,28 @@ const useStoredState = <T>(
     try {
       value = JSON.parse(json);
     } catch {
-      value = "" as unknown as T;
+      value = initial.current;
     }
     return value;
   };
 
   // Find the initial value from the local storage if possible or use the provided initial value otherwise.
   const [stateValue, setStateValue] = useState<T>(defaultValue);
+
+  // When the storage key or storage area changes, we need to update the state value.
+  useEffect(() => {
+    // If we found the value in local storage, assume it is parsed into the correct type.
+    let json = storageKey && stateStorageArea.getItem(storageKey);
+    if (json) {
+      let value: T;
+      try {
+        value = JSON.parse(json);
+      } catch {
+        value = initial.current;
+      }
+      setStateValue(value);
+    }
+  }, [storageKey, stateStorageArea]);
 
   // Once we've loaded the state for the first time from local storage, we only need to worry about saving.
   // We wrap the original dispatch function in another function that saves the value to local storage.

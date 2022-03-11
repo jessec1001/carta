@@ -1,5 +1,6 @@
 .node {
   /* Stretch the node out to fill whatever container it is inside. */
+  z-index: 0;
   width: 100%;
   height: 100%;
 
@@ -28,7 +29,58 @@
   background-color: var(--color-fill-element-lowlight);
 }
 .body {
-  padding: 0.25em;
+  padding: 0.25em 0em;
+}
+
+.field {
+  display: flex;
+  align-self: flex-start;
+  align-items: center;
+
+  margin: 0em 0em 0.25em 0em;
+}
+.field.input {
+  flex-direction: row;
+}
+.field.output {
+  flex-direction: row-reverse;
+}
+.fieldLabel {
+  width: 20%;
+  min-width: 6em;
+  flex-shrink: 0;
+}
+.field.input .fieldLabel {
+  text-align: left;
+  padding-left: 0.5em;
+}
+.field.output .fieldLabel {
+  text-align: right;
+  padding-right: 0.5em;
+}
+.fieldPoint {
+  --connector-border-size: 3px;
+  --connector-point-size: 0.75rem;
+
+  position: absolute;
+  display: inline-block;
+  flex-shrink: 0;
+  cursor: pointer;
+
+  width: var(--connector-point-size);
+  height: var(--connector-point-size);
+  border: var(--connector-border-size) solid var(--color-fill-body);
+  border-radius: var(--connector-point-size);
+  background-color: var(--color-stroke-normal);
+}
+.fieldPoint:hover {
+  background-color: var(--color-primary);
+}
+.field.input .fieldPoint {
+  margin-left: calc(-0.5 * var(--connector-point-size));
+}
+.field.output .fieldPoint {
+  margin-right: calc(-0.5 * var(--connector-point-size));
 }
 
 .stripes {
