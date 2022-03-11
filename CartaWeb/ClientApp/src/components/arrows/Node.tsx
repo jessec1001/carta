@@ -1,20 +1,22 @@
-import { ComponentProps, FC, useEffect, useRef } from "react";
+import { ComponentProps, FC, useCallback, useEffect, useRef } from "react";
 import { useArrows } from "./Context";
 
 /** The props used for the {@link Node} component. */
 interface NodeProps extends Omit<ComponentProps<"div">, "id"> {
   /** A unique identifier to refer to this arrow node by. */
   id: string | number;
+
+  /** If specified, indicates the interval, in milliseconds, that we should poll the position of the node. */
+  pollingInterval?: number;
 }
 
 /** A component that controls  */
-const Node: FC<NodeProps> = ({ id, children, ...props }) => {
+const Node: FC<NodeProps> = ({ id, pollingInterval, children, ...props }) => {
   // We use the arrows context to store the nodes and their bounding boxes.
   const element = useRef<HTMLDivElement>(null);
   const { nodes } = useArrows();
 
-  // We update the bounding boxes when the node is mounted.
-  useEffect(() => {
+  const updateBounds = useCallback(() => {
     if (!element.current) return;
 
     // Get the bounding box of the node.
@@ -34,6 +36,19 @@ const Node: FC<NodeProps> = ({ id, children, ...props }) => {
       nodes(id).set(boundsNext);
     }
   }, [id, nodes]);
+
+  // We update the bounding boxes when the node is mounted.
+  useEffect(() => {
+    updateBounds();
+  }, [updateBounds]);
+
+  // We update the bounding boxes when polling.
+  useEffect(() => {
+    if (!pollingInterval) return;
+
+    const interval = setInterval(updateBounds, pollingInterval);
+    return () => clearInterval(interval);
+  }, [pollingInterval, updateBounds]);
 
   // This component does not actually render anything.
   return (

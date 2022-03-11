@@ -11,10 +11,14 @@
 
   /* We use the variable `--grid-size` to define the size of the grid. */
   position: absolute;
-  left: calc(var(--grid-x) * var(--grid-size));
-  top: calc(var(--grid-y) * var(--grid-size));
-  width: calc(var(--grid-width) * var(--grid-size));
-  height: calc(var(--grid-height) * var(--grid-size));
+  left: calc(var(--grid-x) * var(--grid-scale));
+  top: calc(var(--grid-y) * var(--grid-scale));
+  width: calc(var(--grid-width) * var(--grid-scale));
+  height: calc(var(--grid-height) * var(--grid-scale));
+}
+.tile:hover {
+  /* This is a simple hack to make sure that tooltips on tiles are on top. */
+  z-index: 5;
 }
 
 .handle {

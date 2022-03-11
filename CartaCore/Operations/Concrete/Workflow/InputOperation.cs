@@ -82,6 +82,10 @@ namespace CartaCore.Operations
             InputOperationIn input,
             OperationJob job)
         {
+            // If the input name is not specified, then we can't provide any external fields.
+            if (input.Name is null)
+                yield break;
+
             // Construct the relevant attributes for the input value.
             List<Attribute> attributes = new();
             if (input.Required) attributes.Add(new FieldRequiredAttribute());

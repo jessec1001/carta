@@ -1,5 +1,6 @@
 .arrow {
   /* Make the arrow stretch across the entire page. */
+  pointer-events: none;
   position: absolute;
   left: 0;
   top: 0;

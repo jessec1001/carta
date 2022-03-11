@@ -4,6 +4,10 @@ import { createContext, useContext } from "react";
 interface IMosaicContext {
   /** The current grid size of the mosaic in pixels. */
   gridSize: [number, number];
+  /** The current grid position of the mosaic in grid units. */
+  gridPosition: [number, number];
+  /** The current grid zoom of the mosaic. */
+  gridZoom: number;
 }
 
 /** The context used to expose information about the {@link Mosaic} component. */

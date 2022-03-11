@@ -130,12 +130,16 @@ const Tile: FC<TileProps> & TileComposition = ({
   dimensions,
   children,
 }) => {
+  const { gridSize, gridPosition } = useMosaic();
+
   return (
     <div
       className={styles.tile}
       style={{
-        ["--grid-x" as any]: position?.[0] ?? 0,
-        ["--grid-y" as any]: position?.[1] ?? 0,
+        ["--grid-x" as any]:
+          (position?.[0] ?? 0) + gridPosition[0] / gridSize[0],
+        ["--grid-y" as any]:
+          (position?.[1] ?? 0) + gridPosition[1] / gridSize[1],
         ["--grid-width" as any]: dimensions?.[0] ?? 1,
         ["--grid-height" as any]: dimensions?.[1] ?? 1,
       }}

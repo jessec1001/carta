@@ -89,9 +89,11 @@ const useNestedAsync = <TPromise extends Promisable<TData>, TData>(
     <TPromise extends Promisable<TData>, TData>(
       promise: TPromise
     ): Promised<TPromise, TData> => {
-      if (typeof promise === "function")
+      if (promise === null) {
+        return null as Promised<TPromise, TData>;
+      } else if (typeof promise === "function") {
         return undefined as Promised<TPromise, TData>;
-      else if (Array.isArray(promise)) {
+      } else if (Array.isArray(promise)) {
         const promiseArray = promise as PromisableArray<TData>;
         const array: any[] = [];
         for (const element of promiseArray) {
@@ -129,7 +131,9 @@ const useNestedAsync = <TPromise extends Promisable<TData>, TData>(
       let resolved: Promised<TPromise, TData>;
 
       try {
-        if (typeof promise === "function") {
+        if (promise === null) {
+          return null as Promised<TPromise, TData>;
+        } else if (typeof promise === "function") {
           const promiseFunction = promise as PromisableFunction<TData>;
           try {
             const value = await promiseFunction();

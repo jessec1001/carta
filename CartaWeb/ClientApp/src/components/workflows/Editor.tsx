@@ -272,6 +272,7 @@ const Editor: FC = () => {
                 {
                   <EditorNode
                     key={operation.id}
+                    workflow={workflow.value}
                     operation={operationInstance}
                     type={operationType}
                     layout={layout}

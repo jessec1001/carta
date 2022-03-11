@@ -1,9 +1,8 @@
 import React, { ComponentProps, FC, useContext } from "react";
 import classNames from "classnames";
-import { Operation, OperationType } from "library/api";
+import { Operation, OperationType, Workflow } from "library/api";
 import { JsonSchema } from "library/schema";
 import { Theme, ThemeContext } from "components/theme";
-import styles from "./EditorNode.module.css";
 import { SchemaBaseInput } from "components/form/schema";
 import { Mosaic } from "components/mosaic";
 import { Tooltip } from "components/tooltip";
@@ -12,8 +11,8 @@ import ReactMarkdown from "react-markdown";
 import { LoadingIcon } from "components/icons";
 import { Text } from "components/text";
 import { Arrows } from "components/arrows";
+import styles from "./EditorNode.module.css";
 
-// TODO: Add popper message to hovering over the title of the node.
 // TODO: Add popper message to hovering over the tag strips of the node.
 //       This popper should contain links for tags that immediately open the operation palette to that tag.
 // TODO: Reintegrate logic for visualizing any data that may be associated with the node.
@@ -131,6 +130,9 @@ interface EditorNodeFieldProps {
   /** The schema to render for the field connector. */
   schema: JsonSchema;
 
+  /** Whether the field should be editable. */
+  editable: boolean;
+
   /** An event listener that is called when a field connection point is picked. */
   onPickField?: (field: string, side: "input" | "output") => void;
 }
@@ -140,6 +142,7 @@ const EditorNodeField: FC<EditorNodeFieldProps> = ({
   field,
   side,
   schema,
+  editable,
   onPickField = () => {},
 }) => {
   // We create a documentation tooltip for the field.
@@ -151,6 +154,7 @@ const EditorNodeField: FC<EditorNodeFieldProps> = ({
     <div className={classNames(styles.field, styles[side])}>
       <Arrows.Node
         id={id}
+        pollingInterval={25}
         onClick={() => onPickField(field, side)}
         className={styles.fieldPoint}
       />
@@ -167,13 +171,15 @@ const EditorNodeField: FC<EditorNodeFieldProps> = ({
 
       {/* TODO: Implement a debugging view that can display partial results. */}
       {/* We only render the schema for the input parameters. */}
-      {side === "input" && <SchemaBaseInput schema={schema} />}
+      {editable && side === "input" && <SchemaBaseInput schema={schema} />}
     </div>
   );
 };
 
 /** The props for the {@link EditorNode} component. */
 interface EditorNodeProps extends ComponentProps<"div"> {
+  /** The workflow that the operation lives inside. */
+  workflow?: Workflow | Error;
   /** The operation instance to render in the node. */
   operation?: Operation | Error;
   /** The operation type to render. */
@@ -192,6 +198,7 @@ interface EditorNodeProps extends ComponentProps<"div"> {
 }
 /** A component that renders an operation node in the workflow editor. */
 const EditorNode: FC<EditorNodeProps> = ({
+  workflow,
   operation,
   type,
   selected,
@@ -218,6 +225,33 @@ const EditorNode: FC<EditorNodeProps> = ({
       </div>
     );
   }
+
+  // We create a utility function to check if a field should be rendered completely.
+  const isFieldConnected = (
+    field: string,
+    side: "input" | "output"
+  ): boolean => {
+    if (!workflow || workflow instanceof Error) return false;
+
+    const { connections } = workflow;
+    for (const connection of connections) {
+      if (
+        side === "input" &&
+        connection.target.operation === operation.id &&
+        connection.target.field === field
+      ) {
+        return true;
+      }
+      if (
+        side === "output" &&
+        connection.source.operation === operation.id &&
+        connection.source.field === field
+      ) {
+        return true;
+      }
+    }
+    return false;
+  };
 
   // We create a documentation tooltip for the operation.
   const documentation = (
@@ -255,6 +289,7 @@ const EditorNode: FC<EditorNodeProps> = ({
               field={key}
               side="input"
               schema={val}
+              editable={!isFieldConnected(key, "input")}
               onPickField={onPickField}
             />
           ))}
@@ -267,6 +302,7 @@ const EditorNode: FC<EditorNodeProps> = ({
               field={key}
               side="output"
               schema={val}
+              editable={!isFieldConnected(key, "output")}
               onPickField={onPickField}
             />
           ))}

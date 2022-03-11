@@ -67,6 +67,10 @@ namespace CartaCore.Operations
             OutputOperationIn<TValue> input,
             OperationJob job)
         {
+            // If the output name is not specified, then we can't provide any external fields.
+            if (input.Name is null)
+                yield break;
+
             // Construct the relevant attributes for the output value.
             List<Attribute> attributes = new();
 

@@ -68,7 +68,11 @@ const Arrow: FC<ArrowProps> = ({
       className={classNames(styles.arrow, className)}
       {...props}
     >
-      <path d={arrowSvgData(sourcePos, targetPos)} fill="none" stroke="white" />
+      <path
+        d={arrowSvgData(sourcePos, targetPos)}
+        fill="none"
+        stroke="currentcolor"
+      />
     </svg>
   );
 };

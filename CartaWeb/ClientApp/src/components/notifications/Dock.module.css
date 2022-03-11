@@ -1,4 +1,5 @@
 .dock {
+  z-index: 100;
   display: flex;
   flex-direction: column-reverse;
   position: fixed;
