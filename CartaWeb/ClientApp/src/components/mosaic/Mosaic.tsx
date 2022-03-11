@@ -4,11 +4,13 @@ import React, {
   FC,
   forwardRef,
   useCallback,
+  useRef,
   useState,
 } from "react";
 import Tile from "./Tile";
 import styles from "./Mosaic.module.css";
 import MosaicContext from "./Context";
+import { useCombinedRefs } from "hooks";
 
 // TODO: Finish implementation.
 // // We use A* to find the shortest path from the source to the target.
@@ -106,6 +108,10 @@ const Mosaic: FC<MosaicProps> & MosaicComposition = forwardRef<
     else setMeasureSize([0, 0]);
   }, []);
 
+  // We store a reference to the mosaic element.
+  const innerRef = useRef<HTMLDivElement>(null);
+  const combinedRef = useCombinedRefs<HTMLDivElement>(ref as any, innerRef);
+
   // We store a position of the grid.
   const [panning, setPanning] = useState<boolean>(false);
   const [position, setPosition] = useState<[number, number]>([0, 0]);
@@ -113,6 +119,19 @@ const Mosaic: FC<MosaicProps> & MosaicComposition = forwardRef<
 
   // TODO: Reimplement zooming.
   // We update the position of the grid on mouse move.
+  const handleStartPan = useCallback(
+    (event: React.MouseEvent<HTMLDivElement>) => {
+      if (event.target !== combinedRef.current) return;
+      setPanning(true);
+    },
+    [combinedRef]
+  );
+  const handleEndPan = useCallback(
+    (event: React.MouseEvent<HTMLDivElement>) => {
+      setPanning(false);
+    },
+    []
+  );
   const handlePan = useCallback(
     (event: React.MouseEvent) => {
       // We only pan if the measure size is non-zero and the mouse is being pressed.
@@ -142,12 +161,12 @@ const Mosaic: FC<MosaicProps> & MosaicComposition = forwardRef<
         cursor: panning ? "grab" : "default",
         ...style,
       }}
-      onMouseDown={() => setPanning(true)}
-      onMouseUp={() => setPanning(false)}
+      onMouseDown={handleStartPan}
+      onMouseUp={handleEndPan}
       onMouseLeave={() => setPanning(false)}
       onMouseMove={handlePan}
       // onWheel={handleZoom}
-      ref={ref}
+      ref={combinedRef}
       {...props}
     >
       <div ref={measure} className={styles.measure} />

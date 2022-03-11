@@ -1,4 +1,12 @@
-import React, { ComponentProps, FC, useEffect, useRef, useState } from "react";
+import classNames from "classnames";
+import React, {
+  ComponentProps,
+  FC,
+  Fragment,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { useMosaic } from "./Context";
 import styles from "./Tile.module.css";
 
@@ -16,8 +24,12 @@ interface TileHandleProps extends ComponentProps<"div"> {
   /** An event listener that is called when the handle is offset via dragging. */
   onOffset?: (offset: [number, number]) => void;
 }
-
-const TileHandle: FC<TileHandleProps> = ({ onOffset = () => {}, children }) => {
+/** Wraps an element with a handle that allows for adjusting the tile. */
+const TileHandle: FC<TileHandleProps> = ({
+  onOffset = () => {},
+  className,
+  children,
+}) => {
   // We store the mouse position and a reference to the handle to allow for dragging.
   const element = useRef<HTMLDivElement>(null);
   const [, setMousePosition] = useState<[number, number] | null>(null);
@@ -32,14 +44,17 @@ const TileHandle: FC<TileHandleProps> = ({ onOffset = () => {}, children }) => {
       // We only want to handle left clicks.
       if (event.button !== 0) return;
       if (element.current) {
-        if (event.target && element.current.contains(event.target as Node))
+        if (event.target && element.current.contains(event.target as Node)) {
           setMousePosition([event.clientX, event.clientY]);
+          event.stopPropagation();
+          event.cancelBubble = true;
+        }
       }
     };
     const handleMouseUp = () => {
       // Once the mouse is released, we reset the mouse position.
       setMousePosition(null);
-      setMouseRemainder([gridSize[0] / 2, gridSize[1] / 2]);
+      setMouseRemainder([gridSize[0], gridSize[1]]);
     };
     const handleMouseMove = (event: MouseEvent) => {
       // Whenever the mouse is moved, we issue an offset event if we have moved more than a grid cell.
@@ -101,18 +116,39 @@ const TileHandle: FC<TileHandleProps> = ({ onOffset = () => {}, children }) => {
   }, [gridSize, onOffset]);
 
   return (
-    <div ref={element} className={styles.handle}>
+    <div ref={element} className={classNames(styles.handle, className)}>
       {children}
     </div>
+  );
+};
+
+/** The props used for the {@link TileEdgeHandle} component. */
+interface TileEdgeHandleProps extends ComponentProps<"div"> {
+  /** The side on which the edge handle should be attached to. */
+  side: "top" | "right" | "bottom" | "left";
+
+  /** An event listener that is called when the handle is offset via dragging. */
+  onOffset?: (offset: [number, number]) => void;
+}
+/** A component that maintains a tile edge handle. */
+const TileEdgeHandle: FC<TileEdgeHandleProps> = ({ side, onOffset }) => {
+  return (
+    <TileHandle
+      className={classNames(styles.handleEdge, styles[side])}
+      onOffset={onOffset}
+    />
   );
 };
 
 /** The props used for the {@link Tile} component. */
 interface TileProps {
   /** The position on the grid that the tile begins the upper-left corner at. */
-  position?: [number, number];
+  position: [number, number];
   /** The dimensions on the grid of the tile. */
-  dimensions?: [number, number];
+  dimensions: [number, number];
+
+  /** Whether the tile should be able to be resized. */
+  resizeable?: boolean;
 
   /** The event listener that is called when the position or dimension of the time has changed. */
   onLayoutChanged?: (
@@ -128,6 +164,8 @@ interface TileComposition {
 const Tile: FC<TileProps> & TileComposition = ({
   position,
   dimensions,
+  resizeable,
+  onLayoutChanged = () => {},
   children,
 }) => {
   const { gridSize, gridPosition } = useMosaic();
@@ -136,14 +174,46 @@ const Tile: FC<TileProps> & TileComposition = ({
     <div
       className={styles.tile}
       style={{
-        ["--grid-x" as any]:
-          (position?.[0] ?? 0) + gridPosition[0] / gridSize[0],
-        ["--grid-y" as any]:
-          (position?.[1] ?? 0) + gridPosition[1] / gridSize[1],
-        ["--grid-width" as any]: dimensions?.[0] ?? 1,
-        ["--grid-height" as any]: dimensions?.[1] ?? 1,
+        ["--grid-x" as any]: position[0] + gridPosition[0] / gridSize[0],
+        ["--grid-y" as any]: position[1] + gridPosition[1] / gridSize[1],
+        ["--grid-width" as any]: dimensions[0],
+        ["--grid-height" as any]: dimensions[1],
       }}
     >
+      {resizeable && (
+        <Fragment>
+          <TileEdgeHandle
+            side="left"
+            onOffset={([x, y]) => {
+              onLayoutChanged(
+                [position[0] + x, position[1]],
+                [dimensions[0] - x, dimensions[1]]
+              );
+            }}
+          />
+          <TileEdgeHandle
+            side="right"
+            onOffset={([x, y]) => {
+              onLayoutChanged(position, [dimensions[0] + x, dimensions[1]]);
+            }}
+          />
+          <TileEdgeHandle
+            side="top"
+            onOffset={([x, y]) => {
+              onLayoutChanged(
+                [position[0], position[1] + y],
+                [dimensions[0], dimensions[1] - y]
+              );
+            }}
+          />
+          <TileEdgeHandle
+            side="bottom"
+            onOffset={([x, y]) => {
+              onLayoutChanged(position, [dimensions[0], dimensions[1] + y]);
+            }}
+          />
+        </Fragment>
+      )}
       {children}
     </div>
   );

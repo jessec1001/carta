@@ -1,0 +1,18 @@
+.buttons {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  top: 1em;
+  right: 1em;
+}
+.buttons > * {
+  margin: 0em 0em 1em 0em;
+}
+
+.button {
+  background-color: var(--color-fill-element);
+}
+
+.buttonsTooltip {
+  width: 16em;
+}

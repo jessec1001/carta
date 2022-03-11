@@ -1,4 +1,5 @@
 import useAPI from "./useAPI";
+import useCombinedRefs from "./useCombinedRefs";
 import useControllableState from "./useControllableState";
 import useDelayCallback from "./useDelayCallback";
 import useNestedAsync from "./useNestedAsync";
@@ -11,6 +12,7 @@ import useLoading from "./useLoading";
 
 export {
   useAPI,
+  useCombinedRefs,
   useControllableState,
   useDelayCallback,
   useNestedAsync,
@@ -22,6 +24,7 @@ export {
   useUpdateAlert,
 };
 export * from "./useAPI";
+export * from "./useCombinedRefs";
 export * from "./useControllableState";
 export * from "./useDelayCallback";
 export * from "./useNestedAsync";

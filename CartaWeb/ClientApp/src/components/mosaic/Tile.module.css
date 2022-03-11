@@ -4,6 +4,7 @@
   --grid-y: 0;
   --grid-width: 0;
   --grid-height: 0;
+  position: relative;
   z-index: 1;
 
   /* We make the tile offset slightly to align with the grid. */
@@ -24,4 +25,43 @@
 .handle {
   cursor: pointer;
   user-select: none;
+}
+.handleEdge.left {
+  position: absolute;
+  width: 4px;
+  height: 100%;
+  left: -2px;
+}
+.handleEdge.right {
+  position: absolute;
+  width: 4px;
+  height: 100%;
+  right: -2px;
+}
+.handleEdge.top {
+  position: absolute;
+  height: 4px;
+  width: 100%;
+  top: -2px;
+}
+.handleEdge.bottom {
+  position: absolute;
+  height: 4px;
+  width: 100%;
+  bottom: -2px;
+}
+.handleEdge.left,
+.handleEdge.right {
+  cursor: col-resize;
+}
+.handleEdge.top,
+.handleEdge.bottom {
+  cursor: row-resize;
+}
+
+.handleEdge {
+  z-index: 0;
+}
+.handleEdge:hover {
+  background-color: var(--color-primary-select);
 }

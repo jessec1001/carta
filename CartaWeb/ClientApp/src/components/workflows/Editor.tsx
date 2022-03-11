@@ -1,4 +1,4 @@
-import { FC, useCallback, useEffect, useRef, useState } from "react";
+import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAPI, useNestedAsync, useStoredState } from "hooks";
 import { Operation, OperationType } from "library/api";
 import { LogSeverity } from "library/logging";
@@ -11,6 +11,10 @@ import EditorNode from "./EditorNode";
 import EditorPalette from "./EditorPalette";
 import { schemaDefault } from "library/schema";
 import { Arrows } from "components/arrows";
+import { IconButton } from "components/buttons";
+import ExecuteIcon from "components/icons/ExecuteIcon";
+import { Tooltip } from "components/tooltip";
+import styles from "./Editor.module.css";
 
 // TODO: Consider if the suboperations should be stored in the context.
 
@@ -228,10 +232,46 @@ const Editor: FC = () => {
     [activeConnection, logger, workflow, workflowsAPI]
   );
 
+  // Create an information element for navigating the workflow editor.
+  const info = useMemo(() => {
+    return (
+      <div className={styles.buttonsTooltip}>
+        <ul>
+          This is the Workflow Editor view. Here you can construct and execute a
+          workflow.
+          <li>
+            Right click to open the operations pallete to select an operation to
+            create.
+          </li>
+          <li>
+            Click and drag the title of an operation to move it around the
+            workflow.
+          </li>
+          <li>Click and drag on the background to pan around the workflow.</li>
+          <li>
+            Attach connections by clicking on an output point of some operation
+            and subsequently clicking on an input point of another operation.
+          </li>
+          <li>Press the button below to execute the workflow.</li>
+        </ul>
+      </div>
+    );
+  }, []);
+
   return (
     <Mosaic onContextMenu={handleMenu} ref={element}>
       {/* We wrap everything in an arrows component so as to render the connections. */}
       <Arrows element={element.current}>
+        {/* Render the info and execute button in a fixed-position menu. */}
+        <div className={styles.buttons}>
+          <Tooltip component={info} options={{ placement: "left" }} hover>
+            <IconButton className={styles.button}>i</IconButton>
+          </Tooltip>
+          <IconButton className={styles.button}>
+            <ExecuteIcon />
+          </IconButton>
+        </div>
+
         {/* Render the editor palette if it has a position set.*/}
         {palettePosition && (
           <EditorPalette
@@ -268,6 +308,7 @@ const Editor: FC = () => {
                 onLayoutChanged={(position, dimensions) => {
                   handleLayoutOperation(operation.id, { position, dimensions });
                 }}
+                resizeable
               >
                 {
                   <EditorNode

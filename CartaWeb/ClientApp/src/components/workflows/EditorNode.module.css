@@ -79,6 +79,7 @@
   display: inline-block;
   flex-shrink: 0;
   cursor: pointer;
+  z-index: 1;
 
   width: var(--connector-point-size);
   height: var(--connector-point-size);
