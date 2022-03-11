@@ -1,7 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Security.Claims;
 using CartaCore.Persistence;
+using CartaWeb.Models.Data;
 
 namespace CartaWeb.Models.DocumentItem
 {
@@ -17,6 +20,8 @@ namespace CartaWeb.Models.DocumentItem
         /// </summary>
         private readonly INoSqlDbContext _noSqlDbContext;
 
+        private readonly IUserSecretsContext _userSecretsContext;
+
         /// <summary>
         /// Constructor
         /// </summary>
@@ -24,6 +29,12 @@ namespace CartaWeb.Models.DocumentItem
         public Persistence(INoSqlDbContext noSqlDbContext)
         {
             _noSqlDbContext = noSqlDbContext;
+        }
+
+        public Persistence(INoSqlDbContext noSqlDbContext, IUserSecretsContext userSecretsContext)
+        {
+            _noSqlDbContext = noSqlDbContext;
+            _userSecretsContext = userSecretsContext;
         }
 
         /// <summary>
@@ -34,8 +45,24 @@ namespace CartaWeb.Models.DocumentItem
         public async Task<Item> LoadItemAsync(Item item)
         {
             DbDocument dbDocument = await _noSqlDbContext.ReadDocumentAsync(item.GetPartitionKey(), item.GetSortKey());
+            Console.WriteLine($"Read item with JSON string {dbDocument.JsonString}");
             if (dbDocument is null) return null;
             else return (Item)JsonSerializer.Deserialize(dbDocument.JsonString, item.GetType(), Item.JsonOptions);
+        }
+
+        public async Task<Item> LoadItemAsync(Item item, ClaimsPrincipal user)
+        {
+            Item readItem = await LoadItemAsync(item);
+            if ((_userSecretsContext is not null) && (readItem.UserSecretKeys is not null))
+            {
+                string userId = new UserInformation(user).Id;
+                foreach (string key in readItem.UserSecretKeys)
+                {
+                    string secretValue = await _userSecretsContext.GetUserSecretAsync(userId, key);
+                    readItem.AddUserSecret(key, secretValue);
+                }                 
+            }
+            return readItem;
         }
 
         /// <summary>
@@ -59,8 +86,23 @@ namespace CartaWeb.Models.DocumentItem
         /// <param name="dbDocument">The database document.</param>
         /// <returns>true if the write operation completed successfully, else false.</returns>
         public async Task<bool> WriteDbDocumentAsync(DbDocument dbDocument)
-        {
+        {          
             return await _noSqlDbContext.WriteDocumentAsync(dbDocument);
+        }
+
+        public async Task<bool> WriteDbDocumentAsync(DbDocument dbDocument, ClaimsPrincipal user)
+        {
+            bool wroteDoc = await _noSqlDbContext.WriteDocumentAsync(dbDocument);
+            if ((_userSecretsContext is not null) && (dbDocument.UserSecrets is not null))
+            {
+                string userId = new UserInformation(user).Id;
+                foreach (KeyValuePair<string,string> pair in dbDocument.UserSecrets)
+                {
+                    Console.WriteLine($"Putting {pair.Key}={pair.Value}");
+                    await _userSecretsContext.PutUserSecretAsync(userId, pair.Key, pair.Value);
+                }                
+            }            
+            return wroteDoc;
         }
 
         /// <summary>

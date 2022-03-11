@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text.Json;
 using NUlid;
 using CartaCore.Persistence;
@@ -33,6 +34,13 @@ namespace CartaWeb.Models.DocumentItem
         /// The partition key identifier, sans prefix. 
         /// </summary>
         protected string PartitionKeyId;
+
+        /// <summary>
+        /// A key value pair store for user secrets
+        /// </summary>
+        protected Dictionary<string, string> UserSecrets { get; set; }
+
+        public List<string> UserSecretKeys { get; set; }
 
         /// <summary>
         /// The unique identifier of the item.
@@ -119,6 +127,7 @@ namespace CartaWeb.Models.DocumentItem
             DbDocument dbDocument = new(
                 GetPartitionKey(),
                 sortKey,
+                UserSecrets,
                 JsonSerializer.Serialize(this, GetType(), JsonOptions),
                 DbOperationType.Create
             );
@@ -135,6 +144,7 @@ namespace CartaWeb.Models.DocumentItem
             (
                 GetPartitionKey(),
                 GetSortKey(),
+                UserSecrets,
                 JsonSerializer.Serialize(this, GetType(), JsonOptions),
                 DbOperationType.Update
             );
@@ -151,6 +161,7 @@ namespace CartaWeb.Models.DocumentItem
             (
                 GetPartitionKey(),
                 GetSortKey(),
+                UserSecrets,
                 JsonSerializer.Serialize(this, GetType(), JsonOptions),
                 DbOperationType.Save
             );
@@ -168,6 +179,25 @@ namespace CartaWeb.Models.DocumentItem
                 GetSortKey(),
                 DbOperationType.Delete
             );
+        }
+
+        public virtual void AddUserSecret(string key, string value)
+        {
+            if (UserSecrets is null)
+                UserSecrets = new();
+            if (UserSecretKeys is null)
+                UserSecretKeys = new();
+            UserSecrets.Add(key, value);
+            if (!UserSecretKeys.Contains(key))
+                UserSecretKeys.Add(key);
+        }
+
+        public virtual string GetUserSecret(string key)
+        {
+            if (UserSecrets is not null)
+                return UserSecrets[key];
+            else
+                return null;
         }
 
     }

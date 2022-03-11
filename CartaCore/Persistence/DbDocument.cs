@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace CartaCore.Persistence
 {
@@ -23,6 +24,8 @@ namespace CartaCore.Persistence
         /// </summary>
         public string JsonString { get; set; }
 
+        public Dictionary<string, string> UserSecrets;
+
         /// <summary>
         /// The type of database operation - Create, Read, Update, Save or Delete.
         /// </summary>
@@ -43,6 +46,16 @@ namespace CartaCore.Persistence
             SortKey = sortKey;
             JsonString = jsonString;
             Operation = operation;
+        }
+
+        public DbDocument(
+            string partitionKey,
+            string sortKey,
+            Dictionary<string, string> userSecrets,
+            string jsonString,
+            DbOperationType operation) : this(partitionKey, sortKey, jsonString, operation)
+        {
+            UserSecrets = userSecrets;
         }
 
         /// <summary>
