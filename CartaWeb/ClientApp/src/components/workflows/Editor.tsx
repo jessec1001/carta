@@ -7,7 +7,7 @@ import { useNotifications } from "components/notifications";
 import { Mosaic } from "components/mosaic";
 import { ITile } from "components/mosaic/Tile";
 import { useWorkflows } from "./Context";
-import EditorNode from "./EditorNode";
+import EditorOperationNode from "./EditorOperationNode";
 import EditorPalette from "./EditorPalette";
 import { schemaDefault } from "library/schema";
 import { Arrows } from "components/arrows";
@@ -15,6 +15,7 @@ import { IconButton } from "components/buttons";
 import ExecuteIcon from "components/icons/ExecuteIcon";
 import { Tooltip } from "components/tooltip";
 import styles from "./Editor.module.css";
+import EditorOutputNode from "./EditorOutputNode";
 
 // TODO: Consider if the suboperations should be stored in the context.
 
@@ -269,7 +270,6 @@ const Editor: FC = () => {
           },
         };
         setSuboperations(newSuboperations);
-        console.log("HERE 2");
 
         // Update the field.
         await operationsAPI.updateOperation({
@@ -338,7 +338,6 @@ const Editor: FC = () => {
     );
   }, []);
 
-  console.log("UPDATE", suboperations);
   return (
     <Mosaic onContextMenu={handleMenu} ref={element}>
       {/* We wrap everything in an arrows component so as to render the connections. */}
@@ -395,7 +394,7 @@ const Editor: FC = () => {
                 resizeable
               >
                 {
-                  <EditorNode
+                  <EditorOperationNode
                     key={operation.id}
                     workflow={workflow.value}
                     operation={operationInstance}
@@ -422,6 +421,50 @@ const Editor: FC = () => {
               </Mosaic.Tile>
             );
           })}
+
+        {/* Render the outputs of the workflow. */}
+        {!(operation.value instanceof Error) &&
+          operation.value?.schema &&
+          Object.entries(operation.value.schema.outputs).map(
+            ([name, schema]) => {
+              // We fetch the layout information about the operation.
+              // Assume that the operation type is either unloaded or loaded, never errored.
+              const outputIdentifier = `output-${name}`;
+              let layout = operationLayouts[outputIdentifier] || {
+                position: [0, 0],
+                dimensions: defaultDimensions,
+              };
+
+              return (
+                <Mosaic.Tile
+                  position={layout.position}
+                  dimensions={layout.dimensions}
+                  onLayoutChanged={(position, dimensions) => {
+                    handleLayoutOperation(outputIdentifier, {
+                      position,
+                      dimensions,
+                    });
+                  }}
+                  resizeable
+                >
+                  <EditorOutputNode
+                    job={job.value}
+                    field={name}
+                    schema={schema}
+                    onOffset={(offset) =>
+                      handleLayoutOperation(outputIdentifier, {
+                        ...layout,
+                        position: [
+                          layout.position[0] + offset[0],
+                          layout.position[1] + offset[1],
+                        ],
+                      })
+                    }
+                  />
+                </Mosaic.Tile>
+              );
+            }
+          )}
 
         {/* Render the connections of the workflow. */}
         {!(workflow.value instanceof Error) &&

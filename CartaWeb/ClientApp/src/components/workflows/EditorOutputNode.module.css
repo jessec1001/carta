@@ -1,0 +1,20 @@
+.header {
+  /* Distribute items along the header. */
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+
+  /* Set the height of the header. */
+  height: 1.5em;
+
+  padding: 0.25em;
+  border-radius: var(--border-radius) var(--border-radius) 0px 0px;
+  background-color: var(--color-fill-element-lowlight);
+}
+.output {
+  margin: 0em;
+  padding: 0.5em;
+  font-size: var(--font-normal);
+  color: var(--color-stroke-muted);
+}
