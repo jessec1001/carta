@@ -10,6 +10,7 @@ interface JsonEnumSchema extends JsonBaseSchema {
   enum: any[];
 
   "ui:widget"?: JsonEnumSchemaWidgets;
+  "x-enumNames"?: string[];
 }
 
 export default JsonEnumSchema;

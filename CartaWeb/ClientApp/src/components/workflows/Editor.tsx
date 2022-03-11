@@ -19,7 +19,11 @@ import styles from "./Editor.module.css";
 // TODO: Consider if the suboperations should be stored in the context.
 
 // This represents the type of an operation while possibly being loaded.
-type LoadableOperation = { id: string; operation: Operation };
+type LoadableOperation = {
+  id: string;
+  updating: boolean;
+  operation: Operation;
+};
 
 /** A component that renders an editor of a workflow. */
 const Editor: FC = () => {
@@ -27,7 +31,7 @@ const Editor: FC = () => {
   const { logger } = useNotifications();
 
   // We get the workflow to use for rendering its components.
-  const { workflow } = useWorkflows();
+  const { workflow, operation, job } = useWorkflows();
 
   // Fetch the available types of operations.
   const { operationsAPI, workflowsAPI } = useAPI();
@@ -46,6 +50,7 @@ const Editor: FC = () => {
       return [];
     return workflow.value.operations.map((operationId) => ({
       id: operationId,
+      updating: false,
       operation: async () => await operationsAPI.getOperation(operationId),
     }));
   }, [operationsAPI, workflow]);
@@ -231,6 +236,81 @@ const Editor: FC = () => {
     },
     [activeConnection, logger, workflow, workflowsAPI]
   );
+  const handleUpdateFields = useCallback(
+    async (operation: string, fields: Record<string, any>) => {
+      // Check that the workflow is loaded.
+      if (!workflow.value || workflow.value instanceof Error) return;
+
+      // Check that there is a corresponding loaded suboperation.
+      if (!suboperations || suboperations instanceof Error) return;
+      const suboperationIndex = suboperations.findIndex(
+        (op) =>
+          op.operation &&
+          !(op.operation instanceof Error) &&
+          op.operation.id === operation
+      );
+      if (suboperationIndex === -1) return;
+      const suboperation = suboperations[suboperationIndex]
+        .operation as Operation;
+
+      // Update the field.
+      try {
+        // We should indicate that the field is being updated.
+        const newSuboperations = [...suboperations];
+        newSuboperations[suboperationIndex] = {
+          ...suboperations[suboperationIndex],
+          updating: true,
+          operation: {
+            ...suboperation,
+            default: {
+              ...suboperation.default,
+              ...fields,
+            },
+          },
+        };
+        setSuboperations(newSuboperations);
+        console.log("HERE 2");
+
+        // Update the field.
+        await operationsAPI.updateOperation({
+          id: operation,
+          default: {
+            ...suboperation.default,
+            ...fields,
+          },
+        });
+        await suboperationsRefresh();
+      } catch (error: any) {
+        logger.log({
+          source: "Workflow Editor",
+          severity: LogSeverity.Error,
+          title: "Field Update Error",
+          message: "An error occurred while trying to update the field.",
+          data: error,
+        });
+      }
+    },
+    [workflow, suboperations, suboperationsRefresh, logger, operationsAPI]
+  );
+  const handleExecuteOperation = useCallback(async () => {
+    if (!operation.value || operation.value instanceof Error) return;
+
+    try {
+      const jobInstance = await operationsAPI.executeOperation(
+        operation.value.id,
+        {}
+      );
+      job.set(jobInstance.id);
+    } catch (error: any) {
+      logger.log({
+        source: "Workflow Editor",
+        severity: LogSeverity.Error,
+        title: "Operation Execution Error",
+        message: "An error occurred while trying to execute the operation.",
+        data: error,
+      });
+    }
+  }, [logger, job, operation, operationsAPI]);
 
   // Create an information element for navigating the workflow editor.
   const info = useMemo(() => {
@@ -258,6 +338,7 @@ const Editor: FC = () => {
     );
   }, []);
 
+  console.log("UPDATE", suboperations);
   return (
     <Mosaic onContextMenu={handleMenu} ref={element}>
       {/* We wrap everything in an arrows component so as to render the connections. */}
@@ -267,7 +348,10 @@ const Editor: FC = () => {
           <Tooltip component={info} options={{ placement: "left" }} hover>
             <IconButton className={styles.button}>i</IconButton>
           </Tooltip>
-          <IconButton className={styles.button}>
+          <IconButton
+            className={styles.button}
+            onClick={handleExecuteOperation}
+          >
             <ExecuteIcon />
           </IconButton>
         </div>
@@ -317,6 +401,7 @@ const Editor: FC = () => {
                     operation={operationInstance}
                     type={operationType}
                     layout={layout}
+                    updating={operation.updating}
                     onOffset={(offset) =>
                       handleLayoutOperation(operation.id, {
                         ...layout,
@@ -328,6 +413,9 @@ const Editor: FC = () => {
                     }
                     onPickField={(field, side) => {
                       handlePickField(operation.id, field, side);
+                    }}
+                    onUpdateFields={(fields) => {
+                      handleUpdateFields(operation.id, fields);
                     }}
                   />
                 }

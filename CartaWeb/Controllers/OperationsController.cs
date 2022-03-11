@@ -253,13 +253,13 @@ namespace CartaWeb.Controllers
                     {
                         Operation = item.Source.Operation,
                         Field = item.Source.Field,
-                        Multiplicity = item.Multiplex ? new (int, int?)[] { (0, null) } : new (int, int?)[] { }
+                        Multiplicity = item.Multiplex ? new (int, int?)[] { (0, null) } : Array.Empty<(int, int?)>()
                     },
                     Target = new WorkflowOperationConnectionPoint()
                     {
                         Operation = item.Target.Operation,
                         Field = item.Target.Field,
-                        Multiplicity = new (int, int?)[] { }
+                        Multiplicity = Array.Empty<(int, int?)>()
                     },
                 }).ToArray();
 

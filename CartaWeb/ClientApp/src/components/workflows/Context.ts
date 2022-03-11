@@ -9,16 +9,24 @@ import { Job, Operation, Workflow } from "library/api";
 interface IWorkflowsContext {
   /** The workflow. If undefined, still loading.*/
   workflow?: Error | Workflow;
-  /** A refresh function for the workflow. */
-  workflowRefresh: () => Promise<Error | Workflow | undefined>;
   /** The operation associated with the workflow. If undefined, still loading. If null, no operation was specified. */
   operation?: Error | Operation | null;
-  /** A refresh function for the operation associated with the workflow. */
-  operationRefresh: () => Promise<Error | Operation | null | undefined>;
   /** The job associated with the workflow. If undefined, still loading. If null, no job was specified. */
   job?: Error | Job | null;
+
+  /** A refresh function for the workflow. */
+  workflowRefresh: () => Promise<Error | Workflow | undefined>;
+  /** A refresh function for the operation associated with the workflow. */
+  operationRefresh: () => Promise<Error | Operation | null | undefined>;
   /** A refresh function for the job associated with the workflow. */
   jobRefresh: () => Promise<Error | Job | null | undefined>;
+
+  /** Sets the workflow identifier. */
+  setWorkflow: (workflowId: string) => void;
+  /** Sets the operation identifier. */
+  setOperation: (operationId: string | undefined) => void;
+  /** Sets the job identifier. */
+  setJob: (jobId: string | undefined) => void;
 }
 
 /**
@@ -28,16 +36,19 @@ interface IWorkflows {
   /** The workflow. If undefined, still loading.*/
   workflow: {
     value?: Error | Workflow;
+    set: (workflow: string) => void;
     refresh: () => Promise<Error | Workflow | undefined>;
   };
   /** The operation associated with the workflow. If undefined, still loading. If null, no operation was specified. */
   operation: {
     value?: Error | Operation | null;
+    set: (operation: string | undefined) => void;
     refresh: () => Promise<Error | Operation | null | undefined>;
   };
   /** The job associated with the workflow. If undefined, still loading. If null, no job was specified. */
   job: {
     value?: Error | Job | null;
+    set: (job: string | undefined) => void;
     refresh: () => Promise<Error | Job | null | undefined>;
   };
 }
@@ -64,31 +75,37 @@ const useWorkflows = (): IWorkflows => {
   // Grab the original functions from the context and reformat them into a more usable format.
   const {
     workflow,
-    workflowRefresh,
     operation,
-    operationRefresh,
     job,
+    workflowRefresh,
+    operationRefresh,
     jobRefresh,
+    setWorkflow,
+    setOperation,
+    setJob,
   } = context;
 
   const workflowHelper = useMemo(() => {
     return {
       value: workflow,
+      set: setWorkflow,
       refresh: workflowRefresh,
     };
-  }, [workflow, workflowRefresh]);
+  }, [setWorkflow, workflow, workflowRefresh]);
   const operationHelper = useMemo(() => {
     return {
       value: operation,
+      set: setOperation,
       refresh: operationRefresh,
     };
-  }, [operation, operationRefresh]);
+  }, [operation, operationRefresh, setOperation]);
   const jobHelper = useMemo(() => {
     return {
       value: job,
+      set: setJob,
       refresh: jobRefresh,
     };
-  }, [job, jobRefresh]);
+  }, [job, jobRefresh, setJob]);
 
   return {
     workflow: workflowHelper,

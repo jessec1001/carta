@@ -87,6 +87,7 @@ const OptionSelectorInput: FunctionComponent<OptionSelectorInputProps> = ({
             // Each of the options is rendered with appropriate event listeners to make the selector fully functional.
             // Notice the use of the mouse down event here because it fires before focus/blur events needed on combobox.
             <li
+              role="presentation"
               key={childIndex}
               onMouseDown={() => handleSelect(child.props.value)}
               onMouseOver={() => setIndex(childIndex)}

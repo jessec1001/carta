@@ -1,4 +1,4 @@
-import { FC, useCallback } from "react";
+import { FC, useCallback, useState } from "react";
 import { useAPI, useNestedAsync } from "hooks";
 import { Job, Operation, Workflow } from "library/api";
 import { seconds } from "library/utility";
@@ -31,24 +31,31 @@ const Workflows: FC<WorkflowsProps> & WorkflowsComposition = ({
   // We need access to the API to get the operation, job, and workflow.
   const { workflowsAPI, operationsAPI } = useAPI();
 
+  // We store the identifiers of the workflow, operation, and job.
+  const [workflowIdStored, setWorkflowIdStored] = useState<string>(workflowId);
+  const [operationIdStored, setOperationIdStored] = useState<
+    string | undefined
+  >(operationId);
+  const [jobIdStored, setJobIdStored] = useState<string | undefined>(jobId);
+
   // Functions used to fetch relevant data.
   const workflowFetch = useCallback(
-    () => workflowsAPI.getWorkflow(workflowId),
-    [workflowId, workflowsAPI]
+    () => workflowsAPI.getWorkflow(workflowIdStored),
+    [workflowIdStored, workflowsAPI]
   );
   const operationFetch = useCallback(
     () =>
-      operationId === undefined
+      operationIdStored === undefined
         ? Promise.resolve(null)
-        : operationsAPI.getOperation(operationId),
-    [operationId, operationsAPI]
+        : operationsAPI.getOperation(operationIdStored),
+    [operationIdStored, operationsAPI]
   );
   const jobFetch = useCallback(
     () =>
-      operationId === undefined || jobId === undefined
+      operationIdStored === undefined || jobIdStored === undefined
         ? Promise.resolve(null)
-        : operationsAPI.getOperationJob(operationId, jobId),
-    [jobId, operationId, operationsAPI]
+        : operationsAPI.getOperationJob(operationIdStored, jobIdStored),
+    [jobIdStored, operationIdStored, operationsAPI]
   );
 
   // Start fetching and storing data for the operation, job, and workflow.
@@ -63,7 +70,7 @@ const Workflows: FC<WorkflowsProps> & WorkflowsComposition = ({
   const [job, jobRefresh] = useNestedAsync<typeof jobFetch, Job | null>(
     jobFetch,
     true,
-    seconds(10)
+    seconds(5)
   );
 
   // Wrap the children of this component in a workflows context.
@@ -71,11 +78,14 @@ const Workflows: FC<WorkflowsProps> & WorkflowsComposition = ({
     <WorkflowsContext.Provider
       value={{
         workflow,
-        workflowRefresh,
         operation,
-        operationRefresh,
         job,
+        workflowRefresh,
+        operationRefresh,
         jobRefresh,
+        setWorkflow: setWorkflowIdStored,
+        setOperation: setOperationIdStored,
+        setJob: setJobIdStored,
       }}
     >
       {children}

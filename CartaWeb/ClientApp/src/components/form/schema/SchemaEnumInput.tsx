@@ -37,6 +37,9 @@ const SchemaEnumInput: FunctionComponent<SchemaEnumInputProps> = ({
     widget ?? JsonEnumSchemaWidgets.Dropdown;
   if (schema["ui:widget"] !== undefined) uiWidget = schema["ui:widget"];
 
+  // We check if there are names for the enumeration values.
+  const enumNames = schema["x-enumNames"];
+
   // FIXME: Warning is thrown because dropdown input ends up setting state in this component.
   // Display based on the decided upon widget.
   switch (uiWidget) {
@@ -49,7 +52,9 @@ const SchemaEnumInput: FunctionComponent<SchemaEnumInputProps> = ({
           {...props}
         >
           {schema.enum.map((option, index) => (
-            <OptionInput value={option}>{option}</OptionInput>
+            <OptionInput value={option}>
+              {enumNames ? enumNames[index] : option}
+            </OptionInput>
           ))}
         </DropdownInput>
       );

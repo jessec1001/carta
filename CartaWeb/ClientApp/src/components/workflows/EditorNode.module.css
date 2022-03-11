@@ -37,6 +37,11 @@
   border-radius: var(--border-radius) var(--border-radius) 0px 0px;
   background-color: var(--color-fill-element-lowlight);
 }
+.headerTools {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
 .body {
   flex-grow: 1;
   overflow-y: auto;
@@ -66,11 +71,11 @@
 }
 .field.input .fieldLabel {
   text-align: left;
-  padding-left: 0.5em;
+  padding-left: 0.25em;
 }
 .field.output .fieldLabel {
   text-align: right;
-  padding-right: 0.5em;
+  padding-right: 0.25em;
 }
 .fieldPoint {
   --connector-border-size: 3px;
@@ -89,6 +94,10 @@
 }
 .fieldPoint:hover {
   background-color: var(--color-primary);
+}
+.fieldInput {
+  flex: 1;
+  margin-right: 0.25em;
 }
 
 .stripes {

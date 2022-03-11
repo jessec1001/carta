@@ -1,4 +1,12 @@
-import React, { ComponentProps, FC, useContext } from "react";
+import React, {
+  ComponentProps,
+  FC,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import classNames from "classnames";
 import { Operation, OperationType, Workflow } from "library/api";
 import { JsonSchema } from "library/schema";
@@ -12,6 +20,7 @@ import { LoadingIcon } from "components/icons";
 import { Text } from "components/text";
 import { Arrows } from "components/arrows";
 import styles from "./EditorNode.module.css";
+import { useDelayCallback } from "hooks";
 
 // TODO: Add popper message to hovering over the tag strips of the node.
 //       This popper should contain links for tags that immediately open the operation palette to that tag.
@@ -129,12 +138,16 @@ interface EditorNodeFieldProps {
   side: "input" | "output";
   /** The schema to render for the field connector. */
   schema: JsonSchema;
+  /** The value assigned to the field. */
+  value: any;
 
   /** Whether the field should be editable. */
   editable: boolean;
 
   /** An event listener that is called when a field connection point is picked. */
   onPickField?: (field: string, side: "input" | "output") => void;
+  /** An event listener that is called when a field is updated. */
+  onUpdateField?: (field: string, side: "input" | "output", value: any) => void;
 }
 /** A component that renders a particular operation field for a node. */
 const EditorNodeField: FC<EditorNodeFieldProps> = ({
@@ -142,8 +155,10 @@ const EditorNodeField: FC<EditorNodeFieldProps> = ({
   field,
   side,
   schema,
+  value,
   editable,
   onPickField = () => {},
+  onUpdateField = () => {},
 }) => {
   // We create a documentation tooltip for the field.
   const documentation = (
@@ -169,9 +184,18 @@ const EditorNodeField: FC<EditorNodeFieldProps> = ({
         {schema.title}
       </Tooltip>
 
+      {/* TODO: Display error information and verify schema. */}
       {/* TODO: Implement a debugging view that can display partial results. */}
       {/* We only render the schema for the input parameters. */}
-      {editable && side === "input" && <SchemaBaseInput schema={schema} />}
+      {editable && side === "input" && (
+        <div className={styles.fieldInput}>
+          <SchemaBaseInput
+            schema={schema}
+            value={value}
+            onChange={(value) => onUpdateField(field, side, value)}
+          />
+        </div>
+      )}
     </div>
   );
 };
@@ -187,6 +211,8 @@ interface EditorNodeProps extends ComponentProps<"div"> {
 
   /** Whether the node is currently selected. */
   selected?: boolean;
+  /** Whether the node is currently updating. */
+  updating?: boolean;
 
   /** The layout of the node. Relevant for updating connections and tooltips. */
   layout?: ITile;
@@ -195,6 +221,8 @@ interface EditorNodeProps extends ComponentProps<"div"> {
   onOffset?: (offset: [number, number]) => void;
   /** An event listener that is called when a field connection point is picked. */
   onPickField?: (field: string, side: "input" | "output") => void;
+  /** An event listener that is called when a field is updated. */
+  onUpdateFields?: (fields: Record<string, any>) => void;
 }
 /** A component that renders an operation node in the workflow editor. */
 const EditorNode: FC<EditorNodeProps> = ({
@@ -202,12 +230,42 @@ const EditorNode: FC<EditorNodeProps> = ({
   operation,
   type,
   selected,
+  updating,
   layout,
   onOffset = () => {},
   onPickField = () => {},
+  onUpdateFields = () => {},
   className,
   ...props
 }) => {
+  // We buffer the value so that input may occur without delay.
+  const operationDefaults = useMemo(
+    () =>
+      !operation || operation instanceof Error ? {} : operation.default ?? {},
+    [operation]
+  );
+  const [actualValues, setValues] =
+    useState<Record<string, any>>(operationDefaults);
+  useEffect(() => {
+    setValues(operationDefaults);
+  }, [operationDefaults]);
+
+  // We use a delay when updating the field to prevent too many API calls with race conditions.
+  const handleUpdateFields = useDelayCallback(onUpdateFields, 1000, true);
+  const handleUpdateField = useCallback(
+    (field: string, side: "input" | "output", value: any) => {
+      setValues((values) => ({
+        ...values,
+        [field]: value,
+      }));
+      handleUpdateFields({
+        ...actualValues,
+        [field]: value,
+      });
+    },
+    [actualValues, handleUpdateFields]
+  );
+
   // If the operation is not loaded yet, render a loading symbol.
   if (!operation || !type) {
     return (
@@ -276,7 +334,10 @@ const EditorNode: FC<EditorNodeProps> = ({
           hover
         >
           <span>{type.display}</span>
-          <EditorNodeStripes tags={type.tags} />
+          <div className={styles.headerTools}>
+            {updating && <LoadingIcon />}
+            <EditorNodeStripes tags={type.tags} />
+          </div>
         </Tooltip>
       </Mosaic.Tile.Handle>
       <div className={styles.body}>
@@ -289,8 +350,10 @@ const EditorNode: FC<EditorNodeProps> = ({
               field={key}
               side="input"
               schema={val}
+              value={actualValues[key]}
               editable={!isFieldConnected(key, "input")}
               onPickField={onPickField}
+              onUpdateField={handleUpdateField}
             />
           ))}
         {/* Render the output schema. */}
@@ -302,8 +365,10 @@ const EditorNode: FC<EditorNodeProps> = ({
               field={key}
               side="output"
               schema={val}
+              value={undefined}
               editable={!isFieldConnected(key, "output")}
               onPickField={onPickField}
+              onUpdateField={handleUpdateField}
             />
           ))}
       </div>
