@@ -38,16 +38,16 @@ namespace CartaCore.Serialization.Json
 
                     // Read the property value.
                     reader.Read();
-                    object propertyValue = _converter.Read(ref reader, typeof(object), options);
+                    string propertyValue = reader.GetString();
 
                     if (propertyName == "key")
                     {
-                        keyValuePair.Key = propertyValue.ToString();   
+                        keyValuePair.Key = propertyValue;   
                     }
                     if (propertyName == "value")
                     {
                         if (_maskSecret)
-                            keyValuePair.Value = new string('*', propertyValue.ToString().Length);
+                            keyValuePair.Value = new string('*', propertyValue.Length);
                         else
                             keyValuePair.Value = propertyValue;
                     }
@@ -67,12 +67,9 @@ namespace CartaCore.Serialization.Json
             writer.WriteStartObject();
             writer.WriteString("key", value.Key);
             if (_maskSecret)
-                writer.WriteString("value", new string('*', value.Value.ToString().Length));
+                writer.WriteString("value", new string('*', value.Value.Length));
             else
-            {
-                writer.WritePropertyName("value");
-                _converter.Write(writer, value.Value, options);
-            }
+                writer.WriteString("value", value.Value);
             writer.WriteEndObject();
         }
     }

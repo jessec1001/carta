@@ -24,7 +24,10 @@ namespace CartaCore.Persistence
         /// </summary>
         public string JsonString { get; set; }
 
-        public Dictionary<string, string> UserSecrets;
+        // <summary>
+        /// A list of user secrets that should be stored safely
+        /// </summary>
+        public List<UserSecretKeyValuePair> UserSecrets;
 
         /// <summary>
         /// The type of database operation - Create, Read, Update, Save or Delete.
@@ -48,10 +51,18 @@ namespace CartaCore.Persistence
             Operation = operation;
         }
 
+        /// <summary>
+        /// Constructor for Create, Read, Update and Save operations.
+        /// <param name="partitionKey">The partition key under which the document is stored.</param>
+        /// <param name="sortKey">The sort key under which the document is stored.</param>
+        /// <param name="userSecrets">A list of user secret key value pairs that should be stored safely</param>
+        /// <param name="jsonString">A text representation of the JSON document.</param>
+        /// <param name="operation">The type of database operation - Create, Read, Update, Save.</param>
+        /// </summary>
         public DbDocument(
             string partitionKey,
             string sortKey,
-            Dictionary<string, string> userSecrets,
+            List<UserSecretKeyValuePair> userSecrets,
             string jsonString,
             DbOperationType operation) : this(partitionKey, sortKey, jsonString, operation)
         {

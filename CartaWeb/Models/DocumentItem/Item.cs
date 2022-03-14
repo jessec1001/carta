@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
+using System.Reflection;
 using NUlid;
 using CartaCore.Persistence;
 using CartaCore.Serialization.Json;
@@ -28,6 +30,7 @@ namespace CartaWeb.Models.DocumentItem
             JsonOptions.PropertyNameCaseInsensitive = false;
             JsonOptions.IgnoreNullValues = true;
             JsonOptions.Converters.Add(new JsonObjectConverter());
+            JsonOptions.Converters.Add(new JsonUserSecretKeyValuePairConverter());
         }
 
         /// <summary>
@@ -35,12 +38,6 @@ namespace CartaWeb.Models.DocumentItem
         /// </summary>
         protected string PartitionKeyId;
 
-        /// <summary>
-        /// A key value pair store for user secrets
-        /// </summary>
-        protected Dictionary<string, string> UserSecrets { get; set; }
-
-        public List<string> UserSecretKeys { get; set; }
 
         /// <summary>
         /// The unique identifier of the item.
@@ -116,6 +113,22 @@ namespace CartaWeb.Models.DocumentItem
         }
 
         /// <summary>
+        /// Returns a list of user secrets set on the instance
+        /// </summary>
+        private List<UserSecretKeyValuePair> GetUserSecrets()
+        {
+            List<UserSecretKeyValuePair> userSecretKeyValuePairs = new();
+            List<PropertyInfo> propsInfo =
+                GetType().GetProperties().ToList().FindAll(t => t.PropertyType == typeof(UserSecretKeyValuePair));
+            foreach (PropertyInfo propInfo in propsInfo)
+            {
+                UserSecretKeyValuePair keyValuePair = (UserSecretKeyValuePair)propInfo.GetValue(this);
+                userSecretKeyValuePairs.Add(keyValuePair);
+            }
+            return userSecretKeyValuePairs;
+        }
+
+        /// <summary>
         /// Creates a database document to persist a new item to the database.
         /// </summary>
         /// <returns>A database document.</returns>
@@ -127,7 +140,7 @@ namespace CartaWeb.Models.DocumentItem
             DbDocument dbDocument = new(
                 GetPartitionKey(),
                 sortKey,
-                UserSecrets,
+                GetUserSecrets(),
                 JsonSerializer.Serialize(this, GetType(), JsonOptions),
                 DbOperationType.Create
             );
@@ -144,7 +157,7 @@ namespace CartaWeb.Models.DocumentItem
             (
                 GetPartitionKey(),
                 GetSortKey(),
-                UserSecrets,
+                GetUserSecrets(),
                 JsonSerializer.Serialize(this, GetType(), JsonOptions),
                 DbOperationType.Update
             );
@@ -161,7 +174,7 @@ namespace CartaWeb.Models.DocumentItem
             (
                 GetPartitionKey(),
                 GetSortKey(),
-                UserSecrets,
+                GetUserSecrets(),
                 JsonSerializer.Serialize(this, GetType(), JsonOptions),
                 DbOperationType.Save
             );
@@ -179,25 +192,6 @@ namespace CartaWeb.Models.DocumentItem
                 GetSortKey(),
                 DbOperationType.Delete
             );
-        }
-
-        public virtual void AddUserSecret(string key, string value)
-        {
-            if (UserSecrets is null)
-                UserSecrets = new();
-            if (UserSecretKeys is null)
-                UserSecretKeys = new();
-            UserSecrets.Add(key, value);
-            if (!UserSecretKeys.Contains(key))
-                UserSecretKeys.Add(key);
-        }
-
-        public virtual string GetUserSecret(string key)
-        {
-            if (UserSecrets is not null)
-                return UserSecrets[key];
-            else
-                return null;
         }
 
     }
