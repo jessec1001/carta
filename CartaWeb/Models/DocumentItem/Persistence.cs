@@ -45,7 +45,6 @@ namespace CartaWeb.Models.DocumentItem
         public async Task<Item> LoadItemAsync(Item item)
         {
             DbDocument dbDocument = await _noSqlDbContext.ReadDocumentAsync(item.GetPartitionKey(), item.GetSortKey());
-            Console.WriteLine($"Read item with JSON string {dbDocument.JsonString}");
             if (dbDocument is null) return null;
             else return (Item)JsonSerializer.Deserialize(dbDocument.JsonString, item.GetType(), Item.JsonOptions);
         }
@@ -98,8 +97,7 @@ namespace CartaWeb.Models.DocumentItem
                 string userId = new UserInformation(user).Id;
                 foreach (KeyValuePair<string,string> pair in dbDocument.UserSecrets)
                 {
-                    Console.WriteLine($"Putting {pair.Key}={pair.Value}");
-                    await _userSecretsContext.PutUserSecretAsync(userId, pair.Key, pair.Value);
+                    await _userSecretsContext.PutUserSecretAsync(userId, pair.Key, pair.Value, new TimeSpan(12,0,0));
                 }                
             }            
             return wroteDoc;

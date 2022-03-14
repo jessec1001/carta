@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DocumentModel;
+using System;
 
 namespace CartaCore.Persistence
 {
@@ -23,6 +24,11 @@ namespace CartaCore.Persistence
         /// Value column name 
         /// </summary>
         const string _val = "Value";
+
+        /// <summary>
+        /// Time to live column value
+        /// </summary>
+        const string _ttl = "TTL";
 
         /// <summary>
         /// Gets or sets the DynamoDb client through which calls are made
@@ -90,12 +96,13 @@ namespace CartaCore.Persistence
         }
 
         /// <inheritdoc />
-        public async Task PutUserSecretAsync(string userId, string secretKey, string secretValue)
+        public async Task PutUserSecretAsync(string userId, string secretKey, string secretValue, TimeSpan timeSpan)
         {
             Document item = new Document();
             item.Add(_pk, userId);
             item.Add(_sk, secretKey);
             item.Add(_val, secretValue);
+            item.Add(_ttl, (new DateTimeOffset(DateTime.Now.Add(timeSpan))).ToUnixTimeSeconds());
             await DbTable.PutItemAsync(item);
         }
     }

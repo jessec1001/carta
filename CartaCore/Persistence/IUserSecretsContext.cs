@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using System;
 
 namespace CartaCore.Persistence
 {
@@ -21,7 +22,8 @@ namespace CartaCore.Persistence
         /// <param name="userId">The user identifier</param>
         /// <param name="secretKey">The secret key</param>
         /// <param name="secretValue">The secret value</param>
-        Task PutUserSecretAsync(string userId, string secretKey, string secretValue);
+        /// <param name="timeSpan">Time span for retaining the secret</param>
+        Task PutUserSecretAsync(string userId, string secretKey, string secretValue, TimeSpan timeSpan);
 
     }
 }
