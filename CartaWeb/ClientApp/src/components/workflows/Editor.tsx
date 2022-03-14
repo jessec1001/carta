@@ -386,6 +386,7 @@ const Editor: FC = () => {
                 : operationTypes[operationInstance.type];
             return (
               <Mosaic.Tile
+                key={operation.id}
                 position={layout.position}
                 dimensions={layout.dimensions}
                 onLayoutChanged={(position, dimensions) => {
@@ -437,6 +438,7 @@ const Editor: FC = () => {
 
               return (
                 <Mosaic.Tile
+                  key={outputIdentifier}
                   position={layout.position}
                   dimensions={layout.dimensions}
                   onLayoutChanged={(position, dimensions) => {
@@ -472,6 +474,7 @@ const Editor: FC = () => {
           workflow.value.connections.map((connection) => {
             return (
               <Arrows.Arrow
+                key={connection.id}
                 source={`${connection.source.operation}-output-${connection.source.field}`}
                 target={`${connection.target.operation}-input-${connection.target.field}`}
               />

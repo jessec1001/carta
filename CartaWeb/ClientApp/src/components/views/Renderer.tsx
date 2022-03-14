@@ -41,6 +41,7 @@ const TabRenderer: FC<{ view: TabView }> = ({ view }) => {
     actions.removeView(id);
   };
   const handleChangeTab = (id: string | number | null) => {
+    if (id === null) return;
     actions.activateView(id as number);
   };
   const handleDragTab = (

@@ -57,9 +57,10 @@ const Tab: FunctionComponent<
     onClick(event);
     onFocus();
   };
-  const handleClose = () => {
+  const handleClose = (event: React.MouseEvent) => {
     if (activeTab === id) tabActions.clear();
     onClose();
+    event.stopPropagation();
   };
 
   // These event handlers deal with dragging the tab.

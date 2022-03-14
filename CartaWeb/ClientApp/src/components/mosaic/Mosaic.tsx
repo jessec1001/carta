@@ -4,6 +4,7 @@ import React, {
   FC,
   forwardRef,
   useCallback,
+  useEffect,
   useRef,
   useState,
 } from "react";
@@ -103,10 +104,23 @@ const Mosaic: FC<MosaicProps> & MosaicComposition = forwardRef<
 >(({ gridSize, className, style, children, ...props }, ref) => {
   // We reference an element whose purpose is to provide a measurement of the current grid size.
   const [measureSize, setMeasureSize] = useState<[number, number]>([0, 0]);
-  const measure = useCallback((element: HTMLDivElement | null) => {
-    if (element) setMeasureSize([element.offsetWidth, element.offsetHeight]);
-    else setMeasureSize([0, 0]);
-  }, []);
+  const [measureElement, setMeasureElement] = useState<HTMLDivElement | null>(
+    null
+  );
+  useEffect(() => {
+    if (!measureElement) setMeasureSize([0, 0]);
+    else {
+      const handleResize = () =>
+        setMeasureSize([
+          measureElement.offsetWidth,
+          measureElement.offsetHeight,
+        ]);
+
+      // Setup an interval to update the grid size.
+      const interval = setInterval(handleResize, 100);
+      return () => clearInterval(interval);
+    }
+  }, [measureElement]);
 
   // We store a reference to the mosaic element.
   const innerRef = useRef<HTMLDivElement>(null);
@@ -169,7 +183,7 @@ const Mosaic: FC<MosaicProps> & MosaicComposition = forwardRef<
       ref={combinedRef}
       {...props}
     >
-      <div ref={measure} className={styles.measure} />
+      <div ref={setMeasureElement} className={styles.measure} />
       <MosaicContext.Provider
         value={{
           gridSize: measureSize,

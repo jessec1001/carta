@@ -413,6 +413,7 @@ const OperationListView: FC = () => {
   }, []);
 
   // Allow the user to use keyboard shortcuts to perform or cancel renaming and deleting.
+  const history = viewActions.getHistory();
   useEffect(() => {
     const handlePotentialKey = (event: KeyboardEvent) => {
       switch (event.code) {
@@ -448,8 +449,11 @@ const OperationListView: FC = () => {
     };
 
     // Setup and teardown.
-    window.addEventListener("keydown", handlePotentialKey);
-    return () => window.removeEventListener("keydown", handlePotentialKey);
+    // These shortcuts should be disabled if this is not the active view.
+    if (history.length > 0 && history[history.length - 1] === viewId) {
+      window.addEventListener("keydown", handlePotentialKey);
+      return () => window.removeEventListener("keydown", handlePotentialKey);
+    }
   }, [
     openWorkflowView,
     deleteOperation,
@@ -457,6 +461,8 @@ const OperationListView: FC = () => {
     renamingOp,
     selectedOp,
     operations,
+    history,
+    viewId,
   ]);
 
   // The following is how keyboard and mouse events should be handled.
