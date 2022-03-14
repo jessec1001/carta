@@ -218,6 +218,7 @@ const Editor: FC = () => {
                 field,
               },
             });
+            await workflow.refresh();
           } catch (error: any) {
             logger.log({
               source: "Workflow Editor",
@@ -280,6 +281,7 @@ const Editor: FC = () => {
           },
         });
         await suboperationsRefresh();
+        await workflow.refresh();
       } catch (error: any) {
         logger.log({
           source: "Workflow Editor",

@@ -371,7 +371,7 @@ namespace CartaCore.Operations
                     foreach (WorkflowDependencyEdge dependencyEdge in dependency.Edges)
                     {
                         // Check if the dependency edge is targeting the current operation.
-                        if (dependencyEdge.Target != vertex.Id) continue;
+                        if (dependencyEdge.Target != directDependencies[k]) continue;
 
                         // Check if the dependency edge is sourced from the verified list.
                         if (verifiedDependencies.Contains(dependencyEdge.Source)) continue;

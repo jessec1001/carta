@@ -12,6 +12,7 @@ using CartaCore.Persistence;
 using CartaWeb.Errors;
 using CartaWeb.Models.DocumentItem;
 using CartaWeb.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -376,6 +377,7 @@ namespace CartaWeb.Controllers
         /// <returns status="400">
         /// Nothing if a required property was omitted or invalid or a non-mutable property was specified.
         /// </returns>
+        [Authorize]
         [HttpPost]
         public async Task<ActionResult<OperationItem>> CreateOperation(
             [FromBody] OperationItem operationItem
@@ -454,6 +456,7 @@ namespace CartaWeb.Controllers
         /// <returns status="404">
         /// Nothing when the identifier refers to an operation instance that does not exist.
         /// </returns>
+        [Authorize]
         [HttpPatch("{operationId}")]
         public async Task<ActionResult<OperationItem>> UpdateOperation(
             [FromRoute] string operationId,
@@ -519,6 +522,7 @@ namespace CartaWeb.Controllers
         /// <returns status="404">
         /// Nothing when the identifier refers to an operation instance that does not exist.
         /// </returns>
+        [Authorize]
         [HttpDelete("{operationId}")]
         public async Task<ActionResult> DeleteOperation(
             [FromRoute] string operationId
@@ -552,6 +556,7 @@ namespace CartaWeb.Controllers
         /// <returns status="404">
         /// Nothing when the identifier refers to an operation instance that does not exist.
         /// </returns>
+        [Authorize]
         [HttpGet("{operationId}")]
         public async Task<ActionResult<OperationItem>> GetOperation(
             [FromRoute] string operationId
@@ -586,6 +591,7 @@ namespace CartaWeb.Controllers
         /// <returns status="404">
         /// Nothing when the identifier refers to an operation instance that does not exist.
         /// </returns>
+        [Authorize]
         [HttpPost("{operationId}/jobs")]
         public async Task<ActionResult<JobItem>> ExecuteOperation(
             [FromRoute] string operationId,
@@ -653,6 +659,7 @@ namespace CartaWeb.Controllers
         /// <returns status="404">
         /// Nothing when the identifier refers to an operation instance that does not exist.
         /// </returns>
+        [Authorize]
         [HttpGet("{operationId}/jobs")]
         public async Task<ActionResult<List<JobItem>>> RetrieveOperationJobs(
             [FromRoute] string operationId
@@ -694,6 +701,7 @@ namespace CartaWeb.Controllers
         /// <returns status="404">
         /// Nothing when the identifier refers to an operation instance that does not exist.
         /// </returns>
+        [Authorize]
         [HttpGet("{operationId}/jobs/{jobId}/{field?}/{selector?}")]
         public async Task<ActionResult<JobItem>> RetrieveOperationJob(
             [FromRoute] string operationId,
@@ -735,6 +743,7 @@ namespace CartaWeb.Controllers
                 return job;
             }
         }
+        [Authorize]
         [HttpPost("{operationId}/jobs/{jobId}/{field}/{selector}/prioritize")]
         public async Task<ActionResult> PrioritizeOperationJob(
             [FromRoute] string operationId,
@@ -782,6 +791,7 @@ namespace CartaWeb.Controllers
         /// <param name="file">The file to upload.</param>
         /// <returns status="200">The job after the upload task has been completed.</returns>
         /// <returns status="404">Nothing when either the operation or job could not be found.</returns>
+        [Authorize]
         [HttpPost("{operationId}/jobs/{jobId}/{field}/upload")]
         public async Task<ActionResult<JobItem>> UploadFileToOperation(
             [FromRoute] string operationId,
@@ -850,6 +860,7 @@ namespace CartaWeb.Controllers
         /// <param name="field">The field to download from.</param>
         /// <returns status="200">A stream containing the file download.</returns>
         /// <returns status="404">Nothing when either the operation or job could not be found.</returns>
+        [Authorize]
         [HttpGet("{operationId}/jobs/{jobId}/{field}/download")]
         public async Task<ActionResult> DownloadFileFromOperation(
             [FromRoute] string operationId,
@@ -887,6 +898,7 @@ namespace CartaWeb.Controllers
             return file is null ? StatusCode(423, new { Error = "File download is not ready." }) : File(file, "application/octet-stream", field);
         }
         // TODO: Implement.
+        [Authorize]
         // [HttpPost("{operationId}/jobs/{jobId}/authenticate?operations")]
         public async Task<ActionResult> AuthenticateOperation(
             [FromRoute] string operationId,
@@ -929,6 +941,7 @@ namespace CartaWeb.Controllers
         /// <returns status="404">
         /// Nothing when the identifier refers to an operation instance that does not exist.
         /// </returns>
+        [Authorize]
         [HttpGet("{operationId}/schema")]
         public async Task<ActionResult<OperationSchema>> RetrieveOperationSchema(
             [FromRoute] string operationId

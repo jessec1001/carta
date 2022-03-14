@@ -7,6 +7,7 @@ using CartaWeb.Models.DocumentItem;
 using System.Linq;
 using System;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CartaWeb.Controllers
 {
@@ -82,6 +83,7 @@ namespace CartaWeb.Controllers
         #endregion
 
         #region Workflow CRUD
+        [Authorize]
         [HttpPost]
         public async Task<ActionResult<WorkflowItem>> CreateWorkflow(
             [FromBody] WorkflowItem workflowItem)
@@ -115,6 +117,7 @@ namespace CartaWeb.Controllers
             await SaveWorkflowAsync(workflowItem, _persistence);
             return Ok(workflowItem);
         }
+        [Authorize]
         [HttpGet("{workflowId}")]
         public async Task<ActionResult<WorkflowItem>> GetWorkflow(
             [FromRoute] string workflowId)
@@ -136,6 +139,7 @@ namespace CartaWeb.Controllers
 
             return Ok(workflowItem);
         }
+        [Authorize]
         [HttpPatch("{workflowId}")]
         public async Task<ActionResult<WorkflowItem>> UpdateWorkflow(
             [FromRoute] string workflowId,
@@ -177,6 +181,7 @@ namespace CartaWeb.Controllers
             await UpdateWorkflowAsync(workflowItem, _persistence);
             return Ok(workflowItem);
         }
+        [Authorize]
         [HttpDelete("{workflowId}")]
         public async Task<ActionResult> DeleteWorkflow(string workflowId)
         {
@@ -198,6 +203,7 @@ namespace CartaWeb.Controllers
         #endregion
 
         #region Suboperations CRUD
+        [Authorize]
         [HttpGet("{workflowId}/operations")]
         public async Task<ActionResult<OperationItem[]>> GetWorkflowOperations(
             [FromRoute] string workflowId)
@@ -224,6 +230,7 @@ namespace CartaWeb.Controllers
                 suboperations.Add(await OperationsController.LoadOperationAsync(suboperationGuid, _persistence));
             return suboperations.ToArray();
         }
+        [Authorize]
         [HttpPost("{workflowId}/operations/{suboperationId}")]
         public async Task<ActionResult> AddWorkflowOperation(
             [FromRoute] string workflowId,
@@ -263,6 +270,7 @@ namespace CartaWeb.Controllers
             await UpdateWorkflowAsync(workflowItem, _persistence);
             return Ok();
         }
+        [Authorize]
         [HttpDelete("{workflowId}/operations/{suboperationId}")]
         public async Task<ActionResult> RemoveWorkflowOperation(
             [FromRoute] string workflowId,
@@ -320,6 +328,7 @@ namespace CartaWeb.Controllers
         #endregion
 
         #region Connections CRUD
+        [Authorize]
         [HttpGet("{workflowId}/connections")]
         public async Task<ActionResult<WorkflowConnection[]>> GetWorkflowConnections(
             [FromRoute] string workflowId)
@@ -343,6 +352,7 @@ namespace CartaWeb.Controllers
             // We return the workflow connections.
             return Ok(workflowItem.Connections);
         }
+        [Authorize]
         [HttpPost("{workflowId}/connections")]
         public async Task<ActionResult<WorkflowConnection>> AddWorkflowConnection(
             [FromRoute] string workflowId,
@@ -420,6 +430,7 @@ namespace CartaWeb.Controllers
             await UpdateWorkflowAsync(workflowItem, _persistence);
             return connection;
         }
+        [Authorize]
         [HttpPatch("{workflowId}/connections/{connectionId}")]
         public async Task<ActionResult<WorkflowConnection>> UpdateWorkflowConnection(
             [FromRoute] string workflowId,
@@ -510,6 +521,7 @@ namespace CartaWeb.Controllers
             await UpdateWorkflowAsync(workflowItem, _persistence);
             return connection;
         }
+        [Authorize]
         [HttpDelete("{workflowId}/connections/{connectionId}")]
         public async Task<ActionResult> RemoveWorkflowConnection(
             [FromRoute] string workflowId,
@@ -548,6 +560,7 @@ namespace CartaWeb.Controllers
             return Ok();
         }
 
+        [Authorize]
         [HttpPost("{workflowId}/connections/suggest")]
         public async Task<ActionResult<WorkflowConnection>> GetWorkflowConnectionSuggestion(
             [FromRoute] string workflowId,

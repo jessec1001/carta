@@ -39,23 +39,52 @@ namespace CartaCore.Operations.Visualization
         public PlotStyle? Style { get; set; }
     }
     /// <summary>
-    /// The data for a scatter plot.
+    /// The base structure of the scatter plot.
     /// </summary>
-    public class ScatterPlot : Plot
+    public class ScatterPlotBase : Plot
     {
         /// <inheritdoc />
         public override string Type => "scatter";
-
-        /// <summary>
-        /// The data points for this scatter plot.
-        /// </summary>
-        public ScatterPlotDatum[] Data { get; set; }
 
         /// <summary>
         /// The name of the colormap to use for mapping numeric data to colors. If not specified, a default color will
         /// be used instead.
         /// </summary>
         public string Colormap { get; init; }
+    }
+    /// <summary>
+    /// The data for a scatter plot.
+    /// </summary>
+    public class ScatterPlot : ScatterPlotBase, IAsyncPipelineable<ScatterPlot, ScatterPlotBase, ScatterPlotDatum>
+    {
+        /// <summary>
+        /// The data points for this scatter plot.
+        /// </summary>
+        public IAsyncEnumerable<ScatterPlotDatum> Data { get; set; }
+
+        /// <inheritdoc />
+        public ScatterPlotBase Deconstruct()
+        {
+            return new ScatterPlotBase()
+            {
+                Colormap = Colormap,
+            };
+        }
+        /// <inheritdoc />
+        public IAsyncEnumerable<ScatterPlotDatum> Enumerate()
+        {
+            return Data;
+        }
+        /// <inheritdoc />
+        public Task<ScatterPlot> Renumerate(IAsyncEnumerable<ScatterPlotDatum> elements, ScatterPlotBase structure)
+        {
+            ScatterPlot plot = new ScatterPlot()
+            {
+                Colormap = structure.Colormap,
+                Data = elements,
+            };
+            return Task.FromResult(plot);
+        }
     }
 
     /// <summary>
@@ -66,57 +95,70 @@ namespace CartaCore.Operations.Visualization
         /// <summary>
         /// The title of the scatter plot visualization.
         /// </summary>
+        [FieldName("Title")]
         public string Title { get; set; }
 
         /// <summary>
         /// The x-values for the points in the scatter plot. 
         /// </summary>
-        public double[] XValues { get; set; }
+        [FieldName("x-Axis Values")]
+        public IAsyncEnumerable<double?> XValues { get; set; }
         /// <summary>
         /// The y-values for the points in the scatter plot.
         /// </summary>
-        public double[] YValues { get; set; }
+        [FieldName("y-Axis Values")]
+        public IAsyncEnumerable<double?> YValues { get; set; }
         /// <summary>
         /// The z-values for the points in the scatter plot.
         /// If not specified, will be a 2D scatter plot.
         /// </summary>
-        public double[] ZValues { get; set; }
+        [FieldName("z-Axis Values")]
+        public IAsyncEnumerable<double?> ZValues { get; set; }
         /// <summary>
         /// The x-axis for the scatter plot.
         /// </summary>
+        [FieldName("x-Axis")]
         public PlotAxis? XAxis { get; set; }
         /// <summary>
         /// The y-axis for the scatter plot.
         /// </summary>
+        [FieldName("y-Axis")]
         public PlotAxis? YAxis { get; set; }
         /// <summary>
         /// The z-axis for the scatter plot.
         /// </summary>
+        [FieldName("z-Axis")]
         public PlotAxis? ZAxis { get; set; }
 
         // TODO: Allow for specifying an option for zoom-independent radii instead of being default.
         /// <summary>
         /// The radii of the points in the scatter plot.
+        /// This field is optional.
         /// </summary>
-        public double[] Radius { get; set; }
+        [FieldName("Radii")]
+        public IAsyncEnumerable<double?> Radius { get; set; }
 
         // TODO: Make an enumeration of all possible colormaps available in the visualization library.
         /// <summary>
         /// The color map to use for the scatter plot. If specified, the color values indicate the color of the point.
         /// </summary>
+        [FieldName("Color Map")]
         public string ColorMap { get; set; }
         /// <summary>
         /// The values to use to color the points in the scatterplot when applying the colormap.
         /// </summary>
-        public double[] ColorValues { get; set; }
+        [FieldName("Color Values")]
+        public IAsyncEnumerable<double?> ColorValues { get; set; }
 
         /// <summary>
         /// The style of the scatter plot points if not assigned with greater specificity.
         /// </summary>
+        [FieldName("Point Style")]
         public PlotStyle? PointStyle { get; set; }
         /// <summary>
         /// The style of the scatter plot axes.
         /// </summary>
+        [FieldName("Axes Style")]
         public PlotStyle? AxesStyle { get; set; }
     }
     /// <summary>
@@ -127,6 +169,7 @@ namespace CartaCore.Operations.Visualization
         /// <summary>
         /// The generated scatter plot.
         /// </summary>
+        [FieldName("Plot")]
         public ScatterPlot Plot { get; set; }
     }
 
@@ -142,6 +185,46 @@ namespace CartaCore.Operations.Visualization
         ScatterPlotOperationOut
     >
     {
+        private static async IAsyncEnumerable<ScatterPlotDatum> EnumerateData(
+            IAsyncEnumerator<double?> xValues,
+            IAsyncEnumerator<double?> yValues,
+            IAsyncEnumerator<double?> zValues,
+            IAsyncEnumerator<double?> radii,
+            IAsyncEnumerator<double?> colors,
+            string colormap,
+            PlotStyle? style
+        )
+        {
+            // TODO: In the future, we should calculate colors from colormaps here rather than in the visualization library.
+            // Generate each of the scatter plot points.
+            while (true)
+            {
+                bool moreElements = true;
+                moreElements &= xValues is null || await xValues.MoveNextAsync();
+                moreElements &= yValues is null || await yValues.MoveNextAsync();
+                moreElements &= zValues is null || await zValues.MoveNextAsync();
+                moreElements &= radii is null || await radii.MoveNextAsync();
+                moreElements &= colors is null || await colors.MoveNextAsync();
+                if (!moreElements) break;
+
+                double? x = xValues?.Current;
+                double? y = yValues?.Current;
+                double? z = zValues?.Current;
+                double? r = radii?.Current;
+                double? c = colors?.Current;
+
+                yield return new ScatterPlotDatum
+                {
+                    X = x,
+                    Y = y,
+                    Z = z,
+                    Radius = r,
+                    Value = colormap is null ? null : c,
+                    Style = style,
+                };
+            }
+        }
+
         /// <inheritdoc />
         public override Task<ScatterPlotOperationOut> Perform(
             ScatterPlotOperationIn input,
@@ -158,48 +241,19 @@ namespace CartaCore.Operations.Visualization
             }
 
             // We assume that the dimensions are specified in order of x, y, z and that there are at least 2 dimensions.
-            double[] x = input.XValues;
-            double[] y = input.YValues;
-            double[] z = input.ZValues;
-            double[] r = input.Radius;
-            double[] c = input.ColorValues;
-            int length;
+            IAsyncEnumerable<double?> X = input.XValues;
+            IAsyncEnumerable<double?> Y = input.YValues;
+            IAsyncEnumerable<double?> Z = input.ZValues;
+            IAsyncEnumerable<double?> R = input.Radius;
+            IAsyncEnumerable<double?> C = input.ColorValues;
 
             // First, we check that there at least 2 dimensions.
-            if (x is null || y is null)
+            if (X is null || Y is null)
                 throw new ArgumentException("Scatter plot must have at least 2 dimensions.");
-            length = x.Length;
-
-            // Second, we check that the data in each axis is the same length.
-            if (y.Length != length)
-                throw new ArgumentException("Scatter plot values in x and y dimensions must be the same length.");
-            if (z is not null && z.Length != length)
-                throw new ArgumentException("Scatter plot values in x and z dimensions must be the same length.");
-            if (r is not null && r.Length != length)
-                throw new ArgumentException("Scatter plot values and radii must be the same length.");
-            if (c is not null && c.Length != length && input.ColorMap is not null)
-                throw new ArgumentException("Scatter plot values and color values must be the same length.");
 
             // Third, we check that color values are specified if a colormap is specified.
-            if (c is null && input.ColorMap is not null)
+            if (C is null && input.ColorMap is not null)
                 throw new ArgumentException("Scatter plot color values must be specified when a color map is specified.");
-
-            // TODO: In the future, we should calculate colors from colormaps here rather than in the visualization library.
-            // Generate each of the scatter plot points.
-            ScatterPlotDatum[] points = new ScatterPlotDatum[length];
-            for (int k = 0; k < length; k++)
-            {
-                ScatterPlotDatum point = new()
-                {
-                    X = x?[k],
-                    Y = y?[k],
-                    Z = z?[k],
-                    Radius = r?[k],
-                    Style = input.PointStyle,
-                    Value = input.ColorMap is null ? null : c?[k]
-                };
-                points[k] = point;
-            }
 
             // Generate the axes for the scatter plot when not specified.
             PlotAxis xAxis = input.XAxis ?? new PlotAxis() { Label = "X" };
@@ -210,7 +264,14 @@ namespace CartaCore.Operations.Visualization
             // Based on what the input data looks like, we'll generate a 2D or 3D scatter plot.
             ScatterPlot plot = new()
             {
-                Data = points,
+                Data = EnumerateData(
+                    X?.GetAsyncEnumerator(),
+                    Y?.GetAsyncEnumerator(),
+                    Z?.GetAsyncEnumerator(),
+                    R?.GetAsyncEnumerator(),
+                    C?.GetAsyncEnumerator(),
+                    input.ColorMap,
+                    input.PointStyle),
                 Axes = new PlotAxes() { X = xAxis, Y = yAxis, Z = zAxis },
                 Style = styles,
                 Colormap = input.ColorMap,

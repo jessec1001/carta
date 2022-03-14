@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using CartaCore.Documentation;
 using CartaCore.Operations.Attributes;
+using CartaCore.Operations.Visualization;
 using NJsonSchema;
 
 namespace CartaCore.Operations
@@ -79,6 +80,10 @@ namespace CartaCore.Operations
             JsonSchema schema = OperationHelper.GenerateSchema(typeof(TValue), attributes);
             schema.Title = input.Name;
             schema.Description = input.Description;
+
+            // Perform a special check for plot-based output values.
+            if (typeof(TValue).IsAssignableTo(typeof(Plot)))
+                schema.ExtensionData["ui:plot"] = true;
 
             // Construct and yield the field descriptor for the external field.
             yield return await Task.FromResult(new OperationFieldDescriptor
