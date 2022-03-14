@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using CartaCore.Graphs;
 using CartaCore.Operations.Attributes;
@@ -483,9 +484,8 @@ namespace CartaCore.Operations
             // TODO: Implement pipelining execution.
 
             // Create a job for the operation.
-            Dictionary<string, object> inputs = await GetOperationInputs(id);
-            Dictionary<string, object> outputs = new();
-            OperationJob job = new(operation, Job.Id, inputs, outputs, Job);
+            OperationJob job = new(operation, Job.Id, Job);
+            await PrepareOperationJob(operation.Id, job);
 
             // TODO: Can we delete intermediate results to operations that are no longer dependencies?
             // Execute the operation and add the results to our collection.
@@ -496,43 +496,59 @@ namespace CartaCore.Operations
         }
 
         /// <summary>
-        /// Gets the input for an operation specified by identifier.
+        /// Prepares a job for an operation by retrieving all its dependencies.
         /// </summary>
-        /// <param name="id">The unique identifier of the operation.</param>
-        /// <returns>The input that the operation requires.</returns>
-        private async Task<Dictionary<string, object>> GetOperationInputs(string id)
+        /// <param name="id">The identifier for the operation.</param>
+        /// <param name="job">The job to prepare.</param>
+        private async Task PrepareOperationJob(string id, OperationJob job)
         {
-            // TODO: Clean this up and check if there are any ramifications to the way we are doing this.
-
-            // For each dependency to the specified operation, we get the input for that dependency.
-            Dictionary<string, object> inputs = new();
+            // For each dependency to the specified operation, we append that input to the job.
             WorkflowDependencyVertex vertex = await DependencyGraph.GetVertex(id);
             foreach (WorkflowDependencyEdge edge in vertex.Edges)
             {
-                // TODO: Check that the corresponding fields actually exist for type safety.
-                // Check if the edge targets the specified operation.
+                // Fetch the source field from the results.
                 if (edge.Target != id) continue;
-                IDictionary<string, object> output = await GetOperationOutputs(edge.Source);
-                inputs.Add(edge.TargetPoint.Field, output[edge.SourcePoint.Field]);
+                if (!Results.TryGetValue(edge.SourcePoint.Operation, out IDictionary<string, object> results)) continue;
+                if (!results.TryGetValue(edge.SourcePoint.Field, out object value)) continue;
+                job.Input.TryAdd(edge.TargetPoint.Field, value);
             }
 
-            // TODO: Temporary.
-            // Forward the authentication settings.
-            if (Job.Input.TryGetValue("authentication", out object authentication))
-                inputs.Add("authentication", authentication);
+            // For each input to the operation, check for special inputs to handle.
+            // This includes enumerables, streams, and decomposables which are not reusable in general.
+            await foreach (OperationFieldDescriptor field in vertex.Operation.GetInputFields(job))
+            {
+                // We are only concerned with inter-operation dependencies.
+                if (!job.Input.TryGetValue(field.Name, out object input)) continue;
 
-            return inputs;
-        }
-        /// <summary>
-        /// Gets the output for an operation specified by identifier.
-        /// </summary>
-        /// <param name="id">The unique identifier of the operation.</param>
-        /// <returns>The output that the operation produced.</returns>
-        private async Task<IDictionary<string, object>> GetOperationOutputs(string id)
-        {
-            if (Results.TryGetValue(id, out IDictionary<string, object> output))
-                return await Task.FromResult(output);
-            else throw new KeyNotFoundException($"Could not find output for operation with ID '{id}'.");
+                // Check if the field should be asynchronously enumerable.
+                if (field.Type.IsGenericType &&
+                    field.Type.GetGenericTypeDefinition().IsAssignableTo(typeof(IAsyncEnumerable<>)))
+                {
+                    Type elementType = field.Type
+                        .GetGenericArguments()
+                        .FirstOrDefault();
+                    Type enumerableType = typeof(IEnumerable<>).MakeGenericType(elementType);
+                    if (elementType is not null && input.GetType().IsAssignableTo(enumerableType))
+                    {
+                        // Get the method to convert the enumerable to an async enumerable.
+                        MethodInfo genericConverter = typeof(AsyncEnumerable)
+                            .GetMethods(BindingFlags.Public | BindingFlags.Static)
+                            .Where(
+                                method => method.Name == nameof(AsyncEnumerable.ToAsyncEnumerable) &&
+                                method.IsGenericMethodDefinition &&
+                                method.GetParameters().Length == 1 &&
+                                method.GetParameters().First()
+                                    .ParameterType.GetGenericTypeDefinition().IsAssignableTo(typeof(IEnumerable<>))
+                            )
+                            .FirstOrDefault();
+                        MethodInfo concreteConverter = genericConverter.MakeGenericMethod(elementType);
+
+                        // If the input is an enumerable, we need to convert it to an async enumerable.
+                        object enumerableAsync = concreteConverter.Invoke(null, new[] { input });
+                        job.Input.TryUpdate(field.Name, enumerableAsync, input);
+                    }
+                }
+            }
         }
     }
 }

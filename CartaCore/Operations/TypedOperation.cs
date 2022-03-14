@@ -255,39 +255,15 @@ namespace CartaCore.Operations
             }
         }
 
-        /// <summary>
-        /// Gets the input fields of the executing job and their descriptors for this operation.
-        /// </summary>
-        /// <param name="input">The typed input to the operation.</param>
-        /// <param name="job">The executing operation job.</param>
-        /// <returns>An enumeration of external input field descriptors.</returns>
-        public virtual IAsyncEnumerable<OperationFieldDescriptor> GetExternalInputFields(TInput input, OperationJob job)
+        /// <inheritdoc />
+        public override IAsyncEnumerable<OperationFieldDescriptor> GetExternalInputFields(OperationJob job)
         {
             return Enumerable.Empty<OperationFieldDescriptor>().ToAsyncEnumerable();
         }
         /// <inheritdoc />
-        public override async IAsyncEnumerable<OperationFieldDescriptor> GetExternalInputFields(OperationJob job)
-        {
-            TInput input = await ConvertInput(job, MergeDefaults(job.Input, Defaults));
-            await foreach (OperationFieldDescriptor field in GetExternalInputFields(input, job))
-                yield return field;
-        }
-        /// <summary>
-        /// Gets the output fields of the executing job and their descriptors for this operation.
-        /// </summary>
-        /// <param name="input">The typed input to the operation.</param>
-        /// <param name="job">The executing operation job.</param>
-        /// <returns>An enumeration of external output field descriptors.</returns>
-        public virtual IAsyncEnumerable<OperationFieldDescriptor> GetExternalOutputFields(TInput input, OperationJob job)
+        public override IAsyncEnumerable<OperationFieldDescriptor> GetExternalOutputFields(OperationJob job)
         {
             return Enumerable.Empty<OperationFieldDescriptor>().ToAsyncEnumerable();
-        }
-        /// <inheritdoc />
-        public override async IAsyncEnumerable<OperationFieldDescriptor> GetExternalOutputFields(OperationJob job)
-        {
-            TInput input = await ConvertInput(job, MergeDefaults(job.Input, Defaults));
-            await foreach (OperationFieldDescriptor field in GetExternalOutputFields(input, job))
-                yield return field;
         }
 
         /// <summary>

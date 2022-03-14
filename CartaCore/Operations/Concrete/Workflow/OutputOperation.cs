@@ -63,10 +63,11 @@ namespace CartaCore.Operations
         }
 
         /// <inheritdoc />
-        public override async IAsyncEnumerable<OperationFieldDescriptor> GetExternalOutputFields(
-            OutputOperationIn<TValue> input,
-            OperationJob job)
+        public override async IAsyncEnumerable<OperationFieldDescriptor> GetExternalOutputFields(OperationJob job)
         {
+            // Convert the input value to a typed format.
+            OutputOperationIn<TValue> input = await ConvertInput(job, MergeDefaults(job.Input, Defaults));
+
             // If the output name is not specified, then we can't provide any external fields.
             if (input.Name is null)
                 yield break;
