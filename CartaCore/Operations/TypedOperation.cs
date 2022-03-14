@@ -20,10 +20,9 @@ namespace CartaCore.Operations
         /// <summary>
         /// The typed default values of the operation as specified externally.
         /// </summary>
-        public TInput DefaultsTyped
+        public async Task<TInput> DefaultsTyped(OperationJob job = null)
         {
-            get => ConvertToTyped<TInput>(Defaults);
-            set => Defaults = value.AsDictionary();
+            return await ConvertInput(job, Defaults);
         }
 
         /// <summary>
@@ -37,46 +36,130 @@ namespace CartaCore.Operations
             new DictionaryTypeConverter()
         );
 
-        // TODO: This conversion should happen field-by-field so as to catch type errors at the field level.
         /// <summary>
-        /// Converts the specified dictionary to a typed value.
+        /// Merges a dictionary of values with a dictionary of default values.
         /// </summary>
-        /// <param name="values">The dictionary.</param>
-        /// <param name="defaults">The default values if any.</param>
-        /// <typeparam name="T">The type of value.</typeparam>
-        /// <returns>The typed value.</returns>
-        protected virtual T ConvertToTyped<T>(
+        /// <param name="values">The values.</param>
+        /// <param name="defaults">The default values.</param>
+        /// <returns>The merged values.</returns>
+        public IDictionary<string, object> MergeDefaults(
             IDictionary<string, object> values,
             IDictionary<string, object> defaults = null)
         {
-            IDictionary<string, object> totality = values;
+            IDictionary<string, object> merged = new Dictionary<string, object>(values);
             if (defaults is not null)
             {
-                totality = new Dictionary<string, object>(values);
                 foreach (KeyValuePair<string, object> pair in defaults)
                 {
-                    if (!totality.ContainsKey(pair.Key))
-                        totality.Add(pair.Key, pair.Value);
+                    if (!merged.ContainsKey(pair.Key))
+                        merged[pair.Key] = pair.Value;
                 }
             }
+            return merged;
+        }
 
-            if (TypeConverter.TryConvert(in totality, out T typed))
-                return typed;
+        /// <summary>
+        /// Converts a particular input object into the expected type for the corresponding input field.
+        /// The only input fields that are considered are those that are returned from <see cref="GetInputFields(OperationJob)"/>.
+        /// </summary>
+        /// <param name="field">The description of the field.</param>
+        /// <param name="input">The input object.</param>
+        /// <param name="job">The job performing the operation.</param>
+        /// <returns>The converted field value.</returns>
+        public virtual Task<object> ConvertInputField(
+            OperationFieldDescriptor field,
+            object input,
+            OperationJob job)
+        {
+            if (TypeConverter.TryConvert(input?.GetType() ?? typeof(object), field.Type, in input, out object converted))
+                return Task.FromResult(converted);
             else
-                throw new InvalidCastException("Failed to convert to the appropriate type.");
+            {
+                throw new InvalidCastException(
+                    $"Could not convert input field '{field.Name}' to expected type of '{field.Type.Name}'."
+                );
+            }
         }
         /// <summary>
-        /// Converts the specified typed value to a dictionary.
+        /// Converts the input dictionary for a job into a typed input.
         /// </summary>
-        /// <param name="typed">The typed value.</param>
-        /// <typeparam name="T">The type of value.</typeparam>
-        /// <returns>The dictionary.</returns>
-        protected virtual IDictionary<string, object> ConvertFromTyped<T>(T typed)
+        /// <param name="job">The job performing the operation.</param>
+        /// <param name="inputs">The input dictionary.</param>
+        /// <returns>The typed input.</returns>
+        public virtual async Task<TInput> ConvertInput(OperationJob job, IDictionary<string, object> inputs)
         {
-            if (TypeConverter.TryConvert(in typed, out IDictionary<string, object> values))
-                return values;
+            // TODO: This is making an infinite recursive call to `GetInputFields` and back to `ConvertInput`.
+            // For each input field, try to perform a convert and set the corresponding property.
+            object typedInput = new TInput();
+            await foreach (OperationFieldDescriptor field in GetInputFields(job))
+            {
+                // Try to find the corresponding property.
+                PropertyInfo property = typeof(TInput).GetProperty(
+                    field.Name,
+                    BindingFlags.Public |
+                    BindingFlags.Instance |
+                    BindingFlags.IgnoreCase
+                );
+                if (property is null) continue;
+
+                // Set the property value after conversion.
+                if (inputs.TryGetValue(field.Name, out object input))
+                {
+                    object converted = await ConvertInputField(field, input, job);
+                    property.SetValue(typedInput, converted);
+                }
+            }
+            return (TInput)typedInput;
+        }
+        /// <summary>
+        /// Converts a particular output object into the expected type for the corresponding output field.
+        /// The only output fields that are considered are those that are returned from <see cref="GetOutputFields(OperationJob)"/>.
+        /// </summary>
+        /// <param name="field">The description of the field.</param>
+        /// <param name="output">The output object.</param>
+        /// <param name="job">The job performing the operation.</param>
+        /// <returns>The converted field value.</returns>
+        public virtual Task<object> ConvertOutputField(
+            OperationFieldDescriptor field,
+            object output,
+            OperationJob job)
+        {
+            if (TypeConverter.TryConvert(output?.GetType() ?? typeof(object), field.Type, in output, out object converted))
+                return Task.FromResult(converted);
             else
-                throw new InvalidCastException("Failed to convert from the appropriate type.");
+            {
+                throw new InvalidCastException(
+                    $"Could not convert output field '{field.Name}' to expected type of '{field.Type.Name}'."
+                );
+            }
+        }
+        /// <summary>
+        /// Converts the output values for a job into a dictionary.
+        /// </summary>
+        /// <param name="job">The job performing the operation.</param>
+        /// <param name="outputs">The output values.</param>
+        /// <returns>The dictionary output.</returns>
+        public virtual async Task<IDictionary<string, object>> ConvertOutput(OperationJob job, TOutput outputs)
+        {
+            // For each output field, try to perform a convert and set the corresponding property.
+            IDictionary<string, object> dictOutput = new Dictionary<string, object>();
+            await foreach (OperationFieldDescriptor field in GetOutputFields(job))
+            {
+                // Try to find the corresponding property.
+                PropertyInfo property = typeof(TOutput).GetProperty(
+                    field.Name,
+                    BindingFlags.Public |
+                    BindingFlags.Instance |
+                    BindingFlags.IgnoreCase
+                );
+                if (property is null) continue;
+
+                // Append the property value after conversion.
+                object output = property.GetValue(outputs);
+                object converted = await ConvertOutputField(field, output, job);
+                dictOutput[field.Name] = converted;
+            }
+            return dictOutput;
         }
 
         /// <summary>
@@ -100,9 +183,9 @@ namespace CartaCore.Operations
         /// <inheritdoc />
         public override async Task Perform(OperationJob job)
         {
-            TInput input = ConvertToTyped<TInput>(job.Input, Defaults);
+            TInput input = await ConvertInput(job, MergeDefaults(job.Input, Defaults));
             TOutput output = await Perform(input, job);
-            foreach (KeyValuePair<string, object> entry in ConvertFromTyped<TOutput>(output))
+            foreach (KeyValuePair<string, object> entry in await ConvertOutput(job, output))
                 job.Output.TryAdd(entry.Key, entry.Value);
         }
 
@@ -116,18 +199,13 @@ namespace CartaCore.Operations
         /// <inheritdoc />
         public override async Task<bool> IsDeterministic(OperationJob job)
         {
-            TInput input = ConvertToTyped<TInput>(job.Input, Defaults);
+            TInput input = await ConvertInput(job, MergeDefaults(job.Input, Defaults));
             return await IsDeterministic(input);
         }
 
         // TODO: We need to incorporate the attributes into the following methods.  
-        /// <summary>
-        /// Gets the input fields and their descriptors for this operation.
-        /// </summary>
-        /// <param name="input">The typed input to the operation.</param>
-        /// <param name="job">The executing operation job.</param>
-        /// <returns>An enumeration of input field descriptors.</returns>
-        public virtual async IAsyncEnumerable<OperationFieldDescriptor> GetInputFields(TInput input, OperationJob job)
+        /// <inheritdoc />
+        public override async IAsyncEnumerable<OperationFieldDescriptor> GetInputFields(OperationJob job)
         {
             // Get the public properties by ignoring case for web portability.
             PropertyInfo[] properties = typeof(TInput)
@@ -152,18 +230,7 @@ namespace CartaCore.Operations
             }
         }
         /// <inheritdoc />
-        public override IAsyncEnumerable<OperationFieldDescriptor> GetInputFields(OperationJob job)
-        {
-            TInput input = ConvertToTyped<TInput>(job.Input, Defaults);
-            return GetInputFields(input, job);
-        }
-        /// <summary>
-        /// Gets the output fields and their descriptors for this operation.
-        /// </summary>
-        /// <param name="input">The typed input to the operation.</param>
-        /// <param name="job">The executing operation job.</param>
-        /// <returns>An enumeration of output field descriptors.</returns>
-        public virtual async IAsyncEnumerable<OperationFieldDescriptor> GetOutputFields(TInput input, OperationJob job)
+        public override async IAsyncEnumerable<OperationFieldDescriptor> GetOutputFields(OperationJob job)
         {
             // Get the public properties by ignoring case for web portability.
             PropertyInfo[] properties = typeof(TOutput)
@@ -187,12 +254,6 @@ namespace CartaCore.Operations
                 );
             }
         }
-        /// <inheritdoc />
-        public override IAsyncEnumerable<OperationFieldDescriptor> GetOutputFields(OperationJob job)
-        {
-            TInput input = ConvertToTyped<TInput>(job.Input, Defaults);
-            return GetOutputFields(input, job);
-        }
 
         /// <summary>
         /// Gets the input fields of the executing job and their descriptors for this operation.
@@ -205,10 +266,11 @@ namespace CartaCore.Operations
             return Enumerable.Empty<OperationFieldDescriptor>().ToAsyncEnumerable();
         }
         /// <inheritdoc />
-        public override IAsyncEnumerable<OperationFieldDescriptor> GetExternalInputFields(OperationJob job)
+        public override async IAsyncEnumerable<OperationFieldDescriptor> GetExternalInputFields(OperationJob job)
         {
-            TInput input = ConvertToTyped<TInput>(job.Input, Defaults);
-            return GetExternalInputFields(input, job);
+            TInput input = await ConvertInput(job, MergeDefaults(job.Input, Defaults));
+            await foreach (OperationFieldDescriptor field in GetExternalInputFields(input, job))
+                yield return field;
         }
         /// <summary>
         /// Gets the output fields of the executing job and their descriptors for this operation.
@@ -221,10 +283,11 @@ namespace CartaCore.Operations
             return Enumerable.Empty<OperationFieldDescriptor>().ToAsyncEnumerable();
         }
         /// <inheritdoc />
-        public override IAsyncEnumerable<OperationFieldDescriptor> GetExternalOutputFields(OperationJob job)
+        public override async IAsyncEnumerable<OperationFieldDescriptor> GetExternalOutputFields(OperationJob job)
         {
-            TInput input = ConvertToTyped<TInput>(job.Input, Defaults);
-            return GetExternalOutputFields(input, job);
+            TInput input = await ConvertInput(job, MergeDefaults(job.Input, Defaults));
+            await foreach (OperationFieldDescriptor field in GetExternalOutputFields(input, job))
+                yield return field;
         }
 
         /// <summary>
@@ -235,7 +298,7 @@ namespace CartaCore.Operations
         /// <returns>The operation template.</returns>
         public OperationTemplate GetTemplate(TInput defaults)
         {
-            IDictionary<string, object> untypedDefaults = ConvertFromTyped<TInput>(defaults);
+            IDictionary<string, object> untypedDefaults = defaults.AsDictionary(TypeConverter);
             return GetTemplate(untypedDefaults);
         }
     }

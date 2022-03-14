@@ -2,45 +2,45 @@ using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using CartaCore.Operations.Attributes;
-using CartaCore.Serialization.Json;
+using Newtonsoft.Json.Converters;
 
 namespace CartaCore.Operations.Arithmetic
 {
     /// <summary>
     /// The type of comparison operation that may be performed in the <see cref="ComparisonOperation" /> operation.
     /// </summary>
-    [JsonConverter(typeof(JsonFullStringEnumConverter))]
+    [JsonConverter(typeof(StringEnumConverter))]
     public enum ComparisonOperationType
     {
         /// <summary>
-        /// The numeric less than comparison operation.
+        /// Less than.
         /// </summary>
-        [EnumMember(Value = "Less than")]
+        [EnumMember(Value = "lessThan")]
         LessThan,
         /// <summary>
-        /// The numeric less than or equal to comparison operation.
+        /// Less than or equal to.
         /// </summary>
-        [EnumMember(Value = "Less than or equal to")]
+        [EnumMember(Value = "lessThanEq")]
         LessThanOrEqualTo,
         /// <summary>
-        /// The numeric greater than comparison operation.
+        /// Greater than.
         /// </summary>
-        [EnumMember(Value = "Greater than")]
+        [EnumMember(Value = "greaterThan")]
         GreaterThan,
         /// <summary>
-        /// The numeric greater than or equal to comparison operation.
+        /// Greater than or equal to.
         /// </summary>
-        [EnumMember(Value = "Greater than or equal to")]
+        [EnumMember(Value = "greaterThanEq")]
         GreaterThanOrEqualTo,
         /// <summary>
-        /// The numeric equal to comparison operation.
+        /// Equal to.
         /// </summary>
-        [EnumMember(Value = "Equal to")]
+        [EnumMember(Value = "eq")]
         EqualTo,
         /// <summary>
-        /// The numeric not equal to comparison operation.
+        /// Not equal to.
         /// </summary>
-        [EnumMember(Value = "Not equal to")]
+        [EnumMember(Value = "ineq")]
         NotEqualTo
     }
 

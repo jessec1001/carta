@@ -115,7 +115,7 @@ const Mosaic: FC<MosaicProps> & MosaicComposition = forwardRef<
   // We store a position of the grid.
   const [panning, setPanning] = useState<boolean>(false);
   const [position, setPosition] = useState<[number, number]>([0, 0]);
-  const [zoom] = useState<number>(1);
+  const [zoom, setZoom] = useState<number>(1);
 
   // TODO: Reimplement zooming.
   // We update the position of the grid on mouse move.
@@ -145,10 +145,10 @@ const Mosaic: FC<MosaicProps> & MosaicComposition = forwardRef<
     },
     [panning, position]
   );
-  // const handleZoom = useCallback((event: React.WheelEvent) => {
-  //   const effect = 1 - event.deltaY / 1000;
-  //   setZoom((zoom) => Math.min(2, Math.max(0.5, zoom * effect)));
-  // }, []);
+  const handleZoom = useCallback((event: React.WheelEvent) => {
+    const effect = 1 - event.deltaY / 1000;
+    setZoom((zoom) => Math.min(2, Math.max(0.5, zoom * effect)));
+  }, []);
 
   return (
     <div
@@ -165,7 +165,7 @@ const Mosaic: FC<MosaicProps> & MosaicComposition = forwardRef<
       onMouseUp={handleEndPan}
       onMouseLeave={() => setPanning(false)}
       onMouseMove={handlePan}
-      // onWheel={handleZoom}
+      onWheel={handleZoom}
       ref={combinedRef}
       {...props}
     >

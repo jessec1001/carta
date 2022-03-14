@@ -6,6 +6,7 @@ import { JsonSchema } from "library/schema";
 import styles from "./EditorOutputNode.module.css";
 import { Mosaic } from "components/mosaic";
 import { LoadingIcon } from "components/icons";
+import { SchemaBaseInput } from "components/form/schema";
 
 /** The props used for the {@link EditorOutputNode} component. */
 interface EditorOutputNodeProps {
@@ -56,6 +57,8 @@ const EditorOutputNode: FC<EditorOutputNodeProps> = ({
       <Mosaic.Tile.Handle onOffset={onOffset} className={styles.header}>
         Output <Text color="info">({schema.title})</Text>
       </Mosaic.Tile.Handle>
+      {/* TODO: Implement as a readonly schema input. */}
+      {/* <SchemaBaseInput schema={schema} value={value} /> */}
       <pre className={styles.output}>
         <code>{JSON.stringify(value, null, 2)}</code>
       </pre>

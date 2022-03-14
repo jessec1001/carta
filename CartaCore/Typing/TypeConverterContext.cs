@@ -46,7 +46,8 @@ namespace CartaCore.Typing
             TypeConverterContext context = null)
         {
             // Check the trivial case.
-            if ((input is null && targetType.IsClass) || sourceType.IsAssignableTo(targetType))
+            if (sourceType.IsAssignableTo(targetType) ||
+                (input is null && (targetType.IsClass || targetType.IsInterface)))
             {
                 output = input;
                 return true;

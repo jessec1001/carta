@@ -3,40 +3,40 @@ using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using CartaCore.Operations.Attributes;
-using CartaCore.Serialization.Json;
+using Newtonsoft.Json.Converters;
 
 namespace CartaCore.Operations.Arithmetic
 {
     /// <summary>
     /// The type of arithmetic operation that may be performed in the <see cref="ArithmeticOperation" /> operation.
     /// </summary>
-    [JsonConverter(typeof(JsonFullStringEnumConverter))]
+    [JsonConverter(typeof(StringEnumConverter))]
     public enum ArithmeticOperationType
     {
         /// <summary>
-        /// The addition operation.
+        /// Add.
         /// </summary>
-        [EnumMember(Value = "Add")]
+        [EnumMember(Value = "add")]
         Add,
         /// <summary>
-        /// The subtraction operation.
+        /// Substract.
         /// </summary>
-        [EnumMember(Value = "Subtract")]
+        [EnumMember(Value = "sub")]
         Subtract,
         /// <summary>
-        /// The multiplication operation.
+        /// Multiply.
         /// </summary>
-        [EnumMember(Value = "Multiply")]
+        [EnumMember(Value = "mul")]
         Multiply,
         /// <summary>
-        /// The division operation.
+        /// Divide.
         /// </summary>
-        [EnumMember(Value = "Divide")]
+        [EnumMember(Value = "div")]
         Divide,
         /// <summary>
-        /// The exponentiation operation.
+        /// Exponentiate.
         /// </summary>
-        [EnumMember(Value = "Exponentiate")]
+        [EnumMember(Value = "exp")]
         Exponentiate
     }
 

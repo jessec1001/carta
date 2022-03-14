@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using CartaCore.Documentation;
 using CartaCore.Extensions.Documentation;
 using CartaCore.Operations.Attributes;
+using CsvHelper;
 using NJsonSchema;
 
 namespace CartaCore.Operations.Arithmetic
@@ -82,7 +83,7 @@ namespace CartaCore.Operations.Arithmetic
             /// A number is anything of the form '123' or '.123' or '1.23' but not of '1.'. Negations are handled
             /// separately. This regular expression pattern matches numbers.
             /// </summary>
-            private static readonly Regex NumberPattern = new(@"\d*(\.\d+)?", RegexOptions.Compiled);
+            private static readonly Regex NumberPattern = new(@"(\d+|\d*\.\d+)", RegexOptions.Compiled);
             /// <summary>
             /// A symbol is any consecutive sequence of characters that may optionally end in a sequence of digits. This
             /// regular expression pattern matches symbols.
@@ -111,6 +112,9 @@ namespace CartaCore.Operations.Arithmetic
             /// <param name="expression">The arithmetic expression.</param>
             public ArithmeticInterpreter(string expression)
             {
+                if (expression is null)
+                    throw new ArgumentNullException(nameof(expression));
+
                 Expression = expression;
                 Evaluation = ParseExpression(LexExpression(expression));
             }
@@ -193,7 +197,7 @@ namespace CartaCore.Operations.Arithmetic
                             values[k] = (Valuation)((valuation) => number);
 
                         // Check if symbol.
-                        if (!OperationTokens.Contains(token))
+                        else if (!OperationTokens.Contains(token))
                             values[k] = (Valuation)((valuation) => valuation.GetValueOrDefault(token));
                     }
                 }
@@ -224,17 +228,15 @@ namespace CartaCore.Operations.Arithmetic
                                 }
                                 if (result is not null)
                                 {
-                                    values = values
-                                        .Take(k)
-                                        .Skip(3)
-                                        .Append(result)
-                                        .ToList();
+                                    values.RemoveRange(k, 3);
+                                    values.Insert(k, result);
                                     matched = true;
                                     break;
                                 }
                             }
                         }
                     }
+                    if (matched) continue;
                     for (int k = 0; k < values.Count; k++)
                     {
                         // Match binary operations.
@@ -296,9 +298,7 @@ namespace CartaCore.Operations.Arithmetic
                                 }
                                 if (result is not null)
                                 {
-                                    values.RemoveAt(k + 2);
-                                    values.RemoveAt(k + 1);
-                                    values.RemoveAt(k + 0);
+                                    values.RemoveRange(k, 3);
                                     values.Insert(k, result);
                                     matched = true;
                                     break;
@@ -307,6 +307,7 @@ namespace CartaCore.Operations.Arithmetic
                         }
 
                         // Match unary operations.
+                        if (matched) continue;
                         if (k + 2 <= values.Count)
                         {
                             if (
@@ -326,8 +327,7 @@ namespace CartaCore.Operations.Arithmetic
                                 }
                                 if (result is not null)
                                 {
-                                    values.RemoveAt(k + 1);
-                                    values.RemoveAt(k + 0);
+                                    values.RemoveRange(k, 2);
                                     values.Insert(k, result);
                                     matched = true;
                                     break;
@@ -336,6 +336,7 @@ namespace CartaCore.Operations.Arithmetic
                         }
 
                         // Match grouping.
+                        if (matched) continue;
                         if (k + 3 <= values.Count)
                         {
                             if (
@@ -398,25 +399,76 @@ namespace CartaCore.Operations.Arithmetic
         }
 
         /// <inheritdoc />
-        public override async IAsyncEnumerable<OperationFieldDescriptor> GetInputFields(
-            ArithmeticExpressionOperationIn input,
-            OperationJob job)
+        public override async Task<ArithmeticExpressionOperationIn> ConvertInput(OperationJob job, IDictionary<string, object> inputs)
+        {
+            // This override for converting input values guarantees that the symbols in the expression are assigned to.
+            // Get the base inputs.
+            ArithmeticExpressionOperationIn input = await base.ConvertInput(job, inputs);
+            input.Values = new Dictionary<string, double>();
+
+            // Try to find the symbols in the expression.
+            string[] symbols = Array.Empty<string>();
+            try
+            {
+                ArithmeticInterpreter interpreter = new(input.Expression);
+                symbols = interpreter.FindSymbols();
+            }
+            catch (ArgumentException) { }
+
+            // We get each of the symbols and add them to the input appropriately.
+            await foreach (OperationFieldDescriptor field in GetInputFields(job))
+            {
+                foreach (string symbol in symbols)
+                {
+                    if (field.Name == symbol)
+                    {
+                        if (inputs.TryGetValue(field.Name, out object value))
+                            input.Values.Add(symbol, (double)await ConvertInputField(field, value, job));
+                        else
+                            input.Values.Add(symbol, default);
+                        break;
+                    }
+                }
+            }
+            return input;
+        }
+
+        /// <inheritdoc />
+        public override async IAsyncEnumerable<OperationFieldDescriptor> GetInputFields(OperationJob job)
         {
             // Hide the values dictionary from the inputs.
-            await foreach (OperationFieldDescriptor inputDescriptor in base.GetInputFields(input, job))
+            string expression = null;
+            IDictionary<string, object> inputs = MergeDefaults(job.Input, Defaults);
+            await foreach (OperationFieldDescriptor inputDescriptor in base.GetInputFields(job))
             {
+                if (inputDescriptor.Name == nameof(ArithmeticExpressionOperationIn.Expression))
+                {
+                    if (inputs.TryGetValue(inputDescriptor.Name, out object value))
+                        expression = (string)await ConvertInputField(inputDescriptor, value, job);
+                }
                 if (inputDescriptor.Name != nameof(ArithmeticExpressionOperationIn.Values))
                     yield return inputDescriptor;
             }
+
+            // If the expression has not been specified, we should not add any fields.
+            if (expression is null) yield break;
 
             // Fetch the documentation for the value field.
             StandardDocumentation documentation = typeof(ArithmeticExpressionOperationIn)
                 .GetProperty(nameof(ArithmeticExpressionOperationIn.Values))
                 .GetDocumentation<StandardDocumentation>();
 
+            // If the expression is invalid, we should not add any fields.
+            string[] symbols = Array.Empty<string>();
+            try
+            {
+                ArithmeticInterpreter interpreter = new(expression);
+                symbols = interpreter.FindSymbols();
+            }
+            catch (ArgumentException) { }
+
             // Yield the value inputs based on the interpreted expression.
-            ArithmeticInterpreter interpreter = new(input.Expression);
-            foreach (string symbol in interpreter.FindSymbols())
+            foreach (string symbol in symbols)
             {
                 // Generate the schema for the value field.
                 JsonSchema schema = OperationHelper.GenerateSchema(typeof(double));
@@ -431,6 +483,7 @@ namespace CartaCore.Operations.Arithmetic
                     Attributes = new List<Attribute>()
                 };
             }
+
         }
     }
 }

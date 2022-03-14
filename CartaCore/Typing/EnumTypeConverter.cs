@@ -10,8 +10,15 @@ namespace CartaCore.Typing
         /// <inheritdoc />
         public override bool CanConvert(Type sourceType, Type targetType, TypeConverterContext context = null)
         {
-            if (sourceType.IsAssignableTo(typeof(string)) && targetType.IsEnum) return true;
-            if (targetType.IsAssignableTo(typeof(string)) && sourceType.IsEnum) return true;
+            if (context is null) return false;
+            if (targetType.IsEnum && (
+                context.CanConvert(sourceType, typeof(string)) ||
+                context.CanConvert(sourceType, typeof(int))
+            )) return true;
+            if (sourceType.IsEnum && (
+                context.CanConvert(targetType, typeof(string)) ||
+                context.CanConvert(targetType, typeof(int))
+            )) return true;
             return false;
         }
         /// <inheritdoc />
@@ -30,16 +37,43 @@ namespace CartaCore.Typing
             }
 
             // Perform the conversion.
-            if (input is string representation)
+            if (targetType.IsEnum)
             {
-                output = Enum.Parse(targetType, representation);
-                return true;
+
+                if (context.TryConvert(sourceType, typeof(string), in input, out object convertedString))
+                {
+                    if (convertedString is not string representation)
+                    {
+                        output = null;
+                        return false;
+                    }
+
+                    if (Enum.TryParse(targetType, representation, out output))
+                        return true;
+                    else
+                        return false;
+                }
+                else if (context.TryConvert(sourceType, typeof(int), in input, out object convertedInt))
+                {
+                    if (convertedInt is not int value)
+                    {
+                        output = null;
+                        return false;
+                    }
+
+                    output = Enum.ToObject(targetType, value);
+                    return true;
+                }
             }
             else
             {
                 output = Enum.GetName(targetType, input);
                 return true;
             }
+
+            // If we reach this point, we failed to convert.
+            output = null;
+            return false;
         }
     }
 }

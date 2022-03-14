@@ -285,7 +285,8 @@ namespace CartaCore.Operations
             JsonSchemaGeneratorSettings schemaGeneratorSettings = new()
             {
                 GenerateAbstractSchemas = false,
-                FlattenInheritanceHierarchy = true
+                FlattenInheritanceHierarchy = true,
+                GenerateEnumMappingDescription = true,
             };
 
             // The default treatment of streams as nullable objects needs to be overridden.
