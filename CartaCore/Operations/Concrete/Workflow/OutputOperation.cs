@@ -52,6 +52,9 @@ namespace CartaCore.Operations
         /// <inheritdoc />
         public override Task<OutputOperationOut> Perform(OutputOperationIn<TValue> input, OperationJob job)
         {
+            // TODO: Temporarily, we will handle pipelineable outputs by evaluating its entirety.
+
+
             OperationJob parentJob = job?.Parent;
             if (input.Name is null)
                 throw new ArgumentNullException(nameof(input.Name), "The name of the output value must be specified.");

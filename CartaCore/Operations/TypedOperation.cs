@@ -4,7 +4,6 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using CartaCore.Extensions.Typing;
-using CartaCore.Typing;
 
 namespace CartaCore.Operations
 {
@@ -24,17 +23,6 @@ namespace CartaCore.Operations
         {
             return await ConvertInput(job, Defaults);
         }
-
-        /// <summary>
-        /// The default type converter stack used for converting input and output values to the correct type.w
-        /// </summary>
-        /// <returns></returns>
-        protected static readonly TypeConverterContext TypeConverter = new(
-            new EnumTypeConverter(),
-            new NumericTypeConverter(),
-            new ArrayTypeConverter(),
-            new DictionaryTypeConverter()
-        );
 
         /// <summary>
         /// Merges a dictionary of values with a dictionary of default values.

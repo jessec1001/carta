@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using CartaCore.Operations.Attributes;
+using CartaCore.Typing;
 
 namespace CartaCore.Operations
 {
@@ -20,6 +21,19 @@ namespace CartaCore.Operations
         /// The default values of the operation.
         /// </summary>
         public Dictionary<string, object> Defaults { get; set; } = new();
+
+        /// <summary>
+        /// The default type converter stack used for converting input and output values to the correct type.
+        /// </summary>
+        public static readonly TypeConverterContext TypeConverter = new(
+            new EnumTypeConverter(),
+            new NumericTypeConverter(),
+            new ArrayTypeConverter(),
+            new DictionaryTypeConverter(),
+            new AsyncEnumerableTypeConverter(),
+            new EnumerableTypeConverter(),
+            new SyncAsyncCollectionTypeConverter()
+        );
 
         /// <summary>
         /// Operates on a specified operation job containing input and output mappings. Most operations will use the

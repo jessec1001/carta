@@ -2,7 +2,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using CartaCore.Graphs;
 using CartaCore.Operations.Attributes;
@@ -10,7 +9,6 @@ using CartaCore.Operations.Attributes;
 namespace CartaCore.Operations
 {
     // TODO: Allow multiplexing a graph onto a vertex field.
-    // TODO: We need to tee streams if we want to support multiple outputs.
 
     /// <summary>
     /// Represents an operation that executes as a topologically-sorted graph of sub-operations. Connections determine
@@ -517,37 +515,10 @@ namespace CartaCore.Operations
             // This includes enumerables, streams, and decomposables which are not reusable in general.
             await foreach (OperationFieldDescriptor field in vertex.Operation.GetInputFields(job))
             {
+                // TODO: We need to tee streams if we want to support multiple outputs.
+
                 // We are only concerned with inter-operation dependencies.
                 if (!job.Input.TryGetValue(field.Name, out object input)) continue;
-
-                // Check if the field should be asynchronously enumerable.
-                if (field.Type.IsGenericType &&
-                    field.Type.GetGenericTypeDefinition().IsAssignableTo(typeof(IAsyncEnumerable<>)))
-                {
-                    Type elementType = field.Type
-                        .GetGenericArguments()
-                        .FirstOrDefault();
-                    Type enumerableType = typeof(IEnumerable<>).MakeGenericType(elementType);
-                    if (elementType is not null && input.GetType().IsAssignableTo(enumerableType))
-                    {
-                        // Get the method to convert the enumerable to an async enumerable.
-                        MethodInfo genericConverter = typeof(AsyncEnumerable)
-                            .GetMethods(BindingFlags.Public | BindingFlags.Static)
-                            .Where(
-                                method => method.Name == nameof(AsyncEnumerable.ToAsyncEnumerable) &&
-                                method.IsGenericMethodDefinition &&
-                                method.GetParameters().Length == 1 &&
-                                method.GetParameters().First()
-                                    .ParameterType.GetGenericTypeDefinition().IsAssignableTo(typeof(IEnumerable<>))
-                            )
-                            .FirstOrDefault();
-                        MethodInfo concreteConverter = genericConverter.MakeGenericMethod(elementType);
-
-                        // If the input is an enumerable, we need to convert it to an async enumerable.
-                        object enumerableAsync = concreteConverter.Invoke(null, new[] { input });
-                        job.Input.TryUpdate(field.Name, enumerableAsync, input);
-                    }
-                }
             }
         }
     }

@@ -29,6 +29,7 @@ namespace CartaCore.Typing
         public override bool CanConvert(Type sourceType, Type targetType, TypeConverterContext context = null)
         {
             // Check the trivial case.
+            if (sourceType.IsAssignableFrom(typeof(object))) return true;
             if (sourceType.IsAssignableTo(targetType)) return true;
 
             // We check if any of the contained converters can convert the given types.

@@ -7,9 +7,11 @@ using System.Reflection;
 namespace CartaCore.Typing
 {
     /// <summary>
-    /// Converts from one enumerable type to another.
+    /// Converts from enumerable types to asynchronously enumerable types.
+    /// This is necessary for default values that are specified as arrays that need to be made asynchronous. The other
+    /// direction is not possible because asynchronous collections cannot be specified as defaults.
     /// </summary>
-    public class EnumerableTypeConverter : TypeConverter
+    public class SyncAsyncCollectionTypeConverter : TypeConverter
     {
         /// <summary>
         /// Determines whether the specified type is an enumerable type.
@@ -41,6 +43,37 @@ namespace CartaCore.Typing
             elementType = default;
             return false;
         }
+        /// <summary>
+        /// Determines whether the specified type is an enumerable type.
+        /// </summary>
+        /// <param name="type">The type.</param>
+        /// <param name="elementType">The element type if the type is enumerable.</param>
+        /// <returns>Whether the type is enumerable or not.</returns>
+        private static bool ImplementsAsyncEnumerable(Type type, out Type elementType)
+        {
+            // Check if the type itself is enumerable.
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IAsyncEnumerable<>))
+            {
+                elementType = type.GetGenericArguments().First();
+                return true;
+            }
+            // Check if the type derives from an enumerable type.
+            else
+            {
+
+                foreach (Type interfaceType in type.GetInterfaces())
+                {
+                    if (interfaceType.IsGenericType && interfaceType.GetGenericTypeDefinition() == typeof(IAsyncEnumerable<>))
+                    {
+                        elementType = interfaceType.GetGenericArguments().First();
+                        return true;
+                    }
+                }
+            }
+            elementType = default;
+            return false;
+        }
+
         /// <inheritdoc />
         public static bool CanConvert(
             Type sourceType,
@@ -55,7 +88,7 @@ namespace CartaCore.Typing
                 sourceElementType = targetElementType = default;
                 return false;
             }
-            if (!ImplementsEnumerable(targetType, out targetElementType))
+            if (!ImplementsAsyncEnumerable(targetType, out targetElementType))
             {
                 sourceElementType = targetElementType = default;
                 return false;
@@ -66,48 +99,56 @@ namespace CartaCore.Typing
             else return false;
         }
         /// <inheritdoc />
-        public override bool CanConvert(
-            Type sourceType,
-            Type targetType,
-            TypeConverterContext context = null)
+        public override bool CanConvert(Type sourceType, Type targetType, TypeConverterContext context = null)
         {
             return CanConvert(sourceType, targetType, out _, out _, context);
         }
         /// <inheritdoc />
-        public override bool TryConvert(
-            Type sourceType,
-            Type targetType,
-            in object input,
-            out object output,
-            TypeConverterContext context = null)
+        public override bool TryConvert(Type sourceType, Type targetType, in object input, out object output, TypeConverterContext context = null)
         {
             // Check that the source and target types are compatible.
             if (!CanConvert(sourceType, targetType, out Type sourceElementType, out Type targetElementType, context))
             {
-                output = null;
+                output = default;
                 return false;
             }
 
-            // Create a new target enumerable of the given element type.
+            // Convert the input to an asynchronous enumerable.
             try
             {
+                // Get the method to convert to an appropriate enumerable format.
                 MethodInfo genericEnumerate = typeof(EnumerableTypeConverter).GetMethod(
                     nameof(Enumerate),
                     BindingFlags.NonPublic | BindingFlags.Static
                 );
                 MethodInfo concreteEnumerate = genericEnumerate.MakeGenericMethod(targetElementType);
 
-                output = concreteEnumerate.Invoke(null, new object[]
+                object enumerable = concreteEnumerate.Invoke(null, new object[]
                 {
                     sourceElementType, targetElementType,
                     input as IEnumerable,
                     context
                 });
+
+                // Get the method to convert the enumerable to an async enumerable.
+                MethodInfo genericConverter = typeof(AsyncEnumerable)
+                    .GetMethods(BindingFlags.Public | BindingFlags.Static)
+                    .Where(
+                        method => method.Name == nameof(AsyncEnumerable.ToAsyncEnumerable) &&
+                        method.IsGenericMethodDefinition &&
+                        method.GetParameters().Length == 1 &&
+                        method.GetParameters().First()
+                            .ParameterType.GetGenericTypeDefinition().IsAssignableTo(typeof(IEnumerable<>))
+                    )
+                    .FirstOrDefault();
+                MethodInfo concreteConverter = genericConverter.MakeGenericMethod(targetElementType);
+
+                output = concreteConverter.Invoke(null, new[] { enumerable });
                 return true;
             }
             catch
             {
-                output = null;
+                output = default;
                 return false;
             }
         }
@@ -124,14 +165,14 @@ namespace CartaCore.Typing
             Type sourceElementType,
             Type targetElementType,
             IEnumerable values,
-            TypeConverterContext context = null)
+            TypeConverterContext context)
         {
             if (context is null)
                 throw new ArgumentNullException(nameof(context));
             foreach (object value in values)
             {
                 if (!context.TryConvert(sourceElementType, targetElementType, value, out object converted))
-                    throw new InvalidCastException();
+                    throw new InvalidOperationException();
                 yield return (T)converted;
             }
         }

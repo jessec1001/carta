@@ -298,7 +298,7 @@ namespace CartaCore.Operations
 
             // The schema generation does not handle nullable types by default.
             // We need to manually add the nullable type to the schema.
-            if (type.IsClass || Nullable.GetUnderlyingType(type) is not null)
+            if (type.IsClass || type.IsInterface || Nullable.GetUnderlyingType(type) is not null)
                 schema.Type |= JsonObjectType.Null;
 
             // We make sure that no title was specified.

@@ -110,7 +110,6 @@ const useViews = (): IViews => {
   const getParentView = useCallback(
     (id: number): View | null => {
       const view = getView(id);
-      console.log("GET PARENT VIEW", view, id, view?.parentId);
       if (view === null || view.parentId === null) return null;
       return getView(view.parentId);
     },
@@ -209,7 +208,6 @@ const useViews = (): IViews => {
   const activateView = useCallback(
     (id: number): void => {
       const parent = getParentView(id);
-      console.log("ACTIVATE VIEW", id, parent);
       if (parent !== null && parent.type === "tab") {
         setView(parent.currentId, (parent) => ({
           ...parent,
@@ -250,12 +248,13 @@ const useViews = (): IViews => {
             ...container,
             activeId: newViewId,
           }));
+          addHistory(newViewId);
         }
       }
 
       return newViewId;
     },
-    [getView, addView, setView]
+    [getView, addView, setView, addHistory]
   );
 
   return {

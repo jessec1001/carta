@@ -40,7 +40,6 @@ import WorkflowEditorView from "../workflow-editor";
 import OperationFromDataView from "../operation-from-data";
 import styles from "./OperationListView.module.css";
 
-// TODO: We need to allow renaming operations.
 // TODO: We need to make sure that we remove operations that are no longer in the workspace.
 // TODO: Display a modal to confirm deletion of operations.
 // TODO: Add additional state to capture operations that are currently being created.
@@ -450,6 +449,7 @@ const OperationListView: FC = () => {
 
     // Setup and teardown.
     // These shortcuts should be disabled if this is not the active view.
+    console.log(history, viewId);
     if (history.length > 0 && history[history.length - 1] === viewId) {
       window.addEventListener("keydown", handlePotentialKey);
       return () => window.removeEventListener("keydown", handlePotentialKey);

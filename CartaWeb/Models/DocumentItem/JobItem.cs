@@ -22,6 +22,24 @@ namespace CartaWeb.Models.DocumentItem
         /// The result of the operation. If <see cref="Completed"/> is <c>false</c>, this is <c>null</c>.
         /// </summary>
         public object Result { get; set; }
+        /// <summary>
+        /// The authentication objects of the operation. These are stored in key value pairs where:
+        /// - The key is the identifier of the operation to authenticate.
+        /// - The value is a dictionary of authentication (type, value) pairs.
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// Authentication = new()
+        /// {
+        ///     ["12345678"] = new()
+        ///     {
+        ///         ["hyperthought"] = new HyperthoughtAuthentication("abcdef"),
+        ///         ["mysql"] = new MySqlAuthentication() { Username = "user", Password = "pass" }
+        ///     }    
+        /// }
+        /// </code>
+        /// </example>
+        public Dictionary<string, Dictionary<string, object>> Authentication { get; set; }
 
         /// <summary>
         /// A list of tasks that need to be completed in order for the job to complete. If this list is empty, the

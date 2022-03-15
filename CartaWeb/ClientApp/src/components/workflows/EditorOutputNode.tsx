@@ -28,6 +28,7 @@ const EditorOutputNode: FC<EditorOutputNodeProps> = ({
   onOffset = () => {},
   children,
 }) => {
+  console.log(schema);
   // If the job is an error, show the error message.
   if (job instanceof Error)
     return (

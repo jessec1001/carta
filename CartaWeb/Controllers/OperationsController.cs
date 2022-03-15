@@ -897,18 +897,63 @@ namespace CartaWeb.Controllers
             Stream file = await LoadJobFileAsync(operationId, jobId, "download", field);
             return file is null ? StatusCode(423, new { Error = "File download is not ready." }) : File(file, "application/octet-stream", field);
         }
-        // TODO: Implement.
+        /// <summary>
+        /// Authenticates 
+        /// </summary>
+        /// <param name="operationId"></param>
+        /// <param name="jobId"></param>
+        /// <param name="authenticationType"></param>
+        /// <param name="operations"></param>
+        /// <param name="credentials"></param>
+        /// <returns></returns>
         [Authorize]
-        // [HttpPost("{operationId}/jobs/{jobId}/authenticate?operations")]
+        [HttpPost("{operationId}/jobs/{jobId}/authenticate/{authenticationType}")]
         public async Task<ActionResult> AuthenticateOperation(
             [FromRoute] string operationId,
             [FromRoute] string jobId,
+            [FromRoute] string authenticationType,
             [FromQuery] string[] operations,
             [FromBody] object credentials
         )
         {
             // TODO: (Permissions) This endpoint should only be accessible to someone who has "execute" permissions to
             //       the referenced operation instance.
+
+            // Get the operation if it exists.
+            OperationItem operationItem = await LoadOperationAsync(operationId, _persistence);
+            if (operationItem is null)
+            {
+                return NotFound(new ItemNotFoundError(
+                    "Operation with specified identifier could not be found.",
+                    operationId
+                ));
+            }
+
+            // Get the job if it exists.
+            JobItem jobItem = await LoadJobAsync(jobId, operationId, _persistence);
+            if (jobItem is null)
+            {
+                return NotFound(new ItemNotFoundError(
+                    "Job with specified identifier could not be found.",
+                    jobId
+                ));
+            }
+
+            // If no operation ID was specified, then we add the authentication to the current operation.
+            // This will be the case if the operation is not a workflow operation.
+            if (operations is null || operations.Length == 0)
+                operations = new[] { operationId };
+
+            // TODO: Verify that if the operation is not a workflow, the only applicable operations are this one.
+            // TODO: Verify that if the operation is a workflow, the only applicable operations are suboperations.
+            // Add the authentication to all of the specified operations.
+            foreach (string operation in operations)
+            {
+                // TODO: We should check to make sure that we are not overposting here.
+                if (!jobItem.Authentication.ContainsKey(operation))
+                    jobItem.Authentication.Add(operation, new());
+                jobItem.Authentication[operation][authenticationType] = credentials;
+            }
 
             return Ok();
         }
