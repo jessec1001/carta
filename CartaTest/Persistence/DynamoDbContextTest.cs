@@ -11,6 +11,7 @@ using Amazon.Runtime;
 using NUnit.Framework;
 
 using CartaCore.Persistence;
+using System.Net.Sockets;
 
 namespace CartaTest
 {
@@ -81,9 +82,14 @@ namespace CartaTest
         /// <summary>
         /// Sets up the test fixture.
         /// </summary>
-        [SetUp]
+        [OneTimeSetUp]
         public async Task Setup()
         {
+            // Test if local dynamo DB instance is up and running, and if not, a SocketException will be thrown,
+            // causing the tests to fail immediately (rather than waiting for a long time before giving up on
+            // the connection).
+            TcpClient tcpClient = new TcpClient(GetDynamoDbLocalHostName(), 8000);
+
             string localServiceUrl = "http://" + GetDynamoDbLocalHostName() + ":8000";
             string tableName = "CartaRegressionTests";
 
@@ -189,6 +195,9 @@ namespace CartaTest
             IAsyncEnumerable<DbDocument> dbDocuments = NoSqlDbContext.ReadDocumentsAsync("pk#1", "skcreate1#");
             DbDocument dbDocumentRead = await dbDocuments.ElementAtAsync(0);
             Assert.AreEqual(inJsonString, dbDocumentRead.JsonString);
+
+            // Cleanup
+            await NoSqlDbContext.WriteDocumentAsync(new DbDocument("pk#1", "skcreate1#", DbOperationType.Delete));
         }
 
         /// <summary>
@@ -306,6 +315,9 @@ namespace CartaTest
             Assert.IsTrue(isDeleted);
             readDocs = NoSqlDbContext.ReadDocumentsAsync("pk#1", "sk#");
             Assert.AreEqual(0, await readDocs.CountAsync());
+
+            // Cleanup
+            await NoSqlDbContext.WriteDocumentAsync(new DbDocument("pk#1", "skcreate2#", DbOperationType.Delete));
         }
 
         /// <summary>
