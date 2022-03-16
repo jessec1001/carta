@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using CartaCore.Extensions.Typing;
+using CartaCore.Operations.Attributes;
 
 namespace CartaCore.Operations
 {
@@ -48,9 +49,16 @@ namespace CartaCore.Operations
                 if (property is null) continue;
 
                 // Set the property value after conversion.
+                // We iterate over any overriding conversions and apply them in sequence.
                 if (inputs.TryGetValue(field.Name, out object input))
                 {
-                    object converted = await ConvertInputField(field, input, job);
+                    object converted = input;
+                    foreach (Attribute attribute in property.PropertyType.GetCustomAttributes())
+                    {
+                        if (attribute is IOverrideConversionAttribute overrideConversion)
+                            converted = await overrideConversion.ConvertInputField(this, field, input, job);
+                    }
+                    converted = await ConvertInputField(field, input, job);
                     property.SetValue(typedInput, converted);
                 }
             }
@@ -78,8 +86,15 @@ namespace CartaCore.Operations
                 if (property is null) continue;
 
                 // Append the property value after conversion.
+                // We iterate over any overriding conversions and apply them in sequence.
                 object output = property.GetValue(outputs);
-                object converted = await ConvertOutputField(field, output, job);
+                object converted = output;
+                foreach (Attribute attribute in property.PropertyType.GetCustomAttributes())
+                {
+                    if (attribute is IOverrideConversionAttribute conversionAttribute)
+                        converted = await conversionAttribute.ConvertOutputField(this, field, converted, job);
+                }
+                converted = await ConvertOutputField(field, converted, job);
                 dictOutput[field.Name] = converted;
             }
             return dictOutput;

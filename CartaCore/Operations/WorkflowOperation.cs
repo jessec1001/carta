@@ -2,7 +2,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using CartaCore.Extensions.Typing;
 using CartaCore.Graphs;
@@ -41,7 +40,7 @@ namespace CartaCore.Operations
         /// If set to <c>true</c>, errors will be updated in the job status but dependent operations will still be run.
         /// If set to <c>false</c>, dependent operations occurring after errors will not be run.
         /// </summary>
-        public bool SupressErrors { get; set; }
+        public bool SuppressErrors { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="WorkflowOperation"/> class with the specified operations and
@@ -588,11 +587,22 @@ namespace CartaCore.Operations
             WorkflowDependencyVertex vertex = await DependencyGraph.GetVertex(id);
             Operation operation = vertex.Operation;
 
+            // We check if any of the dependency operations threw exceptions.
+            // If so and we are not suppressing errors, we throw an exception on this operation.
+            if (Workflow.SuppressErrors)
+            {
+                await foreach (WorkflowDependencyVertex depVertex in DependencyGraph.GetParentVertices(vertex.Id))
+                {
+                    if (Job.Status.TryGetValue(depVertex.Id, out OperationStatus status) && status.Exception is not null)
+                        throw new Exception($"Operation execution precluded due to failure in prior operation.");
+                }
+            }
+
             // TODO: For now we ignore multiplexing and indexing.
 
             try
             {
-                // We wrap the vertex in updates to its status.
+                // We indicate that the operation has started.
                 vertex.Started = true;
 
                 // Create a job for the operation.
@@ -603,12 +613,13 @@ namespace CartaCore.Operations
                 // Execute the operation and add the results to our collection.
                 await operation.Perform(job);
                 Results.TryAdd(id, job.Output);
-
-                vertex.Finished = true;
             }
-            catch
+            finally
             {
-                vertex.Finished = Workflow.SupressErrors;
+                // We indicate that the operation has ended.
+                // This occurs even if the operation failed to run.
+                // The individual operation is responsible for updating its own status so we only absorb the exception.
+                vertex.Finished = true;
             }
 
             return id;
