@@ -35,7 +35,28 @@ namespace CartaAwsDeploy
             if (environment.AccountType == AccountType.PRODUCTION)
                 tableProps.PointInTimeRecovery = true;
             Table dynamoDbTable = new Table(this, "CartaTable", tableProps);
-            
+
+            // Create the DynamoDB table for user secrets
+            TableProps secretsTableProps = new TableProps
+            {
+                PartitionKey = new Amazon.CDK.AWS.DynamoDB.Attribute
+                {
+                    Name = "UserId",
+                    Type = AttributeType.STRING
+                },
+                SortKey = new Amazon.CDK.AWS.DynamoDB.Attribute
+                {
+                    Name = "Key",
+                    Type = AttributeType.STRING
+                },
+                TimeToLiveAttribute = "TTL",
+                // Allows for consistent reads of up to 4KB - secrets are unlikely to be larger than this
+                ReadCapacity = 5,
+                WriteCapacity = 5,
+                RemovalPolicy = RemovalPolicy.DESTROY
+            };
+            Table secretsDynamoDbTable = new Table(this, "CartaSecretsTable", secretsTableProps);
+
             // Create the Cognito user pool and client and identity provider
             UserPool userPool = new UserPool(this, "CartaUserPool", new UserPoolProps
             {
@@ -204,6 +225,9 @@ namespace CartaAwsDeploy
             {
                 User user = new User(this, "CartaUser");
                 dynamoDbTable.GrantFullAccess(user);
+                secretsDynamoDbTable.Grant( 
+                    user,
+                    new string[] { "dynamodb:PutItem", "dynamodb:GetItem", "dynamodb:DescribeTable" });
                 user.AddToPolicy(cognitoPolicyStatement);
 
                 CfnAccessKey accessKey =
@@ -215,6 +239,9 @@ namespace CartaAwsDeploy
             IRole role =
                 Role.FromRoleArn(this, "CartaEBRole", $"arn:aws:iam::{Account}:role/aws-elasticbeanstalk-ec2-role");
             dynamoDbTable.GrantFullAccess(role);
+            secretsDynamoDbTable.Grant(
+                role,
+                new string[] { "dynamodb:PutItem", "dynamodb:GetItem", "dynamodb:DescribeTable" });
             role.AddToPrincipalPolicy(cognitoPolicyStatement);
             role.AddToPrincipalPolicy(createLogCloudwatchPolicyStatement);
             role.AddToPrincipalPolicy(putEventsCloudwatchPolicyStatement);
@@ -222,6 +249,7 @@ namespace CartaAwsDeploy
             // Output the results of the deployment
             new CfnOutput(this, "RegionEndpoint:", new CfnOutputProps() { Value = Region });
             new CfnOutput(this, "DynamoDBTable:", new CfnOutputProps() { Value = dynamoDbTable.TableName });
+            new CfnOutput(this, "SecretsDynamoDBTable:", new CfnOutputProps() { Value = secretsDynamoDbTable.TableName });
             new CfnOutput(this, "UserPoolId:", new CfnOutputProps() { Value = userPool.UserPoolId });
             new CfnOutput(this, "UserPoolClientId:", new CfnOutputProps() { Value = userPoolClient.UserPoolClientId });
         }

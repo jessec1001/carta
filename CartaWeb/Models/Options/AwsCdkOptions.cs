@@ -30,6 +30,12 @@
         public string DynamoDBTable { get; set; }
 
         /// <summary>
+        /// Gets or sets the secrets DynamoDB table name
+        /// </summary>
+        /// <value>The name of the secrets DynamoDB table.</value>
+        public string SecretsDynamoDBTable { get; set; }
+
+        /// <summary>
         /// Gets or sets the Cognito user pool ID
         /// </summary>
         /// <value>The Cognito user pool ID.</value>

@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
+using System.Reflection;
 using NUlid;
 using CartaCore.Persistence;
 using CartaCore.Serialization.Json;
@@ -17,22 +20,43 @@ namespace CartaWeb.Models.DocumentItem
         /// <summary>
         /// Options for serialization
         /// </summary>
-        public static JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+        public static JsonSerializerOptions WriteJsonOptions = new(JsonSerializerDefaults.Web);
+
+        /// <summary>
+        /// Options for serialization of secrets
+        /// </summary>
+        public static JsonSerializerOptions SecretWriteJsonOptions = new(JsonSerializerDefaults.Web);
+
+        /// <summary>
+        /// Options for deserialization of secrets
+        /// </summary>
+        public static JsonSerializerOptions ReadJsonOptions = new(JsonSerializerDefaults.Web);
 
         /// <summary>
         /// Static constructor for initializing JSON serialization/deserialization options
         /// </summary>
         static Item()
         {
-            JsonOptions.PropertyNameCaseInsensitive = false;
-            JsonOptions.IgnoreNullValues = true;
-            JsonOptions.Converters.Add(new JsonObjectConverter());
+            WriteJsonOptions.PropertyNameCaseInsensitive = false;
+            WriteJsonOptions.IgnoreNullValues = true;
+            WriteJsonOptions.Converters.Add(new JsonObjectConverter());
+            WriteJsonOptions.Converters.Add(new JsonSecretConverter(false));
+
+            SecretWriteJsonOptions.PropertyNameCaseInsensitive = false;
+            SecretWriteJsonOptions.IgnoreNullValues = true;
+            SecretWriteJsonOptions.Converters.Add(new JsonObjectConverter());
+            SecretWriteJsonOptions.Converters.Add(new JsonSecretConverter(true));
+
+            ReadJsonOptions.PropertyNameCaseInsensitive = false;
+            ReadJsonOptions.IgnoreNullValues = true;
+            ReadJsonOptions.Converters.Add(new JsonObjectConverter());
         }
 
         /// <summary>
         /// The partition key identifier, sans prefix. 
         /// </summary>
         protected string PartitionKeyId;
+
 
         /// <summary>
         /// The unique identifier of the item.
@@ -64,6 +88,15 @@ namespace CartaWeb.Models.DocumentItem
         {
             PartitionKeyId = partitionKeyId;
             Id = id;
+        }
+
+        /// <summary>
+        /// Creates a copy of the item.
+        /// </summary>
+        /// <returns>A copy of the item.</returns>
+        public Item Copy()
+        {
+            return (Item)this.MemberwiseClone();
         }
 
         /// <summary>
@@ -119,7 +152,8 @@ namespace CartaWeb.Models.DocumentItem
             DbDocument dbDocument = new(
                 GetPartitionKey(),
                 sortKey,
-                JsonSerializer.Serialize(this, GetType(), JsonOptions),
+                JsonSerializer.Serialize<Item>(this, WriteJsonOptions),
+                JsonSerializer.Serialize<Item>(this, SecretWriteJsonOptions),
                 DbOperationType.Create
             );
             return dbDocument;
@@ -135,7 +169,8 @@ namespace CartaWeb.Models.DocumentItem
             (
                 GetPartitionKey(),
                 GetSortKey(),
-                JsonSerializer.Serialize(this, GetType(), JsonOptions),
+                JsonSerializer.Serialize<Item>(this, WriteJsonOptions),
+                JsonSerializer.Serialize<Item>(this, SecretWriteJsonOptions),
                 DbOperationType.Update
             );
         }
@@ -151,7 +186,8 @@ namespace CartaWeb.Models.DocumentItem
             (
                 GetPartitionKey(),
                 GetSortKey(),
-                JsonSerializer.Serialize(this, GetType(), JsonOptions),
+                JsonSerializer.Serialize<Item>(this, WriteJsonOptions),
+                JsonSerializer.Serialize<Item>(this, SecretWriteJsonOptions),
                 DbOperationType.Save
             );
         }
