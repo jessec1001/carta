@@ -20,14 +20,14 @@ namespace CartaCore.Persistence
         public string SortKey { get; set; }
 
         /// <summary>
-        /// A text representation of the JSON document.
+        /// A text representation of the JSON document, excluding secret attributes
         /// </summary>
         public string JsonString { get; set; }
 
-        // <summary>
-        /// A list of user secrets that should be stored safely
+        /// <summary>
+        /// A text representation of the JSON document, including only JSON secrets
         /// </summary>
-        public List<UserSecretKeyValuePair> UserSecrets;
+        public string SecretJsonString { get; set; }
 
         /// <summary>
         /// The type of database operation - Create, Read, Update, Save or Delete.
@@ -35,7 +35,7 @@ namespace CartaCore.Persistence
         public DbOperationType Operation { get; set; }
 
         /// <summary>
-        /// Constructor for Create, Read, Updated and Save operations.
+        /// Constructor for Create, Read, Update and Save operations.
         /// <param name="partitionKey">The partition key under which the document is stored.</param>
         /// <param name="sortKey">The sort key under which the document is stored.</param>
         /// <param name="jsonString">A text representation of the JSON document.</param>
@@ -55,18 +55,21 @@ namespace CartaCore.Persistence
         /// Constructor for Create, Read, Update and Save operations.
         /// <param name="partitionKey">The partition key under which the document is stored.</param>
         /// <param name="sortKey">The sort key under which the document is stored.</param>
-        /// <param name="userSecrets">A list of user secret key value pairs that should be stored safely</param>
-        /// <param name="jsonString">A text representation of the JSON document.</param>
+        /// <param name="jsonString">A text representation of the JSON document, excluding secrets.</param>
+        /// <param name="secretJsonString">A text representation of the JSON document, including only secrets.</param>
         /// <param name="operation">The type of database operation - Create, Read, Update, Save.</param>
         /// </summary>
         public DbDocument(
             string partitionKey,
             string sortKey,
-            List<UserSecretKeyValuePair> userSecrets,
             string jsonString,
+            string secretJsonString,
             DbOperationType operation) : this(partitionKey, sortKey, jsonString, operation)
         {
-            UserSecrets = userSecrets;
+            if (String.IsNullOrEmpty(secretJsonString))
+                SecretJsonString = null;
+            else
+                SecretJsonString = secretJsonString;
         }
 
         /// <summary>

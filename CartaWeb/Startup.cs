@@ -69,15 +69,6 @@ namespace CartaWeb
                         Amazon.RegionEndpoint.GetBySystemName(awsCdkOptions.RegionEndpoint),
                         awsCdkOptions.DynamoDBTable
                     ));
-            services.
-                AddSingleton<IUserSecretsContext>(
-                    new UserSecretsContext
-                    (
-                        awsCdkOptions.AccessKey,
-                        awsCdkOptions.SecretKey,
-                        Amazon.RegionEndpoint.GetBySystemName(awsCdkOptions.RegionEndpoint),
-                        awsCdkOptions.SecretsDynamoDBTable
-                    ));
             if (awsCdkOptions.AccessKey is null)
                 services.
                     AddSingleton<IAmazonCognitoIdentityProvider>(

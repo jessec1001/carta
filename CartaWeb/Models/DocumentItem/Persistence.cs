@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Amazon;
+using Amazon.DynamoDBv2;
+using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -7,6 +9,7 @@ using System.Reflection;
 using System.Linq;
 using CartaCore.Persistence;
 using CartaWeb.Models.Data;
+using CartaWeb.Models.Options;
 
 namespace CartaWeb.Models.DocumentItem
 {
@@ -22,7 +25,7 @@ namespace CartaWeb.Models.DocumentItem
         /// </summary>
         private readonly INoSqlDbContext _noSqlDbContext;
 
-        private readonly IUserSecretsContext _userSecretsContext;
+        private readonly AwsCdkOptions _awsCdkOptions;
 
         /// <summary>
         /// Constructor
@@ -33,15 +36,30 @@ namespace CartaWeb.Models.DocumentItem
             _noSqlDbContext = noSqlDbContext;
         }
 
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="noSqlDbContext">The NoSQL DB context used to read and write to the database.</param>
-        /// <param name="userSecretsContext">The user secrets context used to read and write secrets.</param>
-        public Persistence(INoSqlDbContext noSqlDbContext, IUserSecretsContext userSecretsContext)
+        public Persistence(INoSqlDbContext noSqlDbContext, AwsCdkOptions awsCdkOptions)
         {
             _noSqlDbContext = noSqlDbContext;
-            _userSecretsContext = userSecretsContext;
+            _awsCdkOptions = awsCdkOptions;
+        }
+
+        /// <summary>
+        /// Retrieves the secrets db context
+        /// </summary>
+        /// <param name="user">The user claims needed for reading secrets.</param>
+        /// <returns>The secrets db context.</returns>
+        private INoSqlDbContext GetSecretsNoSqlDbContext(ClaimsPrincipal user)
+        {
+            // Initialize DynamoDb client
+            AmazonDynamoDBClient client;
+            RegionEndpoint regionEndpoint = Amazon.RegionEndpoint.GetBySystemName(_awsCdkOptions.RegionEndpoint);
+            if (_awsCdkOptions.AccessKey is null)
+                client = new AmazonDynamoDBClient(regionEndpoint);
+            else
+                client = new AmazonDynamoDBClient(
+                    _awsCdkOptions.AccessKey,
+                    _awsCdkOptions.SecretKey,
+                    regionEndpoint);
+            return new DynamoDbSecretsContext(client, _awsCdkOptions.SecretsDynamoDBTable, new UserInformation(user).Id);
         }
 
         /// <summary>
@@ -50,28 +68,26 @@ namespace CartaWeb.Models.DocumentItem
         /// <param name="item">The document item to update.</param>
         /// <param name="user">The user claims needed for reading secrets.</param>
         /// <returns>The document item with secrets updated.</returns>
-        private async Task<Item> LoadItemSecretsAsync(Item item, ClaimsPrincipal user)
+        private async Task<Item> MergeItemSecretsAsync(Item item, ClaimsPrincipal user)
         {
-            if (_userSecretsContext is not null)
+            INoSqlDbContext secretsNoSqlDbContext = GetSecretsNoSqlDbContext(user);
+            DbDocument dbDocument =
+                await secretsNoSqlDbContext.ReadDocumentAsync(new UserInformation(user).Id, item.GetSortKey());
+            if (dbDocument is null) return item;
+            else
             {
-                string userId = new UserInformation(user).Id;
-
-                List<PropertyInfo> propsInfo =
-                    item.GetType().GetProperties().ToList().FindAll(
-                        t => t.PropertyType == typeof(UserSecretKeyValuePair));
-                foreach (PropertyInfo propInfo in propsInfo)
+                Item secretItem =
+                    (Item)JsonSerializer.Deserialize(dbDocument.SecretJsonString, item.GetType(), Item.ReadJsonOptions);
+                foreach (PropertyInfo property in secretItem.GetType().GetProperties())
                 {
-                    UserSecretKeyValuePair readKeyValuePair = (UserSecretKeyValuePair)propInfo.GetValue(item);
-                    string secretValue = await _userSecretsContext.GetUserSecretAsync(userId, readKeyValuePair.Key);
-                    UserSecretKeyValuePair setKeyValuePair = new UserSecretKeyValuePair
+                    if (property.GetCustomAttribute<SecretAttribute>() is not null)
                     {
-                        Key = readKeyValuePair.Key,
-                        Value = secretValue
-                    };
-                    propInfo.SetValue(item, setKeyValuePair);
+                        Console.WriteLine($"Setting property {property.Name}");
+                        property.SetValue(item, property.GetValue(secretItem));
+                    }                 
                 }
-            }
-            return item;
+                return item;
+            }       
         }
 
         /// <summary>
@@ -83,7 +99,7 @@ namespace CartaWeb.Models.DocumentItem
         {
             DbDocument dbDocument = await _noSqlDbContext.ReadDocumentAsync(item.GetPartitionKey(), item.GetSortKey());
             if (dbDocument is null) return null;
-            else return (Item)JsonSerializer.Deserialize(dbDocument.JsonString, item.GetType(), Item.JsonOptions);
+            else return (Item)JsonSerializer.Deserialize(dbDocument.JsonString, item.GetType(), Item.ReadJsonOptions);
         }
 
         /// <summary>
@@ -95,8 +111,8 @@ namespace CartaWeb.Models.DocumentItem
         public async Task<Item> LoadItemAsync(Item item, ClaimsPrincipal user)
         {
             Item readItem = await LoadItemAsync(item);
-            readItem = await LoadItemSecretsAsync(readItem, user);
-            return readItem;
+            Item mergedItem = await MergeItemSecretsAsync(readItem, user);
+            return mergedItem;
         }
 
         /// <summary>
@@ -110,7 +126,7 @@ namespace CartaWeb.Models.DocumentItem
                 .ReadDocumentsAsync(item.GetPartitionKey(), item.SortKeyPrefix);
             List<Item> items = new() { };
             await foreach (DbDocument dbDocument in dbDocuments)
-                items.Add((Item)JsonSerializer.Deserialize(dbDocument.JsonString, item.GetType(), Item.JsonOptions));
+                items.Add((Item)JsonSerializer.Deserialize(dbDocument.JsonString, item.GetType(), Item.ReadJsonOptions));
             return items;
         }
 
@@ -128,9 +144,9 @@ namespace CartaWeb.Models.DocumentItem
             await foreach (DbDocument dbDocument in dbDocuments)
             {
                 Item readItem =
-                    (Item)JsonSerializer.Deserialize(dbDocument.JsonString, item.GetType(), Item.JsonOptions);
-                readItem = await LoadItemSecretsAsync(readItem, user);
-                items.Add(readItem);
+                    (Item)JsonSerializer.Deserialize(dbDocument.JsonString, item.GetType(), Item.ReadJsonOptions);
+                Item mergedItem = await MergeItemSecretsAsync(readItem, user);
+                items.Add(mergedItem);
             }
 
             return items;
@@ -142,7 +158,7 @@ namespace CartaWeb.Models.DocumentItem
         /// <param name="dbDocument">The database document.</param>
         /// <returns>true if the write operation completed successfully, else false.</returns>
         public async Task<bool> WriteDbDocumentAsync(DbDocument dbDocument)
-        {          
+        {
             return await _noSqlDbContext.WriteDocumentAsync(dbDocument);
         }
 
@@ -154,16 +170,8 @@ namespace CartaWeb.Models.DocumentItem
         /// <returns>true if the write operation completed successfully, else false.</returns>
         public async Task<bool> WriteDbDocumentAsync(DbDocument dbDocument, ClaimsPrincipal user)
         {
-            bool wroteDoc = await _noSqlDbContext.WriteDocumentAsync(dbDocument);
-            if ((_userSecretsContext is not null) && (dbDocument.UserSecrets is not null))
-            {
-                string userId = new UserInformation(user).Id;
-                foreach (UserSecretKeyValuePair pair in dbDocument.UserSecrets)
-                {
-                    await _userSecretsContext.PutUserSecretAsync(userId, pair.Key, pair.Value, new TimeSpan(12,0,0));
-                }                
-            }            
-            return wroteDoc;
+            await GetSecretsNoSqlDbContext(user).WriteDocumentAsync(dbDocument);
+            return await WriteDbDocumentAsync(dbDocument);
         }
 
         /// <summary>
@@ -184,23 +192,13 @@ namespace CartaWeb.Models.DocumentItem
         /// <returns>true if the write operations all completed successfully, else false.</returns>
         public async Task<bool> WriteDbDocumentsAsync(IEnumerable<DbDocument> dbDocuments, ClaimsPrincipal user)
         {
-            bool wroteDocs = await _noSqlDbContext.WriteDocumentsAsync(dbDocuments);
-            if (_userSecretsContext is not null)
+            INoSqlDbContext secretsNoSqlDbContext = GetSecretsNoSqlDbContext(user);
+            foreach (DbDocument dbDocument in dbDocuments)
             {
-                string userId = new UserInformation(user).Id;
-                foreach (DbDocument dbDocument in dbDocuments)
-                {
-                    if (dbDocument.UserSecrets is not null)
-                    {
-                        foreach (UserSecretKeyValuePair pair in dbDocument.UserSecrets)
-                        {
-                            await _userSecretsContext.PutUserSecretAsync(
-                                userId, pair.Key, pair.Value, new TimeSpan(12, 0, 0));
-                        }
-                    }                  
-                }
+                if (dbDocument.SecretJsonString is not null)
+                    await secretsNoSqlDbContext.WriteDocumentAsync(dbDocument);                  
             }
-            return wroteDocs;
+            return await _noSqlDbContext.WriteDocumentsAsync(dbDocuments);
         }
     }
 }

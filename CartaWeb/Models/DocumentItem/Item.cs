@@ -20,17 +20,36 @@ namespace CartaWeb.Models.DocumentItem
         /// <summary>
         /// Options for serialization
         /// </summary>
-        public static JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+        public static JsonSerializerOptions WriteJsonOptions = new(JsonSerializerDefaults.Web);
+
+        /// <summary>
+        /// Options for serialization of secrets
+        /// </summary>
+        public static JsonSerializerOptions SecretWriteJsonOptions = new(JsonSerializerDefaults.Web);
+
+        /// <summary>
+        /// Options for deserialization of secrets
+        /// </summary>
+        public static JsonSerializerOptions ReadJsonOptions = new(JsonSerializerDefaults.Web);
 
         /// <summary>
         /// Static constructor for initializing JSON serialization/deserialization options
         /// </summary>
         static Item()
         {
-            JsonOptions.PropertyNameCaseInsensitive = false;
-            JsonOptions.IgnoreNullValues = true;
-            JsonOptions.Converters.Add(new JsonObjectConverter());
-            JsonOptions.Converters.Add(new JsonUserSecretKeyValuePairConverter());
+            WriteJsonOptions.PropertyNameCaseInsensitive = false;
+            WriteJsonOptions.IgnoreNullValues = true;
+            WriteJsonOptions.Converters.Add(new JsonObjectConverter());
+            WriteJsonOptions.Converters.Add(new JsonSecretConverter(false));
+
+            SecretWriteJsonOptions.PropertyNameCaseInsensitive = false;
+            SecretWriteJsonOptions.IgnoreNullValues = true;
+            SecretWriteJsonOptions.Converters.Add(new JsonObjectConverter());
+            SecretWriteJsonOptions.Converters.Add(new JsonSecretConverter(true));
+
+            ReadJsonOptions.PropertyNameCaseInsensitive = false;
+            ReadJsonOptions.IgnoreNullValues = true;
+            ReadJsonOptions.Converters.Add(new JsonObjectConverter());
         }
 
         /// <summary>
@@ -69,6 +88,11 @@ namespace CartaWeb.Models.DocumentItem
         {
             PartitionKeyId = partitionKeyId;
             Id = id;
+        }
+
+        public Item Copy()
+        {
+            return (Item)this.MemberwiseClone();
         }
 
         /// <summary>
@@ -113,22 +137,6 @@ namespace CartaWeb.Models.DocumentItem
         }
 
         /// <summary>
-        /// Returns a list of user secrets set on the instance
-        /// </summary>
-        private List<UserSecretKeyValuePair> GetUserSecrets()
-        {
-            List<UserSecretKeyValuePair> userSecretKeyValuePairs = new();
-            List<PropertyInfo> propsInfo =
-                GetType().GetProperties().ToList().FindAll(t => t.PropertyType == typeof(UserSecretKeyValuePair));
-            foreach (PropertyInfo propInfo in propsInfo)
-            {
-                UserSecretKeyValuePair keyValuePair = (UserSecretKeyValuePair)propInfo.GetValue(this);
-                userSecretKeyValuePairs.Add(keyValuePair);
-            }
-            return userSecretKeyValuePairs;
-        }
-
-        /// <summary>
         /// Creates a database document to persist a new item to the database.
         /// </summary>
         /// <returns>A database document.</returns>
@@ -140,8 +148,8 @@ namespace CartaWeb.Models.DocumentItem
             DbDocument dbDocument = new(
                 GetPartitionKey(),
                 sortKey,
-                GetUserSecrets(),
-                JsonSerializer.Serialize(this, GetType(), JsonOptions),
+                JsonSerializer.Serialize<Item>(this, WriteJsonOptions),
+                JsonSerializer.Serialize<Item>(this, SecretWriteJsonOptions),
                 DbOperationType.Create
             );
             return dbDocument;
@@ -157,8 +165,8 @@ namespace CartaWeb.Models.DocumentItem
             (
                 GetPartitionKey(),
                 GetSortKey(),
-                GetUserSecrets(),
-                JsonSerializer.Serialize(this, GetType(), JsonOptions),
+                JsonSerializer.Serialize<Item>(this, WriteJsonOptions),
+                JsonSerializer.Serialize<Item>(this, SecretWriteJsonOptions),
                 DbOperationType.Update
             );
         }
@@ -174,8 +182,8 @@ namespace CartaWeb.Models.DocumentItem
             (
                 GetPartitionKey(),
                 GetSortKey(),
-                GetUserSecrets(),
-                JsonSerializer.Serialize(this, GetType(), JsonOptions),
+                JsonSerializer.Serialize<Item>(this, WriteJsonOptions),
+                JsonSerializer.Serialize<Item>(this, SecretWriteJsonOptions),
                 DbOperationType.Save
             );
         }
