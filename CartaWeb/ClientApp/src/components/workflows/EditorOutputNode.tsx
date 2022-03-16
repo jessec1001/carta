@@ -6,7 +6,6 @@ import { JsonSchema } from "library/schema";
 import styles from "./EditorOutputNode.module.css";
 import { Mosaic } from "components/mosaic";
 import { LoadingIcon } from "components/icons";
-import { SchemaBaseInput } from "components/form/schema";
 
 /** The props used for the {@link EditorOutputNode} component. */
 interface EditorOutputNodeProps {
