@@ -50,8 +50,10 @@ namespace CartaWeb.Serialization.Json
             {
                 // Create a graph and add the vertices and edges.
                 MemoryGraph graph = new(Id);
-                graph.AddVertexRange(Nodes.Select(node => node.Vertex));
-                graph.AddEdgeRange(Edges.Select(edge => edge.Edge));
+                if (Nodes is not null)
+                    graph.AddVertexRange(Nodes.Select(node => node.Vertex));
+                if (Edges is not null)
+                    graph.AddEdgeRange(Edges?.Select(edge => edge.Edge));
 
                 return graph;
             }
@@ -315,7 +317,7 @@ namespace CartaWeb.Serialization.Json
         /// Initializes a new instance of the <see cref="VisFormatEdge"/> class.
         /// </summary>
         public VisFormatEdge() { }
-    
+
         /// <summary>
         /// Determines whether the specified <see cref="VisFormatEdge"/> is equal to the current <see cref="VisFormatEdge"/>.
         /// </summary>

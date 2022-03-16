@@ -59,7 +59,7 @@ namespace CartaWeb.Services
                     await operation.Perform(job);
                     jobItem.Completed = true;
                     jobItem.Result = job.Output;
-                    await OperationsController.UpdateJobAsync(jobItem, _persistence);
+                    await OperationsController.SaveJobAsync(jobItem, _persistence);
                 }
                 catch (Exception exception)
                 {

@@ -76,8 +76,6 @@ namespace CartaCore.Operations
         /// The status for each operation that is executed as a result of this job.
         /// </summary>
         public ConcurrentDictionary<string, OperationStatus> Status { get; private init; }
-        // TODO: This should be generalized to support all types of tasks.
-        // TODO: We really need to construct a generalized task structure.
         /// <summary>
         /// Contains authentication objects for each operation stored by key and value.
         /// </summary>
@@ -209,24 +207,4 @@ namespace CartaCore.Operations
             Status = new ConcurrentDictionary<string, OperationStatus>();
         }
     }
-
-    // TODO: Remove old context code.
-    // /// <summary>
-    // /// A context that contains execution information for an operation.
-    // /// </summary>
-    // public class OperationContextOld
-    // {
-    //     // TODO: We need to be able to hash and compare selectors so that they are not duplicated on the queue.
-    //     // Create a queue to store selectors based on priority.
-    //     public ConcurrentQueue<(Selector, object)> Selectors { get; } = new();
-
-    //     /// <summary>
-    //     /// The tasks for the operation. 
-    //     /// </summary>
-    //     public ConcurrentBag<OperationTask> Tasks { get; } = new();
-
-    //     public OperationFileSaveHandler SaveFile;
-    //     public OperationFileLoadHandler LoadFile;
-    //     public OperationJobUpdateHandler UpdateJob;
-    // }
 }

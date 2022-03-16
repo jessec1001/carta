@@ -36,6 +36,18 @@ namespace CartaCore.Extensions.String
         }
 
         /// <summary>
+        /// Converts a codified string to a space-separated string.
+        /// For instance, <c>"FromCodified"</c> becomes <c>"From Codified"</c>
+        /// and <c>"PNGConverter"</c> becomes <c>"PNG Converter"</c>.
+        /// </summary>
+        /// <param name="str">The codified string.</param>
+        /// <returns>The space-separated string.</returns>
+        public static string FromCodified(this string str)
+        {
+            return Regex.Replace(str, @"(?<=[a-z])([A-Z])", " $1").Trim();
+        }
+
+        /// <summary>
         /// Checks if a supstring (superstring) contains a (non-contiguous) subsequence (substring) of characters.
         /// </summary>
         /// <param name="supstring">The supstring.</param>

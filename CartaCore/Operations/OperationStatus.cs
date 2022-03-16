@@ -2,16 +2,11 @@ using System;
 
 namespace CartaCore.Operations
 {
-    // TODO: See if there is a better way to represent the hierarchy of operations.
     /// <summary>
     /// The status of an operation that has been requested for execution.
     /// </summary>
     public record OperationStatus
     {
-        /// <summary>
-        /// The identifier of the root operation being executed.
-        /// </summary>
-        public string RootId { get; init; }
         /// <summary>
         /// The identifier of the parent operation being executed.
         /// </summary>
@@ -34,7 +29,7 @@ namespace CartaCore.Operations
         /// Should be in the range [0.0, 1.0].
         /// </summary>
         public double Progress { get; set; }
-    
+
         /// <summary>
         /// An exception that has occurred while executing 
         /// </summary>

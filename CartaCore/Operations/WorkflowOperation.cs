@@ -2,7 +2,9 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
+using CartaCore.Extensions.Typing;
 using CartaCore.Graphs;
 using CartaCore.Operations.Attributes;
 
@@ -33,6 +35,13 @@ namespace CartaCore.Operations
         /// The connections determine the order and flow of calling operations.
         /// </summary>
         public WorkflowOperationConnection[] Connections { get; private set; }
+
+        /// <summary>
+        /// Whether to continue workflow execution even when errors occur.
+        /// If set to <c>true</c>, errors will be updated in the job status but dependent operations will still be run.
+        /// If set to <c>false</c>, dependent operations occurring after errors will not be run.
+        /// </summary>
+        public bool SupressErrors { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="WorkflowOperation"/> class with the specified operations and
@@ -70,7 +79,6 @@ namespace CartaCore.Operations
             OperationStatus workflowStatus = new()
             {
                 Started = true,
-                RootId = Id,
                 OperationId = Id
             };
             // TODO: Condense this into a single unified update method.
@@ -142,7 +150,6 @@ namespace CartaCore.Operations
                     yield return outputField;
         }
 
-
         /// <inheritdoc />
         public override OperationTemplate GetTemplate(IDictionary<string, object> defaults = null)
         {
@@ -153,15 +160,135 @@ namespace CartaCore.Operations
             return template;
         }
 
-        // TODO: We need to resolve types based on the connections that are formed between operations.
-        //       For instance, if a connection connects an output of operation A with field I to operation B with field II
-        //       we do the following. If field I is assignable to field II but field II is not assignable to field I, then,
-        //       the type of both field I and II should be the type of field II because it is more specific. Notice, that if
-        //       neither field I is assignable to field II nor field II is assignable to field I, then there is a type error
-        //       that is catchable at compile-time.
-        public void StabilizeTypes()
+        /// <summary>
+        /// Resolve types based on the connections that are formed between operations.
+        /// 
+        /// For instance, if a connection connects an output of operation A with field I to operation B with field II
+        /// we do the following. If field I is assignable to field II but field II is not assignable to field I, then,
+        /// the type of both field I and II should be the type of field II because it is more specific. Notice, that if
+        /// neither field I is assignable to field II nor field II is assignable to field I, then there is a type error
+        /// that is catchable at compile-time.
+        /// </summary>
+        /// <param name="job">The job executing the workflow operation.</param>
+        /// <returns>Whether the types have been changed or not.</returns>
+        public async Task<bool> IterateTypes(OperationJob job)
         {
+            bool changed = false;
+            for (int n = 0; n < Operations.Length; n++)
+            {
+                Operation operation = Operations[n];
 
+                // If the suboperation is a workflow, we need to stabilize its types.
+                if (operation is WorkflowOperation workflowSuboperation)
+                    changed = (await workflowSuboperation.IterateTypes(job)) || changed;
+
+                // If the suboperation is a typed operation, we need to use its typing to determine the types of its inputs.
+                else
+                {
+                    Type operationType = operation.GetType();
+                    Type baseType = operationType.BaseType;
+                    if (
+                        operationType.IsGenericType &&
+                        baseType.IsGenericType &&
+                        baseType.GetGenericTypeDefinition() == typeof(TypedOperation<,>)
+                    )
+                    {
+                        // We initialize our algorithm with the existing types of the operation.
+                        // We then iterate to stabilize the types.
+                        Type inputType = baseType.GetGenericArguments()[0];
+                        Type outputType = baseType.GetGenericArguments()[1];
+
+                        // We need to iterate over the connections to determine the types of the inputs.
+                        foreach (WorkflowOperationConnection connection in Connections)
+                        {
+                            // Stabilize on the input side.
+                            if (connection.Target.Operation == operation.Id)
+                            {
+                                // We need to find the property name and field of the connection.
+                                IAsyncEnumerable<OperationFieldDescriptor> fields = Operations
+                                    .FirstOrDefault(op => op.Id == connection.Source.Operation)
+                                    .GetOutputFields(job);
+                                string propertyName = connection.Target.Field;
+                                Type propertyType = fields is null
+                                    ? null
+                                    : (await fields.FirstOrDefaultAsync(field => field.Name == connection.Source.Field))?.Type;
+
+                                inputType = inputType.InferType(propertyType, propertyName);
+                            }
+
+                            // Stabilize on the output side.
+                            if (connection.Source.Operation == operation.Id)
+                            {
+                                // We need to find the property name and field of the connection.
+                                IAsyncEnumerable<OperationFieldDescriptor> fields = Operations
+                                    .FirstOrDefault(op => op.Id == connection.Target.Operation)
+                                    .GetInputFields(job);
+                                string propertyName = connection.Source.Field;
+                                Type propertyType = fields is null
+                                    ? null
+                                    : (await fields.FirstOrDefaultAsync(field => field.Name == connection.Target.Field))?.Type;
+
+                                outputType = outputType.InferType(propertyType, propertyName);
+                            }
+                        }
+
+                        // We construct a new operation type with the stabilized types.
+                        Type typeDef = operationType.GetGenericTypeDefinition();
+                        Type baseDef = typeDef.BaseType;
+                        Type inputDef = baseDef.GetGenericArguments()[0];
+                        Type outputDef = baseDef.GetGenericArguments()[1];
+
+                        Type[] inferredTypeArgs = new Type[typeDef.GetGenericArguments().Length];
+                        Type[] knownTypeArgs = typeDef.GetGenericArguments();
+                        for (int k = 0; k < inferredTypeArgs.Length; k++)
+                        {
+                            // Infer against input types.
+                            if (inputDef.IsGenericType)
+                            {
+                                Type[] knownInputArgs = inputDef.GetGenericArguments();
+                                for (int kIn = 0; kIn < knownInputArgs.Length; kIn++)
+                                {
+                                    if (knownInputArgs[kIn] == knownTypeArgs[k])
+                                        inferredTypeArgs[k] = inputType.GetGenericArguments()[kIn];
+                                }
+                            }
+
+                            // Infer against output types.
+                            if (outputDef.IsGenericType)
+                            {
+                                Type[] knownOutputArgs = outputDef.GetGenericArguments();
+                                for (int kOut = 0; kOut < outputDef.GetGenericArguments().Length; kOut++)
+                                {
+                                    if (knownOutputArgs[kOut] == knownTypeArgs[k])
+                                        inferredTypeArgs[k] = outputType.GetGenericArguments()[kOut];
+                                }
+                            }
+                        }
+                        Type newOperationType = typeDef.MakeGenericType(inferredTypeArgs);
+
+                        // Copy the operation to the new type.
+                        if (operationType != newOperationType)
+                        {
+                            Operation newOperation = (Operation)Activator.CreateInstance(newOperationType);
+                            newOperation.Id = operation.Id;
+                            newOperation.Defaults = operation.Defaults;
+                            Operations[n] = newOperation;
+                            changed = true;
+                        }
+                    }
+                }
+            }
+            return changed;
+        }
+        /// <summary>
+        /// Stabilizes types based on connections that are formed before operations.
+        /// </summary>
+        /// <param name="job">The job executing the workflow operation.</param>
+        public async Task StabilizeTypes(OperationJob job)
+        {
+            // Keep iterating types until stable up to some limit in case there are cycles.
+            int iteration = 0;
+            while (await IterateTypes(job) && iteration < byte.MaxValue) iteration++;
         }
     }
 
@@ -181,7 +308,6 @@ namespace CartaCore.Operations
         /// The operation that this vertex represents.
         /// </summary>
         public Operation Operation { get; init; }
-        // TODO: Use these fields.
         /// <summary>
         /// Whether this dependency has started execution.
         /// </summary>
@@ -196,6 +322,7 @@ namespace CartaCore.Operations
         /// operation.
         /// </summary>
         /// <param name="operation">The operation that the dependency represents.</param>
+        /// <param name="edges">The edges that connect to this vertex.</param>
         public WorkflowDependencyVertex(Operation operation, IList<WorkflowDependencyEdge> edges)
         {
             // Test for null arguments.
@@ -246,6 +373,7 @@ namespace CartaCore.Operations
             TargetPoint = connection.Target;
         }
     }
+
     /// <summary>
     /// Provides the mechanics for cleanly and optimally executing a workflow operation.
     /// </summary>
@@ -411,7 +539,6 @@ namespace CartaCore.Operations
                 in the same run of a workflow.
             */
 
-            // TODO: Completely rewrite this.
             // Keep a list of currently running operation tasks.
             // Keep executing operations while there are tasks in this list.
             List<Task<string>> running = new();
@@ -421,7 +548,7 @@ namespace CartaCore.Operations
                 // Find all new operations that can start running.
                 foreach (Operation operation in Workflow.Operations)
                 {
-                    if (!Results.ContainsKey(operation.Id) && CanResolveOperation(operation.Id))
+                    if (!Results.ContainsKey(operation.Id) && await CanRunOperation(operation.Id))
                     {
                         running.Add(RunOperation(operation.Id));
                         runningIds.Add(operation.Id);
@@ -440,29 +567,12 @@ namespace CartaCore.Operations
                 runningIds.RemoveAt(index);
             } while (true);
         }
-
-        // TODO: Completely refactor this.
         /// <summary>
-        /// Checks if an operation can be resolved by executing it. An operation cannot be resolved if it depends on
-        /// other operations that have not yet been resolved.
+        /// Runs a workflow suboperation specified by an identifier.
+        /// Adds its outputs to the results dictionary 
         /// </summary>
-        /// <param name="operationId">The unique identifier of the operation.</param>
-        /// <returns><c>true</c> if the operation can be resolved; otherwise, <c>false</c>.</returns>
-        private bool CanResolveOperation(string operationId)
-        {
-            // Check if the operation has a dependency on another operation that has not yet resolved.
-            // If there is such a dependency, then this operation cannot be resolved.
-            foreach (WorkflowOperationConnection connection in Workflow.Connections)
-            {
-                if (connection.Target.Operation == operationId)
-                {
-                    if (!Results.ContainsKey(connection.Source.Operation))
-                        return false;
-                }
-            }
-            return true;
-        }
-
+        /// <param name="id"></param>
+        /// <returns></returns>
         public async Task<string> RunOperation(string id)
         {
             /*
@@ -479,18 +589,43 @@ namespace CartaCore.Operations
             Operation operation = vertex.Operation;
 
             // TODO: For now we ignore multiplexing and indexing.
-            // TODO: Implement pipelining execution.
 
-            // Create a job for the operation.
-            OperationJob job = new(operation, Job.Id, Job);
-            await PrepareOperationJob(operation.Id, job);
+            try
+            {
+                // We wrap the vertex in updates to its status.
+                vertex.Started = true;
 
-            // TODO: Can we delete intermediate results to operations that are no longer dependencies?
-            // Execute the operation and add the results to our collection.
-            await operation.Perform(job);
-            Results.TryAdd(id, job.Output);
+                // Create a job for the operation.
+                OperationJob job = new(operation, Job.Id, Job);
+                await PrepareOperationJob(operation.Id, job);
+
+                // TODO: Can we delete intermediate results to operations that are no longer dependencies?
+                // Execute the operation and add the results to our collection.
+                await operation.Perform(job);
+                Results.TryAdd(id, job.Output);
+
+                vertex.Finished = true;
+            }
+            catch
+            {
+                vertex.Finished = Workflow.SupressErrors;
+            }
 
             return id;
+        }
+        /// <summary>
+        /// Checks if an operation can be resolved by executing it. An operation cannot be resolved if it depends on
+        /// other operations that have not yet been resolved.
+        /// </summary>
+        /// <param name="id">The unique identifier of the operation.</param>
+        /// <returns><c>true</c> if the operation can be resolved; otherwise, <c>false</c>.</returns>
+        private async Task<bool> CanRunOperation(string id)
+        {
+            // Check if the operation has a dependency on another operation that has not yet resolved.
+            // If there is such a dependency, then this operation cannot be resolved.
+            await foreach (WorkflowDependencyVertex vertex in DependencyGraph.GetParentVertices(id))
+                if (!vertex.Finished) return false;
+            return true;
         }
 
         /// <summary>
@@ -515,7 +650,7 @@ namespace CartaCore.Operations
             // This includes enumerables, streams, and decomposables which are not reusable in general.
             await foreach (OperationFieldDescriptor field in vertex.Operation.GetInputFields(job))
             {
-                // TODO: We need to tee streams if we want to support multiple outputs.
+                // TODO: We need to tee streams and enumerables if we want to support multiple outputs.
 
                 // We are only concerned with inter-operation dependencies.
                 if (!job.Input.TryGetValue(field.Name, out object input)) continue;

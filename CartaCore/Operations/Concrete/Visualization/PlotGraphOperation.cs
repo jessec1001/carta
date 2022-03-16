@@ -36,7 +36,7 @@ namespace CartaCore.Operations.Visualization
     /// <summary>
     /// Represents a vertex in a graph visualization.
     /// </summary>
-    public struct GraphPlotVertex
+    public struct GraphPlotVertex : IVertex<GraphPlotEdge>
     {
         /// <summary>
         /// The unique identifier of the vertex.
@@ -48,6 +48,11 @@ namespace CartaCore.Operations.Visualization
         public string Label { get; set; }
 
         /// <summary>
+        /// The properties of the vertex.
+        /// </summary>
+        public IDictionary<string, IProperty> Properties { get; set; }
+
+        /// <summary>
         /// The value of the vertex as calculated by the coloring strategy. 
         /// </summary>
         public double? Value { get; set; }
@@ -56,13 +61,21 @@ namespace CartaCore.Operations.Visualization
         /// The style of the vertex.
         /// </summary>
         public PlotStyle? Style { get; set; }
+
+        /// <inheritdoc />
+        public IEnumerable<GraphPlotEdge> Edges { get; set; }
     }
     // TODO: Make this consistent with VisJS format if possible.
     /// <summary>
     /// Represents an edge in a graph visualization.
     /// </summary>
-    public struct GraphPlotEdge
+    public struct GraphPlotEdge : IEdge
     {
+        /// <summary>
+        /// The unique identifier of the edge.
+        /// </summary>
+        public string Id { get; set; }
+
         /// <summary>
         /// The unique identifier for the source vertex.
         /// </summary>
@@ -80,23 +93,18 @@ namespace CartaCore.Operations.Visualization
         /// The style of the edge.
         /// </summary>
         public PlotStyle? Style { get; set; }
+
     }
     /// <summary>
     /// The data for a graph visualization.
     /// </summary>
-    public class GraphPlot : Plot
+    public class GraphPlot : Plot, IEnumerableComponent<GraphPlotVertex, GraphPlotEdge>
     {
         /// <inheritdoc />
         public override string Type => "graph";
 
-        /// <summary>
-        /// The vertices to visualize.
-        /// </summary>
-        public GraphPlotVertex[] Vertices { get; set; }
-        /// <summary>
-        /// The edges to visualize.
-        /// </summary>
-        public GraphPlotEdge[] Edges { get; set; }
+        /// <inheritdoc />
+        public ComponentStack Components { get; set; }
 
         // TODO: Port colormap code to backend.
         /// <summary>
@@ -104,6 +112,65 @@ namespace CartaCore.Operations.Visualization
         /// instead.
         /// </summary>
         public string Colormap { get; init; }
+
+        /// <summary>
+        /// The graph to visualize.
+        /// </summary>
+        private readonly IEnumerableComponent<Vertex, Edge> Graph;
+        /// <summary>
+        /// The style for vertices.
+        /// </summary>
+        private readonly PlotStyle? VertexStyle;
+        /// <summary>
+        /// The style for edges.
+        /// </summary>
+        private readonly PlotStyle? EdgeStyle;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GraphPlot"/> class.
+        /// </summary>
+        /// <param name="graph">The enumerable graph.</param>
+        /// <param name="vertexStyle">The default vertex style.</param>
+        /// <param name="edgeStyle">The default edge style.</param>
+        public GraphPlot(IEnumerableComponent<Vertex, Edge> graph, PlotStyle? vertexStyle, PlotStyle? edgeStyle)
+        {
+            Graph = graph;
+            VertexStyle = vertexStyle;
+            EdgeStyle = edgeStyle;
+        }
+
+        /// <inheritdoc />
+        public async IAsyncEnumerable<GraphPlotVertex> GetVertices()
+        {
+            // Generate the data for the graph plot.
+            await foreach (Vertex vertex in Graph.GetVertices())
+            {
+                // Create the data for the edges.
+                List<GraphPlotEdge> edges = new();
+                foreach (Edge edge in vertex.Edges)
+                {
+                    GraphPlotEdge graphPlotEdge = new()
+                    {
+                        Id = edge.Id,
+                        Source = edge.Source.ToString(),
+                        Target = edge.Target.ToString(),
+                        Directed = edge.Directed,
+                        Style = EdgeStyle
+                    };
+                    edges.Add(graphPlotEdge);
+                }
+
+                // Create the data for the vertex.
+                GraphPlotVertex graphPlotVertex = new()
+                {
+                    Id = vertex.Id,
+                    Label = vertex.Label,
+                    Properties = vertex.Properties,
+                    Style = VertexStyle
+                };
+                yield return graphPlotVertex;
+            }
+        }
     }
 
     /// <summary>
@@ -114,34 +181,40 @@ namespace CartaCore.Operations.Visualization
         /// <summary>
         /// The title of the graph visualization.
         /// </summary>
+        [FieldName("Title")]
         public string Title { get; set; }
 
         /// <summary>
         /// The graph to visualize.
         /// </summary>
+        [FieldName("Graph")]
         public Graph Graph { get; set; }
 
-        /// <summary>
-        /// The strategy to use for coloring the graph.
-        /// </summary>
-        public GraphColorStrategy ColorStrategy { get; set; }
-        /// <summary>
-        /// The color map to use for mapping numeric data to colors. If not specified, a default color will be used
-        /// instead.
-        /// </summary>
-        public string ColorMap { get; set; }
+        // TODO: Reimplement.
+        // /// <summary>
+        // /// The strategy to use for coloring the graph.
+        // /// </summary>
+        // public GraphColorStrategy ColorStrategy { get; set; }
+        // /// <summary>
+        // /// The color map to use for mapping numeric data to colors. If not specified, a default color will be used
+        // /// instead.
+        // /// </summary>
+        // public string ColorMap { get; set; }
 
         /// <summary>
         /// An optional style to apply to vertices.
         /// </summary>
+        [FieldName("Vertex Style")]
         public PlotStyle? VertexStyle { get; set; }
         /// <summary>
         /// An optional style to apply to edges.
         /// </summary>
+        [FieldName("Edge Style")]
         public PlotStyle? EdgeStyle { get; set; }
         /// <summary>
         /// An optional style to apply to the axes.
         /// </summary>
+        [FieldName("Axes Style")]
         public PlotStyle? AxesStyle { get; set; }
     }
     /// <summary>
@@ -152,6 +225,7 @@ namespace CartaCore.Operations.Visualization
         /// <summary>
         /// The generated plot.
         /// </summary>
+        [FieldName("Plot")]
         public GraphPlot Plot { get; set; }
     }
 
@@ -167,7 +241,7 @@ namespace CartaCore.Operations.Visualization
     >
     {
         /// <inheritdoc />
-        public override async Task<PlotGraphOperationOut> Perform(
+        public override Task<PlotGraphOperationOut> Perform(
             PlotGraphOperationIn input,
             OperationJob job)
         {
@@ -185,44 +259,16 @@ namespace CartaCore.Operations.Visualization
                 if (axesStyle.StrokeColor is not null) styles["color"] = axesStyle.StrokeColor;
             }
 
-            // Generate the data for the graph plot.
-            List<GraphPlotVertex> graphPlotVertices = new();
-            List<GraphPlotEdge> graphPlotEdges = new();
-            await foreach (Vertex vertex in enumerableComponent.GetVertices())
-            {
-                // Create the data for the vertex.
-                GraphPlotVertex graphPlotVertex = new()
-                {
-                    Id = vertex.Id.ToString(),
-                    Label = vertex.Label,
-                    // Value = vertex.Value,
-                    Style = input.VertexStyle
-                };
-                graphPlotVertices.Add(graphPlotVertex);
-
-                // Create the data for the edges.
-                foreach (Edge edge in vertex.Edges)
-                {
-                    GraphPlotEdge graphPlotEdge = new()
-                    {
-                        Source = edge.Source.ToString(),
-                        Target = edge.Target.ToString(),
-                        Directed = edge.Directed,
-                        Style = input.EdgeStyle
-                    };
-                    graphPlotEdges.Add(graphPlotEdge);
-                }
-            }
-
             // Create a new graph plot structure.
-            GraphPlot graphPlot = new()
+            GraphPlot graphPlot = null;
+            if (input.Graph.Components.TryFind(out IEnumerableComponent<Vertex, Edge> enumerable))
             {
-                Vertices = graphPlotVertices.ToArray(),
-                Edges = graphPlotEdges.ToArray(),
-                Style = styles,
-                Colormap = input.ColorMap
-            };
-            return new() { Plot = graphPlot };
+                graphPlot = new(enumerable, input.VertexStyle, input.EdgeStyle)
+                {
+                    Style = styles,
+                };
+            }
+            return Task.FromResult(new PlotGraphOperationOut() { Plot = graphPlot });
         }
     }
 }

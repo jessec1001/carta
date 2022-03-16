@@ -169,19 +169,7 @@ namespace CartaWeb.Controllers
         /// <returns>Whether the operation was successful or not.</returns>
         public static async Task<bool> SaveJobAsync(JobItem jobItem, Persistence Persistence)
         {
-            DbDocument document = jobItem.CreateDbDocument();
-            bool isSaved = await Persistence.WriteDbDocumentAsync(document);
-            return isSaved;
-        }
-        /// <summary>
-        /// Updates the specified job in the database.
-        /// </summary>
-        /// <param name="jobItem">The job item.</param>
-        /// <param name="Persistence">A reference to the persistence service.</param>
-        /// <returns>Whether the operation was succesfful or not.</returns>
-        public static async Task<bool> UpdateJobAsync(JobItem jobItem, Persistence Persistence)
-        {
-            DbDocument document = jobItem.UpdateDbDocument();
+            DbDocument document = jobItem.SaveDbDocument();
             bool isSaved = await Persistence.WriteDbDocumentAsync(document);
             return isSaved;
         }
@@ -266,6 +254,7 @@ namespace CartaWeb.Controllers
 
                 WorkflowOperation operation = new(suboperations.ToArray(), connections) { Id = operationItem.Id };
                 operation.Defaults = operationItem.Default;
+                await operation.StabilizeTypes(new OperationJob(operation, "temp"));
 
                 return operation;
             }

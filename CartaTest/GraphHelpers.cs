@@ -26,24 +26,13 @@ namespace CartaTest
                 MemoryGraph graph = new("Undirected w/o Properties");
                 Vertex[] vertices = new Vertex[]
                 {
-                    new Vertex("0"),
-                    new Vertex("1"),
-                    new Vertex("2"),
-                    new Vertex("3"),
-                    new Vertex("4"),
+                    new Vertex("0", new Edge[] { new Edge("0", "1"), new Edge("0", "2") }),
+                    new Vertex("1", new Edge[] { new Edge("0", "1"), new Edge("1", "3") }),
+                    new Vertex("2", new Edge[] { new Edge("0", "2"), new Edge("2", "3") }),
+                    new Vertex("3", new Edge[] { new Edge("1", "3"), new Edge("2", "3"), new Edge("3", "4") }),
+                    new Vertex("4", new Edge[] { new Edge("3", "4") }),
                 };
-
-                // Construct the vertices and edges of the graph.
                 graph.AddVertexRange(vertices);
-                graph.AddEdgeRange(new Edge[]
-                {
-                    new Edge(vertices[0], vertices[1]),
-                    new Edge(vertices[0], vertices[2]),
-                    new Edge(vertices[1], vertices[3]),
-                    new Edge(vertices[2], vertices[3]),
-                    new Edge(vertices[3], vertices[4]),
-                });
-
                 return graph;
             }
         }

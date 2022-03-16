@@ -16,12 +16,13 @@ namespace CartaCore.Operations
         where TInput : new()
         where TOutput : new()
     {
+        // TODO: This needs to be updated to reflect custom conversion in derived classes.
         /// <summary>
         /// The typed default values of the operation as specified externally.
         /// </summary>
-        public async Task<TInput> DefaultsTyped(OperationJob job = null)
+        public TInput DefaultsTyped
         {
-            return await ConvertInput(job, Defaults);
+            set => Defaults = value.AsDictionary();
         }
 
         /// <summary>
@@ -171,10 +172,48 @@ namespace CartaCore.Operations
         /// <inheritdoc />
         public override async Task Perform(OperationJob job)
         {
-            TInput input = await ConvertInput(job, MergeDefaults(job.Input, Defaults));
-            TOutput output = await Perform(input, job);
-            foreach (KeyValuePair<string, object> entry in await ConvertOutput(job, output))
-                job.Output.TryAdd(entry.Key, entry.Value);
+            // Setup the job status to be started.
+            OperationStatus status = new()
+            {
+                ParentId = job?.Parent?.Operation?.Id,
+                OperationId = job.Operation.Id,
+                Started = true
+            };
+            job.Status.TryAdd(Id, status);
+            await job.OnUpdate(job);
+
+            // Try to perform the operation.
+            try
+            {
+                TInput input = await ConvertInput(job, MergeDefaults(job.Input, Defaults));
+                TOutput output = await Perform(input, job);
+                foreach (KeyValuePair<string, object> entry in await ConvertOutput(job, output))
+                    job.Output.TryAdd(entry.Key, entry.Value);
+            }
+            catch (Exception ex)
+            {
+                // Update the status with the exception.
+                job.Status.TryGetValue(Id, out status);
+                job.Status.TryUpdate(Id, status with
+                {
+                    Finished = true,
+                    Exception = ex
+                }, status);
+
+                throw;
+            }
+            finally
+            {
+                // Update the status to be finished.
+                job.Status.TryGetValue(Id, out status);
+                job.Status.TryUpdate(Id, status with
+                {
+                    Finished = true
+                }, status);
+            }
+
+            // Notify the job that the operation has finished.
+            await job.OnUpdate(job);
         }
 
         /// <summary>

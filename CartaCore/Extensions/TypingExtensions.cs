@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using CartaCore.Operations.Attributes;
 using CartaCore.Typing;
 
@@ -90,6 +91,44 @@ namespace CartaCore.Extensions.Typing
                     typeConverterAttribute.ApplyConverter(converters);
             }
             return new TypeConverterContext(converters.ToArray());
+        }
+
+        /// <summary>
+        /// Infers the type of a generic type by specifying the type of a property within it.
+        /// </summary>
+        /// <param name="baseType">The base type.</param>
+        /// <param name="propertyType">The property type.</param>
+        /// <param name="propertyName">The property name.</param>
+        /// <returns>The inferred type.</returns>
+        public static Type InferType(this Type baseType, Type propertyType, string propertyName)
+        {
+            // Shortcut check if the base type is generic.
+            if (!baseType.IsGenericType) return baseType;
+            Type genericType = baseType.GetGenericTypeDefinition();
+
+            // Get the property that we are trying to infer.
+            PropertyInfo property = genericType.GetProperty(
+                propertyName,
+                BindingFlags.Public |
+                BindingFlags.Instance |
+                BindingFlags.IgnoreCase
+            );
+            if (property is null) throw new Exception("Property not found.");
+
+            // Check if the property type is a generic type parameter.
+            Type existingType = property.PropertyType;
+            if (existingType.IsGenericTypeParameter)
+            {
+                // Find the corresponding type parameter in the base type.
+                Type[] genericArguments = baseType.GetGenericArguments();
+                genericArguments[existingType.GenericParameterPosition] = propertyType;
+
+                // Create a new generic type with the inferred type parameter.
+                Type inferredType = baseType.GetGenericTypeDefinition().MakeGenericType(genericArguments);
+                return inferredType;
+            }
+
+            return baseType;
         }
     }
 }

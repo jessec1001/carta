@@ -123,8 +123,8 @@ namespace CartaCore.Graphs.Components
         /// <returns>The topmost component of the specified type if found; otherwise, the default value.</returns>
         public T Find<T>() where T : IComponent
         {
-            foreach (var component in _components)
-                if (component is T found) return found;
+            foreach ((Type type, IComponent component) pair in _components)
+                if (pair.component is T found) return found;
             return default;
         }
         /// <summary>
@@ -134,8 +134,8 @@ namespace CartaCore.Graphs.Components
         /// <returns>The enumeration of components of the specified type.</returns>
         public IEnumerable<T> FindAll<T>() where T : IComponent
         {
-            foreach (var component in _components)
-                if (component is T found) yield return found;
+            foreach ((Type type, IComponent component) pair in _components)
+                if (pair.component is T found) yield return found;
         }
         /// <summary>
         /// Tries to find the topmost component of the specified type.
@@ -147,8 +147,8 @@ namespace CartaCore.Graphs.Components
         /// <returns>Whether a component of the correct type was found.</returns>
         public bool TryFind<T>(out T component) where T : IComponent
         {
-            foreach (var c in _components)
-                if (c is T found)
+            foreach ((Type type, IComponent component) pair in _components)
+                if (pair.component is T found)
                 {
                     component = found;
                     return true;

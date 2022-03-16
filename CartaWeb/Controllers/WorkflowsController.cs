@@ -64,19 +64,19 @@ namespace CartaWeb.Controllers
         }
         public static async Task<bool> DeleteWorkflowAsync(string workflowId, Persistence _persistence)
         {
-            WorkflowItem workflowItem = new WorkflowItem(workflowId);
+            WorkflowItem workflowItem = new(workflowId);
             DbDocument document = workflowItem.DeleteDbDocument();
             return await _persistence.WriteDbDocumentAsync(document);
         }
         public static async Task<WorkflowItem> LoadWorkflowAsync(string workflowId, Persistence _persistence)
         {
-            WorkflowItem workflowItem = new WorkflowItem(workflowId);
+            WorkflowItem workflowItem = new(workflowId);
             Item item = await _persistence.LoadItemAsync(workflowItem);
             return (WorkflowItem)item;
         }
         public static async Task<List<WorkflowItem>> LoadWorkflowsAsync(Persistence _persistence)
         {
-            WorkflowItem workflowItem = new WorkflowItem();
+            WorkflowItem workflowItem = new();
             IEnumerable<Item> items = await _persistence.LoadItemsAsync(workflowItem);
             return items.Select(item => (WorkflowItem)item).ToList();
         }

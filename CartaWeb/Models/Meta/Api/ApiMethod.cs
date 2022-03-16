@@ -62,24 +62,16 @@ namespace CartaWeb.Models.Meta
         /// <returns>The API method type.</returns>
         public static ApiMethod GetMethodType(this HttpMethodAttribute attr)
         {
-            switch (attr)
+            return attr switch
             {
-                case HttpHeadAttribute _:
-                    return ApiMethod.HEAD;
-                case HttpPatchAttribute _:
-                    return ApiMethod.PATCH;
-                case HttpPutAttribute _:
-                    return ApiMethod.PUT;
-                case HttpPostAttribute _:
-                    return ApiMethod.POST;
-                case HttpDeleteAttribute _:
-                    return ApiMethod.DELETE;
-                case HttpOptionsAttribute _:
-                    return ApiMethod.OPTIONS;
-                case HttpGetAttribute _:
-                default:
-                    return ApiMethod.GET;
-            }
+                HttpHeadAttribute _ => ApiMethod.HEAD,
+                HttpPatchAttribute _ => ApiMethod.PATCH,
+                HttpPutAttribute _ => ApiMethod.PUT,
+                HttpPostAttribute _ => ApiMethod.POST,
+                HttpDeleteAttribute _ => ApiMethod.DELETE,
+                HttpOptionsAttribute _ => ApiMethod.OPTIONS,
+                _ => ApiMethod.GET,
+            };
         }
     }
 }

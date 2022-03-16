@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using CartaCore.Documentation;
 using CartaCore.Operations.Attributes;
 using CartaCore.Operations.Visualization;
 using NJsonSchema;
@@ -52,9 +51,6 @@ namespace CartaCore.Operations
         /// <inheritdoc />
         public override Task<OutputOperationOut> Perform(OutputOperationIn<TValue> input, OperationJob job)
         {
-            // TODO: Temporarily, we will handle pipelineable outputs by evaluating its entirety.
-
-
             OperationJob parentJob = job?.Parent;
             if (input.Name is null)
                 throw new ArgumentNullException(nameof(input.Name), "The name of the output value must be specified.");
