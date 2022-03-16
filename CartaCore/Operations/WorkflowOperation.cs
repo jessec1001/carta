@@ -589,7 +589,7 @@ namespace CartaCore.Operations
 
             // We check if any of the dependency operations threw exceptions.
             // If so and we are not suppressing errors, we throw an exception on this operation.
-            if (Workflow.SuppressErrors)
+            if (!Workflow.SuppressErrors)
             {
                 await foreach (WorkflowDependencyVertex depVertex in DependencyGraph.GetParentVertices(vertex.Id))
                 {
