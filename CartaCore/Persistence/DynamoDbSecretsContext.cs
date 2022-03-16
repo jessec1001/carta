@@ -40,7 +40,7 @@ namespace CartaCore.Persistence
         /// <summary>
         /// Gets or sets the user ID secrets are stored under
         /// </summary>
-        /// <value>The user ID/value>
+        /// <value>The user ID</value>
         public string UserId { get; private init; }
 
         /// <summary>
@@ -84,7 +84,6 @@ namespace CartaCore.Persistence
         /// <inheritdoc />
         public async Task<bool> WriteDocumentAsync(DbDocument dbDocument)
         {
-            Console.WriteLine($"dbDocument.SecretJsonString: {dbDocument.SecretJsonString}");
             if (dbDocument.Operation == DbOperationType.Read) return false;
             if (dbDocument.SecretJsonString is null) return false;
             else if (dbDocument.Operation == DbOperationType.Delete)

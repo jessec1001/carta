@@ -90,6 +90,10 @@ namespace CartaWeb.Models.DocumentItem
             Id = id;
         }
 
+        /// <summary>
+        /// Creates a copy of the item.
+        /// </summary>
+        /// <returns>A copy of the item.</returns>
         public Item Copy()
         {
             return (Item)this.MemberwiseClone();

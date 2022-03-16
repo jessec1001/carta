@@ -6,7 +6,6 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using System.Security.Claims;
 using System.Reflection;
-using System.Linq;
 using CartaCore.Persistence;
 using CartaWeb.Models.Data;
 using CartaWeb.Models.Options;
@@ -36,6 +35,12 @@ namespace CartaWeb.Models.DocumentItem
             _noSqlDbContext = noSqlDbContext;
         }
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="noSqlDbContext">The NoSQL DB context used to read and write to the database.</param>
+        /// <param name="awsCdkOptions">The AWS options, needed to create the secrets NoSQL DB context with
+        /// user credentials.</param>
         public Persistence(INoSqlDbContext noSqlDbContext, AwsCdkOptions awsCdkOptions)
         {
             _noSqlDbContext = noSqlDbContext;
@@ -63,7 +68,7 @@ namespace CartaWeb.Models.DocumentItem
         }
 
         /// <summary>
-        /// Updates an item's secret values from the secrets store
+        /// Updates an item's secret values from the secrets store.
         /// </summary>
         /// <param name="item">The document item to update.</param>
         /// <param name="user">The user claims needed for reading secrets.</param>
