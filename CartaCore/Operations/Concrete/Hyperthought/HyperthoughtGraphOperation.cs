@@ -22,7 +22,7 @@ namespace CartaCore.Operations
         /// The reference to the authenticated HyperThought API. 
         /// </summary>
         [FieldAuthentication(HyperthoughtAuthentication.Key, typeof(HyperthoughtAuthentication))]
-        public HyperthoughtApi Api { get; set; }
+        public HyperthoughtAuthentication HyperthoughtAuth { get; set; }
         /// <summary>
         /// The dot-separated path to the HyperThought workflow.
         /// </summary>
@@ -139,8 +139,9 @@ namespace CartaCore.Operations
         public override async Task<HyperthoughtGraphOperationOut> Perform(HyperthoughtGraphOperationIn input, OperationJob job)
         {
             // Get the UUID of the graph so that we may create the graph.
-            Guid uuid = await input.Api.Workflow.GetProcessIdFromPathAsync(input.Path);
-            HyperthoughtWorkflowGraph graph = new(input.Api, uuid);
+            HyperthoughtApi api = new(input.HyperthoughtAuth.ApiKey);
+            Guid uuid = await api.Workflow.GetProcessIdFromPathAsync(input.Path);
+            HyperthoughtWorkflowGraph graph = new(api, uuid);
 
             // Try to get the priority queue for the graph field.
             job.PriorityQueue.TryGetValue(

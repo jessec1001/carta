@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -23,6 +24,28 @@ namespace CartaCore.Operations
         public Dictionary<string, object> Defaults { get; set; } = new();
 
         /// <summary>
+        /// Merges a dictionary of values with a dictionary of default values.
+        /// </summary>
+        /// <param name="values">The values.</param>
+        /// <param name="defaults">The default values.</param>
+        /// <returns>The merged values.</returns>
+        public IDictionary<string, object> MergeDefaults(
+            IDictionary<string, object> values,
+            IDictionary<string, object> defaults = null)
+        {
+            IDictionary<string, object> merged = new Dictionary<string, object>(values);
+            if (defaults is not null)
+            {
+                foreach (KeyValuePair<string, object> pair in defaults)
+                {
+                    if (!merged.ContainsKey(pair.Key))
+                        merged[pair.Key] = pair.Value;
+                }
+            }
+            return merged;
+        }
+
+        /// <summary>
         /// The default type converter stack used for converting input and output values to the correct type.
         /// </summary>
         public static readonly TypeConverterContext TypeConverter = new(
@@ -34,6 +57,51 @@ namespace CartaCore.Operations
             new EnumerableTypeConverter(),
             new SyncAsyncCollectionTypeConverter()
         );
+
+        /// <summary>
+        /// Converts a particular input object into the expected type for the corresponding input field.
+        /// The only input fields that are considered are those that are returned from <see cref="GetInputFields(OperationJob)"/>.
+        /// </summary>
+        /// <param name="field">The description of the field.</param>
+        /// <param name="input">The input object.</param>
+        /// <param name="job">The job performing the operation.</param>
+        /// <returns>The converted field value.</returns>
+        public virtual Task<object> ConvertInputField(
+            OperationFieldDescriptor field,
+            object input,
+            OperationJob job)
+        {
+            if (TypeConverter.TryConvert(input?.GetType() ?? typeof(object), field.Type, in input, out object converted))
+                return Task.FromResult(converted);
+            else
+            {
+                throw new InvalidCastException(
+                    $"Could not convert input field '{field.Name}' to expected type of '{field.Type.Name}'."
+                );
+            }
+        }
+        /// <summary>
+        /// Converts a particular output object into the expected type for the corresponding output field.
+        /// The only output fields that are considered are those that are returned from <see cref="GetOutputFields(OperationJob)"/>.
+        /// </summary>
+        /// <param name="field">The description of the field.</param>
+        /// <param name="output">The output object.</param>
+        /// <param name="job">The job performing the operation.</param>
+        /// <returns>The converted field value.</returns>
+        public virtual Task<object> ConvertOutputField(
+            OperationFieldDescriptor field,
+            object output,
+            OperationJob job)
+        {
+            if (TypeConverter.TryConvert(output?.GetType() ?? typeof(object), field.Type, in output, out object converted))
+                return Task.FromResult(converted);
+            else
+            {
+                throw new InvalidCastException(
+                    $"Could not convert output field '{field.Name}' to expected type of '{field.Type.Name}'."
+                );
+            }
+        }
 
         /// <summary>
         /// Operates on a specified operation job containing input and output mappings. Most operations will use the

@@ -30,6 +30,11 @@ namespace CartaCore.Integration.Hyperthought
         private readonly Guid WorkflowId;
 
         /// <summary>
+        /// Whether to include additional data specific to HyperThought in the generation of vertices.
+        /// </summary>
+        public bool IncludeMetadata { get; set; }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="HyperthoughtWorkflowGraph"/> class using a
         /// <see cref="HyperthoughtApi"/> instance and a workflow ID.
         /// </summary>
@@ -63,7 +68,7 @@ namespace CartaCore.Integration.Hyperthought
         /// </summary>
         /// <param name="workflow">The workflow object.</param>
         /// <returns>The converted vertex.</returns>
-        private static Vertex VertexFromWorkflow(HyperthoughtProcess workflow)
+        private Vertex VertexFromWorkflow(HyperthoughtProcess workflow)
         {
             // Properties are compiled from the contents read from the data source.
             // This depends on the schema for this data source.
@@ -192,7 +197,11 @@ namespace CartaCore.Integration.Hyperthought
                 Property property = new(value.Link) { Properties = suproperties };
                 standardProperties[metadata.Key] = property;
             }
-            standardProperties["HyperThought Metadata"] = new Property() { Properties = metaProperties };
+            if (IncludeMetadata)
+            {
+                standardProperties["HyperThought Metadata"] = new Property()
+                { Properties = metaProperties };
+            }
             standardProperties.TrimExcess();
             #endregion
 

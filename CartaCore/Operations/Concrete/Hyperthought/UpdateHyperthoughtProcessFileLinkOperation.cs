@@ -18,7 +18,7 @@ namespace CartaCore.Operations.Hyperthought
         /// The reference to the authenticated HyperThought API.
         /// </summary>
         [FieldAuthentication(HyperthoughtAuthentication.Key, typeof(HyperthoughtAuthentication))]
-        public HyperthoughtApi Api { get; set; }
+        public HyperthoughtAuthentication HyperthoughtAuth { get; set; }
 
         /// <summary>
         /// The file path, e.g. /dirname/subdirname/filename.txt
@@ -182,7 +182,8 @@ namespace CartaCore.Operations.Hyperthought
             input.PathSeperator ??= ".";
 
             // Validate input values.
-            Guid workspaceId = await GetWorkspaceId(input.WorkspaceAlias, input.Api);
+            HyperthoughtApi api = new(input.HyperthoughtAuth.ApiKey);
+            Guid workspaceId = await GetWorkspaceId(input.WorkspaceAlias, api);
             if (workspaceId.Equals(Guid.Empty))
                 throw new ArgumentException($"Workspace alias {input.WorkspaceAlias} does not exist.");
             if (input.FilePath is null)
@@ -194,7 +195,7 @@ namespace CartaCore.Operations.Hyperthought
             }
 
             // Get the file link.
-            string fileLink = await GetFileLinkAysnc(input.FilePath, workspaceId, input.Api);
+            string fileLink = await GetFileLinkAysnc(input.FilePath, workspaceId, api);
             if (fileLink is null)
                 throw new ArgumentException($"The file {input.FilePath} does not exist in HyperThought.");
 
@@ -204,7 +205,7 @@ namespace CartaCore.Operations.Hyperthought
 
             // Get the process object.
             HyperthoughtProcess process =
-                await input.Api.Workflow.GetProcessFromPathAsync(input.ProcessPath, input.PathSeperator);
+                await api.Workflow.GetProcessFromPathAsync(input.ProcessPath, input.PathSeperator);
             if (process is null)
                 throw new ArgumentException($"A process with path {input.ProcessPath} and path seperator '{input.PathSeperator}' does not exist in HyperThought.");
 
@@ -237,7 +238,7 @@ namespace CartaCore.Operations.Hyperthought
             }
 
             // Update the Hyperthought process.
-            await input.Api.Workflow.UpdateProcessAsync(process);
+            await api.Workflow.UpdateProcessAsync(process);
 
             return new UpdateHyperthoughtProcessFileLineOperationOut();
         }

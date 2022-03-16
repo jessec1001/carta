@@ -87,8 +87,9 @@ namespace CartaCore.Extensions.Typing
             List<TypeConverter> converters = new(context.TypeConverters);
             foreach (Attribute attribute in attributes)
             {
-                if (attribute is ITypeConverterAttribute typeConverterAttribute)
-                    typeConverterAttribute.ApplyConverter(converters);
+                // TODO: Reimplement.
+                // if (attribute is ITypeConverterAttribute typeConverterAttribute)
+                // typeConverterAttribute.ApplyConverter(converters);
             }
             return new TypeConverterContext(converters.ToArray());
         }

@@ -17,6 +17,7 @@ namespace CartaCore.Operations.Authentication
         /// on the HyperThought™ website. **Important:** this is sensitive information that could be used to forge
         /// your identity - do not misplace this information of allow it to be leaked.
         /// </summary>
+        [FieldRequired]
         [FieldName("API Key")]
         public string ApiKey { get; set; }
     }

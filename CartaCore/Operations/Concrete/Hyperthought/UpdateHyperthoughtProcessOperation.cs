@@ -19,7 +19,7 @@ namespace CartaCore.Operations.Hyperthought
         /// The reference to the authenticated HyperThought API.
         /// </summary>
         [FieldAuthentication(HyperthoughtAuthentication.Key, typeof(HyperthoughtAuthentication))]
-        public HyperthoughtApi Api { get; set; }
+        public HyperthoughtAuthentication HyperthoughtAuth { get; set; }
 
         /// <summary>
         /// The full path of the process, e.g. /source/resource/workflow/builds/part/a1/results.
@@ -209,8 +209,9 @@ namespace CartaCore.Operations.Hyperthought
                 input.ProcessPath = input.ProcessPath[1..];
 
             // Get the process object.
+            HyperthoughtApi api = new(input.HyperthoughtAuth.ApiKey);
             HyperthoughtProcess process =
-                await input.Api.Workflow.GetProcessFromPathAsync(input.ProcessPath, input.PathSeperator);
+                await api.Workflow.GetProcessFromPathAsync(input.ProcessPath, input.PathSeperator);
             if (process is null)
             {
                 throw new ArgumentException($"A process with path {input.ProcessPath} and path seperator " +
@@ -218,7 +219,7 @@ namespace CartaCore.Operations.Hyperthought
             }
 
             // Update the process with the given properties.
-            await PatchHyperthoughtProcessVertex(input.Properties, input.OverwriteExisting, process, input.Api);
+            await PatchHyperthoughtProcessVertex(input.Properties, input.OverwriteExisting, process, api);
 
             return new UpdateHyperthoughtProcessOperationOut();
         }

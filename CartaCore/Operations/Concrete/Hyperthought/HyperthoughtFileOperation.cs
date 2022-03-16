@@ -19,7 +19,7 @@ namespace CartaCore.Operations.Hyperthought
         /// The reference to the authenticated HyperThought API.
         /// </summary>
         [FieldAuthentication(HyperthoughtAuthentication.Key, typeof(HyperthoughtAuthentication))]
-        public HyperthoughtApi Api { get; set; }
+        public HyperthoughtAuthentication HyperthoughtAuth { get; set; }
 
         /// <summary>
         /// The file path, e.g. /dirname/subdirname/filename.txt
@@ -294,8 +294,11 @@ namespace CartaCore.Operations.Hyperthought
         /// <inheritdoc />
         public override async Task<HyperthoughtFileOperationOut> Perform(HyperthoughtFileOperationIn input)
         {
+            // Create an instance of the Hyperthought API integration.
+            HyperthoughtApi api = new(input.HyperthoughtAuth.ApiKey);
+
             // Validate input values.
-            Guid workspaceId = await GetWorkspaceId(input.WorkspaceAlias, input.Api);
+            Guid workspaceId = await GetWorkspaceId(input.WorkspaceAlias, api);
             if (workspaceId.Equals(Guid.Empty))
                 throw new ArgumentException($"Workspace alias {input.WorkspaceAlias} does not exist.");
             if (input.FilePath is null)
@@ -314,7 +317,7 @@ namespace CartaCore.Operations.Hyperthought
                     input.FilePath,
                     input.Stream,
                     workspaceId,
-                    input.Api
+                    api
                 );
             }
 
@@ -323,7 +326,7 @@ namespace CartaCore.Operations.Hyperthought
             (
                 input.FilePath,
                 workspaceId,
-                input.Api
+                api
             );
             return new HyperthoughtFileOperationOut { OutputStream = outputStream };
         }

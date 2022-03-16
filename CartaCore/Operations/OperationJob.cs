@@ -74,12 +74,20 @@ namespace CartaCore.Operations
 
         /// <summary>
         /// The status for each operation that is executed as a result of this job.
+        /// These are stored for each operation that has had execution initiated.
+        /// If an operation needs to update a status, it should modify this dictionary directly and trigger a job update.
         /// </summary>
         public ConcurrentDictionary<string, OperationStatus> Status { get; private init; }
         /// <summary>
         /// Contains authentication objects for each operation stored by key and value.
+        /// This is concurrent so that multiple jobs may access authentication entries simultaneously.
         /// </summary>
         public ConcurrentDictionary<string, ConcurrentDictionary<string, object>> Authentication { get; private init; }
+        /// <summary>
+        /// Contains tasks that must be executed in order for the executing operation to complete.
+        /// If an operation needs to initiate a task, it should add to this list and trigger a job update.
+        /// </summary>
+        public ConcurrentBag<OperationTask> Tasks { get; private init; }
 
         /// <summary>
         /// Handles updates that are made to the job.
@@ -94,13 +102,7 @@ namespace CartaCore.Operations
         public OperationJob(
             Operation operation,
             string id)
-        {
-            Operation = operation;
-            Id = id;
-            Input = new ConcurrentDictionary<string, object>();
-            Output = new ConcurrentDictionary<string, object>();
-            Status = new ConcurrentDictionary<string, OperationStatus>();
-        }
+        : this(operation, id, null) { }
         /// <summary>
         /// Initializes a new instance of the <see cref="OperationJob"/> class.
         /// </summary>
@@ -111,14 +113,7 @@ namespace CartaCore.Operations
             Operation operation,
             string id,
             OperationJob parent)
-        {
-            Operation = operation;
-            Id = id;
-            Parent = parent;
-            Input = new ConcurrentDictionary<string, object>();
-            Output = new ConcurrentDictionary<string, object>();
-            Status = new ConcurrentDictionary<string, OperationStatus>();
-        }
+        : this(operation, id, parent, default(CancellationToken)) { }
         /// <summary>
         /// Initializes a new instance of the <see cref="OperationJob"/> class.
         /// </summary>
@@ -131,15 +126,15 @@ namespace CartaCore.Operations
             string id,
             OperationJob parent,
             CancellationToken cancellationToken)
-        {
-            Operation = operation;
-            Id = id;
-            Parent = parent;
-            CancellationToken = cancellationToken;
-            Input = new ConcurrentDictionary<string, object>();
-            Output = new ConcurrentDictionary<string, object>();
-            Status = new ConcurrentDictionary<string, OperationStatus>();
-        }
+        : this(
+            operation,
+            id,
+            new Dictionary<string, object>(),
+            new Dictionary<string, object>(),
+            parent,
+            cancellationToken
+        )
+        { }
         /// <summary>
         /// Initializes a new instance of the <see cref="OperationJob"/> class.
         /// </summary>
@@ -152,13 +147,7 @@ namespace CartaCore.Operations
             string id,
             Dictionary<string, object> input,
             Dictionary<string, object> output)
-        {
-            Operation = operation;
-            Id = id;
-            Input = new ConcurrentDictionary<string, object>(input);
-            Output = new ConcurrentDictionary<string, object>(output);
-            Status = new ConcurrentDictionary<string, OperationStatus>();
-        }
+        : this(operation, id, input, output, null) { }
         /// <summary>
         /// Initializes a new instance of the <see cref="OperationJob"/> class.
         /// </summary>
@@ -173,14 +162,7 @@ namespace CartaCore.Operations
             Dictionary<string, object> input,
             Dictionary<string, object> output,
             OperationJob parent)
-        {
-            Operation = operation;
-            Id = id;
-            Parent = parent;
-            Input = new ConcurrentDictionary<string, object>(input);
-            Output = new ConcurrentDictionary<string, object>(output);
-            Status = new ConcurrentDictionary<string, OperationStatus>();
-        }
+        : this(operation, id, input, output, parent, default(CancellationToken)) { }
         /// <summary>
         /// Initializes a new instance of the <see cref="OperationJob"/> class.
         /// </summary>
@@ -205,6 +187,8 @@ namespace CartaCore.Operations
             Input = new ConcurrentDictionary<string, object>(input);
             Output = new ConcurrentDictionary<string, object>(output);
             Status = new ConcurrentDictionary<string, OperationStatus>();
+            Authentication = new ConcurrentDictionary<string, ConcurrentDictionary<string, object>>();
+            Tasks = new ConcurrentBag<OperationTask>();
         }
     }
 }
