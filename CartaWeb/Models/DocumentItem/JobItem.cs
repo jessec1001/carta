@@ -46,6 +46,7 @@ namespace CartaWeb.Models.DocumentItem
         /// }
         /// </code>
         /// </example>
+        [Secret]
         public Dictionary<string, Dictionary<string, object>> Authentication { get; set; }
 
         /// <summary>
@@ -72,7 +73,7 @@ namespace CartaWeb.Models.DocumentItem
         public JobItem(OperationJob job)
             : this(job.Id, job.Operation.Id)
         {
-            // Copy the status and authentication information.
+            // Copy the status, authentication, and tasks information.
             Status = new Dictionary<string, JobItemStatus>();
             foreach (KeyValuePair<string, OperationStatus> pair in job.Status)
                 Status.Add(pair.Key, new JobItemStatus(pair.Value));
@@ -85,6 +86,13 @@ namespace CartaWeb.Models.DocumentItem
                     auth.Add(authPair.Key, authPair.Value);
                 Authentication.Add(opAuthPair.Key, auth);
             }
+
+            Tasks = new List<OperationTask>();
+            foreach (OperationTask task in job.Tasks)
+                Tasks.Add(task);
+            
+            // Copy the output into the result field.
+            Result = job.Output;
         }
 
         /// <inheritdoc />

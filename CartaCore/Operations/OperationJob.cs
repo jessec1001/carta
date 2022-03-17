@@ -33,7 +33,7 @@ namespace CartaCore.Operations
         /// <summary>
         /// A cancellation token that can be used to cancel the operation.
         /// </summary>
-        public CancellationToken CancellationToken { get; private init; }
+        public CancellationToken CancellationToken { get; set; }
 
         /// <summary>
         /// The parent job of this job.

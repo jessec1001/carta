@@ -23,50 +23,128 @@ namespace CartaWeb.Services
     /// </summary>
     public class BackgroundJobService : BackgroundService
     {
-        private BackgroundJobQueue TaskCollection;
-        private ILogger<BackgroundJobService> Logger;
+        private BackgroundJobQueue _jobQueue;
+        private ILogger<BackgroundJobService> _logger;
         private Persistence _persistence;
-        private IServiceScopeFactory ServiceScopeFactory;
+        private IServiceScopeFactory _serviceScopeFactory;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BackgroundJobService"/> service.
         /// </summary>
-        /// <param name="taskCollection"></param>
-        /// <param name="logger"></param>
-        /// <param name="noSqlDbContext"></param>
-        /// <param name="serviceScopeFactory"></param>
         public BackgroundJobService(
             BackgroundJobQueue taskCollection,
             ILogger<BackgroundJobService> logger,
             INoSqlDbContext noSqlDbContext,
             IServiceScopeFactory serviceScopeFactory)
         {
-            TaskCollection = taskCollection;
-            Logger = logger;
-            ServiceScopeFactory = serviceScopeFactory;
+            _jobQueue = taskCollection;
+            _logger = logger;
+            _serviceScopeFactory = serviceScopeFactory;
             _persistence = new Persistence(noSqlDbContext);
         }
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override async Task ExecuteAsync(CancellationToken cancellationToken)
         {
-            Logger.LogInformation("Background operations service started.");
-            while (!stoppingToken.IsCancellationRequested)
+            _logger.LogInformation("Background operations service started.");
+            while (!cancellationToken.IsCancellationRequested)
             {
-                (JobItem jobItem, Operation operation, OperationJob job) = await TaskCollection.Pop();
-                using IServiceScope scope = ServiceScopeFactory.CreateScope();
+                // Setup a cancellation token for the job.
+                CancellationTokenSource tokenSource = new();
+                CancellationToken token = tokenSource.Token;
+
+                // Fetch the next job.
+                OperationJob job = await _jobQueue.Pop(cancellationToken);
+                job.CancellationToken = token;
+
+                // TODO: We should probably monitor the operations that are currently active.
+                // Perform performing the job
+                using IServiceScope scope = _serviceScopeFactory.CreateScope();
                 try
                 {
-                    await operation.Perform(job);
-                    jobItem.Completed = true;
-                    jobItem.Result = job.Output;
+                    Task jobTask = job.Operation.Perform(job);
+                }
+                catch (Exception exception)
+                {
+                    _logger.LogError(exception, "Unrecoverable operations error occurred.");
+                }
+                finally 
+                {
+                    tokenSource.Cancel();
+                }
+            }
+            _logger.LogInformation("Background operations service stopping.");
+        }
+    }
+
+    /// <summary>
+    /// A helper class that manages updating job information for a particular operation continuously.
+    /// </summary>
+    public class BackgroundJobUpdater
+    {
+        private ILogger<BackgroundJobService> _logger;
+        private Persistence _persistence;
+
+        /// <summary>
+        /// A task source that provides a method of waiting for an update to a job.
+        /// </summary>
+        public TaskCompletionSource JobUpdateFlag { get; private set; } = new();
+        /// <summary>
+        /// The current state of the operation job.
+        /// </summary>
+        public OperationJob Job { get; private set; }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BackgroundJobUpdater"/> class.
+        /// </summary>
+        public BackgroundJobUpdater(
+            ILogger<BackgroundJobService> logger,
+            Persistence persistence)
+        {
+            _logger = logger;
+            _persistence = persistence;
+        }
+
+        /// <summary>
+        /// Loops asynchronously waiting for updates to the job to process.
+        /// Will wait until cancellation is requested. 
+        /// </summary>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        public async Task LoopAsync(CancellationToken cancellationToken)
+        {
+            // Continue updating the job until the cancellation token is cancelled.
+            // Notice that we use a combination of a flag and persistence to batch updates to the job as quickly as
+            // possible without race conditions while maintaining the ability to idle when no updates are needed.
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                // Wait for an update to occur on the job.
+                await JobUpdateFlag.Task;
+                JobUpdateFlag = new TaskCompletionSource();
+
+                // TODO: We will likely need to make this section more asynchronous to handle pipelined/etc. results.
+                // TODO: We might need to make sure that the cancellation token does not cut off the final update.
+                // Persist the job information.
+                try
+                {
+                    JobItem jobItem = new(Job);
                     await OperationsController.SaveJobAsync(jobItem, _persistence);
                 }
                 catch (Exception exception)
                 {
-                    Logger.LogError(exception, "Unrecoverable operations error occurred.");
+                    _logger.LogError(exception, "Error occurred while updating job information.");
                 }
             }
-            Logger.LogInformation("Background operations service stopping.");
+        }
+
+        /// <summary>
+        /// Updates the job information.
+        /// This can be used as a dispatch method for each operation job.
+        /// </summary>
+        /// <param name="job">The job to use to update information.</param>
+        public Task UpdateJob(OperationJob job)
+        {
+            Job = job;
+            JobUpdateFlag.TrySetResult();
+            return JobUpdateFlag.Task;
         }
     }
 }

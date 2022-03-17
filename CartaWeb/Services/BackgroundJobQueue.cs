@@ -6,33 +6,51 @@ using CartaCore.Operations;
 
 namespace CartaWeb.Services
 {
+    /// <summary>
+    /// A queue that provides a mechanism for storing jobs to be run in the background.
+    /// </summary>
     public class BackgroundJobQueue
     {
-        // TODO: The structure of the items in this queue look like it good candidates for a more efficient data structure (job).
-        // TODO: We can try to use an events system to allow jobs to batch database requests.
-        private ConcurrentQueue<(JobItem, Operation, OperationJob)> Tasks = new();
+        /// <summary>
+        /// Stores the jobs awaiting execution.
+        /// </summary>
+        private ConcurrentQueue<OperationJob> Jobs = new();
+        /// <summary>
+        /// Ensures that multiple threads can await access the queue safely.
+        /// </summary>
         private readonly SemaphoreSlim Signal = new SemaphoreSlim(0);
 
-        public (JobItem, Operation, OperationJob) Seek(string jobId)
+        /// <summary>
+        /// Seeks a job from the queue with a specified identifier.
+        /// </summary>
+        /// <param name="jobId">The identifier of the job.</param>
+        /// <returns>The matching <see cref="OperationJob" /> if found; otherwise, <c>null</c>.</returns>
+        public OperationJob Seek(string jobId)
         {
-            foreach ((JobItem job, Operation operation, OperationJob jobContext) in Tasks)
-            {
-                if (job.Id == jobId)
-                    return (job, operation, jobContext);
-            }
-            return (null, null, null);
+            foreach (OperationJob job in Jobs)
+                if (job.Id == jobId) return job; 
+            return null;
         }
-        public void Push((JobItem jobItem, Operation operation, OperationJob jobContext) item)
+        /// <summary>
+        /// Pushes a job to the queue.
+        /// </summary>
+        /// <param name="job">The job.</param>
+        public void Push(OperationJob job)
         {
-            Tasks.Enqueue(item);
+            Jobs.Enqueue(job);
             Signal.Release();
         }
-        public async Task<(JobItem jobItem, Operation operation, OperationJob jobContext)> Pop()
+        /// <summary>
+        /// Pops a job from the queue.
+        /// If no items are in the queue, this method will block until an item is pushed.
+        /// </summary>
+        /// <returns>The job.</returns>
+        public async Task<OperationJob> Pop(CancellationToken cancellationToken)
         {
-            await Signal.WaitAsync();
+            await Signal.WaitAsync(cancellationToken);
 
-            Tasks.TryDequeue(out var item);
-            return item;
+            Jobs.TryDequeue(out OperationJob job);
+            return job;
         }
     }
 }

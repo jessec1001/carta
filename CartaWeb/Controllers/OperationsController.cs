@@ -37,7 +37,7 @@ namespace CartaWeb.Controllers
     public class OperationsController : ControllerBase
     {
         // TODO: This singleton service should probably be interface-ified and should be given a better name.
-        private readonly BackgroundJobQueue _jobCollection;
+        private readonly BackgroundJobQueue _jobQueue;
         private readonly ILogger<OperationsController> _logger;
         private readonly Persistence _persistence;
 
@@ -45,9 +45,9 @@ namespace CartaWeb.Controllers
         public OperationsController(
             ILogger<OperationsController> logger,
             INoSqlDbContext noSqlDbContext,
-            BackgroundJobQueue taskCollection)
+            BackgroundJobQueue jobQueue)
         {
-            _jobCollection = taskCollection;
+            _jobQueue = jobQueue;
             _logger = logger;
             _persistence = new Persistence(noSqlDbContext);
         }
@@ -609,7 +609,7 @@ namespace CartaWeb.Controllers
 
             // We construct an actual operation instance from the operation item and construct an execution context.
             Operation operation = await InstantiateOperation(operationItem, _persistence);
-            OperationJob context = new(operation, jobId, input, new Dictionary<string, object>());
+            OperationJob job = new(operation, jobId, input, new Dictionary<string, object>());
 
             // TODO: Implement memoization of results using the hash of the input.
             //       - Account for whether the operation is deterministic.
@@ -623,20 +623,19 @@ namespace CartaWeb.Controllers
 
 
             // Construct a job item for the executing operation instance.
-            JobItem job = new(jobId, operationId)
+            JobItem jobItem = new(jobId, operationId)
             {
                 Completed = false,
-                Value = input,
                 Result = null,
                 Tasks = new List<OperationTask>(),
             };
 
             // We save the job item to the store and push the job onto the job collection.
             // This queues the operation for execution on a separate thread so that we can return the job immediately.
-            _ = await SaveJobAsync(job, _persistence);
-            _jobCollection.Push((job, operation, context));
+            _ = await SaveJobAsync(jobItem, _persistence);
+            _jobQueue.Push(job);
 
-            return Ok(job);
+            return Ok(jobItem);
         }
         /// <summary>
         /// Gets all of the jobs that have been executed on the operation instance specified by its unique identifier.
@@ -745,7 +744,7 @@ namespace CartaWeb.Controllers
             //       the referenced operation instance.
 
             // Get the job if it exists.
-            (JobItem job, Operation operation, OperationJob context) = _jobCollection.Seek(jobId);
+            OperationJob job = _jobQueue.Seek(jobId);
             if (job is null)
             {
                 return NotFound(new
@@ -761,10 +760,10 @@ namespace CartaWeb.Controllers
             await TryUpdateModelAsync(selectorParameters, selectorParameters.GetType(), "selector");
 
             // Add the selector to the priority queue of the context.
-            if (!context.PriorityQueue.ContainsKey(field))
-                context.PriorityQueue.TryAdd(field, new ConcurrentQueue<(object, object)>());
+            if (!job.PriorityQueue.ContainsKey(field))
+                job.PriorityQueue.TryAdd(field, new ConcurrentQueue<(object, object)>());
 
-            context.PriorityQueue.TryGetValue(field, out ConcurrentQueue<(object, object)> queue);
+            job.PriorityQueue.TryGetValue(field, out ConcurrentQueue<(object, object)> queue);
             queue.Enqueue((selectorOperation, selectorParameters));
 
             return Ok();
@@ -819,7 +818,7 @@ namespace CartaWeb.Controllers
 
             // Construct the operation and executing context.
             Operation operation = await InstantiateOperation(operationItem, _persistence);
-            OperationJob context = new(operation, jobItem.Id, jobItem.Value, new Dictionary<string, object>());
+            OperationJob job = new(operation, jobItem.Id, jobItem.Value, new Dictionary<string, object>());
 
             // Add back all of the tasks except for the upload task just completed.
             OperationTask currentTask = jobItem.Tasks.Find((task) =>
@@ -838,7 +837,7 @@ namespace CartaWeb.Controllers
 
             // Save the job item and requeue the operation.
             _ = await SaveJobAsync(jobItem, _persistence);
-            _jobCollection.Push((jobItem, operation, context));
+            _jobQueue.Push(job);
             return Ok(jobItem);
         }
         /// <summary>

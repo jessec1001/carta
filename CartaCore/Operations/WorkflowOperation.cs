@@ -116,12 +116,21 @@ namespace CartaCore.Operations
                 job.Status.TryGetValue(Id, out OperationStatus status);
                 job.Status.TryUpdate(Id, new OperationStatus
                 {
-                    Finished = true,
                     Exception = unknownEx,
                 }, status);
-                await job.OnUpdate(job);
-                return;
             }
+            finally
+            {
+                // Update the status of the workflow operation.
+                job.Status.TryGetValue(Id, out OperationStatus status);
+                job.Status.TryUpdate(Id, status with
+                {
+                    Finished = true,
+                }, status);
+            }
+
+            // Update the job status.
+            await job.OnUpdate(job);
         }
 
         /// <inheritdoc />
