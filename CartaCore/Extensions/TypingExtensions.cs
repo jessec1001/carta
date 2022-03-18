@@ -131,5 +131,54 @@ namespace CartaCore.Extensions.Typing
 
             return baseType;
         }
+
+        /// <summary>
+        /// Checks if a type is an instantiation of a particular generic type.
+        /// If so, yields the type arguments.
+        /// </summary>
+        /// <param name="type">The type to check.</param>
+        /// <param name="genericDef">The generic type definition to match against.</param>
+        /// <param name="genericArgs">The generic arguments used to instantiate the type.</param>
+        /// <returns><c>true</c> if the type is an instance of the generic type; <c>false</c> otherwise.</returns>
+        public static bool ImplementsGenericInterface(this Type type, Type genericDef, out Type[] genericArgs)
+        {
+            // Initialize the generic arguments.
+            genericArgs = null;
+
+            // Check interfaces until one with matching criteria is found.
+            foreach (Type interfaceType in type.GetInterfaces())
+            {
+                // Check if the interface is a generic type.
+                if (!interfaceType.IsGenericType) continue;
+
+                // Check if the generic type definition matches.
+                Type interfaceDef = interfaceType.GetGenericTypeDefinition();
+                if (interfaceDef != genericDef) continue;
+
+                // Get the generic arguments.
+                genericArgs = interfaceType.GetGenericArguments();
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Executes a generic method with specified arguments.
+        /// The method is assumed to be static.
+        /// </summary>
+        /// <param name="method">The method.</param>
+        /// <param name="typeArgs">The type arguments.</param>
+        /// <param name="args">The arguments.</param>
+        /// <returns>The result of calling the function.</returns>
+        public static object InvokeGenericFunc(this MethodInfo method, Type[] typeArgs, params object[] args)
+        {
+            // Get the method info.
+            MethodInfo genericMethod = method.GetGenericMethodDefinition();
+            MethodInfo genericMethodInfo = genericMethod.MakeGenericMethod(typeArgs);
+
+            // Invoke the method.
+            return genericMethodInfo.Invoke(null, args);
+        }
     }
 }

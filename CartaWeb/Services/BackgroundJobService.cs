@@ -1,14 +1,22 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Reflection;
 using CartaWeb.Controllers;
 using CartaWeb.Models.DocumentItem;
+using CartaWeb.Services;
+using CartaCore.Extensions.Typing;
+using CartaCore.Graphs;
+using CartaCore.Graphs.Components;
 using CartaCore.Operations;
+using CartaCore.Persistence;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using CartaWeb.Services;
-using CartaCore.Persistence;
+using CartaWeb.Serialization;
 
 namespace CartaWeb.Services
 {
@@ -43,6 +51,62 @@ namespace CartaWeb.Services
             _persistence = new Persistence(noSqlDbContext);
         }
 
+        /// <summary>
+        /// Stores a graph under a particular job field.
+        /// </summary>
+        /// <param name="graph">The graph.</param>
+        /// <param name="job">The job.</param>
+        /// <param name="field">The field.</param>
+        /// <typeparam name="TVertex">The type of vertex.</typeparam>
+        /// <typeparam name="TEdge">The type of edge.</typeparam>
+        private static async Task StoreGraph<TVertex, TEdge>(
+            IEnumerableComponent<TVertex, TEdge> graph,
+            OperationJob job,
+            string field)
+            where TVertex : IVertex<TEdge>
+            where TEdge : IEdge
+        {
+            string directory = Path.Join("jobs", job.Id, field);
+            FileGraph<TVertex, TEdge> fileGraph = new(directory, field) { LockDelay = 25 };
+            await foreach (TVertex vertex in graph.GetVertices())
+                await fileGraph.AddVertex(vertex);
+        }
+
+        /// <summary>
+        /// Handles the consequences of executing a job such as storing special results. 
+        /// </summary>
+        /// <param name="job">The job.</param>
+        /// <param name="operationTask">A task for executing the operation.</param>
+        /// <param name="updateTask">A task for updating the operation job.</param>
+        /// <param name="cancellationToken">A cancellation token.</param>
+        private async Task HandleEndJob(
+            OperationJob job,
+            Task operationTask,
+            Task updateTask,
+            CancellationToken cancellationToken)
+        {
+            // Wait for the operation to fully complete and for all information to be written.
+            await operationTask;
+            await updateTask;
+
+            // Iterate through the job results and handle special results.
+            foreach (KeyValuePair<string, object> pair in job.Output)
+            {
+                // Deconstruct the pair.
+                string field = pair.Key;
+                object value = pair.Value;
+
+                // If the value is an enumerable graph component, we need to store it vertex-by-vertex.
+                if (value.GetType().ImplementsGenericInterface(typeof(IEnumerableComponent<,>), out Type[] genericArguments))
+                {
+                    MethodInfo storeGraphMethod = typeof(BackgroundJobService)
+                        .GetMethod(nameof(StoreGraph), BindingFlags.NonPublic | BindingFlags.Static);
+                    storeGraphMethod.InvokeGenericFunc(genericArguments, value, job, field);
+                }
+            }
+        }
+
+        /// <inheritdoc />
         protected override async Task ExecuteAsync(CancellationToken cancellationToken)
         {
             _logger.LogInformation("Background operations service started.");
@@ -53,21 +117,29 @@ namespace CartaWeb.Services
                 CancellationToken token = tokenSource.Token;
 
                 // Fetch the next job.
+                BackgroundJobUpdater jobUpdater = new(_logger, _persistence);
                 OperationJob job = await _jobQueue.Pop(cancellationToken);
-                job.CancellationToken = token;
 
                 // TODO: We should probably monitor the operations that are currently active.
                 // Perform performing the job
                 using IServiceScope scope = _serviceScopeFactory.CreateScope();
                 try
                 {
+                    // Setup job information.
+                    job.CancellationToken = token;
+                    job.OnUpdate = jobUpdater.UpdateJob;
+
                     Task jobTask = job.Operation.Perform(job);
+                    Task jobUpdateTask = jobUpdater.LoopAsync(token);
+
+                    // Handle the consequences of the job.
+                    HandleEndJob(job, jobTask, jobUpdateTask, token);
                 }
                 catch (Exception exception)
                 {
                     _logger.LogError(exception, "Unrecoverable operations error occurred.");
                 }
-                finally 
+                finally
                 {
                     tokenSource.Cancel();
                 }

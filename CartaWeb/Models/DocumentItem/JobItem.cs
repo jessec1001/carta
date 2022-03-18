@@ -90,7 +90,7 @@ namespace CartaWeb.Models.DocumentItem
             Tasks = new List<OperationTask>();
             foreach (OperationTask task in job.Tasks)
                 Tasks.Add(task);
-            
+
             // Copy the output into the result field.
             Result = job.Output;
         }
@@ -139,6 +139,10 @@ namespace CartaWeb.Models.DocumentItem
         /// </summary>
         public string ExceptionMessage { get; init; }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="JobItemStatus"/> class.
+        /// </summary>
+        public JobItemStatus() { }
         /// <summary>
         /// Initializes a new instance of the <see cref="JobItemStatus"/> class from a specified status item.
         /// </summary>

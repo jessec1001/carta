@@ -82,7 +82,11 @@ namespace CartaCore.Operations
 
             // Perform a special check for plot-based output values.
             if (typeof(TValue).IsAssignableTo(typeof(Plot)))
+            {
+                if (schema.ExtensionData is null)
+                    schema.ExtensionData = new Dictionary<string, object>();
                 schema.ExtensionData["ui:plot"] = true;
+            }
 
             // Construct and yield the field descriptor for the external field.
             yield return await Task.FromResult(new OperationFieldDescriptor

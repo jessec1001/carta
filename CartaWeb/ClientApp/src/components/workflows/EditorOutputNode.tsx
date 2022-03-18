@@ -27,7 +27,6 @@ const EditorOutputNode: FC<EditorOutputNodeProps> = ({
   onOffset = () => {},
   children,
 }) => {
-  console.log(schema);
   // If the job is an error, show the error message.
   if (job instanceof Error)
     return (
@@ -40,7 +39,7 @@ const EditorOutputNode: FC<EditorOutputNodeProps> = ({
     );
 
   // If the job is not specified, show nothing.
-  if (!job)
+  if (!job || job.result === undefined || !(field in job.result))
     return (
       <EditorNode>
         <Mosaic.Tile.Handle onOffset={onOffset} className={styles.header}>
@@ -51,7 +50,7 @@ const EditorOutputNode: FC<EditorOutputNodeProps> = ({
     );
 
   // Get the output value of the field and render it.
-  const value = job.result![field];
+  const value = job.result[field];
   return (
     <EditorNode>
       <Mosaic.Tile.Handle onOffset={onOffset} className={styles.header}>

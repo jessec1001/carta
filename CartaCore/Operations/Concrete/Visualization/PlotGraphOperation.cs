@@ -246,7 +246,7 @@ namespace CartaCore.Operations.Visualization
             OperationJob job)
         {
             // Check if the graph is enumerable.
-            if (input.Graph is not IEnumerableComponent<IVertex, IEdge> enumerableComponent)
+            if (!input.Graph.Components.TryFind(out IEnumerableComponent<Vertex, Edge> enumerable))
                 throw new ArgumentException("The graph must be a finite graph.");
 
             // Interpret the axes styles if specified.
@@ -261,13 +261,10 @@ namespace CartaCore.Operations.Visualization
 
             // Create a new graph plot structure.
             GraphPlot graphPlot = null;
-            if (input.Graph.Components.TryFind(out IEnumerableComponent<Vertex, Edge> enumerable))
+            graphPlot = new(enumerable, input.VertexStyle, input.EdgeStyle)
             {
-                graphPlot = new(enumerable, input.VertexStyle, input.EdgeStyle)
-                {
-                    Style = styles,
-                };
-            }
+                Style = styles,
+            };
             return Task.FromResult(new PlotGraphOperationOut() { Plot = graphPlot });
         }
     }

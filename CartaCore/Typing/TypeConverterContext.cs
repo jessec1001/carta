@@ -49,7 +49,9 @@ namespace CartaCore.Typing
             // Check the trivial case.
             if (input is null)
             {
-                output = Activator.CreateInstance(targetType);
+                output = targetType.IsValueType
+                    ? Activator.CreateInstance(targetType)
+                    : null;
                 return true;
             }
             if (sourceType.IsAssignableTo(targetType))

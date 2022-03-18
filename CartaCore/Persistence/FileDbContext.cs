@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -37,63 +38,16 @@ namespace CartaCore.Persistence
 
         private async Task<FileStream> ReadFileAsync(string path, CancellationToken token = default)
         {
-            // Check that the file actually exists.
-            if (!File.Exists(path)) return null;
-
-            // If the file is locked, wait for it to become available.
-            while (!token.IsCancellationRequested)
-            {
-                try { return File.OpenRead(path); }
-                catch (IOException ex)
-                {
-                    if (LockDelay is null) throw ex;
-                    await Task.Delay(LockDelay.Value, token);
-                }
-            }
-            return null;
+            return await FileHelper.ReadFileAsync(path, LockDelay, token);
         }
         private async Task<bool> WriteFileAsync(string path, string json, CancellationToken token = default)
         {
-            // Create all the directories in the path.
-            Directory.CreateDirectory(Path.GetDirectoryName(path));
-
-            // If the file is locked, wait for it to become available.
-            FileStream fileStream = null;
-            while (!token.IsCancellationRequested)
-            {
-                try { fileStream = File.OpenWrite(path); }
-                catch (IOException ex)
-                {
-                    if (LockDelay is null) throw ex;
-                    await Task.Delay(LockDelay.Value, token);
-                }
-            }
-
-            // Write the stream to the file.
-            if (fileStream is not null)
-            {
-                using (StreamWriter streamWriter = new(fileStream))
-                    await streamWriter.WriteAsync(json);
-                return true;
-            }
-            else return false;
+            MemoryStream stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
+            return await FileHelper.WriteFileAsync(path, stream, LockDelay, token);
         }
         private async Task<bool> DeleteFileAsync(string path, CancellationToken token = default)
         {
-            // Check that the file actually exists.
-            if (!File.Exists(path)) return false;
-
-            // If the file is locked, wait for it to become available.
-            while (!token.IsCancellationRequested)
-            {
-                try { File.Delete(path); return true; }
-                catch (IOException ex)
-                {
-                    if (LockDelay is null) throw ex;
-                    await Task.Delay(LockDelay.Value, token);
-                }
-            }
-            return false;
+            return await FileHelper.DeleteFileAsync(path, LockDelay, token);
         }
 
         /// <inheritdoc />
@@ -101,7 +55,7 @@ namespace CartaCore.Persistence
         {
             // Get the path to the document.
             string path = Path.Join(SystemPath, partitionKey, $"{sortKey}.json");
-            
+
             // Read the file and generate the document.
             FileStream stream = await ReadFileAsync(path);
             if (stream is null) return null;
@@ -143,7 +97,7 @@ namespace CartaCore.Persistence
                 // We should not be reading a document within this method.
                 case DbOperationType.Read:
                     return false;
-                
+
                 // Handle document deletion.
                 case DbOperationType.Delete:
                     if (File.Exists(path))
