@@ -203,22 +203,10 @@ namespace CartaCore.Graphs
         /// <returns><c>true</c> if the edge was successfully added; otherwise, <c>false</c>.</returns>
         public bool AddEdge(TEdge edge)
         {
-            if (edge.Directed)
-            {
-                bool added = false;
-                added = AddInEdge(edge.Target, edge) || added;
-                added = AddOutEdge(edge.Source, edge) || added;
-                return added;
-            }
-            else
-            {
-                bool added = false;
-                added = AddInEdge(edge.Target, edge) || added;
-                added = AddOutEdge(edge.Target, edge) || added;
-                added = AddInEdge(edge.Source, edge) || added;
-                added = AddOutEdge(edge.Source, edge) || added;
-                return added;
-            }
+            bool added = false;
+            added = AddInEdge(edge.Target, edge) || added;
+            added = AddOutEdge(edge.Source, edge) || added;
+            return added;
         }
         /// <summary>
         /// Adds a range of specified edges to the graph.
@@ -245,22 +233,10 @@ namespace CartaCore.Graphs
         /// <returns><c>true</c> if the edge was successfully removed; otherwise, <c>false</c>.</returns>
         public bool RemoveEdge(TEdge edge)
         {
-            if (edge.Directed)
-            {
-                bool removed = false;
-                removed = RemoveInEdge(edge.Target, edge) || removed;
-                removed = RemoveOutEdge(edge.Source, edge) || removed;
-                return removed;
-            }
-            else
-            {
-                bool removed = false;
-                removed = RemoveInEdge(edge.Source, edge) || removed;
-                removed = RemoveInEdge(edge.Target, edge) || removed;
-                removed = RemoveOutEdge(edge.Source, edge) || removed;
-                removed = RemoveOutEdge(edge.Target, edge) || removed;
-                return removed;
-            }
+            bool removed = false;
+            removed = RemoveInEdge(edge.Target, edge) || removed;
+            removed = RemoveOutEdge(edge.Source, edge) || removed;
+            return removed;
         }
         /// <summary>
         /// removes a range of specified edges to the graph.

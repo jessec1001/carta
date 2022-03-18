@@ -123,18 +123,17 @@ namespace CartaTest.Operations
             await opWorkflow.Perform(job);
 
             // Get the graph from the output.
-            Assert.Contains("Graph", output.Keys);
-            Assert.IsInstanceOf<MemoryGraph>(output["Graph"]);
-            MemoryGraph graph = output["Graph"] as MemoryGraph;
+            Assert.IsTrue(job.Output.ContainsKey("Graph"));
+            Assert.IsInstanceOf<MemoryGraph>(job.Output["Graph"]);
+            MemoryGraph graph = job.Output["Graph"] as MemoryGraph;
 
             // Check that there is the correct number of samples.
             Assert.AreEqual(128, await graph.GetVertices().CountAsync());
 
             // Check that there are the correct properties and property types.
-            await foreach (IVertex ivertex in graph.GetVertices())
+            await foreach (Vertex vertex in graph.GetVertices())
             {
                 // Assert that the vertex is of base type.
-                Vertex vertex = ivertex as Vertex;
                 Assert.IsNotNull(vertex);
 
                 // Assert property names.

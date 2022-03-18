@@ -199,11 +199,11 @@ namespace CartaCore.Extensions.Statistics
             // - This uses the formula (n choose i) = Product_{j=1 to k} (n - j + 1) / j.
             int sign = 1;
             int binom = 1;
-            for (int i = 0; i <= order; i++)
+            for (int i = order; i >= 0; i--)
             {
                 moment += binom * sign * Math.Pow(mean, order - i) * orders[i] / count;
                 sign = -sign;
-                binom = binom * (order - i) / (i + 1);
+                binom = binom * i / (order - i + 1);
             }
 
             return (moment / normalizer, count);
