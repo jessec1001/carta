@@ -3,18 +3,26 @@ import { GraphPlot } from "visualize-carta";
 import type { IGraphPlot, IGraphVertex, IGraphEdge } from "visualize-carta";
 import { Job } from "library/api";
 
-/** The structure of a visualization vertex retrieved from the API via the `PlotGraphOperation`. */
+/** The structure of a visualization property retrieved from the API. */
 interface IVisualizeProperty {
+  /** The value assigned to the property. */
   value: any;
+  /** The subproperties assigned under the property. */
   properties?: Record<string, IVisualizeProperty>;
 }
+/** The structure of a visualization edge retrieved from the API. */
 interface IVisualizeEdge {
+  /** The unique identifier of the edge. */
   id: string;
+  /** The identifier of the source vertex. */
   source: string;
+  /** The identifier of the target vertex. */
   target: string;
+  /** Whether the edge is directed or undirected. */
   directed: boolean;
   // TODO: style
 }
+/** The structure of a visualization vertex retrieved from the API. */
 interface IVisualizeVertex {
   id?: string;
   label?: string;
