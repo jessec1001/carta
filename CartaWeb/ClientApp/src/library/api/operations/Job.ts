@@ -1,9 +1,9 @@
 import { Identifiable } from "../base";
 
-interface Job extends Identifiable {
+interface Job<TResult = Record<string, any>> extends Identifiable {
   completed: boolean;
   value: Record<string, any>;
-  result?: Record<string, any>;
+  result?: TResult;
 
   // TODO: tasks: JobTask[];
 }

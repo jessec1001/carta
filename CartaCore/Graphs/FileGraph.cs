@@ -1,17 +1,15 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using CartaCore.Graphs;
 using CartaCore.Graphs.Components;
 using CartaCore.Persistence;
 using CartaCore.Serialization.Json;
 using MorseCode.ITask;
 
-namespace CartaWeb.Serialization
+namespace CartaCore.Graphs
 {
     // TODO: Implement rooted behavior.
     /// <summary>
@@ -20,6 +18,7 @@ namespace CartaWeb.Serialization
     /// <typeparam name="TVertex">The type of vertex.</typeparam>
     /// <typeparam name="TEdge">The type of edge.</typeparam>
     public class FileGraph<TVertex, TEdge> : Graph,
+        IRootedComponent,
         IEnumerableComponent<TVertex, TEdge>,
         IDynamicLocalComponent<TVertex, TEdge>,
         IDynamicInComponent<TVertex, TEdge>,
@@ -27,7 +26,7 @@ namespace CartaWeb.Serialization
         where TVertex : IVertex<TEdge>
         where TEdge : IEdge
     {
-        private JsonSerializerOptions _jsonOptions;
+        private readonly JsonSerializerOptions _jsonOptions;
 
         /// <summary>
         /// The path to the graph directory.
@@ -54,14 +53,14 @@ namespace CartaWeb.Serialization
             _jsonOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web);
             _jsonOptions.IgnoreNullValues = true;
             _jsonOptions.Converters.Add(new JsonObjectConverter());
+            _jsonOptions.Converters.Add(new JsonPropertyConverter());
 
             // Set the instance parameters.
             GraphPath = path;
             LockDelay = null;
 
             // Initialize all of the components.
-            // TODO: Don't forget the rooted component.
-            // Components.AddTop<IRootedComponent>(this);
+            Components.AddTop<IRootedComponent>(this);
             Components.AddTop<IEnumerableComponent<TVertex, TEdge>>(this);
             Components.AddTop<IDynamicLocalComponent<TVertex, TEdge>>(this);
             Components.AddTop<IDynamicInComponent<TVertex, TEdge>>(this);
@@ -87,7 +86,7 @@ namespace CartaWeb.Serialization
             // Add a vertex file.
             string vertexPath = Path.Combine(GraphPath, $"{vertex.Id}.json");
             string vertexJson = JsonSerializer.Serialize(vertex, _jsonOptions);
-            MemoryStream vertexStream = new MemoryStream(Encoding.UTF8.GetBytes(vertexJson));
+            MemoryStream vertexStream = new(Encoding.UTF8.GetBytes(vertexJson));
             return await FileHelper.WriteFileAsync(vertexPath, vertexStream, LockDelay);
         }
         /// <summary>
@@ -115,6 +114,20 @@ namespace CartaWeb.Serialization
             }
         }
 
+        /// <summary>
+        /// Sets the root vertex identifiers. 
+        /// </summary>
+        /// <param name="roots">The root vertex identifiers.</param>
+        public async Task SetRoots(IAsyncEnumerable<string> roots)
+        {
+            // We need to create a roots file.
+            List<string> rootList = await roots.ToListAsync();
+            string rootsPath = Path.Combine(GraphPath, "roots.json");
+            string rootsJson = JsonSerializer.Serialize(rootList, _jsonOptions);
+            MemoryStream rootsStream = new(Encoding.UTF8.GetBytes(rootsJson));
+            await FileHelper.WriteFileAsync(rootsPath, rootsStream, LockDelay);
+        }
+
         /// <inheritdoc />
         public async IAsyncEnumerable<TVertex> GetVertices()
         {
@@ -139,8 +152,9 @@ namespace CartaWeb.Serialization
         {
             // We read in the vertex from the file.
             FileStream stream = await FileHelper.ReadFileAsync(Path.Join(GraphPath, $"{id}.json"), LockDelay);
-            return await JsonSerializer.DeserializeAsync<TVertex>(stream, _jsonOptions);
+            TVertex vertex = await JsonSerializer.DeserializeAsync<TVertex>(stream, _jsonOptions);
             stream.Dispose();
+            return vertex;
         }
         /// <inheritdoc />
         public async IAsyncEnumerable<TVertex> GetParentVertices(string id)
@@ -163,6 +177,17 @@ namespace CartaWeb.Serialization
                 if (edge.Source == id)
                     yield return await GetVertex(edge.Target);
             }
+        }
+
+        /// <inheritdoc />
+        public async IAsyncEnumerable<string> Roots()
+        {
+            string rootsPath = Path.Combine(GraphPath, "roots.json");
+            FileStream rootsStream = await FileHelper.ReadFileAsync(rootsPath, LockDelay);
+            string[] roots = await JsonSerializer.DeserializeAsync<string[]>(rootsStream, _jsonOptions);
+            rootsStream.Dispose();
+            foreach (string root in roots)
+                yield return root;
         }
     }
 }

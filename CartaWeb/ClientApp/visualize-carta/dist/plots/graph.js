@@ -146,14 +146,18 @@ var GraphPlot = function (container, plot, interaction) {
         .attr("stroke-width", 3)
         .selectAll("circle");
     // TODO: Preferably, this should be a child of the nodes so that changing the position of nodes doesn't affect the text.
-    var text = zoomElement.append("g").selectAll("text");
+    var text = zoomElement.append("g").attr("fill", "currentcolor").selectAll("text");
     // This function updates the data. We call it initially to setup the plot.
     var update = function (plot) {
         var _a;
         // We want to preserve positioning and velocity of nodes that are already in the graph.
+        // We ensure that we only include edges that have corresponding vertices.
         var nodeMap = new Map(node.data().map(function (d) { return [d.id, d]; }));
+        var nodeIds = new Set(plot.vertices.map(function (d) { return d.id; }));
         var nodes = plot.vertices.map(function (d) { return (__assign(__assign({}, nodeMap.get(d.id)), d)); });
-        var links = plot.edges.map(function (d) { return (__assign({}, d)); });
+        var links = plot.edges
+            .map(function (d) { return (__assign({}, d)); })
+            .filter(function (d) { return nodeIds.has(d.source) && nodeIds.has(d.target); });
         simulation.nodes(nodes);
         (_a = simulation
             .force("link")) === null || _a === void 0 ? void 0 : _a.links(links);
@@ -179,7 +183,7 @@ var GraphPlot = function (container, plot, interaction) {
             .join("text")
             .text(function (_a) {
             var label = _a.label;
-            return label;
+            return label !== null && label !== void 0 ? label : "";
         })
             .attr("text-anchor", "middle");
     };

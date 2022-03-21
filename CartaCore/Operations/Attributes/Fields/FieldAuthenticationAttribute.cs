@@ -47,10 +47,11 @@ namespace CartaCore.Operations.Attributes
             // We ignore the input that was actually passed in and replace it with a corresponding authentication value.
             // If the authentication value was not provided, we add an entry to the tasks and trigger a job update.
             OperationJob root = job.Root;
+            // TODO: For now this check is wrong, we should get the current operation ID rather than the root operation ID.
             if (
-                root.Authentication.TryGetValue(operation.Id, out ConcurrentDictionary<string, object> auth) &&
+                root.Authentication.TryGetValue(root.Operation.Id, out ConcurrentDictionary<string, object> auth) &&
                 auth.TryGetValue(Key, out object value)
-            ) return await operation.ConvertInputField(field, input, job);
+            ) return await operation.ConvertInputField(field, value, job);
             else
             {
                 root.Tasks.Add(new OperationTask()

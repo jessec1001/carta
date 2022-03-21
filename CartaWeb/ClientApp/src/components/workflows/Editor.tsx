@@ -432,6 +432,7 @@ const Editor: FC = () => {
             ([name, schema]) => {
               // We fetch the layout information about the operation.
               // Assume that the operation type is either unloaded or loaded, never errored.
+              const operationIdentifier = (operation.value as Operation).id;
               const outputIdentifier = `output-${name}`;
               let layout = operationLayouts[outputIdentifier] || {
                 position: [0, 0],
@@ -452,6 +453,7 @@ const Editor: FC = () => {
                   resizeable
                 >
                   <EditorOutputNode
+                    operation={operationIdentifier}
                     job={job.value}
                     field={name}
                     schema={schema}

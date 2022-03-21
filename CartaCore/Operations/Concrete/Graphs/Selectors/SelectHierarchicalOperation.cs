@@ -457,14 +457,14 @@ namespace CartaCore.Operations.Graphs
                     throw new InvalidOperationException("The source graph does not support dynamic local vertices.");
 
                 // We rely on the base operation functionality to perform the selection.
-                return await Perform(new SelectHierarchicalOperationIn
+                return (await Perform(new SelectHierarchicalOperationIn
                 {
                     Graph = source,
                     Vertex = vertex,
                     IncludeRoots = typedParameters.IncludeRoots,
                     Depth = typedParameters.Depth,
                     Traversal = typedParameters.Traversal
-                }).ContinueWith(task => task.Result.Graph);
+                })).Graph;
             }
             throw new InvalidCastException();
         }

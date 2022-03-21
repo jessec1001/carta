@@ -21,8 +21,10 @@ interface JsonBaseSchema {
   description?: string;
   default?: any;
   examples?: any[];
+  format?: string;
 
   ["ui:widget"]?: string;
+  ["ui:plot"]?: boolean;
 }
 /** Represents the typed base for specific schema types. */
 interface JsonBaseTypedSchema<

@@ -45,6 +45,12 @@ namespace CartaCore.Integration.Hyperthought
         {
             Api = api;
             WorkflowId = id;
+
+            // Initialize all of the components.
+            Components.AddTop<IRootedComponent>(this);
+            Components.AddTop<IDynamicLocalComponent<Vertex, Edge>>(this);
+            Components.AddTop<IDynamicInComponent<Vertex, Edge>>(this);
+            Components.AddTop<IDynamicOutComponent<Vertex, Edge>>(this);
         }
         /// <summary>
         /// Initializes a new instance of the <see cref="HyperthoughtWorkflowGraph"/> class using a

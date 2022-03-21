@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
@@ -101,6 +102,40 @@ namespace CartaWeb.Models.DocumentItem
         /// <inheritdoc />
         [JsonIgnore]
         public override string SortKeyPrefix => "JOB#";
+
+        /// <summary>
+        /// Creates a representation of this job item as an operation job.
+        /// </summary>
+        /// <param name="operation">The operation that is being executed under this job.</param>
+        /// <returns>The operation job.</returns>
+        public OperationJob AsJob(Operation operation)
+        {
+            OperationJob job = new(operation, Id);
+
+            // Copy the status, authentication, and tasks information.
+            if (Status is not null)
+            {
+                foreach (KeyValuePair<string, JobItemStatus> pair in Status)
+                    job.Status.TryAdd(pair.Key, pair.Value.AsStatus());
+            }
+            if (Tasks is not null)
+            {
+                foreach (OperationTask task in Tasks)
+                    job.Tasks.Add(task);
+            }
+            if (Authentication is not null)
+            {
+                foreach (KeyValuePair<string, Dictionary<string, object>> pair in Authentication)
+                {
+                    ConcurrentDictionary<string, object> auth = new();
+                    foreach (KeyValuePair<string, object> authPair in pair.Value)
+                        auth.TryAdd(authPair.Key, authPair.Value);
+                    job.Authentication.TryAdd(pair.Key, auth);
+                }
+            }
+
+            return job;
+        }
     }
     /// <summary>
     /// Represents the status of an operation for a specific job.
@@ -161,6 +196,27 @@ namespace CartaWeb.Models.DocumentItem
                 ExceptionType = status.Exception.GetType().Name.FromCodified();
                 ExceptionMessage = status.Exception.Message;
             }
+        }
+
+        /// <summary>
+        /// Creates a representation of this job item status as an operation status.
+        /// </summary>
+        /// <returns>The operation status.</returns>
+        public OperationStatus AsStatus()
+        {
+            return new OperationStatus()
+            {
+                ParentId = ParentId,
+                OperationId = OperationId,
+
+                Started = Started,
+                Finished = Finished,
+                Progress = Progress,
+
+                Exception = ExceptionType is null
+                    ? null
+                    : new Exception(ExceptionMessage)
+            };
         }
     }
 }

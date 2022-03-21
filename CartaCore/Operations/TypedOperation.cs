@@ -50,17 +50,17 @@ namespace CartaCore.Operations
 
                 // Set the property value after conversion.
                 // We iterate over any overriding conversions and apply them in sequence.
+                object converted = null;
                 if (inputs.TryGetValue(field.Name, out object input))
+                    converted = input;
+
+                foreach (Attribute attribute in field.Attributes)
                 {
-                    object converted = input;
-                    foreach (Attribute attribute in property.PropertyType.GetCustomAttributes())
-                    {
-                        if (attribute is IOverrideConversionAttribute overrideConversion)
-                            converted = await overrideConversion.ConvertInputField(this, field, input, job);
-                    }
-                    converted = await ConvertInputField(field, input, job);
-                    property.SetValue(typedInput, converted);
+                    if (attribute is IOverrideConversionAttribute overrideConversion)
+                        converted = await overrideConversion.ConvertInputField(this, field, converted, job);
                 }
+                converted = await ConvertInputField(field, converted, job);
+                property.SetValue(typedInput, converted);
             }
             return (TInput)typedInput;
         }

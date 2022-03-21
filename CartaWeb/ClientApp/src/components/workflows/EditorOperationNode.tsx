@@ -163,6 +163,9 @@ const EditorOperationNodeField: FC<EditorOperationNodeFieldProps> = ({
   onPickField = () => {},
   onUpdateField = () => {},
 }) => {
+  // If the field should be hidden, we don't render anything.
+  if (schema.format === "hidden") return null;
+
   // We create a documentation tooltip for the field.
   const documentation = (
     <ReactMarkdown>{schema.description ?? ""}</ReactMarkdown>

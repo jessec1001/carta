@@ -68,7 +68,7 @@ namespace CartaCore.Operations
             /// Contains a priority queue containing prioritized selectors for the HyperThought workflow graph.
             /// This may be null in which case, there are no prioritizations.
             /// </summary>
-            private ConcurrentQueue<(object, object)> _queue;
+            private readonly ConcurrentQueue<(object, object)> _queue;
 
             /// <summary>
             /// Initializes a new instance of the <see cref="PrioritizeHyperthoughtWorkflowGraph"/> class.
@@ -82,6 +82,8 @@ namespace CartaCore.Operations
             {
                 // We make sure to not repeat any vertices.
                 // We execute a traversal algorithm over the graph while constantly checking the priority queue.
+                // - The completed IDs contains all vertices that have been loaded.
+                // - The pending IDs contains all vertices that have not been loaded yet or have children that have not been loaded yet.
                 HashSet<Guid> completedIds = new();
                 Queue<Guid> pendingIds = new();
 
@@ -91,22 +93,24 @@ namespace CartaCore.Operations
                     await foreach (string rootId in rootedComponent.Roots())
                         pendingIds.Enqueue(Guid.Parse(rootId));
                 }
-                if (!Components.TryFind(out IDynamicOutComponent<IVertex, IEdge> dynamicOutComponent))
+                if (!Components.TryFind(out IDynamicLocalComponent<Vertex, Edge> dynamicLocalComponent))
+                    yield break;
+                if (!Components.TryFind(out IDynamicOutComponent<Vertex, Edge> dynamicOutComponent))
                     yield break;
 
                 // Continue fetching data until we have completed all the nodes.
                 while (pendingIds.Count > 0)
                 {
                     // Check if there are any selectors in the priority queue.
-                    while (!_queue.IsEmpty)
+                    while (_queue is not null && !_queue.IsEmpty)
                     {
                         // Get the next selector.
                         if (!_queue.TryDequeue(out (object selector, object parameter) item)) continue;
-                        if (!(item.selector is ISelector<Graph, Graph> selector)) continue;
+                        if (item.selector is not ISelector<Graph, Graph> selector) continue;
 
                         // Get the vertices in the selector.
                         Graph selectorGraph = await selector.Select(Graph, item.parameter);
-                        if (selectorGraph.Components.TryFind(out IEnumerableComponent<IVertex, IEdge> enumerableComponent))
+                        if (selectorGraph.Components.TryFind(out IEnumerableComponent<Vertex, Edge> enumerableComponent))
                         {
                             await foreach (Vertex vertex in enumerableComponent.GetVertices())
                             {
@@ -120,6 +124,19 @@ namespace CartaCore.Operations
                     // Pop the next identifier.
                     Guid id = pendingIds.Dequeue();
 
+                    // Check if we have already completed this node. If not, load the node.
+                    if (!completedIds.Contains(id))
+                    {
+                        // Get the vertex.
+                        string currentId = id.ToString();
+                        Vertex vertex = await dynamicLocalComponent.GetVertex(currentId);
+                        if (vertex is null) continue;
+
+                        // Add the vertex to the completed list.
+                        completedIds.Add(id);
+                        yield return vertex;
+                    }
+
                     // Get the vertex children.
                     await foreach (Vertex childVertex in dynamicOutComponent.GetChildVertices(id.ToString()))
                     {
@@ -128,6 +145,7 @@ namespace CartaCore.Operations
                         if (!completedIds.Contains(childId))
                         {
                             pendingIds.Enqueue(childId);
+                            completedIds.Add(childId);
                             yield return childVertex;
                         }
                     }

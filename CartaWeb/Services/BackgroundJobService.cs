@@ -1,13 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Reflection;
 using CartaWeb.Controllers;
 using CartaWeb.Models.DocumentItem;
-using CartaWeb.Services;
 using CartaCore.Extensions.Typing;
 using CartaCore.Graphs;
 using CartaCore.Graphs.Components;
@@ -16,25 +14,21 @@ using CartaCore.Persistence;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using CartaWeb.Serialization;
 
 namespace CartaWeb.Services
 {
-    // TODO: Add authentication information from endpoints to jobs passed to this service.
     // TODO: Implement something, perhaps in the task running service, that will automatically handle loading uploaded
     //       files into streams and handle saving streams to downloadable files.
-
-    // TODO: We are running a single background job at a time. We should be able to run multiple background jobs at once.
 
     /// <summary>
     /// A service that is responsible for running operation jobs in the background across multiple threads.
     /// </summary>
     public class BackgroundJobService : BackgroundService
     {
-        private BackgroundJobQueue _jobQueue;
-        private ILogger<BackgroundJobService> _logger;
-        private Persistence _persistence;
-        private IServiceScopeFactory _serviceScopeFactory;
+        private readonly BackgroundJobQueue _jobQueue;
+        private readonly ILogger<BackgroundJobService> _logger;
+        private readonly Persistence _persistence;
+        private readonly IServiceScopeFactory _serviceScopeFactory;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BackgroundJobService"/> service.
@@ -66,8 +60,10 @@ namespace CartaWeb.Services
             where TVertex : IVertex<TEdge>
             where TEdge : IEdge
         {
-            string directory = Path.Join("jobs", job.Id, field);
+            string directory = Path.Join("jobs", job.Operation.Id, job.Id, field);
             FileGraph<TVertex, TEdge> fileGraph = new(directory, field) { LockDelay = 25 };
+            if (graph is IRootedComponent rooted)
+                await fileGraph.SetRoots(rooted.Roots());
             await foreach (TVertex vertex in graph.GetVertices())
                 await fileGraph.AddVertex(vertex);
         }
@@ -88,6 +84,10 @@ namespace CartaWeb.Services
             // Wait for the operation to fully complete and for all information to be written.
             await operationTask;
             await updateTask;
+
+            // Perform a final update of the job.
+            JobItem jobItem = new(job);
+            await OperationsController.SaveJobAsync(jobItem, _persistence);
 
             // Iterate through the job results and handle special results.
             foreach (KeyValuePair<string, object> pair in job.Output)
@@ -153,8 +153,8 @@ namespace CartaWeb.Services
     /// </summary>
     public class BackgroundJobUpdater
     {
-        private ILogger<BackgroundJobService> _logger;
-        private Persistence _persistence;
+        private readonly ILogger<BackgroundJobService> _logger;
+        private readonly Persistence _persistence;
 
         /// <summary>
         /// A task source that provides a method of waiting for an update to a job.

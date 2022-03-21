@@ -7,10 +7,14 @@ using System.Threading.Tasks;
 using CartaCore.Extensions.Arrays;
 using CartaCore.Extensions.Hashing;
 using CartaCore.Extensions.String;
+using CartaCore.Extensions.Typing;
+using CartaCore.Graphs;
+using CartaCore.Graphs.Components;
 using CartaCore.Operations;
 using CartaCore.Persistence;
 using CartaWeb.Errors;
 using CartaWeb.Models.DocumentItem;
+using CartaWeb.Serialization;
 using CartaWeb.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -611,6 +615,14 @@ namespace CartaWeb.Controllers
             Operation operation = await InstantiateOperation(operationItem, _persistence);
             OperationJob job = new(operation, jobId, input, new Dictionary<string, object>());
 
+            // TODO: This is temporary to transfer HyperThought authentication details to the operation.
+            if (input.TryGetValue("authentication", out object auth) &&
+                auth is Dictionary<string, object> authDict)
+            {
+                job.Authentication.TryAdd(operationId, new ConcurrentDictionary<string, object>(authDict));
+                job.Input.TryRemove("authentication", out _);
+            }
+
             // TODO: Implement memoization of results using the hash of the input.
             //       - Account for whether the operation is deterministic.
             //       - Account for file uploads in hashes.
@@ -681,7 +693,7 @@ namespace CartaWeb.Controllers
         /// </param>
         /// <param name="selector">
         /// The selector to apply to a specific field. This is only applicable when the field is a graph structure.
-        /// If not specified, no data is returned.
+        /// If not specified, no data is returned. Query parameters can be used to set parameters on the selector.
         /// </param>
         /// <returns status="200">
         /// A job associated with the operation with the specified result.
@@ -711,25 +723,80 @@ namespace CartaWeb.Controllers
             }
 
             // Get the result if it exists.
-            JobItem job = await LoadJobAsync(jobId, operationId, _persistence);
-            if (job is null)
+            JobItem jobItem = await LoadJobAsync(jobId, operationId, _persistence);
+            if (jobItem is null)
             {
                 return NotFound(new ItemNotFoundError(
                     "Job with specified identifier could not be found.", jobId
                 ));
             }
-            else
+
+            // Return only the specified field on request.
+            if (field is not null)
             {
-                // Return only the specified field on request.
-                if (field is not null)
+                if (jobItem.Result is Dictionary<string, object> resultDictionary &&
+                    resultDictionary.TryGetValue(field, out object result))
+                    jobItem.Result = result;
+            }
+
+            // Perform a selection on a graph result if possible.
+            if (selector is not null)
+            {
+                // Try to construct the appropriate selector.
+                Type selectorType = OperationHelper.FindSelectorType(selector);
+                if (selectorType is null)
                 {
-                    job.Result = ((Dictionary<string, object>)job.Result)[field];
+                    return BadRequest(new
+                    {
+                        Error = "Invalid selector was specified.",
+                        Selector = selector
+                    });
+                }
+                object selectorObject = OperationHelper
+                    .ConstructSelector(selectorType, out object selectorParameters);
+                await TryUpdateModelAsync(selectorParameters, selectorParameters.GetType(), "selector");
+                if (selectorObject is not ISelector<Graph, Graph> selectorOperation)
+                {
+                    return BadRequest(new
+                    {
+                        Error = "Invalid selector was specified.",
+                        Selector = selector
+                    });
                 }
 
-                // TODO: Implement support for applying selectors to graph-like fields.
+                // Fetch the type of the field to ensure it is a graph and get its type arguments.
+                Operation operation = await InstantiateOperation(operationItem, _persistence);
+                OperationJob job = jobItem.AsJob(operation);
+                OperationFieldDescriptor fieldDescriptor = await operation
+                    .GetOutputFields(job)
+                    .FirstOrDefaultAsync(fieldDescriptor => fieldDescriptor.Name == field);
 
-                return job;
+                if (fieldDescriptor is null ||
+                   !fieldDescriptor.Type.ImplementsGenericInterface(typeof(IEnumerableComponent<,>), out Type[] genericArguments))
+                {
+                    return BadRequest(new
+                    {
+                        Error = "Invalid field was specified. Either field does not exist or is not selectable.",
+                        Name = field
+                    });
+                }
+
+                // Construct a file-based graph for this field.
+                Type graphType = typeof(FileGraph<,>).MakeGenericType(genericArguments);
+                string graphPath = Path.Join("jobs", operationId, jobId, field);
+                Graph graph = (Graph)Activator.CreateInstance(graphType, new object[] { graphPath, field });
+                Graph selectedGraph = await selectorOperation.Select(graph, selectorParameters);
+
+                // Set the result to the selected graph for formatting.
+                Type jsonGraphType = typeof(JsonGraph<,>).MakeGenericType(genericArguments);
+                object jsonGraph = Activator.CreateInstance(jsonGraphType, Array.Empty<object>());
+                await (Task)jsonGraphType
+                    .GetMethod(nameof(JsonGraph<IVertex, IEdge>.Initialize))
+                    .Invoke(jsonGraph, new object[] { selectedGraph });
+                jobItem.Result = jsonGraph;
             }
+
+            return jobItem;
         }
         [Authorize]
         [HttpPost("{operationId}/jobs/{jobId}/{field}/{selector}/prioritize")]

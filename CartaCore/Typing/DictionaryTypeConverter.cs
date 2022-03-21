@@ -88,35 +88,45 @@ namespace CartaCore.Typing
                 {
                     // We create a new instance of the target type.
                     output = Activator.CreateInstance(targetType);
-                    foreach (PropertyInfo property in targetType
-                        .GetProperties(BindingFlags.Public | BindingFlags.Instance))
+                    foreach (KeyValuePair<string, object> pair in typedDict)
                     {
-                        // Check if the property is in the dictionary.
-                        if (typedDict.TryGetValue(property.Name, out object entryValue))
+                        // We get the property of the target type.
+                        PropertyInfo property = targetType.GetProperty(
+                            pair.Key,
+                            BindingFlags.Instance |
+                            BindingFlags.Public |
+                            BindingFlags.IgnoreCase
+                        );
+
+                        // We check if the property exists.
+                        if (property is null)
                         {
-                            // We try to convert the property.
-                            object convertedValue;
-                            if (context is not null)
-                            {
-                                // By default, use the context to convert the value.
-                                TypeConverter converter = context;
-
-                                // Create a new type converter context based on the property attributes.
-                                TypeConverterContext subcontext = context.ApplyAttributes(property.GetCustomAttributes());
-
-                                // Convert the value.
-                                subcontext.TryConvert(
-                                    entryValue?.GetType() ?? typeof(object),
-                                    property.PropertyType,
-                                    entryValue,
-                                    out convertedValue
-                                );
-                            }
-                            else convertedValue = entryValue;
-
-                            // We set the value of the property.
-                            property.SetValue(output, convertedValue);
+                            output = null;
+                            return false;
                         }
+
+                        // We try to convert the property.
+                        object convertedValue;
+                        if (context is not null)
+                        {
+                            // By default, use the context to convert the value.
+                            TypeConverter converter = context;
+
+                            // Create a new type converter context based on the property attributes.
+                            TypeConverterContext subcontext = context.ApplyAttributes(property.GetCustomAttributes());
+
+                            // Convert the value.
+                            subcontext.TryConvert(
+                                pair.Value?.GetType() ?? typeof(object),
+                                property.PropertyType,
+                                pair.Value,
+                                out convertedValue
+                            );
+                        }
+                        else convertedValue = pair.Value;
+
+                        // We set the property value.
+                        property.SetValue(output, convertedValue);
                     }
                     return true;
                 }

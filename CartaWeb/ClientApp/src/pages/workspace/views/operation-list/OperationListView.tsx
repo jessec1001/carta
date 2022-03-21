@@ -449,7 +449,6 @@ const OperationListView: FC = () => {
 
     // Setup and teardown.
     // These shortcuts should be disabled if this is not the active view.
-    console.log(history, viewId);
     if (history.length > 0 && history[history.length - 1] === viewId) {
       window.addEventListener("keydown", handlePotentialKey);
       return () => window.removeEventListener("keydown", handlePotentialKey);

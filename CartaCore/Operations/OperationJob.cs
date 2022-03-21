@@ -113,7 +113,7 @@ namespace CartaCore.Operations
             Operation operation,
             string id,
             OperationJob parent)
-        : this(operation, id, parent, default(CancellationToken)) { }
+        : this(operation, id, parent, default) { }
         /// <summary>
         /// Initializes a new instance of the <see cref="OperationJob"/> class.
         /// </summary>
@@ -162,7 +162,7 @@ namespace CartaCore.Operations
             Dictionary<string, object> input,
             Dictionary<string, object> output,
             OperationJob parent)
-        : this(operation, id, input, output, parent, default(CancellationToken)) { }
+        : this(operation, id, input, output, parent, default) { }
         /// <summary>
         /// Initializes a new instance of the <see cref="OperationJob"/> class.
         /// </summary>
@@ -186,6 +186,7 @@ namespace CartaCore.Operations
             CancellationToken = cancellationToken;
             Input = new ConcurrentDictionary<string, object>(input);
             Output = new ConcurrentDictionary<string, object>(output);
+            PriorityQueue = new ConcurrentDictionary<string, ConcurrentQueue<(object, object)>>();
             Status = new ConcurrentDictionary<string, OperationStatus>();
             Authentication = new ConcurrentDictionary<string, ConcurrentDictionary<string, object>>();
             Tasks = new ConcurrentBag<OperationTask>();

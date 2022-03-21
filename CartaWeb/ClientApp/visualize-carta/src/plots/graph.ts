@@ -4,7 +4,7 @@ import { Plotter } from "types";
 
 interface IGraphVertex {
   id: string;
-  label: string;
+  label?: string;
   selected?: boolean;
   depth?: number;
 }
@@ -139,14 +139,18 @@ const GraphPlot: Plotter<IGraphPlot, IGraphInteraction> = (
       .selectAll("circle");
   // TODO: Preferably, this should be a child of the nodes so that changing the position of nodes doesn't affect the text.
   let text: d3.Selection<d3.BaseType, IGraphVertex, SVGElement, unknown> =
-    zoomElement.append("g").selectAll("text");
+    zoomElement.append("g").attr("fill", "currentcolor").selectAll("text");
 
   // This function updates the data. We call it initially to setup the plot.
   const update = (plot: IGraphPlot) => {
     // We want to preserve positioning and velocity of nodes that are already in the graph.
+    // We ensure that we only include edges that have corresponding vertices.
     const nodeMap = new Map(node.data().map((d) => [d.id, d]));
+    const nodeIds = new Set(plot.vertices.map((d) => d.id));
     const nodes = plot.vertices.map((d) => ({ ...nodeMap.get(d.id), ...d }));
-    const links = plot.edges.map((d) => ({ ...d }));
+    const links = plot.edges
+      .map((d) => ({ ...d }))
+      .filter((d) => nodeIds.has(d.source) && nodeIds.has(d.target));
 
     simulation.nodes(nodes);
     simulation
@@ -169,7 +173,7 @@ const GraphPlot: Plotter<IGraphPlot, IGraphInteraction> = (
     text = text
       .data(nodes)
       .join("text")
-      .text(({ label }) => label)
+      .text(({ label }) => label ?? "")
       .attr("text-anchor", "middle");
   };
   update(plot);
@@ -183,3 +187,4 @@ const GraphPlot: Plotter<IGraphPlot, IGraphInteraction> = (
 };
 
 export default GraphPlot;
+export type { IGraphPlot, IGraphVertex, IGraphEdge, IGraphInteraction };

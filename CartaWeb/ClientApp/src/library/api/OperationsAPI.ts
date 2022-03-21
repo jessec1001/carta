@@ -14,17 +14,17 @@ class OperationsAPI extends BaseAPI {
   }
 
   // TODO: Temporary and should be generalized by asking the server for the appropriate authentication to send.
-  private static retrieveAuthentication(): Record<string, string> {
+  private static retrieveAuthentication(): Record<string, object> {
     // These designate the known authenatication pairings.
     const knownEntries: Record<string, string> = {
       hyperthought: "hyperthoughtKey",
     };
 
     // Check the local storage for each entry and add them to the authentication record.
-    const authentication: Record<string, string> = {};
+    const authentication: Record<string, object> = {};
     for (const [auth, key] of Object.entries(knownEntries)) {
       const entry = localStorage.getItem(key);
-      if (entry) authentication[auth] = JSON.parse(entry);
+      if (entry) authentication[auth] = { apiKey: JSON.parse(entry) };
     }
     return authentication;
   }

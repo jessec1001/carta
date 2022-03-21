@@ -1,7 +1,7 @@
 import { Plotter } from "types";
 interface IGraphVertex {
     id: string;
-    label: string;
+    label?: string;
     selected?: boolean;
     depth?: number;
 }
@@ -30,3 +30,4 @@ interface IGraphInteraction {
 }
 declare const GraphPlot: Plotter<IGraphPlot, IGraphInteraction>;
 export default GraphPlot;
+export type { IGraphPlot, IGraphVertex, IGraphEdge, IGraphInteraction };

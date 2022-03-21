@@ -159,10 +159,14 @@ const Mosaic: FC<MosaicProps> & MosaicComposition = forwardRef<
     },
     [panning, position]
   );
-  const handleZoom = useCallback((event: React.WheelEvent) => {
-    const effect = 1 - event.deltaY / 1000;
-    setZoom((zoom) => Math.min(2, Math.max(0.5, zoom * effect)));
-  }, []);
+  const handleZoom = useCallback(
+    (event: React.WheelEvent) => {
+      if (event.target !== combinedRef.current) return;
+      const effect = 1 - event.deltaY / 1000;
+      setZoom((zoom) => Math.min(2, Math.max(0.5, zoom * effect)));
+    },
+    [combinedRef]
+  );
 
   return (
     <div

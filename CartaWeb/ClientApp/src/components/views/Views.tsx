@@ -60,7 +60,6 @@ const Views: FunctionComponent<ViewsProps> & ViewsComposition = ({
     ])
   );
   const [history, setHistory] = useState<number[]>([]);
-  console.log(views);
 
   // Construct the necessary minimal actions for the context to function.
   const getView = useCallback(

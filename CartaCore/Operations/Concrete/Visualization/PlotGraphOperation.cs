@@ -32,7 +32,6 @@ namespace CartaCore.Operations.Visualization
         Connectedness
     }
 
-    // TODO: Make this consistent with VisJS format if possible.
     /// <summary>
     /// Represents a vertex in a graph visualization.
     /// </summary>
@@ -65,12 +64,12 @@ namespace CartaCore.Operations.Visualization
         /// <inheritdoc />
         public IEnumerable<GraphPlotEdge> Edges { get; set; }
     }
-    // TODO: Make this consistent with VisJS format if possible.
     /// <summary>
     /// Represents an edge in a graph visualization.
     /// </summary>
     public struct GraphPlotEdge : IEdge
     {
+        // TODO: Add properties to edges.
         /// <summary>
         /// The unique identifier of the edge.
         /// </summary>
@@ -166,7 +165,8 @@ namespace CartaCore.Operations.Visualization
                     Id = vertex.Id,
                     Label = vertex.Label,
                     Properties = vertex.Properties,
-                    Style = VertexStyle
+                    Style = VertexStyle,
+                    Edges = edges
                 };
                 yield return graphPlotVertex;
             }
