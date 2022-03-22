@@ -26,6 +26,11 @@ namespace CartaCore.Integration.Hyperthought.Data
         [EnumMember(Value = "decimal")]
         Decimal,
         /// <summary>
+        /// The data is of type floating double.
+        /// </summary>
+        [EnumMember(Value = "double")]
+        Double,
+        /// <summary>
         /// The data is of type string.
         /// </summary>
         [EnumMember(Value = "string")]

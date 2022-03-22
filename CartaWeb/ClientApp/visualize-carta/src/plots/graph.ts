@@ -1,6 +1,7 @@
 import * as d3 from "d3";
 import { SimulationNodeDatum } from "d3";
 import { Plotter } from "types";
+import { createSvg } from "utility";
 
 interface IGraphVertex {
   id: string;
@@ -29,8 +30,14 @@ interface IGraphPlot {
     bottom?: number;
   };
 }
+
+/** Represents the possible interactions with the graph visualization. */
 interface IGraphInteraction {
-  onClickNode?: (node: IGraphVertex) => void;
+  /** An event listener that is called when a node is called exactly once (does not fire on double click). */
+  onSingleClickNode?: (node: string) => void;
+  /** An event listener that is called when a node is clicked exactly twice (does not fire on single click). */
+  onDoubleClickNode?: (node: string) => void;
+  /** An event listener that is called when the empty space is clicked. */
   onClickSpace?: () => void;
 }
 
@@ -41,17 +48,38 @@ const GraphPlot: Plotter<IGraphPlot, IGraphInteraction> = (
   container: HTMLElement,
   plot: IGraphPlot,
   interaction?: IGraphInteraction
-): ((data: IGraphPlot) => void) => {
-  const width = plot.size?.width ?? 800;
-  const height = plot.size?.height ?? 640;
+): ((data: IGraphPlot, interaction?: IGraphInteraction) => void) => {
+  // We store a reference to the data and interaction of the plot.
+  const state = {
+    plot: { ...plot } as IGraphPlot,
+    interaction: { ...(interaction ?? {}) } as IGraphInteraction | undefined,
+  };
 
-  const svgElement = d3
-    .select(container)
-    .append("svg")
-    .attr("viewBox", `${-width / 2} ${-height / 2} ${width} ${height}`);
-  const zoomElement = svgElement.append("g");
+  // Create the SVG element.
+  const { svg } = createSvg(container, plot, true);
 
-  svgElement
+  // We set up some event handlers for common interactions.
+  const onClickNode = (event: PointerEvent, id: string) => {
+    const numClicks = event.detail;
+    if (numClicks === 1) {
+      state.interaction?.onSingleClickNode?.(id);
+    }
+    if (numClicks === 2) {
+      state.interaction?.onDoubleClickNode?.(id);
+    }
+  };
+  const onClickSpace = (event: PointerEvent) => {
+    // Make sure that target is directed at the SVG.
+    if (event.target !== svg.node()) return;
+    state.interaction?.onClickSpace?.();
+  };
+
+  // Construct the SVG element.
+  svg.on("click", (event) => onClickSpace(event));
+  const zoomElement = svg.append("g");
+
+  // Add a definition for the arrow markers for directed edges.
+  svg
     .append("defs")
     .append("marker")
     .attr("id", "arrow")
@@ -65,8 +93,7 @@ const GraphPlot: Plotter<IGraphPlot, IGraphInteraction> = (
     .attr("fill", "#99999988")
     .attr("d", "M0,-10L20,0L0,10");
 
-  if (!plot.vertices || !plot.edges) return () => {};
-
+  // Update the positions of elements when the simulation ticks forward.
   const ticked = () => {
     link
       .attr("x1", ({ source }) => (source as any).x)
@@ -83,6 +110,7 @@ const GraphPlot: Plotter<IGraphPlot, IGraphInteraction> = (
       .attr("y", ({ y }: { y: number }) => y + 35);
   };
 
+  // Handle dragging of nodes.
   const drag = (
     simulation: d3.Simulation<d3.SimulationNodeDatum, undefined>
   ) => {
@@ -108,11 +136,12 @@ const GraphPlot: Plotter<IGraphPlot, IGraphInteraction> = (
       .on("drag", onDragged);
   };
 
+  // Setup the forces in the simulation.
   const forceNode = d3.forceManyBody().strength(-500);
   const forceLink = d3
     .forceLink<IGraphVertex & SimulationNodeDatum, IGraphEdge>()
     .id(({ id }) => id)
-    .distance(100);
+    .distance(50);
   const forceCenter = d3.forceCenter(0, 0);
 
   // TODO: Change the center of the graph to the center of the container.
@@ -136,30 +165,55 @@ const GraphPlot: Plotter<IGraphPlot, IGraphInteraction> = (
       .attr("fill", "#a1d7a1")
       .attr("stroke", "#53b853")
       .attr("stroke-width", 3)
+      .style("cursor", "pointer")
       .selectAll("circle");
+
   // TODO: Preferably, this should be a child of the nodes so that changing the position of nodes doesn't affect the text.
   let text: d3.Selection<d3.BaseType, IGraphVertex, SVGElement, unknown> =
     zoomElement.append("g").attr("fill", "currentcolor").selectAll("text");
 
   // This function updates the data. We call it initially to setup the plot.
-  const update = (plot: IGraphPlot) => {
+  const update = (plot: IGraphPlot, interaction?: IGraphInteraction) => {
     // We want to preserve positioning and velocity of nodes that are already in the graph.
+    const nodeMap = new Map(state.plot.vertices.map((v) => [v.id, v]));
+
+    // Set the new state.
+    state.plot = plot;
+    state.plot.vertices = state.plot.vertices.map((v) => ({
+      ...v,
+      ...nodeMap.get(v.id),
+    }));
+    state.interaction = interaction;
+
     // We ensure that we only include edges that have corresponding vertices.
-    const nodeMap = new Map(node.data().map((d) => [d.id, d]));
-    const nodeIds = new Set(plot.vertices.map((d) => d.id));
-    const nodes = plot.vertices.map((d) => ({ ...nodeMap.get(d.id), ...d }));
-    const links = plot.edges
+    const nodeIds = new Set(state.plot.vertices.map((d) => d.id));
+    const nodes = state.plot.vertices;
+    const links = state.plot.edges
       .map((d) => ({ ...d }))
       .filter((d) => nodeIds.has(d.source) && nodeIds.has(d.target));
 
-    simulation.nodes(nodes);
-    simulation
-      .force<d3.ForceLink<IGraphVertex & SimulationNodeDatum, IGraphEdge>>(
-        "link"
-      )
-      ?.links(links);
-    simulation.alpha(1).restart();
+    // If the nodes have changed, we need to update the simulation.
+    let nodesChanged = false;
+    if (nodeMap.size !== nodeIds.size) nodesChanged = true;
+    else {
+      for (const nodeId in nodeIds) {
+        if (!nodeMap.has(nodeId)) {
+          nodesChanged = true;
+          break;
+        }
+      }
+    }
+    if (nodesChanged) {
+      simulation.nodes(nodes);
+      simulation
+        .force<d3.ForceLink<IGraphVertex & SimulationNodeDatum, IGraphEdge>>(
+          "link"
+        )
+        ?.links(links);
+      simulation.alpha(1).restart();
+    }
 
+    // Set all of the data.
     link = link
       .data(links, ({ source, target }) => source + "-" + target)
       .join("line")
@@ -169,7 +223,7 @@ const GraphPlot: Plotter<IGraphPlot, IGraphInteraction> = (
       .join("circle")
       .attr("r", 15)
       .call(drag(simulation as any) as any)
-      .on("click", (node) => interaction?.onClickNode?.(node));
+      .on("click", (event, data) => onClickNode(event, data.id));
     text = text
       .data(nodes)
       .join("text")
@@ -178,10 +232,13 @@ const GraphPlot: Plotter<IGraphPlot, IGraphInteraction> = (
   };
   update(plot);
 
-  const zoom = d3.zoom<SVGSVGElement, unknown>().on("zoom", (event) => {
-    zoomElement.attr("transform", event.transform);
-  });
-  svgElement.call(zoom).call(zoom.transform, d3.zoomIdentity);
+  const zoom = d3
+    .zoom<SVGSVGElement, unknown>()
+    .on("zoom", (event) => {
+      zoomElement.attr("transform", event.transform);
+    })
+    .on("dblclick.zoom", null);
+  svg.call(zoom).call(zoom.transform, d3.zoomIdentity);
 
   return update;
 };

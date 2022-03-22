@@ -264,7 +264,6 @@ namespace CartaWeb
             app.UseEndpoints(endpoints => endpoints.MapDefaultControllerRoute());
             app.UseSpa(spa =>
             {
-                spa.Options.SourcePath = "ClientApp";
                 spa.Options.DefaultPageStaticFileOptions = new StaticFileOptions()
                 {
                     OnPrepareResponse = (options) =>
@@ -281,6 +280,7 @@ namespace CartaWeb
 
                 if (env.IsDevelopment())
                 {
+                    spa.Options.SourcePath = "ClientApp";
                     spa.UseReactDevelopmentServer(npmScript: "start");
                 }
             });
