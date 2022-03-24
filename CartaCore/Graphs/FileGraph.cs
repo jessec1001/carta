@@ -107,6 +107,7 @@ namespace CartaCore.Graphs
         public async Task Clear()
         {
             // We delete all of the files in the graph directory.
+            if (!Directory.Exists(GraphPath)) return;
             string[] files = Directory.GetFiles(GraphPath);
             foreach (string file in files)
             {
@@ -132,6 +133,7 @@ namespace CartaCore.Graphs
         public async IAsyncEnumerable<TVertex> GetVertices()
         {
             // We fetch the list of files in the directory.
+            if (!Directory.Exists(GraphPath)) yield break;
             IEnumerable<string> files = Directory.GetFiles(GraphPath);
 
             // We iterate over each file and deserialize the vertex.
