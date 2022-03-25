@@ -54,6 +54,7 @@ const GraphPlot: Plotter<IGraphPlot, IGraphInteraction> = (
     plot: { ...plot } as IGraphPlot,
     interaction: { ...(interaction ?? {}) } as IGraphInteraction | undefined,
   };
+  let dirty = false;
 
   // Create the SVG element.
   const { svg } = createSvg(container, plot, true);
@@ -115,6 +116,7 @@ const GraphPlot: Plotter<IGraphPlot, IGraphInteraction> = (
     simulation: d3.Simulation<d3.SimulationNodeDatum, undefined>
   ) => {
     const onDragStarted = (event: any) => {
+      simulation.alphaTarget(1).restart();
       if (!event.active) simulation.alphaTarget(0.3).restart();
       event.subject.fx = event.subject.x;
       event.subject.fy = event.subject.y;
@@ -141,7 +143,7 @@ const GraphPlot: Plotter<IGraphPlot, IGraphInteraction> = (
   const forceLink = d3
     .forceLink<IGraphVertex & SimulationNodeDatum, IGraphEdge>()
     .id(({ id }) => id)
-    .distance(50);
+    .distance(100);
   const forceCenter = d3.forceCenter(0, 0);
 
   // TODO: Change the center of the graph to the center of the container.
@@ -192,26 +194,6 @@ const GraphPlot: Plotter<IGraphPlot, IGraphInteraction> = (
       .map((d) => ({ ...d }))
       .filter((d) => nodeIds.has(d.source) && nodeIds.has(d.target));
 
-    // If the nodes have changed, we need to update the simulation.
-    let nodesChanged = false;
-    if (nodeMap.size !== nodeIds.size) nodesChanged = true;
-    else {
-      for (const nodeId in nodeIds) {
-        if (!nodeMap.has(nodeId)) {
-          nodesChanged = true;
-          break;
-        }
-      }
-    }
-    if (nodesChanged) {
-      simulation.nodes(nodes);
-      simulation
-        .force<d3.ForceLink<IGraphVertex & SimulationNodeDatum, IGraphEdge>>(
-          "link"
-        )
-        ?.links(links);
-      simulation.alpha(1).restart();
-    }
 
     // Set all of the data.
     link = link
@@ -229,15 +211,43 @@ const GraphPlot: Plotter<IGraphPlot, IGraphInteraction> = (
       .join("text")
       .text(({ label }) => label ?? "")
       .attr("text-anchor", "middle");
+
+    // Check if the visualization is dirty. If so, simulate.
+    if (dirty) {
+      dirty = false;
+      simulation.alpha(1).restart();
+    }
+
+    // If the nodes have changed, we need to update the simulation.
+    let nodesChanged = false;
+    if (nodeMap.size !== nodeIds.size) nodesChanged = true;
+    else {
+      for (const nodeId in nodeIds) {
+        if (!nodeMap.has(nodeId)) {
+          nodesChanged = true;
+          break;
+        }
+      }
+    }
+    simulation.nodes(nodes);
+    simulation
+      .force<d3.ForceLink<IGraphVertex & SimulationNodeDatum, IGraphEdge>>(
+        "link"
+      )
+      ?.links(links);
+    if (nodesChanged) {
+      dirty = true;
+      simulation.alpha(1).restart();
+    }
   };
   update(plot);
 
   const zoom = d3
     .zoom<SVGSVGElement, unknown>()
+    .filter((event: any) => !event.button && event.type !== "dblclick")
     .on("zoom", (event) => {
       zoomElement.attr("transform", event.transform);
-    })
-    .on("dblclick.zoom", null);
+    });
   svg.call(zoom).call(zoom.transform, d3.zoomIdentity);
 
   return update;

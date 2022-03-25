@@ -11,6 +11,7 @@ using CartaCore.Extensions.Typing;
 using CartaCore.Graphs;
 using CartaCore.Graphs.Components;
 using CartaCore.Operations;
+using CartaCore.Operations.Attributes;
 using CartaCore.Persistence;
 using CartaWeb.Errors;
 using CartaWeb.Models.DocumentItem;
@@ -226,51 +227,75 @@ namespace CartaWeb.Controllers
         /// <returns>The instantiated operation.</returns>
         public static async Task<Operation> InstantiateOperation(OperationItem operationItem, Persistence Persistence)
         {
-            // TODO: Cleanup this method.
+            Operation operation = null;
             if (operationItem.Type == "workflow")
             {
                 WorkflowItem workflowItem = await WorkflowsController.LoadWorkflowAsync(operationItem.Subtype, Persistence);
-                List<Operation> suboperations = new(workflowItem.Operations.Length);
-                foreach (string suboperationId in workflowItem.Operations)
+
+                // Load each of the sub-operations of the workflow.
+                Operation[] suboperations = new Operation[workflowItem.Operations.Length];
+                for (int k = 0; k < suboperations.Length; k++)
                 {
-                    suboperations.Add(
-                        await InstantiateOperation(
-                            await LoadOperationAsync(suboperationId.ToString(), Persistence),
-                            Persistence
-                        )
+                    suboperations[k] = await InstantiateOperation(
+                        await LoadOperationAsync(workflowItem.Operations[k], Persistence),
+                        Persistence
                     );
                 }
-                WorkflowOperationConnection[] connections = workflowItem.Connections.Select(item => new WorkflowOperationConnection()
+
+                // Load each of the connections of the workflow.
+                WorkflowOperationConnection[] connections = new WorkflowOperationConnection[workflowItem.Connections.Length];
+                for (int k = 0; k < connections.Length; k++)
                 {
-                    Source = new WorkflowOperationConnectionPoint()
+                    WorkflowConnection connectionItem = workflowItem.Connections[k];
+                    connections[k] = new WorkflowOperationConnection()
                     {
-                        Operation = item.Source.Operation,
-                        Field = item.Source.Field,
-                        Multiplicity = item.Multiplex ? new (int, int?)[] { (0, null) } : Array.Empty<(int, int?)>()
-                    },
-                    Target = new WorkflowOperationConnectionPoint()
-                    {
-                        Operation = item.Target.Operation,
-                        Field = item.Target.Field,
-                        Multiplicity = Array.Empty<(int, int?)>()
-                    },
-                }).ToArray();
+                        Source = new WorkflowOperationConnectionPoint()
+                        {
+                            Operation = connectionItem.Source.Operation,
+                            Field = connectionItem.Source.Field,
+                            Multiplicity = connectionItem.Multiplex ? new (int, int?)[] { (0, null) } : Array.Empty<(int, int?)>()
+                        },
+                        Target = new WorkflowOperationConnectionPoint()
+                        {
+                            Operation = connectionItem.Target.Operation,
+                            Field = connectionItem.Target.Field,
+                            Multiplicity = Array.Empty<(int, int?)>()
+                        },
+                    };
+                }
 
-                WorkflowOperation operation = new(suboperations.ToArray(), connections) { Id = operationItem.Id };
-                operation.Defaults = operationItem.Default;
-                await operation.StabilizeTypes(new OperationJob(operation, "temp"));
-
-                return operation;
+                // Construct the workflow operation.
+                WorkflowOperation workflowOperation = new(suboperations, connections);
+                await workflowOperation.StabilizeTypes(new OperationJob(workflowOperation, "temp"));
+                operation = workflowOperation;
             }
             else
             {
                 Type operationType = OperationHelper.FindOperationType(operationItem.Type, typeof(Operation).Assembly);
-                Operation operation = OperationHelper.Construct(operationType);
-                operation.Id = operationItem.Id;
-                operation.Defaults = operationItem.Default;
-
-                return operation;
+                operation = OperationHelper.Construct(operationType);
             }
+
+            // Setup the operation identifier and defaults.
+            Dictionary<string, object> defaults = new(StringComparer.OrdinalIgnoreCase);
+            operation.Id = operationItem.Id;
+            operation.Defaults = defaults;
+
+            // Fetch defiend defaults.
+            await foreach (OperationFieldDescriptor field in operation.GetInputFields(new OperationJob(operation, "temp")))
+            {
+                // Get the default value for each field.
+                FieldDefaultAttribute defaultAttr = (FieldDefaultAttribute)field.Attributes.FirstOrDefault(attr => attr is FieldDefaultAttribute);
+                if (defaultAttr is not null)
+                    defaults.Add(field.Name, defaultAttr.Default);
+            }
+            // Merge in overriding defaults.
+            if (operationItem.Default is not null)
+            {
+                foreach (KeyValuePair<string, object> entry in operationItem.Default)
+                    defaults[entry.Key] = entry.Value;
+            }
+
+            return operation;
         }
         #endregion
 
@@ -425,9 +450,11 @@ namespace CartaWeb.Controllers
             }
 
             // Set a new identifier and defaults for the operation.
-            Operation operation = await InstantiateOperation(operationItem, _persistence);
             operationItem.Id = Ulid.NewUlid().ToString();
-            operationItem.Default ??= operation.Defaults;
+            operationItem.Default ??= new Dictionary<string, object>();
+            Operation operation = await InstantiateOperation(operationItem, _persistence);
+            operationItem.Id = operation.Id;
+            operationItem.Default = operation.Defaults;
 
             // Save the created operation item and return its internal representation.
             _ = await SaveOperationAsync(operationItem, _persistence);

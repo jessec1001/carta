@@ -49,6 +49,12 @@ namespace CartaCore.Integration.Synthetic
                 if (!NamedPropertyTypes.ContainsKey(key))
                     NamedPropertyTypes.Add(key, type);
             }
+
+            // Initialize the graph components.
+            Components.AddTop<IRootedComponent>(this);
+            Components.AddTop<IDynamicLocalComponent<Vertex, Edge>>(this);
+            Components.AddTop<IDynamicOutComponent<Vertex, Edge>>(this);
+            Components.AddTop<IParameterizedComponent<InfiniteDirectedGraphParameters>>(this);
         }
 
         /// <summary>

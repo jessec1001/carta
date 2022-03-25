@@ -52,6 +52,8 @@ interface IVisualizeGraph {
 interface ICollapsibleVertex extends IGraphVertex {
   /** Whether the vertex is collapsed. */
   collapsed: boolean;
+  /** Whether the vertex's children are collapsed. */
+  collapsedChildren: boolean;
 }
 
 /** The props used for the {@link GraphVisualizer} component. */
@@ -65,8 +67,10 @@ interface GraphVisualizerProps {
 const GraphVisualizer: FC<GraphVisualizerProps> = ({ path, container }) => {
   // We store the vertex and edge information in state.
   // We make sure to keep information about the identifiers that have been retrieved so as to avoid unnecessary updates.
-  const [vertices, setVertices] = useState<ICollapsibleVertex[]>([]);
-  const [edges, setEdges] = useState<IGraphEdge[]>([]);
+  const [vertices, setVertices] = useState<Map<string, ICollapsibleVertex>>(
+    new Map()
+  );
+  const [edges, setEdges] = useState<Map<string, IGraphEdge>>(new Map());
 
   // We store a state reference to the plot so that we can update it when the data changes.
   const [plot, setPlot] = useState<
@@ -76,13 +80,17 @@ const GraphVisualizer: FC<GraphVisualizerProps> = ({ path, container }) => {
   // Set up some common operations for manipulating the data.
   const doCollapseExpandVertexTree = useCallback(
     (id: string) => {
-      // We collapse all of the vertices that are descendants of the vertex with the given identifier.
+      // If the current vertex has children collapsed, we expand them while subchildren are not collapsed.
+      // If the current vertex has children not collapsed, we collapse all descendants.
+      const vertex = vertices.get(id);
+      if (!vertex) return vertices;
+
       // For now, we only consider descendants along direct edges.
       const pending: string[] = [id];
       const descendants: string[] = [];
       while (pending.length > 0) {
         const pendingId = pending.pop()!;
-        for (const edge of edges) {
+        for (const [, edge] of edges) {
           if (edge.directed && edge.source === pendingId) {
             descendants.push(edge.target);
             pending.push(edge.target);
@@ -90,12 +98,16 @@ const GraphVisualizer: FC<GraphVisualizerProps> = ({ path, container }) => {
         }
       }
 
-      // Collapse the descendants.
-      return vertices.map((vertex) => {
-        return descendants.includes(vertex.id)
-          ? { ...vertex, collapsed: !vertex.collapsed }
-          : vertex;
-      });
+      const newVertices = new Map(vertices);
+      // for (const [id, vertex] of vertices) {
+      //   newVertices.set(
+      //     id,
+      //     descendants.includes(id)
+      //       ? { ...vertex, collapsed: !vertex.collapsed }
+      //       : vertex
+      //   );
+      // }
+      return newVertices;
     },
     [edges, vertices]
   );
@@ -103,25 +115,33 @@ const GraphVisualizer: FC<GraphVisualizerProps> = ({ path, container }) => {
   // Set up some event handlers for the plot.
   const handleClickSpace = useCallback(() => {
     // When the user clicks the space, we deselect all of the vertices.
-    setVertices((vertices) =>
-      vertices.map((vertex) => ({ ...vertex, selected: false }))
-    );
+    setVertices((vertices) => {
+      vertices = new Map(vertices);
+      for (const vertex of vertices.values()) {
+        vertices.set(vertex.id, { ...vertex, selected: false });
+      }
+      return vertices;
+    });
   }, []);
   const handleSingleClickNode = useCallback((id: string) => {
     // When a node is single-clicked, we toggle the selection of the vertex.
     setVertices((vertices) => {
-      const vertex = vertices.find((vertex) => vertex.id === id);
+      const vertex = vertices.get(id);
       if (vertex) {
-        vertex.selected = !vertex.selected;
-        return [...vertices];
-      } else return vertices;
+        vertices = new Map(vertices);
+        vertices.set(id, {
+          ...vertex,
+          selected: !vertex.selected,
+        });
+      }
+      return vertices;
     });
   }, []);
   const handleDoubleClickNode = useCallback(
     (id: string) => {
       // When a node is double-clicked, we expand or collapse the vertex.
       setVertices((vertices) => {
-        const vertex = vertices.find((vertex) => vertex.id === id);
+        const vertex = vertices.get(id);
         if (vertex) return doCollapseExpandVertexTree(vertex.id);
         else return vertices;
       });
@@ -148,8 +168,10 @@ const GraphVisualizer: FC<GraphVisualizerProps> = ({ path, container }) => {
     if (plot) {
       plot(
         {
-          vertices: vertices.filter((vertex) => !vertex.collapsed),
-          edges: edges,
+          vertices: Array.from(vertices.values()).filter(
+            (vertex) => !vertex.collapsed
+          ),
+          edges: Array.from(edges.values()),
         },
         {
           onClickSpace: handleClickSpace,
@@ -183,28 +205,27 @@ const GraphVisualizer: FC<GraphVisualizerProps> = ({ path, container }) => {
         let changed = false;
         for (const fetchVertex of graph.vertices) {
           // Check if we already have this vertex.
-          const existingVertex = vertices.find(
-            (vertex) => vertex.id === fetchVertex.id
-          );
+          const existingVertex = vertices.get(fetchVertex.id);
           if (existingVertex) continue;
 
           // Fetch the vertex's edges.
           // If the vertex has no directed edges into the vertex, it is a root-like vertex that should be uncollapsed.
           const edges = fetchVertex.edges ?? [];
-          const collapsed = edges.some(
-            (edge) => edge.directed && edge.target === fetchVertex.id
-          );
+          const directed = edges.some((edge) => edge.directed);
+          const collapsed =
+            !edges.some((edge) => edge.target === fetchVertex.id) && directed;
 
           // Add the vertex to the set of fetched vertices.
           if (!changed) {
             changed = true;
-            vertices = [...vertices];
+            vertices = new Map(vertices);
           }
-          vertices.push({
+          vertices.set(fetchVertex.id, {
             id: fetchVertex.id,
             label: fetchVertex.label,
             selected: false,
             collapsed: collapsed,
+            collapsedChildren: directed,
           });
         }
 
@@ -215,25 +236,19 @@ const GraphVisualizer: FC<GraphVisualizerProps> = ({ path, container }) => {
         for (const fetchVertex of graph.vertices) {
           for (const fetchEdge of fetchVertex.edges ?? []) {
             // Check if we already have this edge.
-            const existingEdge = edges.find(
-              (edge) =>
-                edge.source === fetchEdge.source &&
-                edge.target === fetchEdge.target
-            );
+            const existingEdge = edges.get(fetchEdge.id);
             if (existingEdge) continue;
 
             // Add the vertex to the set of fetched vertices.
             if (!changed) {
               changed = true;
-              edges = [...edges];
+              edges = new Map(edges);
             }
-            edges.push(
-              ...(fetchVertex.edges || []).map((edge) => ({
-                source: edge.source,
-                target: edge.target,
-                directed: edge.directed,
-              }))
-            );
+            edges.set(fetchEdge.id, {
+              source: fetchEdge.source,
+              target: fetchEdge.target,
+              directed: fetchEdge.directed,
+            });
           }
         }
 

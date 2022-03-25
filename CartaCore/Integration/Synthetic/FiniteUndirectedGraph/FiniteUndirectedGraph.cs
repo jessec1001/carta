@@ -28,6 +28,9 @@ namespace CartaCore.Integration.Synthetic
             // We generate all the graph data after setting the parameters.
             Parameters = parameters;
             GenerateGraph();
+
+            // Initialize the graph components.
+            Components.AddTop<IParameterizedComponent<FiniteUndirectedGraphParameters>>(this);
         }
 
         /// <summary>
@@ -49,10 +52,10 @@ namespace CartaCore.Integration.Synthetic
                 Enumerable
                 .Range(0, numVertices)
                 .Select
-                (_ => new Vertex(random.NextGuid().ToString())
-                    {
-                        Label = Parameters.Labeled ? random.NextPsuedoword() : null
-                    }
+                (_ => new Vertex(random.NextGuid().ToString(), new List<Edge>())
+                {
+                    Label = Parameters.Labeled ? random.NextPsuedoword() : null
+                }
                 )
             );
 
@@ -68,7 +71,6 @@ namespace CartaCore.Integration.Synthetic
             );
 
             // Randomly select the edges from our list of plausible edges.
-            LinkedList<Edge> edgesSelected = new();
             for (int e = 0; e < numEdges; e++)
             {
                 // This here is probably a bit inefficient and sloppy but it performs better than reallocating
@@ -78,14 +80,20 @@ namespace CartaCore.Integration.Synthetic
                 for (int j = 0; j < offset; j++)
                     edgesNode = edgesNode.Next;
 
-                // Add selected node to selected edges and remove from possible edges.
-                edgesSelected.AddLast(edgesNode.Value);
+                // Add the edges directly to our vertices.
+                Vertex source = vertices.Find((v) => v.Id == edgesNode.Value.Source);
+                Vertex target = vertices.Find((v) => v.Id == edgesNode.Value.Target);
+                List<Edge> sourceEdges = source.Edges as List<Edge>;
+                List<Edge> targetEdges = target.Edges as List<Edge>;
+                sourceEdges.Add(edgesNode.Value);
+                targetEdges.Add(edgesNode.Value);
+
+                // Remove from possible edges.
                 edges.Remove(edgesNode);
             }
 
             // We add the vertices and edges directly to this object.
             AddVertexRange(vertices);
-            AddEdgeRange(edgesSelected);
         }
     }
 }
