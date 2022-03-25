@@ -177,19 +177,11 @@ namespace CartaWeb.Controllers
         /// <param name="Persistence">A reference to the persistence service.</param>
         /// <param name="User">The authenticated user.</param>
         /// <returns>Whether the operation was successful or not.</returns>
-        public static async Task<bool> SaveJobAsync(JobItem jobItem, Persistence Persistence, ClaimsPrincipal User)
+        public static async Task<bool> SaveJobAsync(JobItem jobItem, Persistence Persistence)
         {
             DbDocument document = jobItem.SaveDbDocument();
-            if (User is null)
-            {
-                bool isSaved = await Persistence.WriteDbDocumentAsync(document);
-                return isSaved;
-            }
-            else
-            {
-                bool isSaved = await Persistence.WriteDbDocumentAsync(document, User);
-                return isSaved;
-            }
+            bool isSaved = await Persistence.WriteDbDocumentAsync(document);
+            return isSaved;
         }
         /// <summary>
         /// Deletes the specified job from the database.
@@ -215,21 +207,11 @@ namespace CartaWeb.Controllers
         public static async Task<JobItem> LoadJobAsync(
             string jobId,
             string operationId,
-            Persistence Persistence,
-            ClaimsPrincipal User)
+            Persistence Persistence)
         {
             JobItem jobItem = new(jobId, operationId);
-            if (User is null)
-            {
-                Item item = await Persistence.LoadItemAsync(jobItem);
-                return (JobItem)item;
-            }
-            else
-            {
-                Item item = await Persistence.LoadItemAsync(jobItem, User);
-                return (JobItem)item;
-            }
-
+            Item item = await Persistence.LoadItemAsync(jobItem);
+            return (JobItem)item;
         }
         /// <summary>
         /// Loads the jobs for the specified operation from the database.
@@ -240,15 +222,11 @@ namespace CartaWeb.Controllers
         /// <returns>The loaded job items.</returns>
         public static async Task<List<JobItem>> LoadJobsAsync(
             string operationId,
-            Persistence Persistence,
-            ClaimsPrincipal User)
+            Persistence Persistence)
         {
             JobItem jobItem = new(null, operationId);
             IEnumerable<Item> items;
-            if (User is null)
-                items = await Persistence.LoadItemsAsync(jobItem);
-            else
-                items = await Persistence.LoadItemsAsync(jobItem, User);
+            items = await Persistence.LoadItemsAsync(jobItem);
             List<JobItem> jobItems = items.Cast<JobItem>().ToList();
             return jobItems;
         }
@@ -706,7 +684,7 @@ namespace CartaWeb.Controllers
 
             // We save the job item to the store and push the job onto the job collection.
             // This queues the operation for execution on a separate thread so that we can return the job immediately.
-            _ = await SaveJobAsync(jobItem, _persistence, User);
+            _ = await SaveJobAsync(jobItem, _persistence);
             _jobQueue.Push(job);
 
             return Ok(jobItem);
@@ -742,7 +720,7 @@ namespace CartaWeb.Controllers
             }
 
             // Get the jobs for the operation.
-            List<JobItem> jobs = await LoadJobsAsync(operationId, _persistence, User);
+            List<JobItem> jobs = await LoadJobsAsync(operationId, _persistence);
             return jobs;
         }
         /// <summary>
@@ -785,7 +763,7 @@ namespace CartaWeb.Controllers
             }
 
             // Get the result if it exists.
-            JobItem jobItem = await LoadJobAsync(jobId, operationId, _persistence, User);
+            JobItem jobItem = await LoadJobAsync(jobId, operationId, _persistence);
             if (jobItem is null)
             {
                 return NotFound(new ItemNotFoundError(
@@ -932,7 +910,7 @@ namespace CartaWeb.Controllers
             }
 
             // Get the job if it exists.
-            JobItem jobItem = await LoadJobAsync(jobId, operationId, _persistence, User);
+            JobItem jobItem = await LoadJobAsync(jobId, operationId, _persistence);
             if (jobItem is null)
             {
                 return NotFound(new
@@ -965,7 +943,7 @@ namespace CartaWeb.Controllers
             }
 
             // Save the job item and requeue the operation.
-            _ = await SaveJobAsync(jobItem, _persistence, User);
+            _ = await SaveJobAsync(jobItem, _persistence);
             _jobQueue.Push(job);
             return Ok(jobItem);
         }
@@ -1000,7 +978,7 @@ namespace CartaWeb.Controllers
             }
 
             // Get the job if it exists.
-            JobItem jobItem = await LoadJobAsync(jobId, operationId, _persistence, User);
+            JobItem jobItem = await LoadJobAsync(jobId, operationId, _persistence);
             if (jobItem is null)
             {
                 return NotFound(new
@@ -1047,7 +1025,7 @@ namespace CartaWeb.Controllers
             }
 
             // Get the job if it exists.
-            JobItem jobItem = await LoadJobAsync(jobId, operationId, _persistence, User);
+            JobItem jobItem = await LoadJobAsync(jobId, operationId, _persistence);
             if (jobItem is null)
             {
                 return NotFound(new ItemNotFoundError(

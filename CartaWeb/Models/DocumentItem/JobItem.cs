@@ -47,7 +47,7 @@ namespace CartaWeb.Models.DocumentItem
         /// }
         /// </code>
         /// </example>
-        [Secret]
+        //[Secret]
         public Dictionary<string, Dictionary<string, object>> Authentication { get; set; }
 
         /// <summary>

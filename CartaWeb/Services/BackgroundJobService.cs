@@ -87,7 +87,7 @@ namespace CartaWeb.Services
 
             // Perform a final update of the job.
             JobItem jobItem = new(job);
-            await OperationsController.SaveJobAsync(jobItem, _persistence, null);
+            await OperationsController.SaveJobAsync(jobItem, _persistence);
 
             // Iterate through the job results and handle special results.
             foreach (KeyValuePair<string, object> pair in job.Output)
@@ -198,7 +198,7 @@ namespace CartaWeb.Services
                 try
                 {
                     JobItem jobItem = new(Job);
-                    await OperationsController.SaveJobAsync(jobItem, _persistence, null);
+                    await OperationsController.SaveJobAsync(jobItem, _persistence);
                 }
                 catch (Exception exception)
                 {
