@@ -186,7 +186,7 @@ namespace CartaCore.Operations
             {
                 Type = attr.Type,
                 Subtype = null,
-                Defaults = defaults
+                Default = defaults
             };
         }
     }
