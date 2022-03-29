@@ -20,6 +20,6 @@ namespace CartaCore.Operations
         /// <summary>
         /// The default values of the operation.
         /// </summary>
-        public IDictionary<string, object> Defaults { get; set; }
+        public IDictionary<string, object> Default { get; set; }
     }
 }
