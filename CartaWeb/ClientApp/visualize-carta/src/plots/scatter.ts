@@ -1,11 +1,25 @@
 import * as d3 from "d3";
 import * as three from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import { Plot, Plotter } from "types";
+import { EventDriver, IPlotLayout, IPlotStyle } from "types";
 import { createSvg, findColormap } from "utility";
 
+// TODO: Try to automatically compute margins using canvas context (https://stackoverflow.com/questions/29031659/calculate-width-of-text-before-drawing-the-text).
+//       This requires an additional 'canvas' package. We could also use 'string-pixel-width'.
+
+/** A more concise type to handle d3.Selection types. */
+type Selection<
+  GElement extends d3.BaseType,
+  Datum = unknown,
+  PElement extends d3.BaseType = null,
+  PDatum = undefined
+  > = d3.Selection<GElement, Datum, PElement, PDatum>;
+
 /** The type of datum for each scatter plot point. */
-interface ScatterPlotDatum {
+interface IScatterPoint {
+  /** A unique identifier for the point. */
+  id: string;
+
   /** The x-component of the datum. */
   x?: number;
   /** The y-component of the datum. */
@@ -19,240 +33,515 @@ interface ScatterPlotDatum {
   value?: number;
 
   /** The optional styles to apply to the datum point. */
-  style?: Partial<CSSStyleDeclaration>;
+  style?: IPlotStyle;
 }
 /** The type of datum for each scatter plot point with 2D guaranteed. */
-interface ScatterPlotDatum2d extends ScatterPlotDatum {
+interface IScatterPoint2d extends IScatterPoint {
+  /** The x-component of the datum. */
   x: number;
+  /** The y-component of the datum. */
   y: number;
 }
 /** The type of datum for each scatter plot point with 3D guaranteed. */
-interface ScatterPlotDatum3d extends ScatterPlotDatum {
+interface IScatterPoint3d extends IScatterPoint {
+  /** The x-component of the datum. */
   x: number;
+  /** The y-component of the datum. */
   y: number;
+  /** The z-component of the datum. */
   z: number;
 }
-/** The type of the combined data for the scatter plot. */
-interface ScatterPlot<TDatum extends ScatterPlotDatum = ScatterPlotDatum>
-  extends Plot {
-  type: "scatter";
 
-  /** The data to display in the plot itself. */
+/** Represents the data contained in the plot. */
+interface IScatterPlotData<TDatum extends IScatterPoint = IScatterPoint> {
+  /** The data to plot. */
   data: TDatum[];
-
   /** The colormap to use for mapping values to colors. */
   colormap?: string;
 }
+/** Represents the layout information for the plot. */
+interface IScatterPlotLayout extends IPlotLayout<"scatter"> { }
+/** The events that may be emitted from a scatter plot. */
+interface IScatterPlotEvents {
+  /** An event listener that is called when a point is called exactly once (does not fire on double click). */
+  singleClickPoint: (point: IScatterPoint) => void;
+  /** An event listener that is called when a point is clicked exactly twice (does not fire on single click). */
+  doubleClickPoint: (point: IScatterPoint) => void;
+  /** An event listener that is called when the empty space is clicked. */
+  clickSpace: () => void;
+}
 
 /**
- * Creates a 3D scatter plot and attaches it to the specified container.
- * @param container The container to attach the plot to.
- * @param plot The data of the plot to generate.
- * @param events The events to attach to the plot.
- * @returns An updater function to update the plot.
+ * An object that persists, renders, and handles information about a scatter plot in 2D.
  */
-const PlotScatter3d = <TDatum extends ScatterPlotDatum3d>(
-  container: HTMLElement,
-  plot: ScatterPlot<TDatum>,
-  events?: {}
-): ((plot: ScatterPlot<TDatum>) => void) => {
-  const width = plot.size?.width ?? 800;
-  const height = plot.size?.height ?? 640;
+class ScatterPlot2d extends EventDriver<IScatterPlotEvents> {
+  // #region DOM
+  private _container?: HTMLElement;
 
-  let extentX = d3.extent(plot.data, (d) => d.x) as [number, number];
-  let extentY = d3.extent(plot.data, (d) => d.y) as [number, number];
-  let extentZ = d3.extent(plot.data, (d) => d.z) as [number, number];
-  const camera = new three.PerspectiveCamera(70, width / height, 0.01, 10000);
-  camera.lookAt(
-    (extentX[0] + extentX[1]) / 2,
-    (extentY[0] + extentY[1]) / 2,
-    (extentZ[0] + extentZ[1]) / 2
-  );
-  camera.position.x = (extentX[0] + extentX[1]) / 2;
-  camera.position.y = (extentY[0] + extentY[1]) / 2;
-  camera.position.z = extentZ[0];
-  camera.frustumCulled = false;
+  private svgSel?: Selection<SVGSVGElement, unknown, HTMLElement>;
+  private zoomSel?: Selection<SVGGElement, unknown, HTMLElement>;
+  private xAxisSel?: Selection<SVGGElement, unknown, HTMLElement>;
+  private yAxisSel?: Selection<SVGGElement, unknown, HTMLElement>;
+  private pointsSel?: Selection<SVGGElement, IScatterPoint2d, SVGGElement>;
+  // #endregion
 
-  const scene = new three.Scene();
-  const material = new three.MeshNormalMaterial();
+  // #region Extensions
+  private zoomExt: d3.ZoomBehavior<SVGSVGElement, unknown>;
+  // #endregion
 
-  // TODO: Render an axis in the scene.
-  // TODO: Take into consideration distance-based scaling of radii.
-  // TODO: Use the point style or colormap to color the points.
-  // TODO: Make the background transparent and apply the axis style.
-  for (let k = 0; k < plot.data.length; k++) {
-    const geometry = new three.DodecahedronGeometry(plot.data[k].radius, 1);
-    geometry.translate(plot.data[k].x, plot.data[k].y, plot.data[k].z);
-    const mesh = new three.Mesh(geometry, material);
-    mesh.frustumCulled = false;
+  // #region Data
+  private _data: IScatterPlotData<IScatterPoint2d>;
+  private _layout: IScatterPlotLayout;
 
-    scene.add(mesh);
+  private scaleX: d3.ScaleLinear<number, number>;
+  private scaleY: d3.ScaleLinear<number, number>;
+  private scaleColor:
+    | d3.ScaleSequential<string>
+    | d3.ScaleOrdinal<number, string>;
+  // #endregion
+
+  /**
+   * Constructs a new scatter plot.
+   * @param data Data to be plotted. Optional.
+   * @param layout Layout information to be used. Optional.
+   * @param container THe container to hold the plot. Optional.
+   */
+  public constructor(
+    data?: IScatterPlotData<IScatterPoint2d>,
+    layout?: IScatterPlotLayout,
+    container?: HTMLElement
+  ) {
+    super();
+
+    // Set the data.
+    this._data = data ?? { data: [] };
+    this._layout = layout ?? {};
+    this._container = container;
+
+    // Initialize the scales.
+    this.scaleX = d3.scaleLinear();
+    this.scaleY = d3.scaleLinear();
+    this.scaleColor = d3.scaleSequential();
+
+    // Initialize the extensions.
+    this.zoomExt = d3
+      .zoom<SVGSVGElement, unknown>()
+      .filter((event: any) => !event.button && event.type !== "dblclick")
+      .on("zoom", ({ transform }: { transform: d3.ZoomTransform }) => {
+        const scaleXZoom = transform.rescaleX(this.scaleX);
+        const scaleYZoom = transform.rescaleY(this.scaleY);
+        this.xAxis(this.xAxisSel, scaleXZoom);
+        this.yAxis(this.yAxisSel, scaleYZoom);
+
+        this.zoomSel?.attr("transform", transform.toString());
+      });
+
+    // Perform setup tasks.
+    this.setupElements();
+    this.setupScales();
   }
 
-  const renderer = new three.WebGLRenderer({ antialias: true });
-  const controls = new OrbitControls(camera, renderer.domElement);
-  controls.target.set(
-    (extentX[0] + extentX[1]) / 2,
-    (extentY[0] + extentY[1]) / 2,
-    (extentZ[0] + extentZ[1]) / 2
-  );
-  controls.enableDamping = true;
-  controls.dampingFactor = 0.01;
-  controls.rotateSpeed = 0.15;
-  renderer.setSize(width, height);
-  renderer.setAnimationLoop((time) => {
-    controls.update();
-    renderer.render(scene, camera);
-  });
+  /** Initializes the scales used to transform data for the scatter plot. */
+  private setupScales() {
+    // Get the metrics for the SVG element.
+    const { size, margin } = createSvg(undefined, this.layout);
 
-  container.appendChild(renderer.domElement);
-  return () => {};
-};
-/**
- * Creates a 2D scatter plot and attaches it to the specified container.
- * @param container The container to attach the plot to.
- * @param plot The data of the plot to generate.
- * @param events The events to attach to the plot.
- * @returns An updater function to update the plot.
- */
-const PlotScatter2d = <TDatum extends ScatterPlotDatum2d>(
-  container: HTMLElement,
-  plot: ScatterPlot<TDatum>,
-  events?: {}
-): ((data: ScatterPlot<TDatum>) => void) => {
-  // Create the SVG element.
-  const { svg, size } = createSvg(container, plot);
+    // Find the range of values.
+    const extentX = d3.extent(this._data.data, (d) => d.x);
+    const extentY = d3.extent(this._data.data, (d) => d.y);
+    const extentColor = d3.extent(this._data.data, (d) => d.value);
 
-  // TODO: Try to automatically compute margins using canvas context (https://stackoverflow.com/questions/29031659/calculate-width-of-text-before-drawing-the-text).
-  //       This requires an additional 'canvas' package. We could also use 'string-pixel-width'.
-  // TODO: Abstract this into a set of defaults.
-  // Compute the margin of the plot by assigning defaults if not specified.
-  const margin = {
-    left: 60,
-    right: 20,
-    top: 20,
-    bottom: 40,
-    ...plot.margin,
-  };
+    // Create the scalars for the data.
+    this.scaleX = d3
+      .scaleLinear()
+      .domain([
+        this.layout.axes?.x?.minimum ?? extentX[0] ?? 0,
+        this.layout.axes?.x?.maximum ?? extentX[1] ?? 1,
+      ])
+      .range([margin.left, size.width - margin.right]);
+    this.scaleY = d3
+      .scaleLinear()
+      .domain([
+        this.layout.axes?.y?.minimum ?? extentY[0] ?? 0,
+        this.layout.axes?.y?.maximum ?? extentY[1] ?? 1,
+      ])
+      .range([size.height - margin.bottom, margin.top]);
 
-  const zoomElement = svg.append("g");
+    this.scaleColor = findColormap(this._data.colormap);
+    if (extentColor[0] !== undefined && extentColor[1] !== undefined)
+      this.scaleColor.domain(extentColor);
 
-  // If the plot has no data, simply return here.
-  if (!plot.data) return () => {};
+    // Reset the axes.
+    if (this.zoomSel) {
+      const transform = d3.zoomTransform(this.zoomSel.node()!);
+      const scaleXZoom = transform.rescaleX(this.scaleX);
+      const scaleYZoom = transform.rescaleY(this.scaleY);
+      this.xAxis(this.xAxisSel, scaleXZoom);
+      this.yAxis(this.yAxisSel, scaleYZoom);
+    }
+  }
+  /** Initializes the elements for the scatter plot. */
+  private setupElements() {
+    if (this.container) {
+      // Create the SVG element.
+      const { svg } = createSvg(this.container, this.layout);
+      this.svgSel = svg;
+      this.svgSel.on("click", (event) => {
+        if (event.target === event.currentTarget) this.notify("clickSpace");
+      });
 
-  // TODO: Abstract this.
-  // TODO: Add labels to the axes.
-  // Construct the ranges of values based on the data or ranges specified by the user.
-  const extentX = d3.extent(plot.data, (value) => value.x);
-  const scaleX = d3
-    .scaleLinear()
-    .domain([
-      plot.axes?.x?.minimum ?? extentX[0] ?? 0,
-      plot.axes?.x?.maximum ?? extentX[1] ?? 0,
-    ])
-    .range([margin.left, size.width - margin.right]);
+      // Setup the zoom behavior.
+      this.zoomSel = this.svgSel.append("g");
+      this.svgSel
+        .call(this.zoomExt)
+        .call(this.zoomExt.transform, d3.zoomIdentity);
 
-  const extentY = d3.extent(plot.data, (value) => value.y);
-  const scaleY = d3
-    .scaleLinear()
-    .domain([
-      plot.axes?.y?.minimum ?? extentY[0] ?? 0,
-      plot.axes?.y?.maximum ?? extentY[1] ?? 0,
-    ])
-    .range([size.height - margin.bottom, margin.top]);
+      // Create the axes.
+      this.xAxisSel = this.svgSel.append("g");
+      this.yAxisSel = this.svgSel.append("g");
 
-  // TODO: Abstract this.
-  // Use the ranges of the values to create axis elements within the plot.
-  const xAxisElement = svg.append("g");
-  const yAxisElement = svg.append("g");
+      // Create the scatter plot elements.
+      this.pointsSel = this.zoomSel.append("g").selectAll("circle");
+    }
+  }
 
-  const xAxisCreate = (
-    g: d3.Selection<SVGGElement, unknown, null, any>,
-    scale: d3.ScaleLinear<number, number, never>
-  ) => {
-    g.attr("transform", `translate(0, ${size.height - margin.bottom})`).call(
+  /** Creates an x-axis for the plot. */
+  private xAxis(g: typeof this.xAxisSel, scale: typeof this.scaleX) {
+    const { size, margin } = createSvg(undefined, this.layout);
+    g?.attr("transform", `translate(0, ${size.height - margin.bottom})`).call(
       d3.axisBottom(scale)
     );
-  };
-  const yAxisCreate = (
-    g: d3.Selection<SVGGElement, unknown, null, any>,
-    scale: d3.ScaleLinear<number, number, never>
-  ) => {
-    g.attr("transform", `translate(${margin.left}, 0)`).call(
+  }
+  /** Creates an y-axis for the plot. */
+  private yAxis(g: typeof this.yAxisSel, scale: typeof this.scaleY) {
+    const { margin } = createSvg(undefined, this.layout);
+    g?.attr("transform", `translate(${margin.left}, 0)`).call(
       d3.axisLeft(scale)
     );
-  };
+  }
 
-  // Get the colormap that is used for this plot.
-  const extentColor = d3.extent(plot.data, (value) => value.value);
-  let scaleColor = findColormap(plot.colormap);
-  if (extentColor[0] !== undefined && extentColor[1] !== undefined)
-    scaleColor.domain(extentColor as [number, number]);
+  // #region Zooming
+  /** Zooms the plot to fit all of the data within the viewbox. */
+  public zoomToFit() {
+    // Get the size of the SVG element.
+    if (!this.zoomSel) return;
+    const {
+      size: { width, height },
+    } = createSvg(undefined, this.layout);
 
-  // Create the actual scatter plot elements as a specific shape.
-  const dotsElement = zoomElement.append("g");
-  const dots = dotsElement
-    .selectAll("dot")
-    .data(plot.data)
-    .enter()
-    .append("circle")
-    .attr("cx", (d) => scaleX(d.x))
-    .attr("cy", (d) => scaleY(d.y))
-    .attr("r", 5)
-    .style("fill", (d) =>
-      plot.colormap && d.value ? scaleColor(d.value) : "currentColor"
-    );
+    // Get the bounds of the data.
+    const xExtent = d3.extent(this._data.data, ({ x }) => x);
+    const yExtent = d3.extent(this._data.data, ({ y }) => y);
 
-  const zoom = d3.zoom<SVGSVGElement, unknown>().on("zoom", ({ transform }) => {
-    const scaleXZoom = transform.rescaleX(scaleX);
-    const scaleYZoom = transform.rescaleY(scaleY);
+    // Check for invalid bounds.
+    if (xExtent[0] === undefined || xExtent[1] === undefined) return;
+    if (yExtent[0] === undefined || yExtent[1] === undefined) return;
 
-    xAxisCreate(xAxisElement, scaleXZoom);
-    yAxisCreate(yAxisElement, scaleYZoom);
+    // Perform the zooming.
+    const padding = 0.25;
+    const [xMin, xMax] = xExtent as [number, number];
+    const [yMin, yMax] = yExtent as [number, number];
+    this.zoomSel
+      .transition()
+      .duration(500)
+      .call(
+        this.zoomExt.transform as any,
+        d3.zoomIdentity
+          .scale(
+            (1 + padding) *
+            Math.max((xMax - xMin) / width, (yMax - yMin) / height)
+          )
+          .translate(-(xMin + xMax) / 2, -(yMin + yMax) / 2)
+      );
+  }
+  // #endregion
 
-    zoomElement.attr("transform", transform);
-  });
-  svg.call(zoom).call(zoom.transform, d3.zoomIdentity);
+  // #region Plot Getters/Setters
+  public get container(): HTMLElement | undefined {
+    return this._container;
+  }
+  public set container(value: HTMLElement | undefined) {
+    this._container = value;
+    this.setupElements();
+  }
+  public get layout(): IScatterPlotLayout {
+    return { ...this._layout };
+  }
+  public set layout(value: IScatterPlotLayout) {
+    this._layout = value;
+    this.setupScales();
 
-  return () => {};
-};
+    // Update the features dependent on layout.
+    if (this.svgSel) {
+      const { viewBox, style } = createSvg(undefined, value);
+      this.svgSel.attr("viewBox", viewBox).attr("style", style);
+    }
+  }
+  public get data(): IScatterPlotData<IScatterPoint2d> {
+    return { ...this._data };
+  }
+  public set data(value: IScatterPlotData<IScatterPoint2d>) {
+    this._data = value;
+    this.setupScales();
+  }
+  //#endregion
 
+  /** Renders a plot of the graph. */
+  public render() {
+    // Update the points.
+    this.pointsSel = this.pointsSel
+      ?.data(this._data.data, (d) => d.id)
+      .join("circle")
+      .on("click", (e: PointerEvent, d) => {
+        switch (e.detail) {
+          case 1:
+            this.notify("singleClickPoint", d);
+            break;
+          case 2:
+            this.notify("doubleClickPoint", d);
+            break;
+        }
+      })
+
+      // Styling is applied based on defaults and the styling passed along with the data.
+      .attr("cx", (d) => this.scaleX(d.x))
+      .attr("cy", (d) => this.scaleY(d.y))
+      .attr("r", (d) => d.radius ?? d.style?.fillRadius ?? 5)
+      .attr("fill", (d) =>
+        d.value !== undefined
+          ? this.scaleColor(d.value)
+          : d.style?.fillColor ?? "#53b853"
+      )
+      .attr("stroke", (d) => d.style?.strokeColor ?? "none")
+      .attr("stroke-width", (d) => d.style?.strokeWidth ?? 0);
+  }
+}
+
+// TODO: Render an axis in the scene.
+// TODO: Take into consideration distance-based scaling of radii.
+// TODO: Use the point style or colormap to color the points.
+// TODO: Make the background transparent and apply the axis style.
 /**
- * Creates a scatter plot and attaches it to the specified container.
- * @param container The container to attach the plot to.
- * @param plot The data of the plot to generate.
- * @param events The events to attach to the plot.
- * @returns An updater function to update the plot.
+ * An object that persists, renders, and handles information about a scatter plot in 3D.
  */
-const PlotScatter: Plotter<ScatterPlot, {}> = <TDatum extends ScatterPlotDatum>(
-  container: HTMLElement,
-  plot: ScatterPlot<TDatum>,
-  events?: {}
-): ((plot: ScatterPlot<TDatum>) => void) => {
-  // Check if the data has all values in each component.
-  const allX = plot.data.every((value) => value.x !== undefined);
-  const allY = plot.data.every((value) => value.y !== undefined);
-  const allZ = plot.data.every((value) => value.z !== undefined);
+class ScatterPlot3d extends EventDriver<IScatterPlotEvents> {
+  // #region DOM
+  private _container?: HTMLElement;
 
-  // If the data has 3 components, use the 3d scatter plot.
-  // If the data has 2 components, use the 2d scatter plot.
-  if (allX && allY && allZ) {
-    return PlotScatter3d(
-      container,
-      plot as ScatterPlot<ScatterPlotDatum3d>
-    ) as (data: ScatterPlot<TDatum>) => void;
-  }
-  if (allX && allY) {
-    return PlotScatter2d(
-      container,
-      plot as ScatterPlot<ScatterPlotDatum2d>
-    ) as (data: ScatterPlot<TDatum>) => void;
+  private camera: three.PerspectiveCamera;
+  private scene: three.Scene;
+  private renderer: three.WebGLRenderer;
+  private controls: OrbitControls;
+  // #endregion
+
+  // #region Data
+  private _data: IScatterPlotData<IScatterPoint3d>;
+  private _layout: IScatterPlotLayout;
+
+  private mapping: Map<
+    string,
+    [
+      IScatterPoint3d,
+      three.Mesh<three.DodecahedronGeometry, three.MeshLambertMaterial>
+    ]
+  >;
+
+  private scaleColor:
+    | d3.ScaleSequential<string>
+    | d3.ScaleOrdinal<number, string>;
+  // #endregion
+
+  public constructor(
+    data?: IScatterPlotData<IScatterPoint3d>,
+    layout?: IScatterPlotLayout,
+    container?: HTMLElement
+  ) {
+    super();
+
+    // Set the data.
+    this._data = data ?? { data: [] };
+    this._layout = layout ?? {};
+    this._container = container;
+    this.mapping = new Map();
+    this.scaleColor = d3.scaleSequential();
+
+    // Initialize the scene.
+    this.scene = new three.Scene();
+    this.scene.background = null;
+
+    // Initialize the camera.
+    this.camera = new three.PerspectiveCamera(75, 1, 0.01, 10000);
+    this.camera.position.x = 0;
+    this.camera.position.y = 0;
+    this.camera.position.z = 0;
+
+    // Initialize the renderer.
+    this.renderer = new three.WebGLRenderer({ antialias: true, alpha: true });
+    this.renderer.setAnimationLoop(() => {
+      this.controls.update();
+      this.renderer.render(this.scene, this.camera);
+    });
+
+    // Initialize the controls.
+    this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+    this.controls.target.set(0, 0, 0);
+    this.controls.enableDamping = true;
+    this.controls.dampingFactor = 0.01;
+    this.controls.rotateSpeed = 0.15;
+    this.controls.enableZoom = true;
+    this.controls.enablePan = true;
+    this.controls.enableKeys = true;
+
+    // Perform setup tasks.
+    this.setupScales();
+    this.setupCamera();
+    this.setupElements();
   }
 
-  // Otherwise, throw an error.
-  throw new Error(
-    "The data does not have all values in each datum. Please specify the data as an array of objects with x, y, and, optionally, z properties."
-  );
+  /** Initializes the scales used to transform data for the scatter plot. */
+  private setupScales() {
+    // Find the range of values.
+    const extentColor = d3.extent(this._data.data, (d) => d.value);
+
+    this.scaleColor = findColormap(this._data.colormap);
+    if (extentColor[0] !== undefined && extentColor[1] !== undefined)
+      this.scaleColor.domain(extentColor);
+  }
+  /** Initializes the camera aspect ratio and size. */
+  private setupCamera() {
+    const { size } = createSvg(undefined, this.layout);
+    this.renderer.setSize(size.width, size.height);
+    this.camera.aspect = size.width / size.height;
+  }
+  /** Initializes the elements for the scatter plot. */
+  private setupElements() {
+    if (this.container) {
+      // Attach the renderer to the container.
+      const { style } = createSvg(undefined, this.layout);
+      this.container.appendChild(this.renderer.domElement);
+      this.renderer.domElement.setAttribute("style", style);
+    }
+  }
+
+  // #region Zooming
+  /** Zooms the plot to fit all of the data within the viewbox. */
+  public zoomToFit() {
+    const extentX = d3.extent(this._data.data, (d) => d.x);
+    const extentY = d3.extent(this._data.data, (d) => d.y);
+    const extentZ = d3.extent(this._data.data, (d) => d.z);
+
+    if (extentX[0] === undefined || extentX[1] === undefined) return;
+    if (extentY[0] === undefined || extentY[1] === undefined) return;
+    if (extentZ[0] === undefined || extentZ[1] === undefined) return;
+
+    const padding = 0.25;
+    this.controls.target.set(
+      (extentX[0] + extentX[1]) / 2,
+      (extentY[0] + extentY[1]) / 2,
+      (extentZ[0] + extentZ[1]) / 2
+    );
+    this.camera.lookAt(
+      (extentX[0] + extentX[1]) / 2,
+      (extentY[0] + extentY[1]) / 2,
+      (extentZ[0] + extentZ[1]) / 2
+    );
+    this.camera.position.x = (extentX[0] + extentX[1]) / 2;
+    this.camera.position.y = (extentY[0] + extentY[1]) / 2;
+    this.camera.position.z = extentZ[0] - (extentZ[1] - extentZ[0]) * padding;
+  }
+  // #endregion
+
+  // #region Plot Getters/Setters
+  public get container(): HTMLElement | undefined {
+    return this._container;
+  }
+  public set container(value: HTMLElement | undefined) {
+    this._container = value;
+    this.setupElements();
+  }
+  public get layout(): IScatterPlotLayout {
+    return { ...this._layout };
+  }
+  public set layout(value: IScatterPlotLayout) {
+    this._layout = value;
+    this.setupScales();
+    this.setupCamera();
+  }
+  public get data(): IScatterPlotData<IScatterPoint3d> {
+    return { ...this._data };
+  }
+  public set data(value: IScatterPlotData<IScatterPoint3d>) {
+    this._data = value;
+    this.setupScales();
+  }
+  //#endregion
+
+  /** Renders a plot of the graph. */
+  public render() {
+    // Check if there are any new points to render.
+    for (let k = 0; k < this._data.data.length; k++) {
+      const point = this._data.data[k];
+      if (!this.mapping.has(point.id)) {
+        // Construct the new mesh.
+        const material = new three.MeshLambertMaterial({
+          color:
+            point.value === undefined
+              ? point.style?.fillColor ?? 0xffffff
+              : this.scaleColor(point.value),
+        });
+        const geometry = new three.DodecahedronGeometry(point.radius, 1);
+        const mesh = new three.Mesh(geometry, material);
+
+        // Add the mesh to the scene.
+        geometry.translate(point.x, point.y, point.z);
+        this.mapping.set(point.id, [point, mesh]);
+        this.scene.add(mesh);
+      }
+    }
+
+    // Check if there are any old points to remove.
+    const ids = this._data.data.map((d) => d.id);
+    for (const [id, [, mesh]] of Array.from(this.mapping.entries())) {
+      if (!ids.includes(id)) {
+        this.scene.remove(mesh);
+        this.mapping.delete(id);
+      }
+    }
+
+    // Check if there are any existing points to update.
+    for (let k = 0; k < this._data.data.length; k++) {
+      const point = this._data.data[k];
+      const exist = this.mapping.get(point.id);
+      if (!exist) continue;
+      const [existPoint, existMesh] = exist;
+
+      // If anything has changed, simply re-create the mesh.
+      if (point !== existPoint) {
+        const material = new three.MeshLambertMaterial({
+          color:
+            point.value === undefined
+              ? point.style?.fillColor ?? 0xffffff
+              : this.scaleColor(point.value),
+        });
+        const geometry = new three.DodecahedronGeometry(point.radius, 1);
+        const mesh = new three.Mesh(geometry, material);
+
+        // Replace the mesh in the scene.
+        geometry.translate(point.x, point.y, point.z);
+        this.scene.remove(existMesh);
+        this.scene.add(mesh);
+        this.mapping.set(point.id, [point, mesh]);
+      }
+    }
+  }
+}
+
+export { ScatterPlot2d, ScatterPlot3d };
+export type {
+  IScatterPoint,
+  IScatterPoint2d,
+  IScatterPoint3d,
+  IScatterPlotData,
+  IScatterPlotLayout,
+  IScatterPlotEvents,
 };
-
-export default PlotScatter;

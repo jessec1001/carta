@@ -1,5 +1,5 @@
 import { FC, useEffect, useMemo, useRef, useState } from "react";
-import { ScatterPlot, HistogramPlot, GraphPlot } from "visualize-carta";
+// import { HistogramPlot, GraphPlot } from "visualize-carta";
 import { Text } from "components/text";
 import { VisualizeIcon } from "components/icons";
 import { Views } from "components/views";
@@ -62,25 +62,27 @@ const VisualizerView: FC<VisualizerViewProps> = ({
     // Clear the previous visualization.
     ref.current.innerHTML = "";
 
-    switch (type) {
-      case "scatter":
-        ScatterPlot(ref.current, {
-          ...data,
-          size: { width, height },
-        });
-        break;
-      case "histogram":
-        HistogramPlot(ref.current, {
-          ...data,
-          size: { width, height },
-        });
-        break;
-      case "graph":
-        GraphPlot(ref.current, {
-          ...data,
-          size: { width, height },
-        });
-        break;
+    switch (
+      type
+      // case "scatter":
+      //   ScatterPlot(ref.current, {
+      //     ...data,
+      //     size: { width, height },
+      //   });
+      //   break;
+      // case "histogram":
+      //   HistogramPlot(ref.current, {
+      //     ...data,
+      //     size: { width, height },
+      //   });
+      //   break;
+      // case "graph":
+      //   GraphPlot(ref.current, {
+      //     ...data,
+      //     size: { width, height },
+      //   });
+      //   break;
+    ) {
     }
   }, [type, data, width, height]);
 

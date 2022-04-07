@@ -41,11 +41,12 @@ namespace CartaCore.Graphs
             OutEdgeSet = new Dictionary<string, HashSet<TEdge>>();
 
             // Initialize all of the components.
-            Components.AddTop<IRootedComponent>(this);
-            Components.AddTop<IEnumerableComponent<TVertex, TEdge>>(this);
-            Components.AddTop<IDynamicLocalComponent<TVertex, TEdge>>(this);
-            Components.AddTop<IDynamicInComponent<TVertex, TEdge>>(this);
-            Components.AddTop<IDynamicOutComponent<TVertex, TEdge>>(this);
+            Components = Components
+                .Append<IRootedComponent>(this)
+                .Append<IEnumerableComponent<TVertex, TEdge>>(this)
+                .Append<IDynamicLocalComponent<TVertex, TEdge>>(this)
+                .Append<IDynamicInComponent<TVertex, TEdge>>(this)
+                .Append<IDynamicOutComponent<TVertex, TEdge>>(this);
         }
         /// <summary>
         /// Initializes an instance of the <see cref="MemoryGraph{TVertex, TEdge}"/> class with the specified

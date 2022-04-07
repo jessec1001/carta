@@ -5,8 +5,12 @@ import { Text } from "components/text";
 import { JsonSchema } from "library/schema";
 import styles from "./EditorOutputNode.module.css";
 import { Mosaic } from "components/mosaic";
-import { LoadingIcon } from "components/icons";
+import { JobsIcon, LoadingIcon } from "components/icons";
 import { GraphVisualizer } from "components/visualizations";
+import { Link } from "components/link";
+import { useViews } from "components/views";
+import VisualizerSelectionView from "pages/workspace/views/VisualizerSelectionView";
+import ScatterVisualizer from "components/visualizations/ScatterVisualizer";
 
 /** The base props for {@link EditorOutputNode}-related components. */
 interface EditorOutputBaseProps {
@@ -25,9 +29,11 @@ const EditorOutputJsonNode: FC<EditorOutputBaseProps> = ({ value }) => {
   //* TODO: Implement as a readonly schema input. *//
   //* <SchemaBaseInput schema={schema} value={value} /> *//
   return (
-    <pre className={styles.output}>
-      <code>{JSON.stringify(value, null, 2)}</code>
-    </pre>
+    <div className={styles.content}>
+      <pre className={styles.output}>
+        <code>{JSON.stringify(value, null, 2)}</code>
+      </pre>
+    </div>
   );
 };
 const EditorOutputPlotNode: FC<EditorOutputBaseProps> = ({
@@ -45,13 +51,25 @@ const EditorOutputPlotNode: FC<EditorOutputBaseProps> = ({
   // Based on the plot type, visualize the appropriate component.
   if (type === "graph") {
     return (
-      <div ref={setContainer}>
+      <div ref={setContainer} className={styles.content}>
         <GraphVisualizer
+          field={field}
           path={`api/operations/${operation}/jobs/${job.id}/${field}`}
           container={container}
         />
       </div>
     );
+  }
+  if (type === "scatter") {
+    return (
+      <div ref={setContainer} className={styles.content}>
+        <ScatterVisualizer
+          field={field}
+          path={`api/operations/${operation}/jobs/${job.id}/${field}`}
+          container={container}
+        />
+      </div>
+    )
   }
 
   return null;
@@ -77,9 +95,12 @@ const EditorOutputNode: FC<EditorOutputNodeProps> = ({
   job,
   field,
   schema,
-  onOffset = () => {},
+  onOffset = () => { },
   children,
 }) => {
+  // We use view actions to create new views related to certain types of outputs.
+  const { rootId, actions: viewActions } = useViews();
+
   // If the job is an error, show the error message.
   if (job instanceof Error)
     return (
@@ -110,27 +131,42 @@ const EditorOutputNode: FC<EditorOutputNodeProps> = ({
   return (
     <EditorNode>
       <Mosaic.Tile.Handle onOffset={onOffset} className={styles.header}>
-        Output <Text color="info">({schema.title})</Text>
+        Output
+        <Text color="info">
+          {outputType === "plot" && <Link
+            title="Selection"
+            to="#"
+            ignore
+            color="secondary"
+            onClick={() => viewActions.addElementToContainer(rootId, <VisualizerSelectionView />, true)}
+          >
+            <JobsIcon padded />
+          </Link>}
+          ({schema.title})</Text>
       </Mosaic.Tile.Handle>
-      {outputType === "json" && (
-        <EditorOutputJsonNode
-          operation={operation}
-          job={job}
-          schema={schema}
-          value={value}
-          field={field}
-        />
-      )}
-      {outputType === "plot" && (
-        <EditorOutputPlotNode
-          operation={operation}
-          job={job}
-          schema={schema}
-          value={value}
-          field={field}
-        />
-      )}
-    </EditorNode>
+      {
+        outputType === "json" && (
+          <EditorOutputJsonNode
+            operation={operation}
+            job={job}
+            schema={schema}
+            value={value}
+            field={field}
+          />
+        )
+      }
+      {
+        outputType === "plot" && (
+          <EditorOutputPlotNode
+            operation={operation}
+            job={job}
+            schema={schema}
+            value={value}
+            field={field}
+          />
+        )
+      }
+    </EditorNode >
   );
 };
 

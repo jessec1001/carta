@@ -1,12 +1,15 @@
-import { PlotAxis } from "./PlotAxis";
+import { IPlotAxis } from "./IPlotAxis";
 
-/** Represents the base type for a generalized plot. */
-interface Plot {
+/** Represents the base information contained in a graph layout. */
+interface IPlotLayout<TType extends string> {
   /** The type of the plot. Used for automatically determining the plotter to use. */
-  type?: string;
+  type?: TType;
 
   /** The optional size to assign to the generated plot.  */
-  size?: { width: number; height: number };
+  size?: {
+    width: number;
+    height: number;
+  };
   /** The margins inside the plot rectangle between the edges and the plot. */
   margin?: {
     left?: number;
@@ -14,16 +17,16 @@ interface Plot {
     top?: number;
     bottom?: number;
   };
+
   /** The optional styles to apply to the generated plot. */
   style?: Partial<CSSStyleDeclaration>;
 
-  // TODO: Implement.
   /** Information for all of the axes on a plot. */
   axes?: {
-    x?: PlotAxis;
-    y?: PlotAxis;
-    z?: PlotAxis;
+    x?: IPlotAxis;
+    y?: IPlotAxis;
+    z?: IPlotAxis;
   };
 }
 
-export type { Plot };
+export type { IPlotLayout };
