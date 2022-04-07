@@ -114,7 +114,7 @@ const findColormap = (name?: string) => {
   // Diverging color schemes support indices in [3, 11].
   // Single hue color schemes support indices in [3, 9].
   // Multiple hue color schemes support indices in [3, 9].
-  const defaultColors: readonly string[] = ["#000", "#000"];
+  const defaultColors: readonly string[] = ["#bbb", "#444"];
   if (!name) return d3.scaleSequential(defaultColors);
 
   // Try categorical.

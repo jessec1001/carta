@@ -1,34 +1,34 @@
 /* Apply basic styling to make the view container stretch. */
-.View-Container {
+.container {
   position: relative;
   display: flex;
   flex: 1;
 
   background-color: var(--color-fill-body);
 }
-.View-Container-Internal {
+.containerInternal {
   position: absolute;
   width: 100%;
   height: 100%;
 }
 
 /* Allow for some padding to be applied to the container. */
-.View-Container.padded .View-Container-Internal {
+.container.padded .containerInternal {
   padding: 1rem;
 }
 
 /* Adjust the direction of the content and scrolling. */
-.View-Container.vertical {
+.container.vertical {
   flex-direction: column;
 }
-.View-Container.vertical .View-Container-Internal {
+.container.vertical .containerInternal {
   overflow-x: hidden;
   overflow-y: auto;
 }
-.View-Container.horizontal {
+.container.horizontal {
   flex-direction: row;
 }
-.View-Container.horizontal .View-Container-Internal {
+.container.horizontal .containerInternal {
   overflow-x: auto;
   overflow-y: hidden;
 }

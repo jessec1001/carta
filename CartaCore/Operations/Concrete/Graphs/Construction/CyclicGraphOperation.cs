@@ -34,8 +34,8 @@ namespace CartaCore.Operations.Graphs
     }
 
     /// <summary>
-    /// Generates an undirected cyclic graph with the specified number of vertices. The cyclic graph contains edges
-    /// between vertices completing a circuit that touches each vertex once.
+    /// Generates a directed or undirected cyclic graph with the specified number of vertices. The cyclic graph
+    /// contains edges between vertices completing a circuit that touches each vertex once.
     /// </summary>
     [OperationName(Display = "Generate Cyclic Graph", Type = "generateCyclicGraph")]
     [OperationTag(OperationTags.Graph)]

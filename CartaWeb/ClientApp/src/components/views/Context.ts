@@ -162,9 +162,8 @@ const useViews = (): IViews => {
   );
   const setTag = useCallback(
     (id: number, key: string, value: any): void => {
-      const view = getView(id);
-      if (view === null || view.tags[key] === value) return;
       setView(id, (view) => {
+        if (view.tags[key] === value) return view;
         const newView = {
           ...view,
           tags: { ...view.tags, [key]: value },
@@ -172,7 +171,7 @@ const useViews = (): IViews => {
         return newView;
       });
     },
-    [getView, setView]
+    [setView]
   );
   const unsetTag = useCallback(
     (id: number, key: string): void => {

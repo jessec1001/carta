@@ -49,7 +49,7 @@ namespace CartaCore.Operations.Graphs
     {
         private static async IAsyncEnumerable<object> FindProperties(Graph graph, string name)
         {
-            if (graph.Components.TryFind(out IEnumerableComponent<Vertex, IEdge> enumerableGraph))
+            if (graph.Components.TryFind(out IEnumerableComponent<Vertex, Edge> enumerableGraph))
             {
                 await foreach (Vertex vertex in enumerableGraph.GetVertices())
                 {

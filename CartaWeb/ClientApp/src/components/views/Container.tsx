@@ -1,17 +1,10 @@
 import classNames from "classnames";
-import {
-  forwardRef,
-  HTMLAttributes,
-  PropsWithChildren,
-  useEffect,
-} from "react";
-import { Modify } from "types";
+import { ComponentProps, forwardRef, useEffect } from "react";
 import { useViews } from "./Context";
-
-import "./Container.css";
+import styles from "./Container.module.css";
 
 /** The props used for the {@link Container} component. */
-interface ContainerProps {
+interface ContainerProps extends Omit<ComponentProps<"div">, "title"> {
   /** The title of the view to display in the tab for the view. */
   title?: React.ReactNode;
   /** Whether the view should be closeable or not. Defaults to true. */
@@ -26,12 +19,17 @@ interface ContainerProps {
 }
 
 /** A container for a particular view in a views context. */
-const Container = forwardRef<
-  HTMLDivElement,
-  PropsWithChildren<Modify<HTMLAttributes<HTMLDivElement>, ContainerProps>>
->(
+const Container = forwardRef<HTMLDivElement, ContainerProps>(
   (
-    { title, closeable, status, padded, direction, children, ...props },
+    {
+      title,
+      closeable,
+      status,
+      padded,
+      direction = "fill",
+      children,
+      ...props
+    },
     ref
   ) => {
     // We set the options on the view when specified.
@@ -40,13 +38,18 @@ const Container = forwardRef<
       actions.setOptions({ title, closeable, status });
     }, [title, closeable, actions, status]);
 
+    // TODO: Auto-add history based on some prop.
     return (
       <div
         ref={ref}
-        className={classNames("View-Container", { padded }, direction)}
+        className={classNames(
+          styles.container,
+          { [styles.padded]: padded },
+          styles[direction]
+        )}
         {...props}
       >
-        <div className={"View-Container-Internal"}>{children}</div>
+        <div className={styles.containerInternal}>{children}</div>
       </div>
     );
   }

@@ -7,7 +7,7 @@ namespace CartaCore.Graphs
     /// Represents a graph structure that flexibly retrieves vertex and edge values containing properties with numerous
     /// observations.
     /// </summary>
-    public abstract class Graph : Element<Graph>, IGraph
+    public class Graph : Element<Graph>, IGraph
     {
         /// <inheritdoc />
         public ComponentStack Components { get; set; } = new();

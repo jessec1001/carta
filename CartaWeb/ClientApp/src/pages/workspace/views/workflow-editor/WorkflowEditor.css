@@ -1,7 +1,0 @@
-.WorkflowEditor-execute {
-  cursor: pointer;
-  margin: 0rem 1rem;
-}
-.WorkflowEditor-execute:hover {
-  color: var(--color-primary);
-}

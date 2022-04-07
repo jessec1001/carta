@@ -51,10 +51,11 @@ namespace CartaCore.Integration.Synthetic
             }
 
             // Initialize the graph components.
-            Components.AddTop<IRootedComponent>(this);
-            Components.AddTop<IDynamicLocalComponent<Vertex, Edge>>(this);
-            Components.AddTop<IDynamicOutComponent<Vertex, Edge>>(this);
-            Components.AddTop<IParameterizedComponent<InfiniteDirectedGraphParameters>>(this);
+            Components = Components
+                .Append<IRootedComponent>(this)
+                .Append<IDynamicLocalComponent<Vertex, Edge>>(this)
+                .Append<IDynamicOutComponent<Vertex, Edge>>(this)
+                .Append<IParameterizedComponent<InfiniteDirectedGraphParameters>>(this);
         }
 
         /// <summary>

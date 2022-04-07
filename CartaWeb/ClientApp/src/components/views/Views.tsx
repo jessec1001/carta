@@ -76,7 +76,10 @@ const Views: FunctionComponent<ViewsProps> & ViewsComposition = ({
           // Get the view if it exists.
           const existView = views.get(id);
           if (!existView) return views;
-          view = view(existView);
+          const newView = view(existView);
+
+          if (newView === existView) return views;
+          else view = newView;
         }
 
         // Prepare the view to be set.

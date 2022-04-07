@@ -167,7 +167,9 @@ namespace CartaCore.Operations
                 out ConcurrentQueue<(object, object)> priorityQueue);
 
             // We need to patch the graph so that it has prioritization.
-            graph.Components.AddTop(new PrioritizeHyperthoughtWorkflowGraph(priorityQueue) { Graph = graph });
+            graph.Components = graph.Components
+                .Branch()
+                .Append(new PrioritizeHyperthoughtWorkflowGraph(priorityQueue) { Graph = graph });
 
             return new HyperthoughtGraphOperationOut { Graph = graph };
         }

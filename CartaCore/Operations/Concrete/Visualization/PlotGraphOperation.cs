@@ -165,8 +165,8 @@ namespace CartaCore.Operations.Visualization
                     Id = vertex.Id,
                     Label = vertex.Label,
                     Properties = vertex.Properties,
-                    Style = VertexStyle,
-                    Edges = edges
+                    Edges = edges,
+                    Style = VertexStyle
                 };
                 yield return graphPlotVertex;
             }
@@ -178,11 +178,11 @@ namespace CartaCore.Operations.Visualization
     /// </summary>
     public struct PlotGraphOperationIn
     {
-        /// <summary>
-        /// The title of the graph visualization.
-        /// </summary>
-        [FieldName("Title")]
-        public string Title { get; set; }
+        // /// <summary>
+        // /// The title of the graph visualization.
+        // /// </summary>
+        // [FieldName("Title")]
+        // public string Title { get; set; }
 
         /// <summary>
         /// The graph to visualize.
@@ -258,13 +258,8 @@ namespace CartaCore.Operations.Visualization
                 if (axesStyle.FillColor is not null) styles["background"] = axesStyle.FillColor;
                 if (axesStyle.StrokeColor is not null) styles["color"] = axesStyle.StrokeColor;
             }
-
             // Create a new graph plot structure.
-            GraphPlot graphPlot = null;
-            graphPlot = new(enumerable, input.VertexStyle, input.EdgeStyle)
-            {
-                Style = styles,
-            };
+            GraphPlot graphPlot = new(enumerable, input.VertexStyle, input.EdgeStyle) { Style = styles };
             return Task.FromResult(new PlotGraphOperationOut() { Plot = graphPlot });
         }
     }

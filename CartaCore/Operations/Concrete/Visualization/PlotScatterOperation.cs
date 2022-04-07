@@ -39,51 +39,48 @@ namespace CartaCore.Operations.Visualization
         public PlotStyle? Style { get; set; }
     }
     /// <summary>
-    /// The base structure of the scatter plot.
+    /// The data for a scatter visualization.
     /// </summary>
-    public class ScatterPlotBase : Plot
+    public class ScatterPlot : Plot, IUpdateable
     {
         /// <inheritdoc />
         public override string Type => "scatter";
+
+        /// <summary>
+        /// The data points contained in the scatter plot. 
+        /// </summary>
+        public List<ScatterPlotDatum> Data { get; private init; } = new();
+        /// <summary>
+        /// The number of dimensions of the scatter plot.
+        /// </summary>
+        public int Dimensions { get; init; }
 
         /// <summary>
         /// The name of the colormap to use for mapping numeric data to colors. If not specified, a default color will
         /// be used instead.
         /// </summary>
         public string Colormap { get; init; }
-    }
-    /// <summary>
-    /// The data for a scatter plot.
-    /// </summary>
-    public class ScatterPlot : ScatterPlotBase, IAsyncPipelineable<ScatterPlot, ScatterPlotBase, ScatterPlotDatum>
-    {
+
         /// <summary>
-        /// The data points for this scatter plot.
+        /// The enumeration of data points of the scatter plot.
         /// </summary>
-        public IAsyncEnumerable<ScatterPlotDatum> Data { get; set; }
+        private IAsyncEnumerator<ScatterPlotDatum> _enumerable;
+
+        /// <summary>
+        /// Initializes an instance of the <see cref="ScatterPlot" /> class.
+        /// </summary>
+        /// <param name="enumerable">The data that, when enumerated, represents the plot.</param>
+        public ScatterPlot(IAsyncEnumerable<ScatterPlotDatum> enumerable) => _enumerable = enumerable.GetAsyncEnumerator();
 
         /// <inheritdoc />
-        public ScatterPlotBase Deconstruct()
+        public async Task<bool> UpdateAsync()
         {
-            return new ScatterPlotBase()
+            if (await _enumerable.MoveNextAsync())
             {
-                Colormap = Colormap,
-            };
-        }
-        /// <inheritdoc />
-        public IAsyncEnumerable<ScatterPlotDatum> Enumerate()
-        {
-            return Data;
-        }
-        /// <inheritdoc />
-        public Task<ScatterPlot> Renumerate(IAsyncEnumerable<ScatterPlotDatum> elements, ScatterPlotBase structure)
-        {
-            ScatterPlot plot = new ScatterPlot()
-            {
-                Colormap = structure.Colormap,
-                Data = elements,
-            };
-            return Task.FromResult(plot);
+                Data.Add(_enumerable.Current);
+                return true;
+            }
+            else return false;
         }
     }
 
@@ -92,12 +89,6 @@ namespace CartaCore.Operations.Visualization
     /// </summary>
     public struct ScatterPlotOperationIn
     {
-        /// <summary>
-        /// The title of the scatter plot visualization.
-        /// </summary>
-        [FieldName("Title")]
-        public string Title { get; set; }
-
         /// <summary>
         /// The x-values for the points in the scatter plot. 
         /// </summary>
@@ -186,32 +177,39 @@ namespace CartaCore.Operations.Visualization
     >
     {
         private static async IAsyncEnumerable<ScatterPlotDatum> EnumerateData(
-            IAsyncEnumerator<double?> xValues,
-            IAsyncEnumerator<double?> yValues,
-            IAsyncEnumerator<double?> zValues,
-            IAsyncEnumerator<double?> radii,
-            IAsyncEnumerator<double?> colors,
+            IAsyncEnumerable<double?> xValues,
+            IAsyncEnumerable<double?> yValues,
+            IAsyncEnumerable<double?> zValues,
+            IAsyncEnumerable<double?> radii,
+            IAsyncEnumerable<double?> colors,
             string colormap,
             PlotStyle? style
         )
         {
+            // Get the enumerators for each enumerable.
+            IAsyncEnumerator<double?> X = xValues?.GetAsyncEnumerator();
+            IAsyncEnumerator<double?> Y = yValues?.GetAsyncEnumerator();
+            IAsyncEnumerator<double?> Z = zValues?.GetAsyncEnumerator();
+            IAsyncEnumerator<double?> R = radii?.GetAsyncEnumerator();
+            IAsyncEnumerator<double?> C = colors?.GetAsyncEnumerator();
+
             // TODO: In the future, we should calculate colors from colormaps here rather than in the visualization library.
             // Generate each of the scatter plot points.
             while (true)
             {
-                bool moreElements = true;
-                moreElements &= xValues is null || await xValues.MoveNextAsync();
-                moreElements &= yValues is null || await yValues.MoveNextAsync();
-                moreElements &= zValues is null || await zValues.MoveNextAsync();
-                moreElements &= radii is null || await radii.MoveNextAsync();
-                moreElements &= colors is null || await colors.MoveNextAsync();
-                if (!moreElements) break;
+                // We check that there is actually new data before adding it to the plot.
+                bool xRet = X is not null && await X.MoveNextAsync();
+                bool yRet = Y is not null && await Y.MoveNextAsync();
+                bool zRet = Z is not null && await Z.MoveNextAsync();
+                bool rRet = R is not null && await R.MoveNextAsync();
+                bool cRet = C is not null && await C.MoveNextAsync();
+                if (!(xRet || yRet || zRet)) break;
 
-                double? x = xValues?.Current;
-                double? y = yValues?.Current;
-                double? z = zValues?.Current;
-                double? r = radii?.Current;
-                double? c = colors?.Current;
+                double? x = X?.Current;
+                double? y = Y?.Current;
+                double? z = Z?.Current;
+                double? r = R?.Current;
+                double? c = C?.Current;
 
                 yield return new ScatterPlotDatum
                 {
@@ -262,19 +260,18 @@ namespace CartaCore.Operations.Visualization
 
             // Create a new scatter plot structure.
             // Based on what the input data looks like, we'll generate a 2D or 3D scatter plot.
-            ScatterPlot plot = new()
-            {
-                Data = EnumerateData(
-                    X?.GetAsyncEnumerator(),
-                    Y?.GetAsyncEnumerator(),
-                    Z?.GetAsyncEnumerator(),
-                    R?.GetAsyncEnumerator(),
-                    C?.GetAsyncEnumerator(),
+            ScatterPlot plot = new(
+                EnumerateData(
+                    X, Y, Z, R, C,
                     input.ColorMap,
-                    input.PointStyle),
+                    input.PointStyle
+                )
+            )
+            {
                 Axes = new PlotAxes() { X = xAxis, Y = yAxis, Z = zAxis },
                 Style = styles,
                 Colormap = input.ColorMap,
+                Dimensions = Z is null ? 2 : 3,
             };
             return Task.FromResult(new ScatterPlotOperationOut() { Plot = plot });
         }

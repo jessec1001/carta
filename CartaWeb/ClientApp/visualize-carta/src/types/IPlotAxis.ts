@@ -1,5 +1,5 @@
 /** Represents a particular axis on a plot. */
-interface PlotAxis {
+interface IPlotAxis {
   /** The label for the axis. */
   label?: string;
   /** Whether grid lines should be displayed on the direction of the axis. */
@@ -11,4 +11,4 @@ interface PlotAxis {
   maximum?: number;
 }
 
-export type { PlotAxis };
+export type { IPlotAxis };

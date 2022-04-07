@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="128"
+   height="128"
+   version="1.1"
+   viewBox="0 0 33.867 33.867"
+   id="svg3524"
+   sodipodi:docname="vertex-collapsed-unselected.svg"
+   inkscape:version="1.1.2 (1:1.1+202202050950+0a00cf5339)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs3528" />
+  <sodipodi:namedview
+     id="namedview3526"
+     pagecolor="#505050"
+     bordercolor="#ffffff"
+     borderopacity="1"
+     inkscape:pageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="1"
+     showgrid="false"
+     inkscape:snap-page="true"
+     inkscape:snap-bbox="true"
+     inkscape:snap-bbox-edge-midpoints="true"
+     inkscape:snap-bbox-midpoints="true"
+     inkscape:zoom="5.8203125"
+     inkscape:cx="30.15302"
+     inkscape:cy="64"
+     inkscape:window-width="1920"
+     inkscape:window-height="972"
+     inkscape:window-x="1280"
+     inkscape:window-y="27"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg3524" />
+  <path
+     class="element"
+     d="m16.934 2.1172c-8.158 0-14.816 6.6584-14.816 14.816 0 8.158 6.6584 14.816 14.816 14.816 8.158 0 14.816-6.6584 14.816-14.816 0-8.158-6.6584-14.816-14.816-14.816zm0 4.2324c5.8701 0 10.584 4.7138 10.584 10.584 0 5.8701-4.7138 10.584-10.584 10.584-5.8701 0-10.584-4.7138-10.584-10.584 0-5.8701 4.7138-10.584 10.584-10.584z"
+     style="color-rendering:auto;color:#000000;dominant-baseline:auto;font-feature-settings:normal;font-variant-alternates:normal;font-variant-caps:normal;font-variant-ligatures:normal;font-variant-numeric:normal;font-variant-position:normal;image-rendering:auto;isolation:auto;mix-blend-mode:normal;paint-order:normal;shape-padding:0;shape-rendering:auto;solid-color:#000000;text-decoration-color:#000000;text-decoration-line:none;text-decoration-style:solid;text-indent:0;text-orientation:mixed;text-transform:none;white-space:normal"
+     id="path3522" />
+  <circle
+     style="opacity:0.5;fill:#000000;fill-opacity:1;stroke-width:0.999873;stroke-linejoin:round"
+     id="path3565"
+     cx="16.934"
+     cy="16.933201"
+     r="10.583438" />
+</svg>

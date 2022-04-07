@@ -1,114 +1,76 @@
 import { FunctionComponent, useEffect, useMemo, useState } from "react";
-import { Property } from "library/api";
 import { ObjectFilter } from "library/search";
 import { Accordian } from "components/accordian";
 import { PropertyIcon, VertexIcon } from "components/icons";
 import { SearchboxInput } from "components/input";
 import { Column, Row } from "components/structure";
-// import { EmptySymbol, NullSymbol } from "components/symbols";
+import { EmptySymbol, NullSymbol } from "components/symbols";
 import { useViews, Views } from "components/views";
 import { Text } from "components/text";
+import {
+  IDataVertex,
+  IVisualizeProperty,
+} from "components/visualizations/GraphVisualizer";
 
 import "./VisualizerSelectionView.css";
 
 /** A property that is attached to a particular vertex. */
-interface AttachedProperty extends Property {
+interface AttachedProperty {
   /** The values of the property along with the vertex that owns this property. */
-  value: [any, any];
+  value: [IDataVertex, any][];
 
   /** The subproperties of the property. */
-  properties?: AttachedProperty[];
+  properties?: Record<string, AttachedProperty>;
 }
 
-// /**
-//  * Renders a list of values for a property of any type.
-//  * @param values The list of values.
-//  * @returns An element that renders the list of values.
-//  */
-// const renderValues = (values: any[]) => {
-//   return (
-//     <ul role="presentation">
-//       {/* Loop through each of the values in the array. */}
-//       {values.map((obs, index) => {
-//         // Get the type and color of the value.
-//         const valueType = computeTypeName(obs);
-//         const valueColor = computeTypeColor(valueType);
-//         return (
-//           <li key={index}>
-//             <Text align="middle" {...({ title: valueType } as any)}>
-//               <ValueIcon color={valueColor} />
-//               {renderValue(obs)}
-//             </Text>
-//           </li>
-//         );
-//       })}
-//     </ul>
-//   );
-// };
-// const renderAttachedValues = (values: [any, any][]) => {
-//   return (
-//     <ul role="presentation" className="VisualizerSelectionView-IndentList">
-//       {/* Loop through each of the values in the array. */}
-//       {values.map((obs, index) => {
-//         // Get the type and color of the value.
-//         const [vertex, value] = obs;
-//         const valueType = computeTypeName(value);
-//         return (
-//           <li key={index}>
-//             <Text
-//               align="middle"
-//               {...{ title: `Name: ${vertex.label}; ID: ${vertex.id}` }}
-//             >
-//               <VertexIcon padded selected color={vertex.color as string} />
-//               <span title={valueType}>{renderValue(value)}</span>
-//             </Text>
-//           </li>
-//         );
-//       })}
-//     </ul>
-//   );
-// };
+/**
+ * Renders a value for a property of any type.
+ * @param values The value.
+ * @returns An element that renders the value.
+ */
+const renderAttachedValues = (values: [IDataVertex, any][]) => {
+  return (
+    <ul role="presentation" className="VisualizerSelectionView-IndentList">
+      {/* Loop through each of the values in the array. */}
+      {values.map(([vertex, value], index) => {
+        // Get the type and color of the value.
+        const valueType = computeTypeName(value);
+        return (
+          <li key={index}>
+            <Text
+              align="middle"
+              {...{ title: `Name: ${vertex.label}; ID: ${vertex.id}` }}
+            >
+              <VertexIcon
+                padded
+                selected={vertex.selected}
+                expanded={vertex.expanded}
+              />
+              <span title={valueType}>{renderValue(value)}</span>
+            </Text>
+          </li>
+        );
+      })}
+    </ul>
+  );
+};
 
-// /**
-//  * Computes the color of a particular type of value.
-//  * @param typename The name of the type.
-//  * @returns The color assigned to the type.
-//  */
-// const computeTypeColor = (typename: string): string => {
-//   switch (typename) {
-//     case "number":
-//       return "#0000dd";
-//     case "boolean":
-//       return "#00bb00";
-//     case "string":
-//       return "#aa4422";
-//     case "null":
-//       return "#ff0000";
-//     case "array":
-//       return "#00dddd";
-//     case "map":
-//       return "#dd00dd";
-//     default:
-//       return "#888888";
-//   }
-// };
-
-// /**
-//  * Computes the name of a particular type of value.
-//  * @param value The value to compute the type of.
-//  * @returns The name of the type.
-//  */
-// const computeTypeName = (value: any) => {
-//   if (value === null) {
-//     return "null";
-//   } else if (Array.isArray(value)) {
-//     return "array";
-//   } else if (typeof value === "object") {
-//     return "map";
-//   } else {
-//     return typeof value;
-//   }
-// };
+/**
+ * Computes the name of a particular type of value.
+ * @param value The value to compute the type of.
+ * @returns The name of the type.
+ */
+const computeTypeName = (value: any) => {
+  if (value === null) {
+    return "null";
+  } else if (Array.isArray(value)) {
+    return "array";
+  } else if (typeof value === "object") {
+    return "map";
+  } else {
+    return typeof value;
+  }
+};
 
 /**
  * Consolidates a list of properties into a single property hierarchy with all of the same-named properties at equal
@@ -117,152 +79,167 @@ interface AttachedProperty extends Property {
  * @returns The consolidated properties.
  */
 const consolidateProperties = (
-  properties: AttachedProperty[] | undefined,
+  properties: Record<string, AttachedProperty[]> | undefined,
   filter?: ObjectFilter
-): AttachedProperty[] => {
+): Record<string, AttachedProperty> => {
   // We store properties in a map so that there is one property (with possibly multiple values) per key.
   const consolidated: Record<string, AttachedProperty> = {};
 
   // Loop through each of the properties.
   if (properties) {
-    for (const property of properties) {
+    for (const [propName, propValues] of Object.entries(properties)) {
       // Check if we should include this property based on the filter.
-      if (filter && filter.filter([property]).length === 0) {
+      if (
+        filter &&
+        filter.filter([
+          {
+            id: propName,
+            values: propValues.flatMap((ap) => ap.value.map((v) => v[1])),
+          },
+        ]).length === 0
+      ) {
         continue;
       }
 
-      const id = property.id;
-      if (id in consolidated) {
-        // If the property already exists, merge the values.
-        // consolidated[id].value = consolidated[id].value.concat(
-        //   property.value
-        // );
-
-        // We also need to merge the subproperties.
-        // This is done recursively.
-        if (property.properties) {
-          consolidated[id].properties = consolidateProperties(
-            consolidated[id].properties?.concat(property.properties)
-          );
-        }
-      } else {
-        // If the property does not exist, add it to the consolidated list.
-        consolidated[id] = property;
+      // If the property does not exist yet, add it to the consolidated properties.
+      if (!consolidated[propName]) {
+        consolidated[propName] = {
+          value: [],
+        };
       }
+      const consolidatedProp = consolidated[propName];
+
+      // Recursively consolidate the properties.
+      const subproperties: Record<string, AttachedProperty[]> = {};
+      for (const propValue of propValues) {
+        // Merge the values.
+        consolidatedProp.value.push(...propValue.value);
+
+        if (propValue.properties) {
+          for (const [subpropName, subpropValue] of Object.entries(
+            propValue.properties
+          )) {
+            if (!subproperties[subpropName]) {
+              subproperties[subpropName] = [];
+            }
+            subproperties[subpropName].push(subpropValue);
+          }
+        }
+      }
+      // Merge the subproperties.
+      consolidatedProp.properties = consolidateProperties(subproperties);
     }
   }
-
-  // We do not need the keys for the consolidated properties anymore.
-  return Object.values(consolidated);
+  return consolidated;
 };
 /**
  * Formats the properties of a vertex so that the vertex is attached to each property.
  * @param vertex The vertex to format the properties of.
  * @returns The formatted properties.
  */
-const formatProperties = (vertex: any) => {
-  const properties: AttachedProperty[] = [];
+const formatProperties = (vertex: IDataVertex) => {
+  const properties: Record<string, AttachedProperty> = {};
 
   // Loop through each of the properties of the vertex.
   // This is recursive and will stop once there are no more properties.
   if (vertex.properties) {
-    for (const property of vertex.properties) {
+    for (const [propName, propValue] of Object.entries(vertex.properties)) {
       // Get the subproperties in attached form.
       const subproperties = formatProperties({
         ...vertex,
-        properties: property.properties,
+        properties: propValue.properties,
       });
 
       // Append the property to the list.
-      properties.push({
-        id: property.id,
-        value: property.value.map((value: any) => [vertex, value]),
+      properties[propName] = {
+        value: [[vertex, propValue.value]],
         properties: subproperties,
-      });
+      };
     }
   }
 
   return properties;
 };
 
-// /**
-//  * Renders a particular value.
-//  * @param value The value to render.
-//  * @returns An element that renders the value.
-//  */
-// const renderValue = (value: any) => {
-//   if (value === null) {
-//     // Render null.
-//     return <NullSymbol />;
-//   } else if (Array.isArray(value)) {
-//     // Render an empty array.
-//     if (value.length === 0) return <EmptySymbol />;
-//     // Render the array as a list of values.
-//     else
-//       return (
-//         <table>
-//           <tr>
-//             {value.map(
-//               (value, index) =>
-//                 null
-//                 // <td key={index}>{renderValue(value)}</td>
-//             )}
-//           </tr>
-//         </table>
-//       );
-//   } else if (typeof value === "object") {
-//     // Render an empty object.
-//     if (Object.keys(value).length === 0) return <EmptySymbol />;
-//     else
-//       return (
-//         // Render the object as a list of key-value pairs.
-//         <table>
-//           {Object.entries(value).map(([key, value]) => (
-//             <tr key={key}>
-//               <td>{key}</td>
-//               {/* <td>{renderValue(value)}</td> */}
-//             </tr>
-//           ))}
-//         </table>
-//       );
-//   } else if (typeof value === "string" && value === "") {
-//     // Render an empty string.
-//     return <EmptySymbol />;
-//   } else {
-//     // Render the value as its string representation if no further structure is found.
-//     return value.toString();
-//   }
-// };
+/**
+ * Renders a particular value.
+ * @param value The value to render.
+ * @returns An element that renders the value.
+ */
+const renderValue = (value: any) => {
+  if (value === null) {
+    // Render null.
+    return <NullSymbol />;
+  } else if (Array.isArray(value)) {
+    // Render an empty array.
+    if (value.length === 0) return <EmptySymbol />;
+    // Render the array as a list of values.
+    else
+      return (
+        <table>
+          <tr>
+            {value.map((value, index) => (
+              <td key={index}>{renderValue(value)}</td>
+            ))}
+          </tr>
+        </table>
+      );
+  } else if (typeof value === "object") {
+    // Render an empty object.
+    if (Object.keys(value).length === 0) return <EmptySymbol />;
+    else
+      return (
+        // Render the object as a list of key-value pairs.
+        <table>
+          {Object.entries(value).map(([key, value]) => (
+            <tr key={key}>
+              <td>{key}</td>
+              <td>{renderValue(value)}</td>
+            </tr>
+          ))}
+        </table>
+      );
+  } else if (typeof value === "string" && value === "") {
+    // Render an empty string.
+    return <EmptySymbol />;
+  } else {
+    // Render the value as its string representation if no further structure is found.
+    return value.toString();
+  }
+};
 
 /**
  * Renders the tree of properties attached to a single vertex.
  * @param properties The properties attached to the vertex.
  * @returns The rendered properties.
  */
-const renderVertexTree = (properties: Property[] | undefined) => {
+const renderVertexTree = (
+  properties: Record<string, IVisualizeProperty> | undefined
+) => {
   // Render the properties if they exist.
   if (!properties) return null;
   return (
     <ul role="presentation" className="VisualizerSelectionView-IndentList">
-      {properties.map((property) => {
+      {Object.entries(properties).map(([propName, propValue]) => {
         // We check if the property has subproperties and render them in an expandable accordian.
         const hasSubproperties =
-          property.properties !== undefined && property.properties.length > 0;
+          propValue.properties !== undefined &&
+          Object.keys(propValue.properties).length > 0;
         return (
-          <li key={property.id}>
+          <li key={propName}>
             <Accordian initialToggled={!hasSubproperties}>
               <Accordian.Header>
                 {/* Render the title of the property along with the property icon. */}
                 <Text align="middle">
                   <PropertyIcon padded />
-                  {property.id}
+                  {propName}
                 </Text>
                 {hasSubproperties && <Accordian.Toggle caret />}
               </Accordian.Header>
               <Accordian.Content>
                 {/* Render the values first followed by subproperties second. */}
-                {/* {renderValues(property.values)} */}
-                {hasSubproperties && renderVertexTree(property.properties)}
+                {renderValue(propValue.value)}
+                {hasSubproperties && renderVertexTree(propValue.properties)}
               </Accordian.Content>
             </Accordian>
           </li>
@@ -276,32 +253,35 @@ const renderVertexTree = (properties: Property[] | undefined) => {
  * @param properties The subproperties of a property (in attached format).
  * @returns The rendered properties.
  */
-const renderPropertyTree = (properties: AttachedProperty[] | undefined) => {
+const renderPropertyTree = (
+  properties: Record<string, AttachedProperty> | undefined
+) => {
   // Render the properties if they exist.
   if (!properties) return null;
   return (
     <ul role="presentation" className="VisualizerSelectionView-IndentList">
-      {properties.map((property) => {
+      {Object.entries(properties).map(([propName, propValue]) => {
         // We check if the property has subproperties or values and render them in an expandable accordian.
         const hasSubproperties =
-          property.properties !== undefined && property.properties.length > 0;
-        const hasValues = true; // property.values.length > 0;
+          propValue.properties !== undefined &&
+          Object.entries(propValue.properties).length > 0;
+        const hasValues = propValue.value.length > 0;
         return (
-          <li key={property.id}>
+          <li key={propName}>
             <Accordian initialToggled={!(hasSubproperties || hasValues)}>
               <Accordian.Header>
                 {/* Render the title of the property along with the property icon. */}
                 <Text align="middle">
                   <PropertyIcon padded />
-                  {property.id}
+                  {propName}
                 </Text>
                 {(hasSubproperties || hasValues) && <Accordian.Toggle caret />}
               </Accordian.Header>
               <Accordian.Content>
                 {/* Render the values first followed by subproperties second. */}
-                {/* {renderAttachedValues(property.values)} */}
+                {renderAttachedValues(propValue.value)}
                 {(hasSubproperties || hasValues) &&
-                  renderPropertyTree(property.properties)}
+                  renderPropertyTree(propValue.properties)}
               </Accordian.Content>
             </Accordian>
           </li>
@@ -315,10 +295,9 @@ const renderPropertyTree = (properties: AttachedProperty[] | undefined) => {
  * Renders the visualizer selection as a list of vertices.
  * @param vertices The selected vertices.
  * @param filter A filter to apply to the vertices.
- * @param query The query to filter vertices by.
  * @returns An element that renders the list of selected vertices.
  */
-const renderVertexList = (vertices: any[], filter: ObjectFilter) => {
+const renderVertexList = (vertices: IDataVertex[], filter: ObjectFilter) => {
   // Get the filtered vertices.
   const filteredVertices = filter.filter(vertices);
 
@@ -335,7 +314,11 @@ const renderVertexList = (vertices: any[], filter: ObjectFilter) => {
                   align="middle"
                 >
                   {/* TODO: Allow these vertex icons to be clicked on to focus on the vertex in the graph. */}
-                  <VertexIcon padded selected color={vertex.color as string} />
+                  <VertexIcon
+                    padded
+                    selected={vertex.selected}
+                    expanded={vertex.expanded}
+                  />
                   &nbsp;
                   {vertex.label}
                 </Text>
@@ -355,60 +338,58 @@ const renderVertexList = (vertices: any[], filter: ObjectFilter) => {
  * Renders the visualizer selection as a list of properties.
  * @param vertices The selected vertices.
  * @param filter A filter to apply to the properties.
- * @param query The query to filter properties by.
  * @returns An element that renders the list of selected properties.
  */
-const renderPropertyList = (vertices: any[], filter: ObjectFilter) => {
+const renderPropertyList = (vertices: IDataVertex[], filter: ObjectFilter) => {
   // Get the considated properties of the vertices.
   // Notice that we also apply the filter so we can search for properties.
-  let properties: AttachedProperty[] = [];
+  const properties: Record<string, AttachedProperty[]> = {};
   for (const vertex of vertices) {
-    properties = properties.concat(formatProperties(vertex));
+    if (!vertex.properties) continue;
+    for (const [propName, propValue] of Object.entries(
+      formatProperties(vertex)
+    )) {
+      if (properties[propName] === undefined) {
+        properties[propName] = [];
+      }
+      properties[propName].push(propValue);
+    }
   }
-  properties = consolidateProperties(properties, filter);
+  const propertyTree = consolidateProperties(properties, filter);
 
   // Render the property tree.
-  return renderPropertyTree(properties);
+  return renderPropertyTree(propertyTree);
 };
 
 /** A component that renders the active selection of a visualizer. */
 const VisualizerSelectionView: FunctionComponent = () => {
   // Retrieve the dataset information.
   const { actions } = useViews();
-  // const datasetId: string | undefined = actions.getActiveTag("dataset");
-  const dataset: any = null;
-  const datasetName = dataset && (dataset.name ?? "UNKNOWN");
+  const visName: string | undefined = actions.getActiveTag("visualization");
 
   // Retrieve the graph information.
   // Additionally, setup event handlers to update the view when the graph selection changes.
-  const graph: any | undefined = actions.getActiveTag("graph");
+  const vertices: IDataVertex[] | undefined = actions.getActiveTag("selected");
   useEffect(() => {
-    // The selection event handler.
-    const handleSelection = () => {
-      if (graph) setSelection(graph.nodes.get(graph.selection));
-    };
-
-    // Set the initial selection.
-    if (graph) {
-      setSelection(graph.nodes.get(graph.selection));
-    } else {
-      setSelection([]);
-    }
-
-    // If the graph changes, update the selection.
-    if (graph) {
-      graph.on("selectionChanged", handleSelection);
-      graph.on("dataChanged", handleSelection);
-      return () => {
-        graph.off("selectionChanged", handleSelection);
-        graph.off("dataChanged", handleSelection);
-      };
-    }
-  }, [graph]);
+    // Update the selection if necessary.
+    setSelection((selection) => {
+      selection = new Map(selection);
+      for (const vertex of vertices ?? []) {
+        // If the vertex is not selected, select it.
+        if (vertex.selected && !selection.has(vertex.id))
+          selection.set(vertex.id, vertex);
+        if (!vertex.selected && selection.has(vertex.id))
+          selection.delete(vertex.id);
+      }
+      return selection;
+    });
+  }, [vertices]);
 
   // Setup the query and selection state.
   const [query, setQuery] = useState<string>("");
-  const [selection, setSelection] = useState<any[]>([]);
+  const [selection, setSelection] = useState<Map<string, IDataVertex>>(
+    new Map()
+  );
 
   // The mode dictates whether to sort properties via property or vertex.
   const [mode, setMode] = useState<"vertex" | "property">("vertex");
@@ -430,13 +411,13 @@ const VisualizerSelectionView: FunctionComponent = () => {
     return (
       <Text align="middle">
         <VertexIcon padded selected />
-        {datasetName ?? <Text color="warning">No Dataset</Text>}&nbsp;
+        {visName ?? <Text color="warning">No Selection</Text>}&nbsp;
         <Text color="muted" size="small">
           [Selection]
         </Text>
       </Text>
     );
-  }, [datasetName]);
+  }, [visName]);
 
   return (
     <Views.Container title={title} closeable direction="vertical" padded>
@@ -460,8 +441,10 @@ const VisualizerSelectionView: FunctionComponent = () => {
       </Row>
 
       {/* Depeding on the mode, render the selection. */}
-      {mode === "vertex" && renderVertexList(selection, filter)}
-      {mode === "property" && renderPropertyList(selection, filter)}
+      {mode === "vertex" &&
+        renderVertexList(Array.from(selection.values()), filter)}
+      {mode === "property" &&
+        renderPropertyList(Array.from(selection.values()), filter)}
     </Views.Container>
   );
 };

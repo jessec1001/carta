@@ -30,7 +30,8 @@ namespace CartaCore.Integration.Synthetic
             GenerateGraph();
 
             // Initialize the graph components.
-            Components.AddTop<IParameterizedComponent<FiniteUndirectedGraphParameters>>(this);
+            Components = Components
+                .Append<IParameterizedComponent<FiniteUndirectedGraphParameters>>(this);
         }
 
         /// <summary>

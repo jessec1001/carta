@@ -88,7 +88,7 @@ namespace CartaCore.Operations.Graphs
         /// The vertex to select the hierarchy of.
         /// </summary>
         [FieldName("Vertex")]
-        public IVertex Vertex { get; set; }
+        public Vertex Vertex { get; set; }
         /// <summary>
         /// Whether or not to include the root vertices by the specified IDs. If true, the specified root vertices will
         /// be included. If false, the specified root vertices will be excluded.
@@ -151,8 +151,8 @@ namespace CartaCore.Operations.Graphs
         /// </summary>
         private class HierarchicalComponent :
             IComponent,
-            IEnumerableComponent<IVertex, IEdge>,
-            IDynamicLocalComponent<IVertex, IEdge>,
+            IEnumerableComponent<Vertex, Edge>,
+            IDynamicLocalComponent<Vertex, Edge>,
             // TODO: IDynamicInComponent<IVertex, IEdge>,
             // TODO: IDynamicOutComponent<IVertex, IEdge>,
             IRootedComponent
@@ -168,7 +168,7 @@ namespace CartaCore.Operations.Graphs
             /// <summary>
             /// The identifier to select the hierarchy of.
             /// </summary>
-            public IVertex Vertex { get; set; }
+            public Vertex Vertex { get; set; }
             /// <summary>
             /// Whether or not to include the vertices by the specified IDs. If true, the specified root vertices will be
             /// included. If false, the specified root vertices will be excluded. Defaults to true.
@@ -197,9 +197,9 @@ namespace CartaCore.Operations.Graphs
             /// <returns><c>true</c> if the vertex identifier occurs as a ancestor; <c>false</c> otherwise.</returns>
             public async Task<bool> ContainsAncestorVertex(
                 string id,
-                IVertex vertex,
+                Vertex vertex,
                 int depth,
-                IDynamicInComponent<IVertex, IEdge> dynamicInComponent)
+                IDynamicInComponent<Vertex, Edge> dynamicInComponent)
             {
                 // Check if we have exceeded the depth.
                 if (!Depth.HasValue || depth > Depth.Value) return false;
@@ -210,7 +210,7 @@ namespace CartaCore.Operations.Graphs
 
                 // Recursively check up the ancestor hierarchy for the specified vertex. 
                 _ids.Add(vertex.Id);
-                await foreach (IVertex parentVertex in dynamicInComponent.GetParentVertices(vertex.Id))
+                await foreach (Vertex parentVertex in dynamicInComponent.GetParentVertices(vertex.Id))
                 {
                     if (!_ids.Contains(parentVertex.Id) &&
                         await ContainsAncestorVertex(id, parentVertex, depth + 1, dynamicInComponent)
@@ -228,9 +228,9 @@ namespace CartaCore.Operations.Graphs
             /// <returns><c>true</c> if the vertex identifier occurs as a descendant; <c>false</c> otherwise.</returns>
             public async Task<bool> ContainsDescendantVertex(
                 string id,
-                IVertex vertex,
+                Vertex vertex,
                 int depth,
-                IDynamicOutComponent<IVertex, IEdge> dynamicOutComponent)
+                IDynamicOutComponent<Vertex, Edge> dynamicOutComponent)
             {
                 // Check if we have exceeded the depth.
                 if (!Depth.HasValue || depth > Depth.Value) return false;
@@ -241,7 +241,7 @@ namespace CartaCore.Operations.Graphs
 
                 // Recursively check down the descendant hierarchy for the specified vertex. 
                 _ids.Add(vertex.Id);
-                await foreach (IVertex childVertex in dynamicOutComponent.GetChildVertices(vertex.Id))
+                await foreach (Vertex childVertex in dynamicOutComponent.GetChildVertices(vertex.Id))
                 {
                     if (!_ids.Contains(childVertex.Id) &&
                         await ContainsDescendantVertex(id, childVertex, depth + 1, dynamicOutComponent)
@@ -257,10 +257,10 @@ namespace CartaCore.Operations.Graphs
             /// <param name="depth">The depth to fetch.</param>
             /// <param name="dynamicInComponent">The dynamic in component used to fetch parent vertices.</param>
             /// <returns>An enumeration of ancestor vertices.</returns>
-            public async IAsyncEnumerable<IVertex> GetAncestors(
-                IVertex vertex,
+            public async IAsyncEnumerable<Vertex> GetAncestors(
+                Vertex vertex,
                 int? depth,
-                IDynamicInComponent<IVertex, IEdge> dynamicInComponent)
+                IDynamicInComponent<Vertex, Edge> dynamicInComponent)
             {
                 // Emit base vertex for preorder traversal.
                 if (vertex is not null && Traversal == HierarchicalTraversalType.Preorder)
@@ -274,13 +274,13 @@ namespace CartaCore.Operations.Graphs
                 {
                     // Fetch the parent vertices of the base vertex and enumerate their ancestors.
                     _ids.Add(id);
-                    await foreach (IVertex parentVertex in dynamicInComponent.GetParentVertices(id))
+                    await foreach (Vertex parentVertex in dynamicInComponent.GetParentVertices(id))
                     {
                         // Check if the parent vertex has already been retrieved before traversing it.
                         if (_ids.Contains(parentVertex.Id)) continue;
 
                         await foreach (
-                            IVertex ancestorVertex in
+                            Vertex ancestorVertex in
                             GetAncestors(parentVertex, depth - 1, dynamicInComponent)
                         ) yield return ancestorVertex;
                     }
@@ -298,10 +298,10 @@ namespace CartaCore.Operations.Graphs
             /// <param name="depth">The depth to fetch.</param>
             /// <param name="dynamicOutComponent">The dynamic out component used to fetch child vertices.</param>
             /// <returns>An enumeration of descendant vertices.</returns>
-            public async IAsyncEnumerable<IVertex> GetDescendants(
-                IVertex vertex,
+            public async IAsyncEnumerable<Vertex> GetDescendants(
+                Vertex vertex,
                 int? depth,
-                IDynamicOutComponent<IVertex, IEdge> dynamicOutComponent)
+                IDynamicOutComponent<Vertex, Edge> dynamicOutComponent)
             {
                 // Emit base vertex for preorder traversal.
                 if (vertex is not null && Traversal == HierarchicalTraversalType.Preorder)
@@ -315,13 +315,13 @@ namespace CartaCore.Operations.Graphs
                 {
                     // Fetch the child vertices of the base vertex and enumerate their descendants.
                     _ids.Add(id);
-                    await foreach (IVertex childVertex in dynamicOutComponent.GetChildVertices(id))
+                    await foreach (Vertex childVertex in dynamicOutComponent.GetChildVertices(id))
                     {
                         // Check if the child vertex has already been retrieved before traversing it.
                         if (_ids.Contains(childVertex.Id)) continue;
 
                         await foreach (
-                            IVertex descendantVertex in
+                            Vertex descendantVertex in
                             GetDescendants(childVertex, depth - 1, dynamicOutComponent)
                         ) yield return descendantVertex;
                     }
@@ -334,25 +334,25 @@ namespace CartaCore.Operations.Graphs
             }
 
             /// <inheritdoc />
-            public async ITask<IVertex> GetVertex(string id)
+            public async ITask<Vertex> GetVertex(string id)
             {
                 // We make sure to clear out the algorithm storage at the start of any component method.
                 _ids.Clear();
                 if (Direction == HierarchicalDirectionType.Ancestors)
                 {
-                    if (Components.TryFind(out IDynamicInComponent<IVertex, IEdge> dynamicInComponent) &&
+                    if (Components.TryFind(out IDynamicInComponent<Vertex, Edge> dynamicInComponent) &&
                         await ContainsAncestorVertex(id, Vertex, 0, dynamicInComponent))
                     {
-                        if (Components.TryFind(out IDynamicLocalComponent<IVertex, IEdge> dynamicLocalComponent))
+                        if (Components.TryFind(out IDynamicLocalComponent<Vertex, Edge> dynamicLocalComponent))
                             return await dynamicLocalComponent.GetVertex(id);
                     }
                 }
                 if (Direction == HierarchicalDirectionType.Descendants)
                 {
-                    if (Components.TryFind(out IDynamicOutComponent<IVertex, IEdge> dynamicOutComponent) &&
+                    if (Components.TryFind(out IDynamicOutComponent<Vertex, Edge> dynamicOutComponent) &&
                         await ContainsDescendantVertex(id, Vertex, 0, dynamicOutComponent))
                     {
-                        if (Components.TryFind(out IDynamicLocalComponent<IVertex, IEdge> dynamicLocalComponent))
+                        if (Components.TryFind(out IDynamicLocalComponent<Vertex, Edge> dynamicLocalComponent))
                             return await dynamicLocalComponent.GetVertex(id);
                     }
                 }
@@ -360,25 +360,25 @@ namespace CartaCore.Operations.Graphs
             }
 
             /// <inheritdoc />
-            public async IAsyncEnumerable<IVertex> GetVertices()
+            public async IAsyncEnumerable<Vertex> GetVertices()
             {
                 // We make sure to clear out the algorithm storage at the start of any component method.
                 _ids.Clear();
                 switch (Direction)
                 {
                     case HierarchicalDirectionType.Ancestors:
-                        if (Components.TryFind(out IDynamicInComponent<IVertex, IEdge> dynamicInComponent))
+                        if (Components.TryFind(out IDynamicInComponent<Vertex, Edge> dynamicInComponent))
                         {
-                            await foreach (IVertex vertex in GetAncestors(Vertex, Depth, dynamicInComponent))
+                            await foreach (Vertex vertex in GetAncestors(Vertex, Depth, dynamicInComponent))
                                 yield return vertex;
                         }
                         else
                             throw new InvalidCastException("Graph does not contain a dynamic in component.");
                         break;
                     case HierarchicalDirectionType.Descendants:
-                        if (Components.TryFind(out IDynamicOutComponent<IVertex, IEdge> dynamicOutComponent))
+                        if (Components.TryFind(out IDynamicOutComponent<Vertex, Edge> dynamicOutComponent))
                         {
-                            await foreach (IVertex vertex in GetDescendants(Vertex, Depth, dynamicOutComponent))
+                            await foreach (Vertex vertex in GetDescendants(Vertex, Depth, dynamicOutComponent))
                                 yield return vertex;
                         }
                         else
@@ -414,29 +414,32 @@ namespace CartaCore.Operations.Graphs
                 IncludeRoots = input.IncludeRoots
             };
 
+            // Branch the component stack.
+            graph.Components = graph.Components.Branch();
+
             // Rooted components.
-            if (input.IncludeRoots) graph.Components.AddTop<IRootedComponent>(component);
-            else graph.Components.RemoveAll<IRootedComponent>();
+            if (input.IncludeRoots) graph.Components.Append<IRootedComponent>(component);
+            else graph.Components.Remove<IRootedComponent>();
 
             // Dynamic and enumerable components.
             if (input.Direction == HierarchicalDirectionType.Ancestors)
             {
-                if (graph.Components.TryFind<IDynamicInComponent<IVertex, IEdge>>(out _))
+                if (graph.Components.TryFind<IDynamicInComponent<Vertex, Edge>>(out _))
                 {
-                    graph.Components.AddTop<IEnumerableComponent<IVertex, IEdge>>(component);
+                    graph.Components.Append<IEnumerableComponent<Vertex, Edge>>(component);
                     // TODO: graph.Components.AddTop<IDynamicInComponent<IVertex, IEdge>>(component);
-                    if (graph.Components.TryFind<IDynamicLocalComponent<IVertex, IEdge>>(out _))
-                        graph.Components.AddTop<IDynamicLocalComponent<IVertex, IEdge>>(component);
+                    if (graph.Components.TryFind<IDynamicLocalComponent<Vertex, Edge>>(out _))
+                        graph.Components.Append<IDynamicLocalComponent<Vertex, Edge>>(component);
                 }
             }
             if (input.Direction == HierarchicalDirectionType.Descendants)
             {
-                if (graph.Components.TryFind<IDynamicOutComponent<IVertex, IEdge>>(out _))
+                if (graph.Components.TryFind<IDynamicOutComponent<Vertex, Edge>>(out _))
                 {
-                    graph.Components.AddTop<IEnumerableComponent<IVertex, IEdge>>(component);
+                    graph.Components.Append<IEnumerableComponent<Vertex, Edge>>(component);
                     // TODO: graph.Components.AddTop<IDynamicOutComponent<IVertex, IEdge>>(component);
-                    if (graph.Components.TryFind<IDynamicLocalComponent<IVertex, IEdge>>(out _))
-                        graph.Components.AddTop<IDynamicLocalComponent<IVertex, IEdge>>(component);
+                    if (graph.Components.TryFind<IDynamicLocalComponent<Vertex, Edge>>(out _))
+                        graph.Components.Append<IDynamicLocalComponent<Vertex, Edge>>(component);
                 }
             }
 
@@ -450,8 +453,8 @@ namespace CartaCore.Operations.Graphs
             if (parameters is SelectHierarchicalParameters typedParameters)
             {
                 // We need to get the vertex from the source graph.
-                IVertex vertex;
-                if (source.Components.TryFind(out IDynamicLocalComponent<IVertex, IEdge> dynamicComponent))
+                Vertex vertex;
+                if (source.Components.TryFind(out IDynamicLocalComponent<Vertex, Edge> dynamicComponent))
                     vertex = await dynamicComponent.GetVertex(typedParameters.Id);
                 else
                     throw new InvalidOperationException("The source graph does not support dynamic local vertices.");
