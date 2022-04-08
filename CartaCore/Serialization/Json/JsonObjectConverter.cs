@@ -11,6 +11,11 @@ namespace CartaCore.Serialization.Json
     public class JsonObjectConverter : JsonConverter<object>
 
     {
+        private static bool IsBoolean(JsonTokenType tokenType)
+        {
+            return tokenType == JsonTokenType.True || tokenType == JsonTokenType.False;
+        }
+
         /// <inheritdoc />
         public override object Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
@@ -28,13 +33,43 @@ namespace CartaCore.Serialization.Json
                     return reader.GetString();
                 case JsonTokenType.Null:
                     return null;
+
                 case JsonTokenType.StartArray:
                     // Try to convert into array.
                     List<object> array = new();
+                    bool sameTokenType = true;
+                    JsonTokenType prevTokenType = JsonTokenType.Null;
                     while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
+                    {
+                        JsonTokenType tokenType = reader.TokenType;
                         array.Add(Read(ref reader, typeToConvert, options));
+                        if (tokenType != prevTokenType &&
+                            prevTokenType != JsonTokenType.Null &&
+                            !IsBoolean(tokenType) && !IsBoolean(prevTokenType)) sameTokenType = false;
+                        prevTokenType = tokenType;
+                    }
                     if (reader.TokenType != JsonTokenType.EndArray) throw new JsonException();
-                    return array.ToArray();
+                    if (sameTokenType)
+                    {
+                        switch (prevTokenType)
+                        {
+                            case JsonTokenType.String:
+                                string[] stringArray = new string[array.Count];
+                                for (int k = 0; k < array.Count; k++) stringArray[k] = (string)array[k];
+                                return stringArray;
+                            case JsonTokenType.Number:
+                                double[] numberArray = new double[array.Count];
+                                for (int k = 0; k < array.Count; k++) numberArray[k] = (double)array[k];
+                                return numberArray;
+                            case JsonTokenType.True:
+                            case JsonTokenType.False:
+                                bool[] boolArray = new bool[array.Count];
+                                for (int k = 0; k < array.Count; k++) boolArray[k] = (bool)array[k];
+                                return boolArray;
+                        }
+                    }
+                    return array;
+
                 case JsonTokenType.StartObject:
                     // Try to convert into dictionary.
                     Dictionary<string, object> map = new();
@@ -52,6 +87,7 @@ namespace CartaCore.Serialization.Json
                     }
                     if (reader.TokenType != JsonTokenType.EndObject) throw new JsonException();
                     return map;
+
                 default:
                     throw new JsonException("Unsupported JSON format.");
             }
