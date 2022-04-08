@@ -48,7 +48,7 @@ namespace CartaCore.Persistence
 
             // Load the DynamoDB table
             TableName = tableName;
-            DbTable = Table.LoadTable(Client, TableName);
+            DbTable = Table.LoadTable(Client, TableName, true);
         }
 
         /// <summary>
@@ -73,7 +73,7 @@ namespace CartaCore.Persistence
 
             // Load the DynamoDB table
             TableName = tableName;
-            DbTable = Table.LoadTable(Client, TableName);
+            DbTable = Table.LoadTable(Client, TableName, true);
         }
 
         private static Document GetPutItem(DbDocument dbDocument)
