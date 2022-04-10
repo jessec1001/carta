@@ -41,6 +41,7 @@ namespace CartaCore.Operations.Graphs
     [OperationName(Display = "Generate Hub Graph", Type = "generateHubGraph")]
     [OperationTag(OperationTags.Graph)]
     [OperationTag(OperationTags.Synthetic)]
+    [OperationHidden]
     public class HubGraphOperation : TypedOperation
     <
         HubGraphOperationIn,

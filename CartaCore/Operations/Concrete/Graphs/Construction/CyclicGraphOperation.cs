@@ -40,6 +40,7 @@ namespace CartaCore.Operations.Graphs
     [OperationName(Display = "Generate Cyclic Graph", Type = "generateCyclicGraph")]
     [OperationTag(OperationTags.Graph)]
     [OperationTag(OperationTags.Synthetic)]
+    [OperationHidden]
     public class CyclicGraphOperation : TypedOperation
     <
         CyclicGraphOperationIn,

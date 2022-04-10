@@ -39,6 +39,7 @@ namespace CartaCore.Operations
     /// </summary>
     [OperationName(Display = "Delay", Type = "delay")]
     [OperationTag(OperationTags.Workflow)]
+    [OperationHidden]
     public class DelayOperation<TValue> : TypedOperation
     <
         DelayOperationIn<TValue>,

@@ -31,6 +31,7 @@ namespace CartaCore.Operations.Arrays
     /// </summary>
     [OperationName(Display = "Array Length", Type = "arrayLength")]
     [OperationTag(OperationTags.Array)]
+    [OperationHidden]
     public class ArrayLengthOperation : TypedOperation
     <
         ArrayLengthOperationIn,

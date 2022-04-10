@@ -39,6 +39,7 @@ namespace CartaCore.Operations.Arrays
     /// </summary>
     [OperationName(Display = "Array Item", Type = "arrayItem")]
     [OperationTag(OperationTags.Array)]
+    [OperationHidden]
     public class ArrayItemOperation<TItem> : TypedOperation
     <
         ArrayItemOperationIn<TItem>,

@@ -42,11 +42,11 @@ namespace CartaCore.Operations.Graphs
     }
 
     /// <summary>
-    /// Excludes the vertices of a graph by matching their identifier.
+    /// Filters the vertices of a graph by matching their identifier.
     /// </summary>
-    [OperationName(Display = "Exclude Vertices by ID", Type = "excludeVertexById")]
+    [OperationName(Display = "Filter Vertices by ID", Type = "filterVertexById")]
     [OperationTag(OperationTags.Graph)]
-    [OperationSelector("exclude")]
+    [OperationSelector("id")]
     public class SelectVertexByIdOperation : TypedOperation
     <
         SelectVertexByIdOperationIn,
@@ -62,7 +62,11 @@ namespace CartaCore.Operations.Graphs
 
             // Attach the filter component to the graph.
             Graph graph = input.Graph;
-            FilterVertexComponent component = new((vertex) => Task.FromResult(!input.Ids.Any((id) => vertex.Id == id)));
+            FilterVertexComponent component = new(
+                input.Exclude
+                    ? (vertex) => Task.FromResult(!input.Ids.Any((id) => vertex.Id == id))
+                    : (vertex) => Task.FromResult(input.Ids.Any((id) => vertex.Id == id))
+            );
             component.Attach(graph);
 
             return Task.FromResult(new SelectVertexByIdOperationOut() { Graph = graph });

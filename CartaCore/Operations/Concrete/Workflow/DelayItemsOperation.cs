@@ -43,6 +43,7 @@ namespace CartaCore.Operations
     /// <typeparam name="TValue">The type of item.</typeparam>
     [OperationName(Display = "Delay Items", Type = "delayItems")]
     [OperationTag(OperationTags.Workflow)]
+    [OperationHidden]
     public class DelayItemsOperation<TValue> : TypedOperation
     <
         DelayItemsOperationIn<TValue>,
