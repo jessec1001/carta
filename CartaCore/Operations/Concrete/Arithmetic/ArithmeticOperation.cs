@@ -79,6 +79,7 @@ namespace CartaCore.Operations.Arithmetic
     /// </summary>
     [OperationName(Display = "Arithmetic", Type = "arithmetic")]
     [OperationTag(OperationTags.Arithmetic)]
+    [OperationHidden]
     public class ArithmeticOperation : TypedOperation
     <
         ArithmeticOperationIn,

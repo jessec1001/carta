@@ -83,6 +83,7 @@ namespace CartaCore.Operations.Arithmetic
     /// </summary>
     [OperationName(Display = "Comparison", Type = "comparison")]
     [OperationTag(OperationTags.Arithmetic)]
+    [OperationHidden]
     public class ComparisonOperation : TypedOperation
     <
         ComparisonOperationIn,

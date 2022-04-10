@@ -53,6 +53,7 @@ namespace CartaCore.Operations.Distribution
     [OperationName(Display = "Sample Poisson Distribution", Type = "samplePoisson")]
     [OperationTag(OperationTags.Statistics)]
     [OperationTag(OperationTags.Synthetic)]
+    [OperationHidden]
     public class SamplePoissonOperation : TypedOperation
     <
         SamplePoissonOperationIn,

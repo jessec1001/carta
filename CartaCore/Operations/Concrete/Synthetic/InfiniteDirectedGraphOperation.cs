@@ -65,6 +65,7 @@ namespace CartaCore.Operations
     [OperationName(Display = "Infinite Directed Graph", Type = "syntheticIdg")]
     [OperationTag(OperationTags.Graph)]
     [OperationTag(OperationTags.Synthetic)]
+    [OperationHidden]
     public class InfiniteDirectedGraphOperation : TypedOperation
     <
         InfiniteDirectedGraphOperationIn,

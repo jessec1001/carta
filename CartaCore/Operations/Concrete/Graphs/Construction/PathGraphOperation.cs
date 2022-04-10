@@ -41,6 +41,7 @@ namespace CartaCore.Operations.Graphs
     [OperationName(Display = "Generate Path Graph", Type = "generatePathGraph")]
     [OperationTag(OperationTags.Graph)]
     [OperationTag(OperationTags.Synthetic)]
+    [OperationHidden]
     public class PathGraphOperation : TypedOperation
     <
         PathGraphOperationIn,

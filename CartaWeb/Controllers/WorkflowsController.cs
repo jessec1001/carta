@@ -38,7 +38,6 @@ namespace CartaWeb.Controllers
 
                         Display = workflowItem.Name,
                         Description = workflowItem.Description,
-                        Tags = Array.Empty<string>(),
                     };
                 })
                 .ToArray();

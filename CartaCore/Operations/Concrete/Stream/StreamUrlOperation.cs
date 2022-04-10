@@ -34,6 +34,7 @@ namespace CartaCore.Operations
     /// </summary>
     [OperationName(Display = "Stream Data from URL", Type = "streamUrl")]
     [OperationTag(OperationTags.Loading)]
+    [OperationHidden]
     public class StreamUrlOperation : TypedOperation
     <
         StreamUrlOperationIn,

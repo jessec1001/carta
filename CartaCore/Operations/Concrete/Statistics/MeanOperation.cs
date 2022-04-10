@@ -33,6 +33,7 @@ namespace CartaCore.Operations
     /// </summary>
     [OperationName(Display = "Statistical Mean", Type = "statsMean")]
     [OperationTag(OperationTags.Statistics)]
+    [OperationHidden]
     public class MeanOperation : TypedOperation
     <
         MeanOperationIn,

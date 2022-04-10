@@ -35,6 +35,7 @@ namespace CartaCore.Operations.Graphs
     [OperationName(Display = "Generate Null Graph", Type = "generateNullGraph")]
     [OperationTag(OperationTags.Graph)]
     [OperationTag(OperationTags.Synthetic)]
+    [OperationHidden]
     public class NullGraphOperation : TypedOperation
     <
         NullGraphOperationIn,

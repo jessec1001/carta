@@ -40,6 +40,7 @@ namespace CartaCore.Operations
     /// </summary>
     [OperationName(Display = "Statistical Deviation", Type = "statsDeviation")]
     [OperationTag(OperationTags.Statistics)]
+    [OperationHidden]
     public class DeviationOperation : TypedOperation
     <
         DeviationOperationIn,

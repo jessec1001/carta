@@ -37,6 +37,7 @@ namespace CartaCore.Operations
     /// </summary>
     [OperationName(Display = "Statistical Extent", Type = "statsExtent")]
     [OperationTag(OperationTags.Statistics)]
+    [OperationHidden]
     public class ExtentOperation : TypedOperation
     <
         ExtentOperationIn,
