@@ -37,6 +37,7 @@ namespace CartaCore.Operations.Arithmetic
     [OperationName(Display = "Prime Factorization", Type = "primeFactor")]
     [OperationTag(OperationTags.Arithmetic)]
     [OperationTag(OperationTags.NumberTheory)]
+    [OperationHidden]
     public class PrimeFactorOperation : TypedOperation
     <
         PrimeFactorOperationIn,

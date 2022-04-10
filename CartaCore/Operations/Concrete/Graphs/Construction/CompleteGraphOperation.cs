@@ -35,6 +35,7 @@ namespace CartaCore.Operations.Graphs
     [OperationName(Display = "Generate Complete Graph", Type = "generateCompleteGraph")]
     [OperationTag(OperationTags.Graph)]
     [OperationTag(OperationTags.Synthetic)]
+    [OperationHidden]
     public class CompleteGraphOperation : TypedOperation
     <
         CompleteGraphOperationIn,

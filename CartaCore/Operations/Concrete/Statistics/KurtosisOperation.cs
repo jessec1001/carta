@@ -33,6 +33,7 @@ namespace CartaCore.Operations
     /// </summary>
     [OperationName(Display = "Statistical Kurtosis", Type = "statsKurtosis")]
     [OperationTag(OperationTags.Statistics)]
+    [OperationHidden]
     public class KurtosisOperation : TypedOperation
     <
         KurtosisOperationIn,

@@ -59,6 +59,7 @@ namespace CartaCore.Operations.Distribution
     [OperationName(Display = "Sample Normal Distribution", Type = "sampleNormal")]
     [OperationTag(OperationTags.Statistics)]
     [OperationTag(OperationTags.Synthetic)]
+    [OperationHidden]
     public class SampleNormalOperation : TypedOperation
     <
         SampleNormalOperationIn,

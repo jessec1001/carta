@@ -59,6 +59,7 @@ namespace CartaCore.Operations
     /// </summary>
     [OperationName(Display = "Parse CSV", Type = "parseCsv")]
     [OperationTag(OperationTags.Parsing)]
+    [OperationHidden]
     public class ParseCsvOperation : TypedOperation
     <
         ParseCsvOperationIn,

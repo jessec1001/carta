@@ -24,6 +24,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Hosting;
 using NJsonSchema;
 using NUlid;
 
@@ -45,17 +46,20 @@ namespace CartaWeb.Controllers
     public class OperationsController : ControllerBase
     {
         // TODO: This singleton service should probably be interface-ified and should be given a better name.
+        private readonly bool _isProduction;
         private readonly BackgroundJobQueue _jobQueue;
         private readonly ILogger<OperationsController> _logger;
         private readonly Persistence _persistence;
 
         /// <inheritdoc />
         public OperationsController(
+            IWebHostEnvironment env,
             ILogger<OperationsController> logger,
             INoSqlDbContext noSqlDbContext,
             BackgroundJobQueue jobQueue,
             IOptions<AwsCdkOptions> options)
         {
+            _isProduction = env.EnvironmentName == "Production";
             _jobQueue = jobQueue;
             _logger = logger;
             _persistence = new Persistence(noSqlDbContext, options.Value);
@@ -324,6 +328,9 @@ namespace CartaWeb.Controllers
         /// <param name="filterTags">
         /// An optional set of tags used to filter operations. If specified, only operations containing at least one of
         /// the specified tags will be returned.
+        /// <param name="workspaceId">
+        /// The workspace identifier.
+        /// </param>
         /// </param>
         /// <param name="limit">
         /// A limit on the number of results that are returned. If not specified, all operations are returned.
@@ -342,15 +349,17 @@ namespace CartaWeb.Controllers
             // TODO: (Permissions) This endpoint should be accessible to any user.
             //       For now, until we add permissions on the toolbox level, every operation type is available.
 
-            // Get the descriptions for all of the operations.
-            OperationDescription[] descriptionsSimple = OperationHelper.DescribeOperationTypes().ToArray();
+            /*OperationDescription[] descriptionsSimple = OperationHelper.DescribeOperationTypes().ToArray();
             OperationDescription[] descriptionsWorkflow = await WorkflowsController.LoadWorkflowDescriptionsAsync(_persistence);
             OperationDescription[] descriptions = new OperationDescription
             [
                 descriptionsSimple.Length + descriptionsWorkflow.Length
             ];
             descriptionsSimple.CopyTo(descriptions, 0);
-            descriptionsWorkflow.CopyTo(descriptions, descriptionsSimple.Length);
+            descriptionsWorkflow.CopyTo(descriptions, descriptionsSimple.Length);*/ //For now, we will not share user workflows
+
+            // Get the descriptions for all of the operations.
+            OperationDescription[] descriptions = OperationHelper.DescribeOperationTypes(!_isProduction).ToArray();
 
             // If the tags filter was specified, we filter operations based on the union of tags specified.
             // That is, if any of the specified tags exist on the operation description, that operation is included.

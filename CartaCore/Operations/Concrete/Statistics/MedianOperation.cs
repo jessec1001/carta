@@ -33,6 +33,7 @@ namespace CartaCore.Operations
     /// </summary>
     [OperationName(Display = "Statistical Median", Type = "statsMedian")]
     [OperationTag(OperationTags.Statistics)]
+    [OperationHidden]
     public class MedianOperation : TypedOperation
     <
         MedianOperationIn,
@@ -44,7 +45,7 @@ namespace CartaCore.Operations
         {
             // We calculate the median asynchronously.
             // Note that we do not actually have an algorithm to do this efficiently.
-            double median = await input.Values.ComputeMedianAsync(); 
+            double median = await input.Values.ComputeMedianAsync();
             return new MedianOperationOut() { Median = median };
         }
     }

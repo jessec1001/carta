@@ -56,6 +56,7 @@ namespace CartaCore.Operations.Distribution
     [OperationName(Display = "Sample Uniform Distribution", Type = "sampleUniform")]
     [OperationTag(OperationTags.Statistics)]
     [OperationTag(OperationTags.Synthetic)]
+    [OperationHidden]
     public class SampleUniformOperation : TypedOperation
     <
         SampleUniformOperationIn,

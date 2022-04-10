@@ -51,6 +51,7 @@ namespace CartaCore.Operations.Distribution
     [OperationName(Display = "Sample Chi-Squared Distribution", Type = "sampleChiSquared")]
     [OperationTag(OperationTags.Statistics)]
     [OperationTag(OperationTags.Synthetic)]
+    [OperationHidden]
     public class SampleChiSquaredOperation : TypedOperation
     <
         SampleChiSquaredOperationIn,

@@ -107,6 +107,7 @@ namespace CartaCore.Operations.Visualization
     /// </summary>
     [OperationName(Display = "Histogram Plot", Type = "visualizeHistogramPlot")]
     [OperationTag(OperationTags.Visualization)]
+    [OperationHidden]
     public class PlotHistogramOperation : TypedOperation
     <
         PlotHistogramOperationIn,

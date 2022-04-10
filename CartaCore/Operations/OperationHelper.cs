@@ -125,12 +125,15 @@ namespace CartaCore.Operations
         /// <summary>
         /// Creates descriptions of all concretely-implemented, public, operation types within a particular assembly.
         /// </summary>
+        /// <param name="includeHidden">
+        /// Whether to include operations that have been marked with the <see cref="OperationHiddenAttribute" />.
+        /// </param>
         /// <param name="assembly">
         /// The assembly to search for operation types within.
         /// If not specified, the operations assembly is used.
         /// </param>
         /// <returns>An enumeration of operation descriptions.</returns>
-        public static IEnumerable<OperationDescription> DescribeOperationTypes(Assembly assembly = null)
+        public static IEnumerable<OperationDescription> DescribeOperationTypes(bool includeHidden = false, Assembly assembly = null)
         {
             // Get the types of operations.
             IEnumerable<Type> operationTypes = FindOperationTypes(assembly);
@@ -138,11 +141,15 @@ namespace CartaCore.Operations
             // Generate the descriptions for each of the operation types.
             foreach (Type type in operationTypes)
             {
-                // Get the description for this type.
-                OperationDescription description = DescribeOperationType(type);
+                if (includeHidden || type.GetCustomAttribute<OperationHiddenAttribute>() is null)
+                {
 
-                // If the description is valid, yield it.
-                yield return description;
+                    // Get the description for this type.
+                    OperationDescription description = DescribeOperationType(type);
+
+                    // If the description is valid, yield it.
+                    yield return description;
+                }
             }
         }
         /// <summary>

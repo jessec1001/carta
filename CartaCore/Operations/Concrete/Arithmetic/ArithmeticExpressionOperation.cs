@@ -52,8 +52,9 @@ namespace CartaCore.Operations.Arithmetic
     /// - Logical (And: `&amp;`, Or: `|`, Not: `~`)
     /// - Grouping: `()`
     /// </summary>
-    [OperationTag(OperationTags.Arithmetic)]
     [OperationName(Display = "Arithmetic Expression", Type = "arithmeticExpression")]
+    [OperationTag(OperationTags.Arithmetic)]
+    [OperationHidden]
     public class ArithmeticExpressionOperation : TypedOperation
     <
         ArithmeticExpressionOperationIn,

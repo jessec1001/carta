@@ -33,6 +33,7 @@ namespace CartaCore.Operations
     /// </summary>
     [OperationName(Display = "Statistical Skew", Type = "statsSkew")]
     [OperationTag(OperationTags.Statistics)]
+    [OperationHidden]
     public class SkewOperation : TypedOperation
     <
         SkewOperationIn,
