@@ -55,7 +55,7 @@ const ScatterVisualizer: FC<ScatterVisualizerProps> = ({
   // We store a reference to the plot so that we can update it when the data changes.
   // Notice that we assume a 2D scatter plot until we initially receive the data.
   const plotRef = useRef<
-    ((ScatterPlot2d | ScatterPlot3d) & EventDriver<IScatterPlotEvents>)
+    (ScatterPlot2d | ScatterPlot3d) & EventDriver<IScatterPlotEvents>
   >(new ScatterPlot2d() as any);
 
   // Construct the scatter plot.
@@ -70,7 +70,7 @@ const ScatterVisualizer: FC<ScatterVisualizerProps> = ({
   // We store the data in state.
   const [data, setData] = useState<{
     data: Map<string, IVisualizePoint>;
-    colormap?: string
+    colormap?: string;
   }>({ data: new Map() });
 
   // We keep a reference to the size of the element.
@@ -116,11 +116,11 @@ const ScatterVisualizer: FC<ScatterVisualizerProps> = ({
           x: x as number,
           y: y as number,
           z: z as number,
-          ...rest
+          ...rest,
         };
         return datum;
       }),
-      colormap: data.colormap
+      colormap: data.colormap,
     };
     plotRef.current.render();
   }, [data]);
@@ -133,7 +133,8 @@ const ScatterVisualizer: FC<ScatterVisualizerProps> = ({
       const scatter = data.result;
 
       // Check that the plot is well-defined.
-      if (!scatter || !("type" in scatter) || scatter.type !== "scatter") return;
+      if (!scatter || !("type" in scatter) || scatter.type !== "scatter")
+        return;
 
       // Filter out data that cannot be displayed.
       scatter.data = scatter.data.filter((d) => {
@@ -144,7 +145,10 @@ const ScatterVisualizer: FC<ScatterVisualizerProps> = ({
       });
 
       // Check if we need to replace the plot with a different dimensional plot.
-      if (plotRef.current instanceof ScatterPlot2d && scatter.dimensions === 3) {
+      if (
+        plotRef.current instanceof ScatterPlot2d &&
+        scatter.dimensions === 3
+      ) {
         const plot2d = plotRef.current;
         const plot3d = new ScatterPlot3d();
 
@@ -155,7 +159,10 @@ const ScatterVisualizer: FC<ScatterVisualizerProps> = ({
         plot3d.container = plot2d.container;
         plot3d.layout = plot2d.layout;
       }
-      if (plotRef.current instanceof ScatterPlot3d && scatter.dimensions === 3) {
+      if (
+        plotRef.current instanceof ScatterPlot3d &&
+        scatter.dimensions === 3
+      ) {
         const plot3d = plotRef.current;
         const plot2d = new ScatterPlot2d();
 
@@ -170,17 +177,20 @@ const ScatterVisualizer: FC<ScatterVisualizerProps> = ({
       // Set the data.
       setData(() => {
         const points: Map<string, IScatterPoint2d | IScatterPoint3d> = new Map(
-          scatter.data.map(({ x, y, z, ...rest }, i) => [i.toString(), {
-            id: i.toString(),
-            x: x as number,
-            y: y as number,
-            z: z as number,
-            ...rest,
-          }])
+          scatter.data.map(({ x, y, z, ...rest }, i) => [
+            i.toString(),
+            {
+              id: i.toString(),
+              x: x as number,
+              y: y as number,
+              z: z as number,
+              ...rest,
+            },
+          ])
         );
         return {
           data: points,
-          colormap: scatter.colormap
+          colormap: scatter.colormap,
         };
       });
     };
