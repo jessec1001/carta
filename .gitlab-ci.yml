@@ -101,7 +101,7 @@ docs-projects:
   only:
     - dev-v1.0.0rc1
   dependencies:
-    - build
+    - publish
   artifacts:
     paths:
       - docfx_project/_site
