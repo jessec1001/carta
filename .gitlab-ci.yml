@@ -21,6 +21,7 @@ workflow:
       variables:
         AWS_ACCESS_KEY_ID: $PRODUCTION_AWS_ACCESS_KEY_ID
         AWS_SECRET_ACCESS_KEY: $PRODUCTION_AWS_SECRET_ACCESS_KEY
+    - when: always
 
 publish:
   stage: publish
