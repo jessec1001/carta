@@ -7,7 +7,7 @@ pip3 --version
 
 # Install pipenv.
 echo "Installing pipenv..."
-sudo -H -u webapp pip3 install --user pipenv
+sudo -H -u webapp pip3 install --ignore-installed --user pipenv
 echo "pipenv install completed"
 
 # Change to the execution directory.
