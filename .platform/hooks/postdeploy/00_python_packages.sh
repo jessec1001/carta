@@ -4,13 +4,19 @@
 pwd
 python3 --version
 pip3 --version
-#
-## Install pipenv.
-#sudo -H -u webapp pip3 install --user pipenv
-#
-## Change to the execution directory.
-#cd /var/app/current
-#
-## Install Python packages.
-## After this point, you can run Python scripts with "pipenv run python3 script.py".
-#sudo -H -u webapp /home/webapp/.local/bin/pipenv install numpy
+
+# Install pipenv.
+echo "Installing pipenv..."
+sudo -H -u webapp pip3 install --user pipenv
+echo "pipenv install completed"
+
+# Change to the execution directory.
+cd /var/app/current
+echo "Content of /var/app/current:"
+ls -alh 
+
+# Install Python packages.
+# After this point, you can run Python scripts with "pipenv run python3 script.py".
+echo "Installing numpy..."
+sudo -H -u webapp /home/webapp/.local/bin/pipenv install numpy
+echo "numpy install completed"
