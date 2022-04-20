@@ -12,15 +12,20 @@ stages:
   - deploy
 
 variables:
-  STAGING_AWS_ACCESS_KEY_ID: $STAGING_AWS_ACCESS_KEY_ID
-  STAGING_AWS_SECRET_ACCESS_KEY: $STAGING_AWS_SECRET_ACCESS_KEY
-    
-publish-staging:
+  AWS_ACCESS_KEY_ID: $STAGING_AWS_ACCESS_KEY_ID
+  AWS_SECRET_ACCESS_KEY: $STAGING_AWS_SECRET_ACCESS_KEY
+
+workflow:
+  rules:
+    - if: $CI_COMMIT_TAG
+      variables:
+        AWS_ACCESS_KEY_ID: $PRODUCTION_AWS_ACCESS_KEY_ID
+        AWS_SECRET_ACCESS_KEY: $PRODUCTION_AWS_SECRET_ACCESS_KEY
+
+publish:
   stage: publish
-  only:
-    - dev-v1.0.0rc1
-  except:
-    - tags
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   artifacts:
     paths:
       - package.zip
@@ -33,27 +38,9 @@ publish-staging:
     - echo "[cdk]" > ~/.aws/config 
     - echo "region = $AWS_DEFAULT_REGION"  >> ~/.aws/config 
     - echo "[cdk]" > ~/.aws/credentials
-    - echo "aws_access_key_id = $STAGING_AWS_ACCESS_KEY_ID"  >> ~/.aws/credentials
-    - echo "aws_secret_access_key = $STAGING_AWS_SECRET_ACCESS_KEY"  >> ~/.aws/credentials
+    - echo "aws_access_key_id = $AWS_ACCESS_KEY_ID"  >> ~/.aws/credentials
+    - echo "aws_secret_access_key = $AWS_SECRET_ACCESS_KEY"  >> ~/.aws/credentials
     - cdk deploy ResourceStack --profile cdk --outputs-file CartaWeb/appsettings.CDK.json
-    - dotnet publish --configuration Release CartaWeb/ -o package
-    - cp -r .platform/ package/
-    - cd package
-    - zip -r ../package.zip .
-
-publish-production:
-  stage: publish
-  only:
-    - tags
-  artifacts:
-    paths:
-      - package.zip
-  script:
-    - curl -sL https://deb.nodesource.com/setup_current.x | bash -
-    - apt-get install -y nodejs
-    - apt-get install -y zip unzip
-    - npm install -g aws-cdk
-    - cdk deploy ResourceStack --outputs-file CartaWeb/appsettings.CDK.json
     - dotnet publish --configuration Release CartaWeb/ -o package
     - cp -r .platform/ package/
     - cd package
@@ -83,8 +70,8 @@ test:
 
 docs-coverage:
   stage: docs
-  only:
-    - dev-v1.0.0rc1
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   dependencies:
     - test
   artifacts:
@@ -98,8 +85,8 @@ docs-coverage:
 docs-projects:
   image: erothejoker/docker-docfx:latest
   stage: docs
-  only:
-    - dev-v1.0.0rc1
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   dependencies:
     - publish
   artifacts:
@@ -110,8 +97,8 @@ docs-projects:
 
 pages:
   stage: deploy
-  only:
-    - dev-v1.0.0rc1
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   dependencies:
     - docs-projects
     - docs-coverage
@@ -122,14 +109,12 @@ pages:
     - mv docfx_project/_site public/
     - mv coverage/ public/coverage/
 
-deploy-staging:
+deploy:
   stage: deploy
-  only:
-    - dev-v1.0.0rc1
-  except:
-    - tags
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   dependencies:
-    - publish-staging
+    - publish
   script:
     - curl -sL https://deb.nodesource.com/setup_current.x | bash -
     - apt-get install -y nodejs
@@ -138,22 +123,8 @@ deploy-staging:
     - echo "[cdk]" > ~/.aws/config 
     - echo "region = $AWS_DEFAULT_REGION"  >> ~/.aws/config 
     - echo "[cdk]" > ~/.aws/credentials
-    - echo "aws_access_key_id = $STAGING_AWS_ACCESS_KEY_ID"  >> ~/.aws/credentials
-    - echo "aws_secret_access_key = $STAGING_AWS_SECRET_ACCESS_KEY"  >> ~/.aws/credentials
+    - echo "aws_access_key_id = $AWS_ACCESS_KEY_ID"  >> ~/.aws/credentials
+    - echo "aws_secret_access_key = $AWS_SECRET_ACCESS_KEY"  >> ~/.aws/credentials
     - COMMIT_SHA=`echo $CI_COMMIT_SHA | cut -c1-8`
     - mv package.zip package-$COMMIT_SHA.zip
     - cdk deploy ElasticBeanstalkStack --profile cdk --context commitSHA=$COMMIT_SHA --no-rollback
-
-deploy-production:
-  stage: deploy
-  only:
-    - tags
-  dependencies:
-    - publish-production
-  script:
-    - curl -sL https://deb.nodesource.com/setup_current.x | bash -
-    - apt-get install -y nodejs
-    - npm install -g aws-cdk
-    - COMMIT_SHA=`echo $CI_COMMIT_SHA | cut -c1-8`
-    - mv package.zip package-$COMMIT_SHA.zip
-    - cdk deploy ElasticBeanstalkStack --context commitSHA=$COMMIT_SHA --no-rollback
