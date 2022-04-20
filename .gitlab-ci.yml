@@ -60,7 +60,6 @@ test:
   script:
     - curl -sL https://deb.nodesource.com/setup_current.x | bash -
     - apt-get install -y nodejs
-    - npm ci --cache $HOME/.npm --prefer-offline
     - >
       dotnet test 
       /p:CollectCoverage=true
