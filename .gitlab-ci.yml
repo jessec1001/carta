@@ -12,19 +12,19 @@ stages:
   - deploy
 
 variables:
-  AWS_ACCESS_KEY_ID: $DEV_AWS_ACCESS_KEY_ID
-  AWS_SECRET_ACCESS_KEY: $DEV_AWS_SECRET_ACCESS_KEY
+  EBS_ACCESS_KEY_ID: $DEV_AWS_ACCESS_KEY_ID
+  EBS_SECRET_ACCESS_KEY: $DEV_AWS_SECRET_ACCESS_KEY
   BRANCH: CU-2bfqpc9_Medium-Python-post-deployment-script-causes-deployment-errors_Michelle-Daya
 # TODO: revert 
-# AWS_ACCESS_KEY_ID: $STAGING_AWS_ACCESS_KEY_ID
-# AWS_SECRET_ACCESS_KEY: $STAGING_AWS_SECRET_ACCESS_KEY
+# EBS_ACCESS_KEY_ID: $STAGING_AWS_ACCESS_KEY_ID
+# EBS_SECRET_ACCESS_KEY: $STAGING_AWS_SECRET_ACCESS_KEY
 
 workflow:
   rules:
     - if: $CI_COMMIT_TAG
       variables:
-        AWS_ACCESS_KEY_ID: $PRODUCTION_AWS_ACCESS_KEY_ID
-        AWS_SECRET_ACCESS_KEY: $PRODUCTION_AWS_SECRET_ACCESS_KEY
+        EBS_ACCESS_KEY_ID: $PRODUCTION_AWS_ACCESS_KEY_ID
+        EBS_SECRET_ACCESS_KEY: $PRODUCTION_AWS_SECRET_ACCESS_KEY
     - when: always
 
 publish:
@@ -45,8 +45,8 @@ publish:
     - echo "[cdk]" > ~/.aws/config 
     - echo "region = $AWS_DEFAULT_REGION"  >> ~/.aws/config 
     - echo "[cdk]" > ~/.aws/credentials
-    - echo "aws_access_key_id = $AWS_ACCESS_KEY_ID"  >> ~/.aws/credentials
-    - echo "aws_secret_access_key = $AWS_SECRET_ACCESS_KEY"  >> ~/.aws/credentials
+    - echo "aws_access_key_id = $EBS_ACCESS_KEY_ID"  >> ~/.aws/credentials
+    - echo "aws_secret_access_key = $EBS_SECRET_ACCESS_KEY"  >> ~/.aws/credentials
     - cdk deploy ResourceStack --profile cdk --outputs-file CartaWeb/appsettings.CDK.json
     - dotnet publish --configuration Release CartaWeb/ -o package
     - cp -r .platform/ package/
@@ -138,8 +138,8 @@ deploy:
     - echo "[cdk]" > ~/.aws/config 
     - echo "region = $AWS_DEFAULT_REGION"  >> ~/.aws/config 
     - echo "[cdk]" > ~/.aws/credentials
-    - echo "aws_access_key_id = $AWS_ACCESS_KEY_ID"  >> ~/.aws/credentials
-    - echo "aws_secret_access_key = $AWS_SECRET_ACCESS_KEY"  >> ~/.aws/credentials
+    - echo "aws_access_key_id = $EBS_ACCESS_KEY_ID"  >> ~/.aws/credentials
+    - echo "aws_secret_access_key = $EBS_SECRET_ACCESS_KEY"  >> ~/.aws/credentials
     - COMMIT_SHA=`echo $CI_COMMIT_SHA | cut -c1-8`
     - mv package.zip package-$COMMIT_SHA.zip
     - cdk deploy ElasticBeanstalkStack --profile cdk --context commitSHA=$COMMIT_SHA --no-rollback
