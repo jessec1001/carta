@@ -12,8 +12,12 @@ stages:
   - deploy
 
 variables:
-  AWS_ACCESS_KEY_ID: $STAGING_AWS_ACCESS_KEY_ID
-  AWS_SECRET_ACCESS_KEY: $STAGING_AWS_SECRET_ACCESS_KEY
+  AWS_ACCESS_KEY_ID: $DEV_AWS_ACCESS_KEY_ID
+  AWS_SECRET_ACCESS_KEY: $DEV_AWS_SECRET_ACCESS_KEY
+  BRANCH: CU-2bfqpc9_Medium-Python-post-deployment-script-causes-deployment-errors_Michelle-Daya
+# TODO: revert 
+# AWS_ACCESS_KEY_ID: $STAGING_AWS_ACCESS_KEY_ID
+# AWS_SECRET_ACCESS_KEY: $STAGING_AWS_SECRET_ACCESS_KEY
 
 workflow:
   rules:
@@ -26,7 +30,9 @@ workflow:
 publish:
   stage: publish
   rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_BRANCH == $BRANCH
+    # TODO: revert
+    # - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   artifacts:
     paths:
       - package.zip
@@ -72,7 +78,9 @@ test:
 docs-coverage:
   stage: docs
   rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_BRANCH == $BRANCH
+    # TODO: revert
+    # - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   dependencies:
     - test
   artifacts:
@@ -87,7 +95,9 @@ docs-projects:
   image: erothejoker/docker-docfx:latest
   stage: docs
   rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_BRANCH == $BRANCH
+    # TODO: revert
+    # - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   dependencies:
     - publish
   artifacts:
@@ -99,7 +109,9 @@ docs-projects:
 pages:
   stage: deploy
   rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_BRANCH == $BRANCH
+    # TODO: revert
+    # - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   dependencies:
     - docs-projects
     - docs-coverage
@@ -113,7 +125,9 @@ pages:
 deploy:
   stage: deploy
   rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_BRANCH == $BRANCH
+    # TODO: revert
+    # - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   dependencies:
     - publish
   script:
