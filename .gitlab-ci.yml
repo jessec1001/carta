@@ -6,7 +6,7 @@ cache:
     - $HOME/.npm/
 
 stages:
-  - build
+  - publish
   - test
   - docs
   - deploy
@@ -15,18 +15,8 @@ variables:
   STAGING_AWS_ACCESS_KEY_ID: $STAGING_AWS_ACCESS_KEY_ID
   STAGING_AWS_SECRET_ACCESS_KEY: $STAGING_AWS_SECRET_ACCESS_KEY
     
-build:
-  stage: build
-  script:
-    - curl -sL https://deb.nodesource.com/setup_current.x | bash -
-    - apt-get install -y nodejs
-    - cd CartaWeb/ClientApp/
-    - npm ci --cache $HOME/.npm --prefer-offline
-    - cd ../../
-    - dotnet build --configuration Release
-
 publish-staging:
-  stage: build
+  stage: publish
   only:
     - dev-v1.0.0rc1
   except:
@@ -52,7 +42,7 @@ publish-staging:
     - zip -r ../package.zip .
 
 publish-production:
-  stage: build
+  stage: publish
   only:
     - tags
   artifacts:
@@ -81,7 +71,7 @@ test:
       - coverage.lcov
   script:
     - >
-      dotnet test --configuration Release
+      dotnet test 
       /p:CollectCoverage=true
       /p:CoverletOutputFormat=lcov
       /p:CoverletOutput='../coverage.lcov'
