@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Headers;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
+using Microsoft.AspNetCore.Rewrite;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -284,6 +285,9 @@ namespace CartaWeb
                     spa.UseReactDevelopmentServer(npmScript: "start");
                 }
             });
+
+            // Workaround for https://github.com/dotnet/aspnetcore/issues/5223
+            app.UseRewriter(new RewriteOptions().AddRedirect("index.html", "/"));
         }
     }
 }
