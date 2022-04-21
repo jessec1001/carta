@@ -7,7 +7,7 @@ pip3 --version
 
 # Install pipenv.
 echo "Installing pipenv..."
-sudo -H -u webapp pip3 install --ignore-installed --user pipenv
+sudo -H -u webapp pip3 install --user pipenv
 echo "pipenv install completed"
 
 # Change to the execution directory.
@@ -21,6 +21,9 @@ echo "Check pipfiles pre install:"
 ls -alh Pip*
 echo "Content of Pipfile:"
 cat Pipfile
+echo "Setup pipenv..."
+sudo -H -u webapp /home/webapp/.local/bin/pipenv install 
+echo "pipenv setup done"
 echo "Installing numpy..."
 sudo -H -u webapp /home/webapp/.local/bin/pipenv install numpy
 echo "numpy install completed"
