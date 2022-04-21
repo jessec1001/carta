@@ -263,6 +263,7 @@ namespace CartaWeb
             app.UseAuthentication();
             app.UseAuthorization();
             app.UseEndpoints(endpoints => endpoints.MapDefaultControllerRoute());
+            app.UseRewrite();
             app.UseSpa(spa =>
             {
                 spa.Options.DefaultPageStaticFileOptions = new StaticFileOptions()
@@ -285,9 +286,34 @@ namespace CartaWeb
                     spa.UseReactDevelopmentServer(npmScript: "start");
                 }
             });
+        }
 
-            // Workaround for https://github.com/dotnet/aspnetcore/issues/5223
-            app.UseRewriter(new RewriteOptions().AddRedirect("index.html", "/"));
+
+    }
+
+    /// <summary>
+    /// Appplication builder extension to work around 
+    ///  https://github.com/dotnet/aspnetcore/issues/5223
+    /// </summary>
+    public static class ApplicationBuilderExtensions
+    {
+        /// <summary>
+        /// Redirects root requests to always be GET requests
+        /// </summary>
+        /// <param name="builder">The application builder.</param>
+        public static IApplicationBuilder UseRewrite(this IApplicationBuilder builder)
+        {
+            builder.Use((context, next) =>
+            {
+                if (context.Request.Path == "/" && !HttpMethods.IsGet(context.Request.Method))
+                {
+                    context.Request.Method = "GET";
+                }
+
+                return next();
+            });
+            return builder;
         }
     }
+
 }
