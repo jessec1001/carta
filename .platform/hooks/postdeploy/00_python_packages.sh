@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Echo on
+set -x 
+
 # For logging purposes, make sure Python3 and Pip3 are installed.
 pwd
 python3 --version
@@ -12,22 +15,11 @@ echo "pipenv install completed"
 
 # Change to the execution directory.
 cd /var/app/current
-echo "Content of /var/app/current:"
-ls -alh 
+
+# Remove any previously installed environments
+# (Workaround for https://github.com/pypa/pipenv/issues/5052 which was run into)
+sudo -H -u webapp /home/webapp/.local/bin/pipenv --rm
 
 # Install Python packages.
 # After this point, you can run Python scripts with "pipenv run python3 script.py".
-echo "Check pipfiles pre install:"
-ls -alh Pip*
-echo "Content of Pipfile:"
-cat Pipfile
-echo "Setup pipenv..."
-sudo -H -u webapp /home/webapp/.local/bin/pipenv install 
-echo "pipenv setup done"
-echo "Installing numpy..."
 sudo -H -u webapp /home/webapp/.local/bin/pipenv install numpy
-echo "numpy install completed"
-echo "Check pipfiles post install:"
-ls -alh Pip*
-echo "Content of Pipfile:"
-cat Pipfile
