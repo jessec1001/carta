@@ -21,7 +21,7 @@ variables:
 
 workflow:
   rules:
-    - if: $CI_COMMIT_REF_NAME == $BRANCH && $CI_COMMIT_TAG != ""
+    - if: $CI_COMMIT_TAG
       variables:
       # TODO: revert to env variables
         EBS_ACCESS_KEY_ID: "PRODUCTION_AWS_ACCESS_KEY_ID"
@@ -31,9 +31,9 @@ workflow:
 publish:
   stage: publish
   rules:
-    - if: $CI_COMMIT_REF_NAME == $BRANCH
+    - if: $CI_COMMIT_BRANCH == $BRANCH || $CI_COMMIT_TAG =~ /^v\d+.\d+.\d+/
     # TODO: revert
-    # - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
+    # - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   artifacts:
     paths:
       - package.zip
@@ -79,9 +79,9 @@ test:
 docs-coverage:
   stage: docs
   rules:
-    - if: $CI_COMMIT_REF_NAME == $BRANCH
+    - if: $CI_COMMIT_BRANCH == $BRANCH || $CI_COMMIT_TAG =~ /^v\d+.\d+.\d+/
     # TODO: revert
-    # - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
+    # - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   dependencies:
     - test
   artifacts:
@@ -96,9 +96,9 @@ docs-projects:
   image: erothejoker/docker-docfx:latest
   stage: docs
   rules:
-    - if: $CI_COMMIT_REF_NAME == $BRANCH
+    - if: $CI_COMMIT_BRANCH == $BRANCH || $CI_COMMIT_TAG =~ /^v\d+.\d+.\d+/
     # TODO: revert
-    # - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
+    # - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   dependencies:
     - publish
   artifacts:
@@ -110,9 +110,9 @@ docs-projects:
 pages:
   stage: deploy
   rules:
-    - if: $CI_COMMIT_REF_NAME == $BRANCH
+    - if: $CI_COMMIT_BRANCH == $BRANCH || $CI_COMMIT_TAG =~ /^v\d+.\d+.\d+/
     # TODO: revert
-    # - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
+    # - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   dependencies:
     - docs-projects
     - docs-coverage
@@ -126,9 +126,9 @@ pages:
 deploy:
   stage: deploy
   rules:
-    - if: $CI_COMMIT_REF_NAME == $BRANCH
+    - if: $CI_COMMIT_BRANCH == $BRANCH || $CI_COMMIT_TAG =~ /^v\d+.\d+.\d+/
     # TODO: revert
-    # - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
+    # - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   dependencies:
     - publish
   script:
