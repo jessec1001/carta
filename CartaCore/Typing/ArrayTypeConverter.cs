@@ -12,10 +12,10 @@ namespace CartaCore.Typing
         {
             // Types are only convertible if they are both of type array (of same rank)
             // and their element types are convertible.
+            // We will not check for the element type here, because we can do that element-by-element.
             if (!sourceType.IsArray || !targetType.IsArray) return false;
             if (sourceType.GetArrayRank() != targetType.GetArrayRank()) return false;
-            if (context is not null) return context.CanConvert(sourceType.GetElementType(), targetType.GetElementType());
-            else return false;
+            return true;
         }
         /// <inheritdoc />
         public override bool TryConvert(
@@ -33,7 +33,6 @@ namespace CartaCore.Typing
             }
 
             // Create a new target array of the given element type and length.
-            Type sourceElementType = sourceType.GetElementType();
             Type targetElementType = targetType.GetElementType();
             Array sourceArray = (Array)input;
             Array targetArray = Array.CreateInstance(targetElementType, sourceArray.Length);
@@ -43,6 +42,7 @@ namespace CartaCore.Typing
             {
                 // Try to convert the source value to the target value.
                 object sourceValue = sourceArray.GetValue(k);
+                Type sourceElementType = sourceValue.GetType();
                 if (context is not null && context.TryConvert(
                     sourceElementType,
                     targetElementType,
