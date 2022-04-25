@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Headers;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
+using Microsoft.AspNetCore.Rewrite;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -262,6 +263,7 @@ namespace CartaWeb
             app.UseAuthentication();
             app.UseAuthorization();
             app.UseEndpoints(endpoints => endpoints.MapDefaultControllerRoute());
+            app.UseRewrite();
             app.UseSpa(spa =>
             {
                 spa.Options.DefaultPageStaticFileOptions = new StaticFileOptions()
@@ -285,5 +287,33 @@ namespace CartaWeb
                 }
             });
         }
+
+
     }
+
+    /// <summary>
+    /// Appplication builder extension to work around 
+    ///  https://github.com/dotnet/aspnetcore/issues/5223
+    /// </summary>
+    public static class ApplicationBuilderExtensions
+    {
+        /// <summary>
+        /// Redirects root requests to always be GET requests
+        /// </summary>
+        /// <param name="builder">The application builder.</param>
+        public static IApplicationBuilder UseRewrite(this IApplicationBuilder builder)
+        {
+            builder.Use((context, next) =>
+            {
+                if (context.Request.Path == "/" && !HttpMethods.IsGet(context.Request.Method))
+                {
+                    context.Request.Method = "GET";
+                }
+
+                return next();
+            });
+            return builder;
+        }
+    }
+
 }
