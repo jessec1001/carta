@@ -14,12 +14,12 @@ stages:
 variables:
   CDK_ACCESS_KEY_ID: $STAGING_AWS_ACCESS_KEY_ID
   CDK_SECRET_ACCESS_KEY: $STAGING_AWS_SECRET_ACCESS_KEY
-  DEPLOY_BRANCH : $CI_DEFAULT_BRANCH 
+  DEPLOY_BRANCH: $CI_DEFAULT_BRANCH 
 # To deploy a merge request branch to a development Elastic Beanstalk Environment
 # for development testing, comment the above out and replace with:
 #  CDK_ACCESS_KEY_ID: $DEV_AWS_ACCESS_KEY_ID
 #  CDK_SECRET_ACCESS_KEY: $DEV_AWS_SECRET_ACCESS_KEY
-#  DEPLOY_BRANCH : <put_branch_name_here>
+#  DEPLOY_BRANCH: <put_branch_name_here>
 
 workflow:
   rules:
@@ -32,7 +32,7 @@ workflow:
 publish:
   stage: publish
   rules:
-    - if: $CI_COMMIT_BRANCH == $DEPLOY_BRANCH || $CI_COMMIT_TAG =~ /^v\d+.\d+.\d+/
+    - if: $CI_COMMIT_REF_NAME == $DEPLOY_BRANCH || $CI_COMMIT_TAG =~ /^v\d+.\d+.\d+\*/
   artifacts:
     paths:
       - package.zip
@@ -78,7 +78,7 @@ test:
 docs-coverage:
   stage: docs
   rules:
-    - if: $CI_COMMIT_BRANCH == $DEPLOY_BRANCH || $CI_COMMIT_TAG =~ /^v\d+.\d+.\d+/
+    - if: $CI_COMMIT_REF_NAME == $DEPLOY_BRANCH || $CI_COMMIT_TAG =~ /^v\d+.\d+.\d+\*/
   dependencies:
     - test
   artifacts:
@@ -93,7 +93,7 @@ docs-projects:
   image: erothejoker/docker-docfx:latest
   stage: docs
   rules:
-    - if: $CI_COMMIT_BRANCH == $DEPLOY_BRANCH || $CI_COMMIT_TAG =~ /^v\d+.\d+.\d+/
+    - if: $CI_COMMIT_REF_NAME == $DEPLOY_BRANCH || $CI_COMMIT_TAG =~ /^v\d+.\d+.\d+\*/
   dependencies:
     - publish
   artifacts:
@@ -105,7 +105,7 @@ docs-projects:
 pages:
   stage: deploy
   rules:
-    - if: $CI_COMMIT_BRANCH == $DEPLOY_BRANCH || $CI_COMMIT_TAG =~ /^v\d+.\d+.\d+/
+    - if: $CI_COMMIT_REF_NAME == $DEPLOY_BRANCH || $CI_COMMIT_TAG =~ /^v\d+.\d+.\d+\*/
   dependencies:
     - docs-projects
     - docs-coverage
@@ -119,7 +119,7 @@ pages:
 deploy:
   stage: deploy
   rules:
-    - if: $CI_COMMIT_BRANCH == $DEPLOY_BRANCH || $CI_COMMIT_TAG =~ /^v\d+.\d+.\d+/
+    - if: $CI_COMMIT_REF_NAME == $DEPLOY_BRANCH || $CI_COMMIT_TAG =~ /^v\d+.\d+.\d+\*/
   dependencies:
     - publish
   script:
