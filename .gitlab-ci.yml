@@ -14,7 +14,7 @@ stages:
 variables:
   CDK_ACCESS_KEY_ID: $STAGING_AWS_ACCESS_KEY_ID
   CDK_SECRET_ACCESS_KEY: $STAGING_AWS_SECRET_ACCESS_KEY
-  DEPLOY_BRANCH: $CI_DEFAULT_BRANCH 
+  DEPLOY_BRANCH: dev-v1.0.0rc1
 # To deploy a merge request branch to a development Elastic Beanstalk Environment
 # for development testing, comment the above out and replace with:
 #  CDK_ACCESS_KEY_ID: $DEV_AWS_ACCESS_KEY_ID
