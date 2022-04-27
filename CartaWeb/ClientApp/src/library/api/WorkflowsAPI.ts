@@ -30,7 +30,7 @@ class WorkflowsAPI extends BaseAPI {
   // #region Workflows CRUD
   public async getWorkflow(workflowId: string): Promise<Workflow> {
     const url = this.getWorkflowUrl(workflowId);
-    const response = await fetch(url, this.defaultFetchParameters("GET"));
+    const response = await this.fetch(url, this.defaultFetchParameters("GET"));
 
     await this.ensureSuccess(
       response,
@@ -42,7 +42,7 @@ class WorkflowsAPI extends BaseAPI {
   }
   public async createWorkflow(workflow: Partial<Workflow>): Promise<Workflow> {
     const url = this.getApiUrl();
-    const response = await fetch(
+    const response = await this.fetch(
       url,
       this.defaultFetchParameters("POST", workflow)
     );
@@ -57,7 +57,7 @@ class WorkflowsAPI extends BaseAPI {
   }
   public async updateWorkflow(workflow: Workflow): Promise<Workflow> {
     const url = this.getWorkflowUrl(workflow.id);
-    const response = await fetch(
+    const response = await this.fetch(
       url,
       this.defaultFetchParameters("PATCH", workflow)
     );
@@ -72,7 +72,10 @@ class WorkflowsAPI extends BaseAPI {
   }
   public async deleteWorkflow(workflowId: string): Promise<void> {
     const url = this.getWorkflowUrl(workflowId);
-    const response = await fetch(url, this.defaultFetchParameters("DELETE"));
+    const response = await this.fetch(
+      url,
+      this.defaultFetchParameters("DELETE")
+    );
 
     await this.ensureSuccess(
       response,
@@ -84,7 +87,7 @@ class WorkflowsAPI extends BaseAPI {
   // #region Workflows operations
   public async getWorkflowOperations(workflowId: string): Promise<Operation[]> {
     const url = this.getWorkflowUrl(workflowId);
-    const response = await fetch(
+    const response = await this.fetch(
       `${url}/operations`,
       this.defaultFetchParameters("GET")
     );
@@ -101,7 +104,7 @@ class WorkflowsAPI extends BaseAPI {
     operationId: string
   ): Promise<void> {
     const url = this.getWorkflowUrl(workflowId);
-    const response = await fetch(
+    const response = await this.fetch(
       `${url}/operations/${operationId}`,
       this.defaultFetchParameters("POST")
     );
@@ -116,7 +119,7 @@ class WorkflowsAPI extends BaseAPI {
     operationId: string
   ): Promise<void> {
     const url = this.getWorkflowUrl(workflowId);
-    const response = await fetch(
+    const response = await this.fetch(
       `${url}/operations/${operationId}`,
       this.defaultFetchParameters("DELETE")
     );
@@ -133,7 +136,7 @@ class WorkflowsAPI extends BaseAPI {
     workflowId: string
   ): Promise<WorkflowConnection[]> {
     const url = this.getWorkflowUrl(workflowId);
-    const response = await fetch(
+    const response = await this.fetch(
       `${url}/connections`,
       this.defaultFetchParameters("GET")
     );
@@ -150,7 +153,7 @@ class WorkflowsAPI extends BaseAPI {
     connection: Partial<WorkflowConnection>
   ): Promise<WorkflowConnection> {
     const url = this.getWorkflowUrl(workflowId);
-    const response = await fetch(
+    const response = await this.fetch(
       `${url}/connections`,
       this.defaultFetchParameters("POST", connection)
     );
@@ -167,7 +170,7 @@ class WorkflowsAPI extends BaseAPI {
     connection: WorkflowConnection
   ): Promise<WorkflowConnection> {
     const url = this.getWorkflowUrl(workflowId);
-    const response = await fetch(
+    const response = await this.fetch(
       `${url}/connections/${connection.id}`,
       this.defaultFetchParameters("PATCH", connection)
     );
@@ -184,7 +187,7 @@ class WorkflowsAPI extends BaseAPI {
     connectionId: string
   ): Promise<void> {
     const url = this.getWorkflowUrl(workflowId);
-    const response = await fetch(
+    const response = await this.fetch(
       `${url}/connections/${connectionId}`,
       this.defaultFetchParameters("DELETE")
     );
@@ -200,7 +203,7 @@ class WorkflowsAPI extends BaseAPI {
     connection: Partial<WorkflowConnection>
   ): Promise<WorkflowConnection> {
     const url = this.getWorkflowUrl(workflowId);
-    const response = await fetch(
+    const response = await this.fetch(
       `${url}/connections/suggest`,
       this.defaultFetchParameters("POST", connection)
     );

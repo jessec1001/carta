@@ -16,3 +16,7 @@
   background: none;
   border: 1px solid;
 }
+.button.bulky {
+  /* Give bulky buttons more vertical heft. */
+  padding: 0.25em 0.25em;
+}

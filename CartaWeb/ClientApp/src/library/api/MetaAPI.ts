@@ -13,7 +13,7 @@ class MetaAPI extends BaseAPI {
    */
   public async getEndpointsAsync() {
     const url = this.getApiUrl();
-    const response = await fetch(url, this.defaultFetchParameters("GET"));
+    const response = await this.fetch(url, this.defaultFetchParameters("GET"));
 
     await this.ensureSuccess(
       response,

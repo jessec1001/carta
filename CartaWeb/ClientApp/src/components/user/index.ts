@@ -4,6 +4,7 @@ import UserIsNotAuthenticated from "./UserIsNotAuthenticated";
 import UserNeedsAuthentication from "./UserNeedsAuthentication";
 import UserSignIn from "./UserSignIn";
 import UserSignOut from "./UserSignOut";
+import UserSignInDialog from "./UserSignInDialog";
 import UserContext from "./UserContext";
 
 export {
@@ -14,4 +15,5 @@ export {
   UserNeedsAuthentication,
   UserSignIn,
   UserSignOut,
+  UserSignInDialog,
 };

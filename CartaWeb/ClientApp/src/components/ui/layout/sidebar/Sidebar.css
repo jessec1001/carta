@@ -1,5 +1,8 @@
 .sidebar {
-    margin: 0rem;
-    padding: 0rem;
-    grid-area: side;
+  margin: 0rem;
+  padding: 0rem;
+  grid-area: side;
+}
+.sidebar * {
+  display: block;
 }

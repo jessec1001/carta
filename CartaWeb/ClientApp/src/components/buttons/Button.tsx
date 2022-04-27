@@ -12,6 +12,8 @@ interface ButtonProps extends ComponentProps<"button"> {
   color?: AppColors;
   /** Whether the button should be rendered as an outline. Defaults to false. */
   outline?: boolean;
+  /** The sizing of the butotn. */
+  sizing?: "normal" | "bulky";
 }
 
 /** A simple button component that is filled visually. */
@@ -19,6 +21,7 @@ const Button: FC<ButtonProps> = ({
   type = "button",
   color = "primary",
   outline = false,
+  sizing = "normal",
   children,
   className,
   ...props
@@ -31,6 +34,7 @@ const Button: FC<ButtonProps> = ({
         styles.button,
         {
           [styles.outline]: outline,
+          [styles.bulky]: sizing === "bulky",
           [fgStyles[color]]: outline,
           [bgStyles[color]]: !outline,
         },

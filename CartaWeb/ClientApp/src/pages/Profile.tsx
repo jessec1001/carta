@@ -12,8 +12,10 @@ const ProfilePage: FunctionComponent = () => {
   const { user } = useContext(UserContext);
   let name: string | null = null;
   let email: string | null = null;
+  let firstName: string | undefined | null = null;
+  let lastName: string | undefined | null = null;
   if (user) {
-    ({ name, email } = user);
+    ({ name, email, firstName, lastName } = user);
   }
 
   const [hyperthoughtKey, setHyperthoughtKey] = useStoredState(
@@ -50,6 +52,12 @@ const ProfilePage: FunctionComponent = () => {
           </div>
           {user !== null && (
             <Section title="General" {...({ id: "profile-general" } as any)}>
+              <FormGroup title="First Name" density="dense">
+                <TextFieldInput value={firstName!} disabled />
+              </FormGroup>
+              <FormGroup title="Last Name" density="dense">
+                <TextFieldInput value={lastName!} disabled />
+              </FormGroup>
               <FormGroup
                 title="Username"
                 description="The username associated with this account."
@@ -93,7 +101,7 @@ const ProfilePage: FunctionComponent = () => {
             {...({ id: "profile-notifications" } as any)}
           >
             <FormGroup
-              title="Verbsosity"
+              title="Verbosity"
               description="The minimum level of information reported by notable events."
             >
               <DropdownInput

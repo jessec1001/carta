@@ -28,12 +28,7 @@ import { Column, Row } from "components/structure";
 import { Loading, Text } from "components/text";
 import { useViews, Views } from "components/views";
 import { useWorkspace } from "components/workspace";
-import {
-  Dropdown,
-  DropdownArea,
-  DropdownItem,
-  DropdownToggler,
-} from "components/dropdown";
+import { Dropdown } from "components/dropdown";
 import { Link } from "components/link";
 import { useNotifications } from "components/notifications/Context";
 import WorkflowEditorView from "../workflow-editor";
@@ -553,15 +548,15 @@ const OperationListView: FC = () => {
           {sortDirection ? <ArrowUpIcon /> : <ArrowDownIcon />}
         </span>
         <Dropdown side="bottom-left">
-          <DropdownToggler caret>New</DropdownToggler>
-          <DropdownArea>
-            <DropdownItem onClick={() => configureWorkflow("blank")}>
+          <Dropdown.Toggler caret>New</Dropdown.Toggler>
+          <Dropdown.Area>
+            <Dropdown.Item onClick={() => configureWorkflow("blank")}>
               Blank Operation
-            </DropdownItem>
-            <DropdownItem onClick={() => configureWorkflow("data")}>
+            </Dropdown.Item>
+            <Dropdown.Item onClick={() => configureWorkflow("data")}>
               Data Visualization Operation
-            </DropdownItem>
-          </DropdownArea>
+            </Dropdown.Item>
+          </Dropdown.Area>
         </Dropdown>
       </Row>
 

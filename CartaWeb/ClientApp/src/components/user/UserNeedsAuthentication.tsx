@@ -1,4 +1,3 @@
-import { Link } from "components/link";
 import { Text } from "components/text";
 import { FunctionComponent } from "react";
 import { UserSignIn } from ".";
@@ -7,15 +6,7 @@ import { UserSignIn } from ".";
 const UserNeedsAuthentication: FunctionComponent = () => {
   return (
     <Text>
-      You must{" "}
-      <Link to="#">
-        <UserSignIn>sign in</UserSignIn>
-      </Link>{" "}
-      or{" "}
-      <Link to="#">
-        <UserSignIn>sign up</UserSignIn>
-      </Link>{" "}
-      to use this functionality.
+      You must <UserSignIn>sign in</UserSignIn> to use this functionality.
     </Text>
   );
 };
