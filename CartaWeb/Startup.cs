@@ -1,8 +1,7 @@
 using System;
 using System.Text.Json;
 using Amazon.CognitoIdentityProvider;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -16,11 +15,11 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
 using CartaCore.Persistence;
+using CartaCore.Serialization.Json;
 using CartaWeb.Formatters;
 using CartaWeb.Models.Migration;
 using CartaWeb.Models.Options;
 using CartaWeb.Services;
-using CartaCore.Serialization.Json;
 using CartaWeb.Serialization;
 
 namespace CartaWeb
@@ -61,6 +60,7 @@ namespace CartaWeb
             AwsCdkOptions awsCdkOptions = Configuration.
                 GetSection("ResourceStack").
                 Get<AwsCdkOptions>();
+
             services.
                 AddSingleton<INoSqlDbContext>(
                     new DynamoDbContext
@@ -70,14 +70,18 @@ namespace CartaWeb
                         Amazon.RegionEndpoint.GetBySystemName(awsCdkOptions.RegionEndpoint),
                         awsCdkOptions.DynamoDBTable
                     ));
+
             if (awsCdkOptions.AccessKey is null)
+            {
                 services.
                     AddSingleton<IAmazonCognitoIdentityProvider>(
                         new AmazonCognitoIdentityProviderClient
                         (
                             Amazon.RegionEndpoint.GetBySystemName(awsCdkOptions.RegionEndpoint)
                         ));
+            }
             else
+            {
                 services.
                     AddSingleton<IAmazonCognitoIdentityProvider>(
                         new AmazonCognitoIdentityProviderClient
@@ -86,6 +90,8 @@ namespace CartaWeb
                             awsCdkOptions.SecretKey,
                             Amazon.RegionEndpoint.GetBySystemName(awsCdkOptions.RegionEndpoint)
                         ));
+            }
+
             if ((awsDynamoDbOptions is not null) && (awsDynamoDbOptions.MigrationSteps is not null))
             {
                 services.AddSingleton<INoSqlDbMigrationBuilder>((container) =>
@@ -108,7 +114,6 @@ namespace CartaWeb
             // Background job service.
             services.AddSingleton<BackgroundJobQueue>();
             services.AddHostedService<BackgroundJobService>();
-
 
             // Formatting settings.
             services
@@ -146,33 +151,13 @@ namespace CartaWeb
             });
 
             // Authentication settings.
-            services.AddAuthentication(options =>
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(options =>
             {
-                options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-                options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-                options.DefaultSignOutScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
-            })
-            .AddCookie
-            (
-                options => Configuration
-                    .GetSection("Authentication:Cookies")
-                    .Bind(options)
-            )
-            .AddOpenIdConnect
-            (
-                options =>
-                {
-                    Configuration
-                        .GetSection("Authentication:OpenIdConnect")
-                        .Bind(options);
-                    options.ClientId = awsCdkOptions.UserPoolClientId;
-                    string serverUrl = $"https://cognito-idp.{awsCdkOptions.RegionEndpoint}.amazonaws.com/" +
-                        $"{awsCdkOptions.UserPoolId}";
-                    options.Authority = serverUrl;
-                    options.MetadataAddress = $"{serverUrl}/.well-known/openid-configuration";
-                }
-            );
+                options.SaveToken = true;
+                options.Authority = $"https://cognito-idp.{awsCdkOptions.RegionEndpoint}.amazonaws.com/{awsCdkOptions.UserPoolId}";
+                options.Audience = awsCdkOptions.UserPoolClientId;
+            });
 
             // In production, the React files will be served from this directory.
             services.AddSpaStaticFiles(configuration =>
@@ -207,6 +192,11 @@ namespace CartaWeb
         /// <param name="loggerFactory">The logger factory.</param>
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
+            // Fetch AWS settings.
+            AwsCdkOptions awsCdkOptions = Configuration.
+                GetSection("ResourceStack").
+                Get<AwsCdkOptions>();
+
             // Add AWS cloud watch logging for production
             if (env.IsProduction())
                 loggerFactory.AddAWSProvider(Configuration.GetAWSLoggingConfigSection());
@@ -262,7 +252,23 @@ namespace CartaWeb
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
-            app.UseEndpoints(endpoints => endpoints.MapDefaultControllerRoute());
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapDefaultControllerRoute();
+                endpoints.MapGet("/auth", async context =>
+                {
+                    await context.Response.WriteAsJsonAsync
+                    (
+                        new
+                        {
+                            Region = awsCdkOptions.RegionEndpoint,
+                            UserPoolId = awsCdkOptions.UserPoolId,
+                            UserPoolWebClientId = awsCdkOptions.UserPoolClientId,
+                        },
+                        new JsonSerializerOptions(JsonSerializerDefaults.Web)
+                    );
+                });
+            });
             app.UseRewrite();
             app.UseSpa(spa =>
             {

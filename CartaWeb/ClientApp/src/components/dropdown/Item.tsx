@@ -1,17 +1,16 @@
 import { FunctionComponent, HTMLAttributes } from "react";
-
-import "./dropdown.css";
+import styles from "./Dropdown.module.css";
 
 /** A component that represents an item in a dropdown menu. */
-const DropdownItem: FunctionComponent<HTMLAttributes<HTMLSpanElement>> = ({
+const Item: FunctionComponent<HTMLAttributes<HTMLSpanElement>> = ({
   children,
   ...props
 }) => {
   return (
-    <span className="dropdown-item" {...props}>
+    <span className={styles.dropdownItem} {...props}>
       {children}
     </span>
   );
 };
 
-export default DropdownItem;
+export default Item;

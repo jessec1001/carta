@@ -5,15 +5,10 @@ import { ThemeButton } from "components/theme";
 import {
   UserIsAuthenticated,
   UserIsNotAuthenticated,
-  UserSignIn,
   UserSignOut,
+  UserSignInDialog,
 } from "components/user";
-import {
-  Dropdown,
-  DropdownToggler,
-  DropdownArea,
-  DropdownItem,
-} from "components/dropdown";
+import { Dropdown } from "components/dropdown";
 import { NavigationLink, NavigationLinkList } from "components/navigation";
 
 /**
@@ -44,31 +39,38 @@ const Header: FunctionComponent = () => {
 
       {/* This link is used to sign in when the user is unauthenticated. */}
       <UserIsNotAuthenticated>
-        <NavigationLink lower to="#">
-          <UserSignIn>Sign In</UserSignIn>
-        </NavigationLink>
+        <Dropdown side="bottom-left">
+          <Dropdown.Toggler>
+            <NavigationLink lower to="#">
+              Sign In
+            </NavigationLink>
+          </Dropdown.Toggler>
+          <Dropdown.Area>
+            <UserSignInDialog />
+          </Dropdown.Area>
+        </Dropdown>
       </UserIsNotAuthenticated>
 
       {/* This user dropdown is used to navigate to authenticated pages. */}
       <UserIsAuthenticated>
         <Dropdown side="bottom-left">
-          <DropdownToggler caret>
+          <Dropdown.Toggler caret>
             <NavigationLink lower to="/profile">
               {username}
             </NavigationLink>
-          </DropdownToggler>
-          <DropdownArea>
-            <DropdownItem>
+          </Dropdown.Toggler>
+          <Dropdown.Area>
+            <Dropdown.Item>
               <NavigationLink lower to="/profile">
                 Profile
               </NavigationLink>
-            </DropdownItem>
-            <DropdownItem>
+            </Dropdown.Item>
+            <Dropdown.Item>
               <NavigationLink lower to="#">
                 <UserSignOut>Sign Out</UserSignOut>
               </NavigationLink>
-            </DropdownItem>
-          </DropdownArea>
+            </Dropdown.Item>
+          </Dropdown.Area>
         </Dropdown>
       </UserIsAuthenticated>
 

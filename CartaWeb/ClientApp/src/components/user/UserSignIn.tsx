@@ -1,10 +1,9 @@
-import { FunctionComponent, useContext } from "react";
-import { UserContext } from "components/user";
+import { FunctionComponent } from "react";
 
 /** A component that signs in the user when its children are clicked. */
 const UserSignIn: FunctionComponent = ({ children }) => {
-  const { signIn } = useContext(UserContext);
-  return <span onClick={signIn}>{children}</span>;
+  // TODO: Update to use the sign in dialog as a modal.
+  return <span>{children}</span>;
 };
 
 export default UserSignIn;

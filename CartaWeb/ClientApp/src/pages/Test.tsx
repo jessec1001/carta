@@ -8,7 +8,7 @@ import {
   IconButtonRemove,
 } from "components/buttons";
 import { Card } from "components/card";
-import { CheckboxInput } from "components/input";
+import { CheckboxInput, TextFieldInput } from "components/input";
 import { PageLayout } from "components/layout";
 import { Link } from "components/link";
 import { Tabs } from "components/tabs";
@@ -65,6 +65,9 @@ const Container: FunctionComponent = () => {
       element: "Test Panel #6",
     },
   ]);
+
+  const [username, setUsername] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
 
   return (
     <Tabs>
@@ -154,7 +157,29 @@ const Container: FunctionComponent = () => {
         <Tabs.Panel id={0}>
           <div style={{ padding: "1rem 2rem" }}>
             <section>
-              <Title>Popper</Title>
+              <Title>Authentication</Title>
+              <div>
+                Username:{" "}
+                <TextFieldInput value={username} onChange={setUsername} />
+                Password:{" "}
+                <TextFieldInput
+                  value={password}
+                  onChange={setPassword}
+                  password
+                />
+                <Button
+                  onClick={async () => {
+                    try {
+                      // const user = await Auth.signIn(username, password);
+                      // console.log("Successfully signed in!", user);
+                    } catch (error: any) {
+                      alert(error.message);
+                    }
+                  }}
+                >
+                  Sign In
+                </Button>
+              </div>
             </section>
             <section>
               <Title>Accordians</Title>

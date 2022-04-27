@@ -9,17 +9,17 @@ interface UserContextValue {
   authenticated: boolean;
 
   /** Signs the user in. */
-  signIn: () => void;
+  signIn: (username: string, password: string) => Promise<void>;
   /** Signs the user out. */
-  signOut: () => void;
+  signOut: (apiless?: boolean) => Promise<void>;
 }
 
 /** A context for user authentication that is updated when authentication is updated */
 const UserContext = createContext<UserContextValue>({
   user: null,
   authenticated: false,
-  signIn: () => {},
-  signOut: () => {},
+  signIn: async () => {},
+  signOut: async () => {},
 });
 
 export default UserContext;

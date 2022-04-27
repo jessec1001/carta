@@ -1,9 +1,10 @@
-import React, { FunctionComponent, useEffect, useRef, useState } from "react";
+import React, { FC, useEffect, useRef, useState } from "react";
 import classNames from "classnames";
-import DropdownToggler from "./DropdownToggler";
-import DropdownArea from "./DropdownArea";
-
-import "./dropdown.css";
+import Toggler from "./Toggler";
+import Area from "./Area";
+import Item from "./Item";
+import styles from "./Dropdown.module.css";
+import DropdownContext from "./Context";
 
 /** The props used for the {@link Dropdown} component. */
 interface DropdownProps {
@@ -14,27 +15,37 @@ interface DropdownProps {
   ignoreHover?: boolean;
 }
 
+/**
+ * Defines the composition of the compound {@link Dropdown} component.
+ * @borrows Toggler as Toggler
+ * @borrows Area as Area
+ * @borrows Item as Item
+ */
+interface DropdownComposition {
+  Toggler: typeof Toggler;
+  Area: typeof Area;
+  Item: typeof Item;
+}
+
 /** A component that displays a dropdown menu mostly for navigation purposes and not for form purposes. */
-const Dropdown: FunctionComponent<DropdownProps> = ({
+const Dropdown: FC<DropdownProps> & DropdownComposition = ({
   side,
   ignoreHover,
   children,
 }) => {
   // We will assume that there is only a single toggler element that we assign a reference to.
   const [toggled, setToggled] = useState(false);
-  const togglerRef = useRef<HTMLDivElement>(null);
+  const elementRef = useRef<HTMLDivElement>(null);
 
   // Attach click handling to the dropdown.
   useEffect(() => {
-    // Create a handler that toggles the dropdown when the toggler is clicked on.
-    // Otherwise, the dropdown should be closed.
+    // Create a handler that closes the dropdown when some element outside of the dropdown is clicked.
     const handleClick = (event: MouseEvent) => {
       if (
-        togglerRef.current &&
-        togglerRef.current.contains(event.target as Element)
-      ) {
-        setToggled((prevToggled) => !prevToggled);
-      } else setToggled(false);
+        elementRef.current &&
+        !elementRef.current.contains(event.target as Element)
+      )
+        setToggled(false);
     };
 
     // Setup and cleanup handler.
@@ -43,36 +54,25 @@ const Dropdown: FunctionComponent<DropdownProps> = ({
   }, []);
 
   return (
-    // We do some compound component logic here to interpret dropdown parts.
-    <div
-      className={classNames("dropdown", side, { toggled, hover: !ignoreHover })}
+    // We wrap the child elements in an dropdown context to provide the dropdown functionality.
+    <DropdownContext.Provider
+      value={{ toggled: toggled, setToggled: setToggled }}
     >
-      {React.Children.map(children, (child, index) => {
-        if (React.isValidElement(child)) {
-          switch (child.type) {
-            // For a dropdown toggler, we store a reference to it to handle clicking behavior.
-            case DropdownToggler:
-              return (
-                <div ref={togglerRef} className="dropdown-toggler">
-                  {child}
-                </div>
-              );
-
-            // For a dropdown area, we only show it if the dropdown is toggled.
-            case DropdownArea:
-              return toggled ? (
-                <div className="dropdown-area">{child}</div>
-              ) : null;
-
-            // If a non-dropdown element is encountered, render it normally.
-            default:
-              return child;
-          }
-        } else return child;
-      })}
-    </div>
+      <div
+        className={classNames(styles.dropdown, styles[side], {
+          [styles.toggled]: toggled,
+          [styles.hover]: !ignoreHover,
+        })}
+        ref={elementRef}
+      >
+        {children}
+      </div>
+    </DropdownContext.Provider>
   );
 };
+Dropdown.Toggler = Toggler;
+Dropdown.Area = Area;
+Dropdown.Item = Item;
 
 export default Dropdown;
 export type { DropdownProps };

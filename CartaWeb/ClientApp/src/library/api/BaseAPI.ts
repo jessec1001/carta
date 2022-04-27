@@ -1,3 +1,4 @@
+import { Auth } from "aws-amplify";
 import { ApiException } from "library/exceptions";
 
 class BaseAPI {
@@ -29,6 +30,27 @@ class BaseAPI {
     }
 
     return parameters;
+  }
+
+  protected async fetch(
+    input: RequestInfo,
+    init?: RequestInit
+  ): Promise<Response> {
+    // Initialize the request.
+    init = init ?? {};
+
+    // Attach the identity JWT if it is set.
+    try {
+      const session = await Auth.currentSession();
+      const idToken = session.getIdToken().getJwtToken();
+      init.headers = {
+        ...init.headers,
+        Authorization: `Bearer ${idToken}`,
+      };
+    } catch {}
+
+    // Make the request.
+    return fetch(input, init);
   }
 
   /**

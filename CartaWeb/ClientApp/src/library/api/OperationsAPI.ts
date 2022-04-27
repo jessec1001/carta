@@ -42,7 +42,7 @@ class OperationsAPI extends BaseAPI {
         workspace: workspaceId,
       },
     });
-    const response = await fetch(url, this.defaultFetchParameters("GET"));
+    const response = await this.fetch(url, this.defaultFetchParameters("GET"));
 
     await this.ensureSuccess(
       response,
@@ -59,7 +59,7 @@ class OperationsAPI extends BaseAPI {
     includeSchema: boolean = true
   ): Promise<Operation> {
     const url = this.getOperationUrl(operationId);
-    const response = await fetch(url, this.defaultFetchParameters("GET"));
+    const response = await this.fetch(url, this.defaultFetchParameters("GET"));
 
     await this.ensureSuccess(
       response,
@@ -86,7 +86,7 @@ class OperationsAPI extends BaseAPI {
     };
 
     const url = this.getApiUrl();
-    const response = await fetch(
+    const response = await this.fetch(
       url,
       this.defaultFetchParameters("POST", operation)
     );
@@ -103,7 +103,7 @@ class OperationsAPI extends BaseAPI {
     operation: Partial<Operation>
   ): Promise<Operation> {
     const url = this.getOperationUrl(operation.id!);
-    const response = await fetch(
+    const response = await this.fetch(
       url,
       this.defaultFetchParameters("PATCH", operation)
     );
@@ -118,7 +118,10 @@ class OperationsAPI extends BaseAPI {
   }
   public async deleteOperation(operationId: string): Promise<void> {
     const url = this.getOperationUrl(operationId);
-    const response = await fetch(url, this.defaultFetchParameters("DELETE"));
+    const response = await this.fetch(
+      url,
+      this.defaultFetchParameters("DELETE")
+    );
 
     await this.ensureSuccess(
       response,
@@ -136,7 +139,7 @@ class OperationsAPI extends BaseAPI {
     const authentication = OperationsAPI.retrieveAuthentication();
 
     const url = this.getOperationUrl(operationId);
-    const response = await fetch(
+    const response = await this.fetch(
       `${url}/jobs`,
       this.defaultFetchParameters("POST", {
         ...inputs,
@@ -154,7 +157,7 @@ class OperationsAPI extends BaseAPI {
   }
   public async getOperationJobs(operationId: string): Promise<Job[]> {
     const url = this.getOperationUrl(operationId);
-    const response = await fetch(
+    const response = await this.fetch(
       `${url}/jobs`,
       this.defaultFetchParameters("GET")
     );
@@ -172,7 +175,7 @@ class OperationsAPI extends BaseAPI {
     jobId: string
   ): Promise<Job> {
     const url = this.getOperationUrl(operationId);
-    const response = await fetch(
+    const response = await this.fetch(
       `${url}/jobs/${jobId}`,
       this.defaultFetchParameters("GET")
     );
@@ -236,7 +239,7 @@ class OperationsAPI extends BaseAPI {
     operationId: string
   ): Promise<OperationSchema> {
     const url = this.getOperationUrl(operationId);
-    const response = await fetch(
+    const response = await this.fetch(
       `${url}/schema`,
       this.defaultFetchParameters("GET")
     );

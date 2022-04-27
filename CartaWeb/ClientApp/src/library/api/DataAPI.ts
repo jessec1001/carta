@@ -63,7 +63,7 @@ class DataAPI extends BaseAPI {
       url: `${this.getApiUrl()}`,
       query: Object.fromEntries(this.getParameters()),
     });
-    const response = await fetch(url, this.defaultFetchParameters());
+    const response = await this.fetch(url, this.defaultFetchParameters());
 
     await this.ensureSuccess(
       response,
@@ -83,7 +83,7 @@ class DataAPI extends BaseAPI {
       url: `${this.getResourceUrl(source)}`,
       query: Object.fromEntries(this.getParameters(source)),
     });
-    const response = await fetch(url, this.defaultFetchParameters());
+    const response = await this.fetch(url, this.defaultFetchParameters());
 
     await this.ensureSuccess(
       response,
@@ -105,7 +105,7 @@ class DataAPI extends BaseAPI {
       url: `${this.getResourceUrl(source)}`,
       query: Object.fromEntries(this.getParameters(source)),
     });
-    const response = await fetch(
+    const response = await this.fetch(
       url,
       this.defaultFetchParameters("POST", graph)
     );
@@ -128,7 +128,10 @@ class DataAPI extends BaseAPI {
       url: `${this.getResourceUrl(source, resource)}`,
       query: Object.fromEntries(this.getParameters(source, resource)),
     });
-    const response = await fetch(url, this.defaultFetchParameters("DELETE"));
+    const response = await this.fetch(
+      url,
+      this.defaultFetchParameters("DELETE")
+    );
 
     await this.ensureSuccess(
       response,
@@ -158,7 +161,7 @@ class DataAPI extends BaseAPI {
         ...parameters,
       },
     });
-    const response = await fetch(url, this.defaultFetchParameters());
+    const response = await this.fetch(url, this.defaultFetchParameters());
 
     await this.ensureSuccess(
       response,
@@ -188,7 +191,7 @@ class DataAPI extends BaseAPI {
       url: `${this.getResourceUrl(source, resource)}/operation`,
       query: Object.fromEntries(this.getParameters(source, resource)),
     });
-    const response = await fetch(url, this.defaultFetchParameters());
+    const response = await this.fetch(url, this.defaultFetchParameters());
 
     await this.ensureSuccess(
       response,

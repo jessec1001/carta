@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Security.Claims;
 using CartaCore.Extensions.Arrays;
 using CartaCore.Extensions.Hashing;
 using CartaCore.Extensions.String;
@@ -27,6 +26,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Hosting;
 using NJsonSchema;
 using NUlid;
+using Microsoft.Extensions.Hosting;
 
 namespace CartaWeb.Controllers
 {
@@ -59,7 +59,7 @@ namespace CartaWeb.Controllers
             BackgroundJobQueue jobQueue,
             IOptions<AwsCdkOptions> options)
         {
-            _isProduction = env.EnvironmentName == "Production";
+            _isProduction = env.IsProduction();
             _jobQueue = jobQueue;
             _logger = logger;
             _persistence = new Persistence(noSqlDbContext, options.Value);

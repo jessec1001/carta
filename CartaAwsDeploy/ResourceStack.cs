@@ -14,7 +14,7 @@ namespace CartaAwsDeploy
         {
             // Setup the environment
             Environment environment = new Environment();
-        
+
             // Create the DynamoDB table
             TableProps tableProps = new TableProps
             {
@@ -63,7 +63,7 @@ namespace CartaAwsDeploy
                 SelfSignUpEnabled = false,
                 StandardAttributes = new StandardAttributes
                 {
-                    Email = new StandardAttribute { Required = true, Mutable = true},
+                    Email = new StandardAttribute { Required = true, Mutable = true },
                     GivenName = new StandardAttribute { Required = true, Mutable = true },
                     FamilyName = new StandardAttribute { Required = true, Mutable = true }
                 },
@@ -120,7 +120,7 @@ namespace CartaAwsDeploy
                     "</div>"
                 },
                 AccountRecovery = AccountRecovery.EMAIL_AND_PHONE_WITHOUT_MFA,
-                AutoVerify = new AutoVerifiedAttrs { Email = true, Phone = false},
+                AutoVerify = new AutoVerifiedAttrs { Email = true, Phone = false },
                 RemovalPolicy = RemovalPolicy.DESTROY
             });
             string callbackUrl = this.Node.TryGetContext($"{environment.ContextPrefix}:cognitoCallbackUrl").ToString();
@@ -136,9 +136,9 @@ namespace CartaAwsDeploy
                     GenerateSecret = false,
                     AuthFlows = new AuthFlow
                     {
-                        UserPassword = true,
+                        UserPassword = false,
                         Custom = false,
-                        UserSrp = false,
+                        UserSrp = true,
                         AdminUserPassword = false
                     },
                     OAuth = new OAuthSettings
@@ -155,8 +155,8 @@ namespace CartaAwsDeploy
                             FamilyName = true,
                             GivenName = true
                         }).
-                        WithCustomAttributes( new string[] { "custom:tenantId" })
-                }) ;
+                        WithCustomAttributes(new string[] { "custom:tenantId" })
+                });
             string domainPrefix =
                 this.Node.TryGetContext($"{environment.ContextPrefix}:cognitoUserPoolDomainPrefix").ToString();
             UserPoolDomain userPoolDomain = new UserPoolDomain(this, "CartaUserPoolDomain", new UserPoolDomainProps
@@ -166,9 +166,9 @@ namespace CartaAwsDeploy
             });
             CfnIdentityPool identityPool =
                 new CfnIdentityPool(this, "CartaIdentityPool", new CfnIdentityPoolProps
-            {
-                AllowUnauthenticatedIdentities = false,
-                CognitoIdentityProviders = new CfnIdentityPool.CognitoIdentityProviderProperty[]
+                {
+                    AllowUnauthenticatedIdentities = false,
+                    CognitoIdentityProviders = new CfnIdentityPool.CognitoIdentityProviderProperty[]
                 {
                     new CfnIdentityPool.CognitoIdentityProviderProperty
                     {
@@ -176,7 +176,7 @@ namespace CartaAwsDeploy
                         ProviderName = userPool.UserPoolProviderName
                     }
                 }
-            });
+                });
 
             // Create policy with permissions to acess the user pool
             PolicyStatement cognitoPolicyStatement = new PolicyStatement(new PolicyStatementProps
@@ -192,7 +192,7 @@ namespace CartaAwsDeploy
                     "cognito-idp:AdminSetUserPassword",
                     "cognito-idp:AdminGetUser"
                 },
-                Resources = new[] {$"arn:aws:cognito-idp:{Region}:{Account}:userpool/{userPool.UserPoolId}" }
+                Resources = new[] { $"arn:aws:cognito-idp:{Region}:{Account}:userpool/{userPool.UserPoolId}" }
             });
 
             // Create policy with permissions to add a Cloudwatch logging group
@@ -225,7 +225,7 @@ namespace CartaAwsDeploy
             {
                 User user = new User(this, "CartaUser");
                 dynamoDbTable.GrantFullAccess(user);
-                secretsDynamoDbTable.Grant( 
+                secretsDynamoDbTable.Grant(
                     user,
                     new string[] { "dynamodb:PutItem", "dynamodb:GetItem", "dynamodb:DescribeTable" });
                 user.AddToPolicy(cognitoPolicyStatement);
@@ -255,4 +255,3 @@ namespace CartaAwsDeploy
         }
     }
 }
-    

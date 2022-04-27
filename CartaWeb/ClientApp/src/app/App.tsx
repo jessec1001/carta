@@ -23,8 +23,8 @@ import "styles/app.css";
  */
 const App: FunctionComponent = () => {
   return (
-    <UserWrapper>
-      <Notifications>
+    <Notifications>
+      <UserWrapper>
         <ThemeWrapper>
           <Switch>
             {/* Home page route. */}
@@ -39,8 +39,8 @@ const App: FunctionComponent = () => {
             <Route path="/workspace" component={WorkspaceAreaPage} />
           </Switch>
         </ThemeWrapper>
-      </Notifications>
-    </UserWrapper>
+      </UserWrapper>
+    </Notifications>
   );
 };
 
