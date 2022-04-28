@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Headers;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
-using Microsoft.AspNetCore.Rewrite;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -210,45 +209,64 @@ namespace CartaWeb
             // Forwards headers from load balancers and proxy servers that terminate SSL.
             app.UseForwardedHeaders();
 
-            // Development settings.
+            // Development middleware.
+            // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
             if (env.IsDevelopment())
                 app.UseDeveloperExceptionPage();
             else
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
 
-            // HTTPS and SPA settings.
+            // HTTPS middleware.
             app.UseHttpsRedirection();
+
+            // SPA middleware.
             app.UseStaticFiles();
-            app.UseSpaStaticFiles(new StaticFileOptions()
-            {
-                OnPrepareResponse = (options) =>
+            app.UseWhen(
+                context =>
+                    context.Request.Method == "GET" &&
+                    !context.Request.Path.StartsWithSegments("/api") &&
+                    !context.Request.Path.StartsWithSegments("/auth"),
+                app =>
                 {
-                    // Get the headers so we can modify the cache-control header.
-                    ResponseHeaders headers = options.Context.Response.GetTypedHeaders();
+                    app.UseSpaStaticFiles(new StaticFileOptions()
+                    {
+                        OnPrepareResponse = (options) =>
+                        {
+                            // Get the headers so we can modify the cache-control header.
+                            ResponseHeaders headers = options.Context.Response.GetTypedHeaders();
 
-                    // Static resources are cached for 1 year.
-                    if (options.Context.Request.Path.StartsWithSegments("/static"))
+                            // Static resources are cached for 1 year.
+                            if (options.Context.Request.Path.StartsWithSegments("/static"))
+                            {
+                                headers.CacheControl = new CacheControlHeaderValue
+                                {
+                                    Public = true,
+                                    MaxAge = TimeSpan.FromDays(365)
+                                };
+                            }
+                            // Non-static resources are not ever cached.
+                            else
+                            {
+                                headers.CacheControl = new CacheControlHeaderValue
+                                {
+                                    Public = true,
+                                    MaxAge = TimeSpan.FromDays(0)
+                                };
+                            }
+                        }
+                    });
+                    app.UseSpa(spa =>
                     {
-                        headers.CacheControl = new CacheControlHeaderValue
+                        if (env.IsDevelopment())
                         {
-                            Public = true,
-                            MaxAge = TimeSpan.FromDays(365)
-                        };
-                    }
-                    // Non-static resources are not ever cached.
-                    else
-                    {
-                        headers.CacheControl = new CacheControlHeaderValue
-                        {
-                            Public = true,
-                            MaxAge = TimeSpan.FromDays(0)
-                        };
-                    }
+                            spa.Options.SourcePath = "ClientApp";
+                            spa.UseReactDevelopmentServer(npmScript: "start");
+                        }
+                    });
                 }
-            });
+            );
 
-            // Routing settings and Auth and AuthZ.
+            // Routing middleware and Auth and AuthZ.
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
@@ -269,57 +287,6 @@ namespace CartaWeb
                     );
                 });
             });
-            app.UseRewrite();
-            app.UseSpa(spa =>
-            {
-                spa.Options.DefaultPageStaticFileOptions = new StaticFileOptions()
-                {
-                    OnPrepareResponse = (options) =>
-                    {
-                        // Get the headers so we can modify the cache-control header.
-                        ResponseHeaders headers = options.Context.Response.GetTypedHeaders();
-                        headers.CacheControl = new CacheControlHeaderValue
-                        {
-                            Public = true,
-                            MaxAge = TimeSpan.FromDays(0)
-                        };
-                    }
-                };
-
-                if (env.IsDevelopment())
-                {
-                    spa.Options.SourcePath = "ClientApp";
-                    spa.UseReactDevelopmentServer(npmScript: "start");
-                }
-            });
-        }
-
-
-    }
-
-    /// <summary>
-    /// Appplication builder extension to work around 
-    ///  https://github.com/dotnet/aspnetcore/issues/5223
-    /// </summary>
-    public static class ApplicationBuilderExtensions
-    {
-        /// <summary>
-        /// Redirects root requests to always be GET requests
-        /// </summary>
-        /// <param name="builder">The application builder.</param>
-        public static IApplicationBuilder UseRewrite(this IApplicationBuilder builder)
-        {
-            builder.Use((context, next) =>
-            {
-                if (context.Request.Path == "/" && !HttpMethods.IsGet(context.Request.Method))
-                {
-                    context.Request.Method = "GET";
-                }
-
-                return next();
-            });
-            return builder;
         }
     }
-
 }
