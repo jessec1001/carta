@@ -131,6 +131,19 @@ class WorkspaceAPI extends BaseAPI {
     return parseWorkspace(await this.readJSON<WorkspaceDTO>(response));
   }
   /**
+   * Deletes a workspace with the specified unique identifier.
+   * @param workspaceId The unique identifier of the workspace.
+   */
+  public async deleteWorkspace(workspaceId: string): Promise<void> {
+    const url = this.getWorkspaceUrl(workspaceId);
+    const response = await fetch(url, this.defaultFetchParameters("DELETE"));
+
+    await this.ensureSuccess(
+      response,
+      "Error occurred while trying to delete workspace."
+    );
+  }
+  /**
    * Creates a new workspace with the specified name and existing users and datasets.
    * @param workspace The workspace object to create.
    * @returns The newly created workspace.
@@ -364,7 +377,8 @@ class WorkspaceAPI extends BaseAPI {
    */
   public async addWorkspaceOperation(
     workspaceId: string,
-    operationId: string
+    operationId: string,
+    name?: string
   ): Promise<WorkspaceOperation> {
     const url = `${this.getWorkspaceUrl(
       workspaceId

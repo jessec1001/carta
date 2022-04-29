@@ -18,6 +18,11 @@
   margin: 0rem 0.5rem;
 }
 
+.input {
+  width: unset;
+  flex-grow: 1;
+}
+
 /* An item in the list of operations. */
 .item {
   padding: 0rem 0.5rem;
@@ -26,11 +31,20 @@
   justify-content: space-between;
   cursor: pointer;
 }
+.itemBody {
+  display: flex;
+  flex-grow: 1;
+  align-items: center;
+}
 .item:hover {
   background-color: var(--color-primary-hover);
 }
 .item.selected {
   background-color: var(--color-primary-select);
+}
+.item.deleted {
+  pointer-events: none;
+  opacity: 0.5;
 }
 .itemButton {
   display: flex;

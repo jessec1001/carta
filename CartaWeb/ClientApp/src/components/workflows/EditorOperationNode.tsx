@@ -5,6 +5,7 @@ import React, {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import classNames from "classnames";
@@ -229,6 +230,11 @@ interface EditorOperationNodeProps extends ComponentProps<"div"> {
   onPickField?: (field: string, side: "input" | "output") => void;
   /** An event listener that is called when a field is updated. */
   onUpdateFields?: (fields: Record<string, any>) => void;
+
+  /** An event listener that is called when the node is clicked on the handle. */
+  onClick?: (event: React.MouseEvent) => void;
+  /** An event listener that is called when the node is clicked elsewhere besides the handle. */
+  onUnclick?: (event: React.MouseEvent) => void;
 }
 /** A component that renders an operation node in the workflow editor. */
 const EditorOperationNode: FC<EditorOperationNodeProps> = ({
@@ -241,6 +247,8 @@ const EditorOperationNode: FC<EditorOperationNodeProps> = ({
   onOffset = () => {},
   onPickField = () => {},
   onUpdateFields = () => {},
+  onClick = () => {},
+  onUnclick = () => {},
   className,
   ...props
 }) => {
@@ -271,6 +279,17 @@ const EditorOperationNode: FC<EditorOperationNodeProps> = ({
     },
     [actualValues, handleUpdateFields]
   );
+
+  // We handle clicking on or unclicking on the node.
+  const elementRef = useRef<HTMLDivElement>(null);
+  const handleClick = (event: React.MouseEvent) => {
+    if (
+      elementRef.current &&
+      !elementRef.current.contains(event.target as Node)
+    )
+      onClick(event);
+    else onUnclick(event);
+  };
 
   // If the operation is not loaded yet, render a loading symbol.
   if (!operation || !type) {
@@ -319,7 +338,7 @@ const EditorOperationNode: FC<EditorOperationNodeProps> = ({
   );
 
   return (
-    <EditorNode selected={selected}>
+    <EditorNode selected={selected} onClick={handleClick}>
       {/* Render a header with the operation name and */}
       <Mosaic.Tile.Handle onOffset={onOffset}>
         <Tooltip
@@ -335,7 +354,7 @@ const EditorOperationNode: FC<EditorOperationNodeProps> = ({
           </div>
         </Tooltip>
       </Mosaic.Tile.Handle>
-      <div className={styles.body}>
+      <div className={styles.body} ref={elementRef}>
         {/* Render the input schema. */}
         {operation.schema &&
           Object.entries(operation.schema.inputs).map(([key, val]) => (

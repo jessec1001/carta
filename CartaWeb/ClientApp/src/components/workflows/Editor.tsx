@@ -1,21 +1,28 @@
-import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  FC,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useAPI, useNestedAsync, useStoredState } from "hooks";
 import { Operation, OperationType } from "library/api";
 import { LogSeverity } from "library/logging";
+import { schemaDefault } from "library/schema";
 import { seconds } from "library/utility";
 import { useNotifications } from "components/notifications";
 import { Mosaic } from "components/mosaic";
 import { ITile } from "components/mosaic/Tile";
-import { useWorkflows } from "./Context";
-import EditorOperationNode from "./EditorOperationNode";
-import EditorPalette from "./EditorPalette";
-import { schemaDefault } from "library/schema";
 import { Arrows } from "components/arrows";
 import { IconButton } from "components/buttons";
 import ExecuteIcon from "components/icons/ExecuteIcon";
 import { Tooltip } from "components/tooltip";
-import styles from "./Editor.module.css";
+import { useWorkflows } from "./Context";
+import EditorPalette from "./EditorPalette";
+import EditorOperationNode from "./EditorOperationNode";
 import EditorOutputNode from "./EditorOutputNode";
+import styles from "./Editor.module.css";
 
 // TODO: Consider if the suboperations should be stored in the context.
 
@@ -62,10 +69,17 @@ const Editor: FC = () => {
   const [suboperations, setSuboperations] =
     useState<typeof suboperationsFetched>(suboperationsFetched);
 
+  // We keep track of suboperations and connections that have been selected.
+  const [suboperationsSelected, setSuboperationsSelected] = useState<
+    Set<string>
+  >(new Set());
+  const [connectionsSelected, setConnectionsSelected] = useState<Set<string>>(
+    new Set()
+  );
+
   // Whenever we load the operations, we need to update the list of operations.
   // We do this by buffering between loaded and loading states.
   useEffect(() => {
-    // TODO: We need to make sure that we remove operations that are no longer in the workflow.
     if (
       !(
         suboperationsFetched === undefined ||
@@ -92,6 +106,19 @@ const Editor: FC = () => {
             ];
           }
         }
+
+        // We need to make sure that we remove operations that are no longer in the workflow.
+        for (let i = 0; i < suboperations.length; i++) {
+          let found: boolean = false;
+          for (let j = 0; j < suboperationsFetched.length; j++) {
+            if (suboperationsFetched[j].id === suboperations[i].id) {
+              found = true;
+              break;
+            }
+          }
+          if (!found) suboperations.splice(i);
+        }
+
         return suboperations;
       });
     }
@@ -119,7 +146,7 @@ const Editor: FC = () => {
     y: number;
   } | null>(null);
 
-  // We use these handlers for events on the mosaic.
+  // We use these handlers for events in the editor.
   const handleMenu = useCallback(
     (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
       // If we have a right click, capture the the position of the click and open the palette.
@@ -181,6 +208,63 @@ const Editor: FC = () => {
     },
     [logger, suboperationsRefresh, workflow, operationsAPI, workflowsAPI]
   );
+  const handleDeleteOperations = useCallback(async () => {
+    const workflowValue = workflow.value;
+    if (!workflowValue || workflowValue instanceof Error) return;
+
+    // For each of the selected connections and operations, remove each from the workflow and delete.
+    // We need to remove the connections before the operations because the API automatically removes relevant connections.
+    const opIds = Array.from(suboperationsSelected.values());
+    const connIds = Array.from(connectionsSelected.values());
+    const resultsConns = await Promise.allSettled(
+      connIds.map(async (connId: string) => {
+        await workflowsAPI.removeWorkflowConnection(workflowValue.id, connId);
+      })
+    );
+    const resultsOps = await Promise.allSettled(
+      opIds.map(async (opId: string) => {
+        await workflowsAPI.removeWorkflowOperation(workflowValue.id, opId);
+        await operationsAPI.deleteOperation(opId);
+      })
+    );
+
+    // Clear the selection.
+    setSuboperationsSelected(new Set());
+    setConnectionsSelected(new Set());
+
+    // Check each of the result statuses to determine whether the deletions were handled properly.
+    for (let k = 0; k < connIds.length; k++) {
+      if (resultsConns[k].status === "rejected") {
+        logger.log({
+          source: "Workflow Editor",
+          severity: LogSeverity.Error,
+          title: "Connection Deletion Error",
+          message: "An error occurred while trying to delete a connection.",
+        });
+      }
+    }
+    for (let k = 0; k < opIds.length; k++) {
+      if (resultsOps[k].status === "rejected") {
+        logger.log({
+          source: "Workflow Editor",
+          severity: LogSeverity.Error,
+          title: "Operation Deletion Error",
+          message: `An error occurred while trying to delete an operation.`,
+        });
+      }
+    }
+
+    await workflow.refresh();
+    await suboperationsRefresh();
+  }, [
+    workflow,
+    suboperationsSelected,
+    connectionsSelected,
+    suboperationsRefresh,
+    workflowsAPI,
+    operationsAPI,
+    logger,
+  ]);
   const handleLayoutOperation = useCallback(
     (id: string, layout: ITile) => {
       setOperationLayouts((operationLayouts) => ({
@@ -313,6 +397,49 @@ const Editor: FC = () => {
       });
     }
   }, [logger, job, operation, operationsAPI]);
+  const handleClickGrid = useCallback((event: React.MouseEvent) => {
+    // If the element that was clicked was the mosaic grid itself, deselect suboperation nodes.
+    if (event.currentTarget === event.target) {
+      setSuboperationsSelected(new Set());
+      setConnectionsSelected(new Set());
+    }
+  }, []);
+  const handleClickOperation = useCallback((id: string) => {
+    setSuboperationsSelected((selected) => {
+      const selectedNew = new Set(selected);
+      selectedNew.add(id);
+      return selectedNew;
+    });
+  }, []);
+  const handleUnclickOperation = useCallback((id: string) => {
+    setSuboperationsSelected(new Set());
+    setConnectionsSelected(new Set());
+  }, []);
+  const handleClickConnection = useCallback((id: string) => {
+    console.log(id);
+    setConnectionsSelected((selected) => {
+      const selectedNew = new Set(selected);
+      selectedNew.add(id);
+      return selectedNew;
+    });
+  }, []);
+
+  // We set up a keyboard shortcut handler.
+  useEffect(() => {
+    const handleKeydown = (event: KeyboardEvent) => {
+      if (event.code === "Backspace" || event.code === "Delete") {
+        handleDeleteOperations();
+      }
+      if (event.code === "Tab") {
+        setSuboperationsSelected(new Set());
+        setConnectionsSelected(new Set());
+      }
+    };
+
+    // Setup and teardown.
+    document.addEventListener("keydown", handleKeydown);
+    return () => document.removeEventListener("keydown", handleKeydown);
+  }, [handleDeleteOperations]);
 
   // Create an information element for navigating the workflow editor.
   const info = useMemo(() => {
@@ -341,7 +468,7 @@ const Editor: FC = () => {
   }, []);
 
   return (
-    <Mosaic onContextMenu={handleMenu} ref={element}>
+    <Mosaic onContextMenu={handleMenu} onClick={handleClickGrid} ref={element}>
       {/* We wrap everything in an arrows component so as to render the connections. */}
       <Arrows element={element.current}>
         {/* Render the info and execute button in a fixed-position menu. */}
@@ -404,6 +531,9 @@ const Editor: FC = () => {
                     type={operationType}
                     layout={layout}
                     updating={operation.updating}
+                    selected={suboperationsSelected.has(operation.id)}
+                    onClick={() => handleClickOperation(operation.id)}
+                    onUnclick={() => handleUnclickOperation(operation.id)}
                     onOffset={(offset) =>
                       handleLayoutOperation(operation.id, {
                         ...layout,
@@ -476,8 +606,13 @@ const Editor: FC = () => {
         {!(workflow.value instanceof Error) &&
           workflow.value &&
           workflow.value.connections.map((connection) => {
+            const selected = connectionsSelected.has(connection.id);
             return (
               <Arrows.Arrow
+                onClick={() => handleClickConnection(connection.id)}
+                pathStyle={{
+                  stroke: selected ? "var(--color-primary)" : "currentcolor",
+                }}
                 key={connection.id}
                 source={`${connection.source.operation}-output-${connection.source.field}`}
                 target={`${connection.target.operation}-input-${connection.target.field}`}

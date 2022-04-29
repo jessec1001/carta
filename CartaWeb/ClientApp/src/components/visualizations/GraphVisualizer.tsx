@@ -205,7 +205,7 @@ const GraphVisualizer: FC<GraphVisualizerProps> = ({
     },
     [data]
   );
-  const doUpdateVertex = useCallback(
+  const doAddVertex = useCallback(
     (graph: typeof data, vertex: IVisualizeVertex) => {
       // We grab information about whether the vertex has directed ancestors to determine whether it should be collapsed.
       const hidden =
@@ -286,12 +286,20 @@ const GraphVisualizer: FC<GraphVisualizerProps> = ({
     },
     []
   );
+  const doRemoveVertex = useCallback(
+    (graph: typeof data, vertex: IVisualizeVertex) => {
+      graph.vertices.delete(vertex.id);
+      return graph;
+    },
+    []
+  );
   const doUpdateData = useCallback(
     (graph: IVisualizeGraph) => {
       setData((data) => {
         // We update edges.
         // We do this first so that we are able to process the hierarchy correctly in the vertex updating stage.
         let edgesChanged = false;
+        let edgesUnsimulated = false;
         for (const fetchVertex of graph.vertices) {
           for (const fetchEdge of fetchVertex.edges ?? []) {
             // Check if we already have this edge.
@@ -302,6 +310,15 @@ const GraphVisualizer: FC<GraphVisualizerProps> = ({
             if (!edgesChanged) {
               edgesChanged = true;
               data = { ...data, edges: new Map(data.edges) };
+
+              const sourceVertex = data.vertices.get(fetchEdge.source);
+              const targetVertex = data.vertices.get(fetchEdge.target);
+              if (
+                (sourceVertex && !sourceVertex.hidden) ||
+                (targetVertex && !targetVertex.hidden)
+              ) {
+                edgesUnsimulated = true;
+              }
             }
             data.edges.set(fetchEdge.id, {
               id: fetchEdge.id,
@@ -311,10 +328,23 @@ const GraphVisualizer: FC<GraphVisualizerProps> = ({
             });
           }
         }
+        for (const edge of data.edges.values()) {
+          const removed = !graph.vertices
+            .flatMap((vertex) => vertex.edges ?? [])
+            .find((fetchEdge) => fetchEdge.id === edge.id);
+          if (removed) {
+            if (!edgesChanged) {
+              edgesChanged = true;
+              data = { ...data, vertices: new Map(data.vertices) };
+            }
+            data.edges.delete(edge.id);
+          }
+        }
 
         // We update vertices.
-        // We need to check if any vertex has been given an ancestor but has not been interacted with
+        // We need to check if any vertex has been given an ancestor but has not been interacted with.
         let verticesChanged = false;
+        let verticesUnsimulated = false;
         for (const fetchVertex of graph.vertices) {
           // Check if we already have this vertex.
           const existingVertex = data.vertices.get(fetchVertex.id);
@@ -326,18 +356,33 @@ const GraphVisualizer: FC<GraphVisualizerProps> = ({
             data = { ...data, vertices: new Map(data.vertices) };
           }
           if (existingVertex === undefined) {
-            data = doUpdateVertex(data, fetchVertex);
+            data = doAddVertex(data, fetchVertex);
+            const vertex = data.vertices.get(fetchVertex.id);
+            if (vertex && !vertex.hidden) verticesUnsimulated = true;
+          }
+        }
+        for (const vertex of data.vertices.values()) {
+          const removed = !graph.vertices.find(
+            (fetchVertex) => fetchVertex.id === vertex.id
+          );
+          if (removed) {
+            if (!verticesChanged) {
+              verticesChanged = true;
+              data = { ...data, vertices: new Map(data.vertices) };
+            }
+            data = doRemoveVertex(data, vertex);
+            if (!vertex.hidden) verticesUnsimulated = true;
           }
         }
 
-        if (edgesChanged || verticesChanged) {
+        if (edgesUnsimulated || verticesUnsimulated) {
           plotRef.current.simulate();
           plotRef.current.render();
         }
         return data;
       });
     },
-    [doUpdateVertex]
+    [doAddVertex, doRemoveVertex]
   );
 
   // Set up some event handlers for the plot.

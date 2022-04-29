@@ -109,6 +109,11 @@ namespace CartaWeb.Services
                 job.CancellationToken = token;
                 job.OnUpdate = jobUpdater.UpdateJob;
 
+                // Clear the job directory.
+                string directory = Path.Join("jobs", job.Operation.Id, job.Id);
+                if (Directory.Exists(directory))
+                    Directory.Delete(directory, true);
+
                 // Execute the job.
                 Task jobUpdateTask = jobUpdater.LoopAsync(token);
                 Task jobTask = job.Operation.Perform(job);

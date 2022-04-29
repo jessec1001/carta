@@ -77,12 +77,14 @@ class OperationsAPI extends BaseAPI {
   public async createOperation(
     operationType: string,
     operationSubtype: string | null,
-    defaults?: Record<string, any>
+    defaults?: Record<string, any>,
+    name?: string
   ): Promise<Operation> {
     const operation = {
       type: operationType,
       subtype: operationSubtype,
       default: defaults,
+      name: name,
     };
 
     const url = this.getApiUrl();
@@ -125,8 +127,7 @@ class OperationsAPI extends BaseAPI {
 
     await this.ensureSuccess(
       response,
-      "Error occurred while trying to delete operation.",
-      ["application/json"]
+      "Error occurred while trying to delete operation."
     );
   }
   // #endregion

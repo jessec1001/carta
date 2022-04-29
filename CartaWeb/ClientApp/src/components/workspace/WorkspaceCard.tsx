@@ -1,12 +1,17 @@
-import { FunctionComponent, HTMLAttributes } from "react";
+import { FunctionComponent, HTMLAttributes, useState } from "react";
 import queryString from "query-string";
-import { useStoredState } from "hooks";
+import { useAPI, useStoredState } from "hooks";
 import { Workspace } from "library/api";
+import { Button, ButtonGroup, CloseButton } from "components/buttons";
 import { Card } from "components/card";
 import { Text } from "components/text";
-import WorkspaceTimeline from "./WorkspaceTimeline";
 import { Link } from "components/link";
-import { CaretIcon } from "components/icons";
+import WorkspaceTimeline from "./WorkspaceTimeline";
+import styles from "./WorkspaceCard.module.css";
+import { Modal } from "components/modal";
+import { useNotifications } from "components/notifications";
+import { LogSeverity } from "library/logging";
+import classNames from "classnames";
 
 /** The props used for the {@link WorkspaceCard} component. */
 interface WorkspaceCardProps {
@@ -23,6 +28,8 @@ const WorkspaceCard: FunctionComponent<
     {},
     "workspaceHistory"
   );
+  const [deleteModalActive, setDeleteModalActive] = useState<boolean>(false);
+  const [deleted, setDeleted] = useState<boolean>(false);
 
   // Compute a string for the last accessed date.
   // If the workspace has never been accessed (unlikely), defaults to "never".
@@ -43,19 +50,69 @@ const WorkspaceCard: FunctionComponent<
     ? `${modifyDate.toLocaleDateString()} at ${modifyDate.toLocaleTimeString()}`
     : "never";
 
+  // Handle the deletion of the workspace.
+  const { logger } = useNotifications();
+  const { workspaceAPI } = useAPI();
+  const handleDelete = async () => {
+    // We delete the workspace.
+    setDeleted(true);
+    try {
+      await workspaceAPI.deleteWorkspace(workspace.id);
+    } catch (error: any) {
+      logger.log({
+        source: "Workspace Card",
+        severity: LogSeverity.Error,
+        title: "Workspace Deletion Error",
+        message: error.message,
+        data: error,
+      });
+    }
+  };
+
   const workspaceLink = queryString.stringifyUrl({
     url: "/workspace",
     query: { id: workspace.id },
   });
   return (
-    <Card {...props} style={{ width: "16rem", flexShrink: 0 }}>
-      <Card.Header>
-        <Link to={workspaceLink} color="normal">
+    <Card
+      {...props}
+      className={classNames(styles.card, { [styles.deleted]: deleted })}
+    >
+      <Modal
+        blur
+        uninteractive
+        active={deleteModalActive}
+        onClose={() => setDeleteModalActive(false)}
+        className={styles.modal}
+      >
+        <Text padding="bottom">
+          Are you sure you want to delete the workspace "{workspace.name}"?
+        </Text>
+        <ButtonGroup stretch>
+          <Button
+            color="error"
+            onClick={() => {
+              handleDelete();
+              setDeleteModalActive(false);
+            }}
+          >
+            Delete
+          </Button>
+          <Button color="secondary" onClick={() => setDeleteModalActive(false)}>
+            Cancel
+          </Button>
+        </ButtonGroup>
+      </Modal>
+      <Card.Header className={styles.cardHeader}>
+        <Link to={workspaceLink} color="normal" className={styles.cardLabel}>
           <Text size="medium" align="middle">
             {workspace.name}
-            <CaretIcon direction="right" />
           </Text>
         </Link>
+        <CloseButton
+          className={styles.cardDelete}
+          onClick={() => setDeleteModalActive(true)}
+        />
       </Card.Header>
       <Card.Body>
         {/* Render a timeline section for the workspace changes. */}
