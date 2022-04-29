@@ -164,6 +164,30 @@ namespace CartaWeb.Controllers
         }
 
         /// <summary>
+        /// Deletes a workspace for the given user.
+        /// </summary>
+        /// <param name="id">The unique identifier of the workspace.</param>
+        /// <returns status="200">Nothing.</returns>
+        /// <returns status="404">
+        /// Occurs when the workspace item for the given ID cannot be found.
+        /// </returns>
+        [Authorize]
+        [HttpDelete("{id}")]
+        public async Task<ActionResult> DeleteWorkspace(
+            [FromRoute] string id
+        )
+        {
+            UserInformation userInformation = new(User);
+            WorkspaceItem workspaceItem = await LoadWorkspaceAsync(userInformation.Id, id);
+            if (workspaceItem is null) return NotFound();
+            workspaceItem.SetPartitionKeyId(userInformation.Id);
+            DbDocument deleteDocument = workspaceItem.DeleteDbDocument();
+            bool isDeleted = await _persistence.WriteDbDocumentAsync(deleteDocument);
+            if (!isDeleted) return Conflict();
+            else return NoContent();
+        }
+
+        /// <summary>
         /// Get the workspace information for the given workspace identifier.
         /// </summary>
         /// <param name="id">A unique workspace identifier.</param>
@@ -651,12 +675,11 @@ namespace CartaWeb.Controllers
                 operationAccessItem
             )
             { Name = operationItem.Name };
-
-            operationAccessItem.SetPartitionKeyId(workspaceId);
+            operationAccessItem = new OperationAccessItem(workspaceId, operationId);
             bool isSaved = await _persistence.WriteDbDocumentsAsync(new List<DbDocument>
             {
                 operationAccessItem.DeleteDbDocument(),
-                workspaceChangeItem.CreateDbDocument()
+                workspaceChangeItem.SaveDbDocument()
             });
             if (isSaved)
             {

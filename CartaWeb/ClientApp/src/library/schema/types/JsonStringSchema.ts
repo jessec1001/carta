@@ -4,6 +4,7 @@ import { JsonBaseTypedSchema } from "../JsonBaseSchema";
 enum JsonStringSchemaWidgets {
   Field = "field",
   Area = "area",
+  DataResource = "resource",
 }
 
 /** The schema specification for a JSON string. */
@@ -15,6 +16,7 @@ interface JsonStringSchema extends JsonBaseTypedSchema<"string", string> {
 
   "ui:widget"?: JsonStringSchemaWidgets;
   "ui:placeholder"?: string;
+  "ui:filter"?: string;
 }
 
 export default JsonStringSchema;

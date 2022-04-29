@@ -8,3 +8,10 @@
   /* Assign a z-index to make interactions not be blocked by the arrow SVG. */
   z-index: 0;
 }
+.clickable {
+  pointer-events: all;
+  fill: none;
+  stroke: transparent;
+  stroke-width: 8px;
+  cursor: pointer;
+}

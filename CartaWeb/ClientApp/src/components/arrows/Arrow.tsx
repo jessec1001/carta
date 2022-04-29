@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { ComponentProps, FC } from "react";
+import { ComponentProps, CSSProperties, FC } from "react";
 import { useArrows } from "./Context";
 import styles from "./Arrow.module.css";
 
@@ -9,6 +9,7 @@ interface ArrowProps
   extends Omit<ComponentProps<"svg">, "source" | "target" | "points"> {
   source: string | number | null;
   target: string | number | null;
+  pathStyle?: CSSProperties;
 
   // points?: [x: number, y: number][];
   // curveRadius?: number;
@@ -45,6 +46,7 @@ const Arrow: FC<ArrowProps> = ({
   target,
   // points = [],
   // curveRadius = 0,
+  pathStyle,
   className,
   ...props
 }) => {
@@ -70,8 +72,16 @@ const Arrow: FC<ArrowProps> = ({
     >
       <path
         d={arrowSvgData(sourcePos, targetPos)}
-        fill="none"
-        stroke="currentcolor"
+        className={styles.clickable}
+      />
+      <path
+        d={arrowSvgData(sourcePos, targetPos)}
+        style={{
+          fill: "none",
+          stroke: "currentcolor",
+          strokeWidth: "2px",
+          ...pathStyle,
+        }}
       />
     </svg>
   );

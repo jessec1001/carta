@@ -1,0 +1,23 @@
+.card {
+  width: 16em;
+  flex-shrink: 0;
+}
+.card.deleted {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.cardHeader {
+  display: flex;
+}
+.cardLabel {
+  flex-grow: 1;
+}
+.cardDelete {
+  padding: 0 0 0 0.25em;
+  font-size: var(--font-medium);
+}
+
+.modal {
+  max-width: 16em;
+}

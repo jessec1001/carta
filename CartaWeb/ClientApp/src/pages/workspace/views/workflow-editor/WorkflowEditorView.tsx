@@ -8,11 +8,13 @@
  * - Allow for easier panning of the view rather than relying on scrolling.
  */
 
-import { FC, useMemo } from "react";
+import { FC, useEffect, useMemo, useState } from "react";
 import { WorkflowIcon } from "components/icons";
-import { Text } from "components/text";
+import { Loading, Text } from "components/text";
 import { Workflows } from "components/workflows";
 import { useViews, Views } from "components/views";
+import { Workflow } from "library/api";
+import { useAPI } from "hooks";
 
 interface WorkflowEditorViewProps {
   workflowId: string;
@@ -27,23 +29,34 @@ const WorkflowEditorView: FC<WorkflowEditorViewProps> = ({
 }) => {
   // Get view information.
   const { viewId, actions: viewActions } = useViews();
-
-  // TODO: Get workflow information.
-  const workflowName = "WORKFLOW";
+  const { workflowsAPI } = useAPI();
+  const [workflow, setWorkflow] = useState<Workflow | null>(null);
+  useEffect(() => {
+    const fetchWorkflow = async () => {
+      const workflow = await workflowsAPI.getWorkflow(workflowId);
+      setWorkflow(workflow);
+    };
+    fetchWorkflow();
+  }, [workflowId, workflowsAPI]);
+  console.log(workflow);
 
   // Create the view title component.
   const title = useMemo(() => {
     return (
       <Text align="middle">
         <WorkflowIcon padded />{" "}
-        {workflowName ?? <Text color="muted">(Unnamed)</Text>}
+        {workflow ? (
+          workflow.name ?? <Text color="muted">(Unnamed)</Text>
+        ) : (
+          <Loading />
+        )}
         &nbsp;
         <Text size="small" color="notify">
-          [Workflow]
+          [Editor]
         </Text>
       </Text>
     );
-  }, []);
+  }, [workflow]);
 
   // Render the view component.
   return (

@@ -16,7 +16,6 @@ import { seconds } from "library/utility";
 import {
   ArrowDownIcon,
   ArrowUpIcon,
-  JobsIcon,
   OperationIcon,
   RefreshIcon,
   SortAlphabeticIcon,
@@ -34,11 +33,11 @@ import { useNotifications } from "components/notifications/Context";
 import WorkflowEditorView from "../workflow-editor";
 import OperationFromDataView from "../operation-from-data";
 import styles from "./OperationListView.module.css";
+import { Button, ButtonGroup, CloseButton } from "components/buttons";
+import { Modal } from "components/modal";
 
-// TODO: We need to make sure that we remove operations that are no longer in the workspace.
-// TODO: Display a modal to confirm deletion of operations.
 // TODO: Add additional state to capture operations that are currently being created.
-// TODO: Add help popups to every view.
+// TODO: Add help buttons that link to documentation for every view.
 
 // These represent types used for loading the operations reliably with tracking information.
 type CompleteOperation = WorkspaceOperation & Operation;
@@ -47,7 +46,7 @@ type LoadableOperation = { id: string; operation: CompleteOperation };
 /** The props for the {@link CompleteOperation} component. */
 interface OperationItemProps extends ComponentProps<"li"> {
   /** The operation item to display. */
-  operation: CompleteOperation;
+  operation?: CompleteOperation;
   /** Whether the operation item is selected. */
   selected: boolean;
   /** Whether the operation item is being renamed. */
@@ -61,6 +60,8 @@ interface OperationItemProps extends ComponentProps<"li"> {
   onOpenJobs?: () => void;
   /** Called when the workflow button of the operation is clicked. */
   onOpenWorkflow?: () => void;
+  /** Called when the operation is deleted. */
+  onDelete?: () => void;
 }
 
 /** A view-specific component that renders an operation from the workspace. */
@@ -72,23 +73,54 @@ const OperationItem: FC<OperationItemProps> = ({
   onNameChanged = () => {},
   onOpenJobs = () => {},
   onOpenWorkflow = () => {},
+  onDelete = () => {},
+  onClick,
   className,
   children,
   ...props
 }) => {
+  // We use some state to represent deletion of the operation.
+  const [deleteModalActive, setDeleteModalActive] = useState(false);
+  const [deleted, setDeleted] = useState(false);
+
   return (
     <li
       className={classNames(
         styles.item,
         { [styles.selected]: selected },
+        { [styles.deleted]: deleted },
         className
       )}
       {...props}
     >
-      <Text align="middle">
+      <Modal
+        blur
+        uninteractive
+        active={deleteModalActive}
+        onClose={() => setDeleteModalActive(false)}
+        className={styles.modal}
+      >
+        <Text padding="bottom">
+          Are you sure you want to delete the operation "{name}"?
+        </Text>
+        <ButtonGroup stretch>
+          <Button
+            color="error"
+            onClick={() => {
+              onDelete();
+              setDeleted(true);
+              setDeleteModalActive(false);
+            }}
+          >
+            Delete
+          </Button>
+        </ButtonGroup>
+      </Modal>
+      <Text align="middle" {...{ onClick }} {...{ className: styles.itemBody }}>
         <OperationIcon padded />
         {renaming ? (
           <TextFieldInput
+            className={styles.input}
             autoFocus
             autoSelect
             value={name}
@@ -102,7 +134,7 @@ const OperationItem: FC<OperationItemProps> = ({
         )}
       </Text>
       <Text align="middle">
-        {operation.type === "workflow" && (
+        {operation && operation.type === "workflow" && (
           <Link
             className={styles.itemButton}
             title="Workflow"
@@ -114,7 +146,7 @@ const OperationItem: FC<OperationItemProps> = ({
             <WorkflowIcon padded />
           </Link>
         )}
-        <Link
+        {/* <Link
           className={styles.itemButton}
           title="Jobs"
           to="#"
@@ -123,7 +155,13 @@ const OperationItem: FC<OperationItemProps> = ({
           onClick={onOpenJobs}
         >
           <JobsIcon padded />
-        </Link>
+        </Link> */}
+        {operation && (
+          <CloseButton
+            title="Delete"
+            onClick={() => setDeleteModalActive(true)}
+          />
+        )}
       </Text>
     </li>
   );
@@ -158,6 +196,9 @@ const OperationListView: FC = () => {
   const [renamingOp, setRenamingOp] = useState<string | null>(null);
   const [name, setName] = useState<string>("");
 
+  // We store a workflow template if an operation is in the process of being created.
+  const [template, setTemplate] = useState<WorkflowTemplate | null>(null);
+
   // We setup a query to filter the operations.
   const [query, setQuery] = useState("");
   const operationsFilter = new ObjectFilter(query, {});
@@ -189,7 +230,6 @@ const OperationListView: FC = () => {
   // Whenever we load the operations, we need to update the list of operations.
   // We do this by buffering between loaded and loading states.
   useEffect(() => {
-    // TODO: We need to make sure that we remove operations that are no longer in the workspace.
     if (
       !(operationsLoadable === undefined || operationsLoadable instanceof Error)
     ) {
@@ -212,6 +252,19 @@ const OperationListView: FC = () => {
             ];
           }
         }
+
+        //We need to make sure that we remove operations that are no longer in the workspace.
+        for (let i = 0; i < operations.length; i++) {
+          let found: boolean = false;
+          for (let j = 0; j < operationsLoadable.length; j++) {
+            if (operationsLoadable[j].id === operations[i].id) {
+              found = true;
+              break;
+            }
+          }
+          if (!found) operations.splice(i);
+        }
+
         return operations;
       });
     }
@@ -275,9 +328,89 @@ const OperationListView: FC = () => {
     // TODO: Implement jobs view.
   }, []);
 
+  const createWorkflow = useCallback(
+    async (template: WorkflowTemplate, name: string) => {
+      let operation: Operation;
+      try {
+        // Create a new workflow.
+        const createdWorkflow = await workflowsAPI.createWorkflowFromTemplate(
+          { name: name },
+          template
+        );
+
+        // Create an operation instance to the workflow.
+        operation = await operationsAPI.createOperation(
+          "workflow",
+          createdWorkflow.id,
+          undefined,
+          name
+        );
+      } catch (error: any) {
+        logger.log({
+          source: "Operation List View",
+          severity: LogSeverity.Error,
+          title: "Operation Creation Error",
+          message:
+            "An error occurred while trying to create the new operation.",
+          data: error,
+        });
+        return;
+      }
+
+      // Add the operation instance to the workspace.
+      try {
+        await workspaceAPI.addWorkspaceOperation(workspace.id, operation.id);
+        await operationsRefresh();
+      } catch (error: any) {
+        logger.log({
+          source: "Operation List View",
+          severity: LogSeverity.Error,
+          title: "Operation Addition Error",
+          message:
+            "An error occurred while trying to add the new operation to the workspace.",
+          data: error,
+        });
+      }
+    },
+    [
+      logger,
+      operationsRefresh,
+      workspace,
+      operationsAPI,
+      workflowsAPI,
+      workspaceAPI,
+    ]
+  );
+  const configureWorkflow = async (type: "blank" | "data") => {
+    setRenamingOp("TEMPLATE");
+    switch (type) {
+      case "blank":
+        setTemplate(await workflowsAPI.createBlankWorkflowTemplate());
+        break;
+      case "data":
+        viewActions.addElementToContainer(
+          rootId,
+          <OperationFromDataView
+            onSubmit={async (data: { source: string; resource: string }[]) =>
+              setTemplate(await workflowsAPI.createDataWorkflowTemplate(data))
+            }
+          />,
+          true
+        );
+        break;
+    }
+  };
+
   // We use these methods for modifying the list of operations.
   const defaultOperationName = "New Operation";
   const renameOperation = useCallback(async () => {
+    // If the operation is a template, create it.
+    if (renamingOp === "TEMPLATE" && template) {
+      createWorkflow(template, name);
+      setTemplate(null);
+      return;
+    }
+
     // Send a request to rename the operation.
     try {
       // TODO: Indicate that the operation is being renamed with a loading indicator.
@@ -293,76 +426,39 @@ const OperationListView: FC = () => {
         data: error,
       });
     }
-  }, [logger, name, operationsAPI, operationsRefresh, renamingOp]);
-  const deleteOperation = useCallback(() => {
-    // TODO: Implement.
-  }, []);
-  const createWorkflow = async (template: WorkflowTemplate) => {
-    // TODO: Before making API requests, tenatively add the new workflow to the list of operations.
-    //       This will require linking a temporary identifier to be replaced.
-
-    let operation: Operation;
-    try {
-      // Create a new workflow.
-      const createdWorkflow = await workflowsAPI.createWorkflowFromTemplate(
-        { name: defaultOperationName },
-        template
+  }, [
+    createWorkflow,
+    logger,
+    name,
+    operationsAPI,
+    operationsRefresh,
+    renamingOp,
+    template,
+  ]);
+  const deleteOperation = useCallback(
+    async (ids: string[]) => {
+      const results = await Promise.allSettled(
+        ids.map(async (id) => {
+          await workspaceAPI.removeWorkspaceOperation(workspace.id, id);
+          await operationsAPI.deleteOperation(id);
+        })
       );
+      for (const result of results) {
+        if (result.status === "rejected") {
+          logger.log({
+            source: "Operation List View",
+            severity: LogSeverity.Error,
+            title: "Operation Deletion Error",
+            message: "An error occurred while trying to delete an operation.",
+            data: result.reason,
+          });
+        }
+      }
 
-      // Create an operation instance to the workflow.
-      operation = await operationsAPI.createOperation(
-        "workflow",
-        createdWorkflow.id
-      );
-    } catch (error: any) {
-      logger.log({
-        source: "Operation List View",
-        severity: LogSeverity.Error,
-        title: "Operation Creation Error",
-        message: "An error occurred while trying to create the new operation.",
-        data: error,
-      });
-      return;
-    }
-
-    // Autofocus and start renaming the newly created operation.
-    setRenamingOp(operation.id);
-
-    // Add the operation instance to the workspace.
-    try {
-      await workspaceAPI.addWorkspaceOperation(workspace.id, operation.id);
       await operationsRefresh();
-    } catch (error: any) {
-      logger.log({
-        source: "Operation List View",
-        severity: LogSeverity.Error,
-        title: "Operation Addition Error",
-        message:
-          "An error occurred while trying to add the new operation to the workspace.",
-        data: error,
-      });
-    }
-  };
-  const configureWorkflow = async (type: "blank" | "data") => {
-    switch (type) {
-      case "blank":
-        createWorkflow(await workflowsAPI.createBlankWorkflowTemplate());
-        break;
-      case "data":
-        viewActions.addElementToContainer(
-          rootId,
-          <OperationFromDataView
-            onSubmit={async (data: { source: string; resource: string }[]) =>
-              createWorkflow(
-                await workflowsAPI.createDataWorkflowTemplate(data)
-              )
-            }
-          />,
-          true
-        );
-        break;
-    }
-  };
+    },
+    [logger, operationsAPI, operationsRefresh, workspace.id, workspaceAPI]
+  );
 
   // Allow for the user to stop renaming and/or deselect operations.
   useEffect(() => {
@@ -437,7 +533,7 @@ const OperationListView: FC = () => {
           break;
         case "Delete":
           // If an operation is selected, delete it.
-          if (!renamingOp) deleteOperation();
+          if (!renamingOp) deleteOperation(selectedOp);
           break;
       }
     };
@@ -576,6 +672,16 @@ const OperationListView: FC = () => {
         </div>
       )}
 
+      {/* Display an in-progress operation creation if necessary. */}
+      {template && (
+        <OperationItem
+          selected={true}
+          renaming={true}
+          name={name}
+          onNameChanged={setName}
+        />
+      )}
+
       {/* Otherwise, display the list of operations. */}
       {operations && !(operations instanceof Error) && (
         <ul role="presentation" ref={listRef}>
@@ -608,6 +714,7 @@ const OperationListView: FC = () => {
                     onNameChanged={setName}
                     onOpenWorkflow={() => openWorkflowView(operation)}
                     onOpenJobs={() => openJobsView(operation)}
+                    onDelete={() => deleteOperation([operation.id])}
                   />
                 );
               }
