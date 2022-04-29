@@ -20,7 +20,7 @@ namespace CartaCore.Operations
             /// Displays a simple checkbox that can be used to toggle a boolean value.
             /// </summary>
             public const string Checkbox = "checkbox";
-            
+
         }
         /// <summary>
         /// UI widgets that apply to numeric values.
@@ -66,6 +66,12 @@ namespace CartaCore.Operations
             /// From this text field, a user can be selected via username or email address with autocomplete.
             /// </summary>
             public const string User = "user";
+            /// <summary>
+            /// Displays a resource selection text field.
+            /// From this text field, a resource can be selected via resource name.
+            /// Can be combined with a <c>"ui:filter"</c> to filter based on source.
+            /// </summary>
+            public const string Resource = "resource";
         }
         /// <summary>
         /// UI widgets that apply to array values.

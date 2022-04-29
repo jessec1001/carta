@@ -1,4 +1,4 @@
-import React, { FunctionComponent, useState } from "react";
+import React, { ComponentProps, FunctionComponent, useState } from "react";
 import { InputAugment, InputAugmentContainer } from "../augment";
 import OptionSelectorInput from "./OptionSelectorInput";
 import OptionInput, { OptionInputProps } from "./OptionInput";
@@ -7,7 +7,7 @@ import TextFieldInput from "./TextFieldInput";
 import "./input.css";
 
 /** The props used for the {@link ComboboxInput} component. */
-interface ComboboxInputProps {
+interface ComboboxInputProps extends ComponentProps<"div"> {
   comparer?: (value1: any, value2: any) => boolean;
   /** The text search that this combobox currently has input. */
   text?: string;
@@ -28,6 +28,7 @@ const ComboboxInput: FunctionComponent<ComboboxInputProps> = ({
   onTextChanged,
   onValueChanged,
   children,
+  ...props
 }) => {
   // We use a toggled state to circumstantially display the options for the combobox.
   const [toggled, setToggled] = useState(false);
@@ -56,7 +57,7 @@ const ComboboxInput: FunctionComponent<ComboboxInputProps> = ({
   };
 
   return (
-    <OptionSelectorInput toggled={toggled} onSelect={onValueChanged}>
+    <OptionSelectorInput toggled={toggled} onSelect={onValueChanged} {...props}>
       {/* This text field will end up in the header of the option selector input. */}
       {/* When this text input is focused or blurred, the option visibility is toggled on or off respectively. */}
       <InputAugmentContainer side="right">

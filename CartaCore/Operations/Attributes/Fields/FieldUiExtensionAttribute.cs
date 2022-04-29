@@ -9,20 +9,27 @@ namespace CartaCore.Operations.Attributes
     /// If this attribute is not added to an operation field, the default widget is used.
     /// </summary>
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false)]
-    public class FieldUiWidgetAttribute : Attribute, ISchemaModifierAttribute
+    public class FieldUiExtensionAttribute : Attribute, ISchemaModifierAttribute
     {
         /// <summary>
-        /// The type of UI widget to use for this field.
+        /// The key of the extension.
         /// </summary>
-        public string WidgetType { get; }
+        public string ExtensionField { get; }
+        /// <summary>
+        /// The value of the extension.
+        /// </summary>
+        public object ExtensionValue { get; }
 
         /// <summary>
-        /// Creates a new instance of the <see cref="FieldUiWidgetAttribute"/> class with the specified widget type.
+        /// Creates a new instance of the <see cref="FieldUiExtensionAttribute"/> class with the specified extension
+        /// key and value.
         /// </summary>
-        /// <param name="widgetType">The type of UI widget. Used by the front-end for form generation.</param>
-        public FieldUiWidgetAttribute(string widgetType)
+        /// <param name="field">The extension field.</param>
+        /// <param name="value">The extension value.</param>
+        public FieldUiExtensionAttribute(string field, object value)
         {
-            WidgetType = widgetType;
+            ExtensionField = field;
+            ExtensionValue = value;
         }
 
         /// <inheritdoc />
@@ -30,7 +37,7 @@ namespace CartaCore.Operations.Attributes
         {
             if (schema is null) return schema;
             if (schema.ExtensionData is null) schema.ExtensionData = new Dictionary<string, object>();
-            schema.ExtensionData["ui:widget"] = WidgetType;
+            schema.ExtensionData[$"ui:{ExtensionField}"] = ExtensionValue;
             return schema;
         }
     }
