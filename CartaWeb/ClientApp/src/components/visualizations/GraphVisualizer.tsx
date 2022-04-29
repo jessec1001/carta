@@ -8,6 +8,7 @@ import {
   EventDriver,
 } from "visualize-carta";
 import { useViews } from "components/views";
+import { useAPI } from "hooks";
 
 // #region API-defined Structures
 /** The structure of a visualization property retrieved from the API. */
@@ -87,6 +88,7 @@ const GraphVisualizer: FC<GraphVisualizerProps> = ({
   container,
 }) => {
   // We store a reference to the plot so that we can update it when the data changes.
+  const { baseAPI } = useAPI();
   const plotRef = useRef<GraphPlot & EventDriver<IGraphPlotEvents>>(
     new GraphPlot() as any
   );
@@ -420,7 +422,7 @@ const GraphVisualizer: FC<GraphVisualizerProps> = ({
     const updateData = async () => {
       // TODO: Conditionally fetch only the data that we have not already fetched.
       // Fetch all of the data.
-      const response = await fetch(`${path}/all`);
+      const response = await baseAPI.fetch(`${path}/all`);
       const data = (await response.json()) as Job<IVisualizeGraph>;
       const graph = data.result;
 
@@ -434,7 +436,7 @@ const GraphVisualizer: FC<GraphVisualizerProps> = ({
     const interval = setInterval(updateData, 8192);
     updateData();
     return () => clearInterval(interval);
-  }, [path, doUpdateData]);
+  }, [path, doUpdateData, baseAPI]);
 
   return null;
 };

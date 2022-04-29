@@ -18,10 +18,10 @@ import {
 
 /** Contains methods for accessing the Carta Workspace API module. */
 class WorkspaceAPI extends BaseAPI {
-  protected getApiUrl() {
+  public getApiUrl() {
     return "/api/workspace";
   }
-  protected getWorkspaceUrl(workspaceId: string) {
+  public getWorkspaceUrl(workspaceId: string) {
     return `${this.getApiUrl()}/${workspaceId}`;
   }
 

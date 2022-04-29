@@ -9,6 +9,7 @@ import {
   IScatterPoint2d,
 } from "visualize-carta";
 import { useViews } from "components/views";
+import { useAPI } from "hooks";
 
 // #region API-defined Structures
 /** The structure of a visualization point retrieved from the API. */
@@ -54,6 +55,7 @@ const ScatterVisualizer: FC<ScatterVisualizerProps> = ({
 }) => {
   // We store a reference to the plot so that we can update it when the data changes.
   // Notice that we assume a 2D scatter plot until we initially receive the data.
+  const { baseAPI } = useAPI();
   const plotRef = useRef<
     (ScatterPlot2d | ScatterPlot3d) & EventDriver<IScatterPlotEvents>
   >(new ScatterPlot2d() as any);
@@ -128,7 +130,7 @@ const ScatterVisualizer: FC<ScatterVisualizerProps> = ({
   useEffect(() => {
     const updateData = async () => {
       // Fetch the data.
-      const response = await fetch(path);
+      const response = await baseAPI.fetch(path);
       const data = (await response.json()) as Job<IVisualizeScatter | {}>;
       const scatter = data.result;
 
@@ -199,7 +201,7 @@ const ScatterVisualizer: FC<ScatterVisualizerProps> = ({
     const interval = setInterval(updateData, 8192);
     updateData();
     return () => clearInterval(interval);
-  }, [path]);
+  }, [baseAPI, path]);
 
   return null;
 };

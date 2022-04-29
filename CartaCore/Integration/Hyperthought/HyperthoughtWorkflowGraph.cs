@@ -216,11 +216,13 @@ namespace CartaCore.Integration.Hyperthought
             string id = workflow.Content.PrimaryKey.ToString();
 
             // Get the edges for this vertex.
-            int edgeCount = 1 + (
-                workflow.Content.SuccessorIds.Count +
-                workflow.Content.PredecessorIds.Count +
-                workflow.Content.ChildrenIds.Count
-            );
+            int edgeCount = 1;
+            if (workflow.Content.SuccessorIds is not null)
+                edgeCount = edgeCount + workflow.Content.SuccessorIds.Count;
+            if (workflow.Content.PredecessorIds is not null)
+                edgeCount = edgeCount + workflow.Content.PredecessorIds.Count;
+            if (workflow.Content.ChildrenIds is not null)
+                edgeCount = edgeCount + workflow.Content.ChildrenIds.Count;
             IList<Edge> edges = new List<Edge>(capacity: edgeCount);
 
             // Add the parent and predecessors to in-edges.
@@ -230,10 +232,13 @@ namespace CartaCore.Integration.Hyperthought
                 edges.Add(new Edge(predecessorId.ToString(), id));
 
             // Add all children and successors to out-edges.
-            foreach (Guid childId in workflow.Content.ChildrenIds.OrderBy(id => id))
-                edges.Add(new Edge(id, childId.ToString()));
-            foreach (Guid successorId in workflow.Content.SuccessorIds.OrderBy(id => id))
-                edges.Add(new Edge(id, successorId.ToString()));
+            if (workflow.Content.ChildrenIds is not null)
+            {
+                foreach (Guid childId in workflow.Content.ChildrenIds.OrderBy(id => id))
+                    edges.Add(new Edge(id, childId.ToString()));
+                foreach (Guid successorId in workflow.Content.SuccessorIds.OrderBy(id => id))
+                    edges.Add(new Edge(id, successorId.ToString()));
+            }
 
             // Create the vertex with the name and notes as labels and description respectively.
             return new(id, standardProperties, edges)

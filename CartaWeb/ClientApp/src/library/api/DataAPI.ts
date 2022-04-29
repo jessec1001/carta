@@ -14,7 +14,7 @@ class DataAPI extends BaseAPI {
     this.defaultResourceIdentifiers = resourceIdentifiers;
   }
 
-  protected getApiUrl() {
+  public getApiUrl() {
     return "/api/data";
   }
   protected getResourceUrl(source: string, resource?: string) {

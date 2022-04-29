@@ -3,7 +3,7 @@ import BaseAPI from "./BaseAPI";
 
 /** Contains methods for accessing the Carta Meta API module. */
 class MetaAPI extends BaseAPI {
-  protected getApiUrl() {
+  public getApiUrl() {
     return "/api/meta";
   }
 

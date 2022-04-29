@@ -60,12 +60,16 @@ namespace CartaWeb.Services
             where TVertex : IVertex<TEdge>
             where TEdge : IEdge
         {
-            string directory = Path.Join("jobs", job.Operation.Id, job.Id, field);
-            FileGraph<TVertex, TEdge> fileGraph = new(directory, field) { LockDelay = 25 };
-            if (graph is IRootedComponent rooted)
-                await fileGraph.SetRoots(rooted.Roots());
-            await foreach (TVertex vertex in graph.GetVertices())
-                await fileGraph.AddVertex(vertex);
+            try
+            {
+                string directory = Path.Join("jobs", job.Operation.Id, job.Id, field);
+                FileGraph<TVertex, TEdge> fileGraph = new(directory, field) { LockDelay = 25 };
+                if (graph is IRootedComponent rooted)
+                    await fileGraph.SetRoots(rooted.Roots());
+                await foreach (TVertex vertex in graph.GetVertices())
+                    await fileGraph.AddVertex(vertex);
+            }
+            catch { }
         }
 
         /// <summary>
@@ -81,7 +85,16 @@ namespace CartaWeb.Services
         {
             // Loop until the object has finished updating.
             // Every time the object updates, request a job update.
-            while (await updateable.UpdateAsync()) await job.OnUpdate(job);
+            while (true)
+            {
+                try
+                {
+                    if (!await updateable.UpdateAsync())
+                        break;
+                }
+                catch { }
+                await job.OnUpdate(job);
+            }
         }
 
         /// <summary>
