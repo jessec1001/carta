@@ -53,8 +53,10 @@ namespace CartaCore.Operations.Graphs
             {
                 await foreach (Vertex vertex in enumerableGraph.GetVertices())
                 {
-                    vertex.Properties.TryGetValue(name, out IProperty property);
-                    yield return property.Value;
+                    if (vertex.Properties.TryGetValue(name, out IProperty property))
+                        yield return property.Value;
+                    else
+                        yield return null;
                 }
             }
             else yield break;

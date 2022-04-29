@@ -42,7 +42,7 @@ namespace CartaCore.Typing
             {
                 // Try to convert the source value to the target value.
                 object sourceValue = sourceArray.GetValue(k);
-                Type sourceElementType = sourceValue.GetType();
+                Type sourceElementType = sourceValue?.GetType() ?? typeof(object);
                 if (context is not null && context.TryConvert(
                     sourceElementType,
                     targetElementType,

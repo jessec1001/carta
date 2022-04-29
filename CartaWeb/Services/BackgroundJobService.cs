@@ -53,7 +53,7 @@ namespace CartaWeb.Services
         /// <param name="field">The field.</param>
         /// <typeparam name="TVertex">The type of vertex.</typeparam>
         /// <typeparam name="TEdge">The type of edge.</typeparam>
-        private static async void StoreGraph<TVertex, TEdge>(
+        private static async Task StoreGraph<TVertex, TEdge>(
             IEnumerableComponent<TVertex, TEdge> graph,
             OperationJob job,
             string field)
@@ -77,11 +77,9 @@ namespace CartaWeb.Services
         /// </summary>
         /// <param name="updateable">The updateable object.</param>
         /// <param name="job">The job.</param>
-        /// <param name="field">The field.</param>
-        private static async void StoreUpdatable(
+        private static async Task StoreUpdatable(
             IUpdateable updateable,
-            OperationJob job,
-            string field)
+            OperationJob job)
         {
             // Loop until the object has finished updating.
             // Every time the object updates, request a job update.
@@ -133,31 +131,31 @@ namespace CartaWeb.Services
                 await jobTask;
 
                 // Iterate through the job results and handle special results.
+                List<Task> tasks = new();
                 foreach (KeyValuePair<string, object> pair in job.Output)
                 {
-                    // Prepare for reading in interfaces.
-                    Type[] genericArguments;
-
                     // Deconstruct the pair.
                     string field = pair.Key;
                     object value = pair.Value;
 
                     // If the value is an enumerable graph component, we need to store it vertex-by-vertex.
-                    if (value.GetType().ImplementsGenericInterface(typeof(IEnumerableComponent<,>), out genericArguments))
+                    if (value.GetType().ImplementsGenericInterface(typeof(IEnumerableComponent<,>), out Type[] genericArguments))
                     {
                         MethodInfo storeGraphMethod = typeof(BackgroundJobService)
                             .GetMethod(nameof(StoreGraph), BindingFlags.NonPublic | BindingFlags.Static);
-                        storeGraphMethod.InvokeGenericFunc(genericArguments, value, job, field);
+                        tasks.Add(storeGraphMethod.InvokeGenericFunc(genericArguments, value, job, field) as Task);
                     }
 
                     // If the value is a structured accumulator, we need to store it continuously as it updates.
                     if (value is IUpdateable updateable)
-                        StoreUpdatable(updateable, job, field);
+                        tasks.Add(StoreUpdatable(updateable, job));
                 }
 
                 // Perform final persistence-layer changes to the job.
+                await Task.WhenAll(tasks);
                 tokenSource.Cancel();
                 await jobUpdateTask;
+                await OperationsController.SaveJobAsync(new JobItem(job), _persistence);
             }
             catch (Exception exception)
             {

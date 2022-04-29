@@ -121,7 +121,7 @@ namespace CartaCore.Typing
                 throw new ArgumentNullException(nameof(context));
             await foreach (object value in values)
             {
-                Type sourceElementType = value.GetType();
+                Type sourceElementType = value?.GetType() ?? typeof(object);
                 if (!context.TryConvert(sourceElementType, targetElementType, value, out object converted))
                     throw new InvalidOperationException();
                 yield return (T)converted;
