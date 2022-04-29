@@ -20,10 +20,10 @@ class WorkflowsAPI extends BaseAPI {
     this.dataApi = dataApi;
   }
 
-  protected getApiUrl() {
+  public getApiUrl() {
     return "/api/workflows";
   }
-  protected getWorkflowUrl(workflowId: string) {
+  public getWorkflowUrl(workflowId: string) {
     return `${this.getApiUrl()}/${workflowId}`;
   }
 

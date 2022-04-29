@@ -5,6 +5,7 @@ import {
   OperationsAPI,
   WorkflowsAPI,
   WorkspaceAPI,
+  BaseAPI,
 } from "library/api";
 import useStoredState from "./useStoredState";
 
@@ -14,6 +15,7 @@ import useStoredState from "./useStoredState";
  */
 const useAPI = () => {
   // Define the API references.
+  let baseAPIRef: React.MutableRefObject<BaseAPI>;
   let dataAPIRef: React.MutableRefObject<DataAPI>;
   let userAPIRef: React.MutableRefObject<UserAPI>;
   let workspaceAPIRef: React.MutableRefObject<WorkspaceAPI>;
@@ -39,6 +41,7 @@ const useAPI = () => {
   }, [hyperthoughtResource]);
 
   // Create the static API references.
+  baseAPIRef = useRef(new BaseAPI());
   userAPIRef = useRef(new UserAPI());
   workspaceAPIRef = useRef(new WorkspaceAPI());
   operationsAPIRef = useRef(new OperationsAPI());
@@ -48,6 +51,7 @@ const useAPI = () => {
 
   // Return their current value.
   return {
+    baseAPI: baseAPIRef.current,
     dataAPI: dataAPIRef.current,
     userAPI: userAPIRef.current,
     workspaceAPI: workspaceAPIRef.current,

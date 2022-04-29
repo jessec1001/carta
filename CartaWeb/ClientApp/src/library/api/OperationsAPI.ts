@@ -6,10 +6,10 @@ import { Job, Operation, OperationSchema, OperationType } from "./operations";
 import BaseAPI from "./BaseAPI";
 
 class OperationsAPI extends BaseAPI {
-  protected getApiUrl() {
+  public getApiUrl() {
     return "/api/operations";
   }
-  protected getOperationUrl(operationId: string) {
+  public getOperationUrl(operationId: string) {
     return `${this.getApiUrl()}/${operationId}`;
   }
 

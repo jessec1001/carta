@@ -6,7 +6,7 @@ class BaseAPI {
    * Gets the URL of the API. Endpoint routes should be appended onto the end of this URL to form endpoint URLs.
    * @returns The base URL of the API.
    */
-  protected getApiUrl() {
+  public getApiUrl() {
     return "/api/";
   }
 
@@ -16,7 +16,7 @@ class BaseAPI {
    * @param body An optional body to include in the request.
    * @returns The parameters to the fetcher.
    */
-  protected defaultFetchParameters(
+  public defaultFetchParameters(
     method: string = "GET",
     body?: any
   ): RequestInit {
@@ -32,7 +32,13 @@ class BaseAPI {
     return parameters;
   }
 
-  protected async fetch(
+  /**
+   * Wraps the fetch function to add the default fetch parameters.
+   * @param input The input to the fetch function.
+   * @param init The initializer to the fetch function.
+   * @returns The result of the fetch function.
+   */
+  public async fetch(
     input: RequestInfo,
     init?: RequestInit
   ): Promise<Response> {
@@ -59,7 +65,7 @@ class BaseAPI {
    * @param errorMessage The error message that should be passed to the exception.
    * @param contentType The type of content that is expected in the response. If not specified, does not check the content type.
    */
-  protected async ensureSuccess(
+  public async ensureSuccess(
     response: Response,
     errorMessage: string,
     contentTypes?: string[]
@@ -89,7 +95,7 @@ class BaseAPI {
    * @param response The response to read JSON from.
    * @returns The parsed JSON object.
    */
-  protected async readJSON<T>(response: Response): Promise<T> {
+  public async readJSON<T>(response: Response): Promise<T> {
     // Check that response body is set.
     if (response.body === null)
       throw await ApiException.create(response, "No response body to be read.");
@@ -107,7 +113,7 @@ class BaseAPI {
    * @param object The object to write to a string.
    * @returns The stringified JSON object.
    */
-  protected writeJSON<T>(object: T): string {
+  public writeJSON<T>(object: T): string {
     // Simply convert using standard JSON stringify.
     return JSON.stringify(object);
   }
