@@ -5,7 +5,7 @@ import {
   JsonStringSchema,
   JsonStringSchemaWidgets,
 } from "library/schema";
-import { TextFieldInput, TextAreaInput } from "components/input";
+import { TextFieldInput, TextAreaInput, ResourceInput } from "components/input";
 import { SchemaTypedInputProps } from "./SchemaBaseInput";
 
 /** The props used for the {@link SchemaStringInput} component. */
@@ -58,6 +58,16 @@ const SchemaStringInput: FunctionComponent<SchemaStringInputProps> = ({
           value={actualValue}
           onChange={setValue}
           placeholder={uiPlaceholder}
+          className={error === undefined ? undefined : "error"}
+          {...props}
+        />
+      );
+    case JsonStringSchemaWidgets.DataResource:
+      return (
+        <ResourceInput
+          value={actualValue}
+          filter={schema["ui:filter"]}
+          onChange={setValue}
           className={error === undefined ? undefined : "error"}
           {...props}
         />

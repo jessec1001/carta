@@ -28,6 +28,8 @@ namespace CartaCore.Operations
         /// </summary>
         [FieldRequired]
         [FieldName("Workflow Path")]
+        [FieldUiWidget(OperationUiWidgets.Strings.Resource)]
+        [FieldUiExtension("filter", "source:hyperthought")]
         public string Path { get; set; }
     }
     /// <summary>
