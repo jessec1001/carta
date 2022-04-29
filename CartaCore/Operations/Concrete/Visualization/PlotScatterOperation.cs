@@ -5,6 +5,7 @@ using CartaCore.Operations.Attributes;
 
 namespace CartaCore.Operations.Visualization
 {
+    // TODO: Rename operation for consistency.
     /// <summary>
     /// A single datum in a scatter plot.
     /// </summary>
@@ -195,14 +196,15 @@ namespace CartaCore.Operations.Visualization
 
             // TODO: In the future, we should calculate colors from colormaps here rather than in the visualization library.
             // Generate each of the scatter plot points.
+            int index = 0;
             while (true)
             {
                 // We check that there is actually new data before adding it to the plot.
                 bool xRet = X is not null && await X.MoveNextAsync();
                 bool yRet = Y is not null && await Y.MoveNextAsync();
                 bool zRet = Z is not null && await Z.MoveNextAsync();
-                bool rRet = R is not null && await R.MoveNextAsync();
-                bool cRet = C is not null && await C.MoveNextAsync();
+                if (R is not null) await R.MoveNextAsync();
+                if (C is not null) await C.MoveNextAsync();
                 if (!(xRet || yRet || zRet)) break;
 
                 double? x = X?.Current;
@@ -210,6 +212,10 @@ namespace CartaCore.Operations.Visualization
                 double? z = Z?.Current;
                 double? r = R?.Current;
                 double? c = C?.Current;
+                if (x is null && y is null && z is null) continue;
+                x ??= index;
+                y ??= index;
+                index++;
 
                 yield return new ScatterPlotDatum
                 {
@@ -246,8 +252,8 @@ namespace CartaCore.Operations.Visualization
             IAsyncEnumerable<double?> C = input.ColorValues;
 
             // First, we check that there at least 2 dimensions.
-            if (X is null || Y is null)
-                throw new ArgumentException("Scatter plot must have at least 2 dimensions.");
+            if (X is null && Y is null)
+                throw new ArgumentException("Scatter plot must have at least one specified dimension.");
 
             // Third, we check that color values are specified if a colormap is specified.
             if (C is null && input.ColorMap is not null)
