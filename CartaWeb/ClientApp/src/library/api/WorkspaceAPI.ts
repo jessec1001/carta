@@ -136,7 +136,7 @@ class WorkspaceAPI extends BaseAPI {
    */
   public async deleteWorkspace(workspaceId: string): Promise<void> {
     const url = this.getWorkspaceUrl(workspaceId);
-    const response = await fetch(url, this.defaultFetchParameters("DELETE"));
+    const response = await this.fetch(url, this.defaultFetchParameters("DELETE"));
 
     await this.ensureSuccess(
       response,
