@@ -254,7 +254,7 @@ namespace CartaAwsDeploy
             if (environment.AccountType == AccountType.PRODUCTION)
             {
                 new CfnOutput(this, "UserPoolId:", new CfnOutputProps() { Value = "us-east-2_MXndqWLaI" });
-                new CfnOutput(this, "UserPoolClientId:", new CfnOutputProps() { Value = "6e71v7obqktk3dmv4nrs3ivhl3" });
+                new CfnOutput(this, "UserPoolClientId:", new CfnOutputProps() { Value = "7pgebuevi0nnj4rm8ti74b06c3" });
             }
             else
             {
