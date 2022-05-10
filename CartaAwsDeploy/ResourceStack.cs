@@ -250,8 +250,17 @@ namespace CartaAwsDeploy
             new CfnOutput(this, "RegionEndpoint:", new CfnOutputProps() { Value = Region });
             new CfnOutput(this, "DynamoDBTable:", new CfnOutputProps() { Value = dynamoDbTable.TableName });
             new CfnOutput(this, "SecretsDynamoDBTable:", new CfnOutputProps() { Value = secretsDynamoDbTable.TableName });
-            new CfnOutput(this, "UserPoolId:", new CfnOutputProps() { Value = userPool.UserPoolId });
-            new CfnOutput(this, "UserPoolClientId:", new CfnOutputProps() { Value = userPoolClient.UserPoolClientId });
+            // In the short term, use the old Cognito pool for Carta v1.0
+            if (environment.AccountType == AccountType.PRODUCTION)
+            {
+                new CfnOutput(this, "UserPoolId:", new CfnOutputProps() { Value = "us-east-2_MXndqWLaI" });
+                new CfnOutput(this, "UserPoolClientId:", new CfnOutputProps() { Value = "6e71v7obqktk3dmv4nrs3ivhl3" });
+            }
+            else
+            {
+                new CfnOutput(this, "UserPoolId:", new CfnOutputProps() { Value = userPool.UserPoolId });
+                new CfnOutput(this, "UserPoolClientId:", new CfnOutputProps() { Value = userPoolClient.UserPoolClientId });
+            }
         }
     }
 }
