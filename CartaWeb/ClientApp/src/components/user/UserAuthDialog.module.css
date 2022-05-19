@@ -1,15 +1,19 @@
 .dialog {
-  min-width: 16em;
+  width: 18em;
   padding: 1em;
 }
+
 .dialogField {
   display: block;
+  text-transform: none;
   margin: 0em 0em 0.5em 0em;
 }
+
 .dialogField span {
   display: block;
   margin-bottom: 0.25em;
 }
+
 .dialogButton {
   display: block !important;
   text-align: center;

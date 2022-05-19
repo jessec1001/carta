@@ -1,12 +1,12 @@
+import Link from "components/link/Link";
 import { Text } from "components/text";
 import { FunctionComponent } from "react";
-import { UserSignIn } from ".";
 
 /** A component that displays a message that indicates that the user should be authenticated. */
 const UserNeedsAuthentication: FunctionComponent = () => {
   return (
     <Text>
-      You must <UserSignIn>sign in</UserSignIn> to use this functionality.
+      You must <Link to="/signin">sign in</Link> to use this functionality.
     </Text>
   );
 };

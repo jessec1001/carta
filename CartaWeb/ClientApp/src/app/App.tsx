@@ -7,11 +7,13 @@ import {
   TestPage,
   WorkspaceAreaPage,
   WorkspaceNewPage,
+  SignInPage,
+  ForgotPasswordPage,
+  ResetPasswordPage,
 } from "pages";
 import { UserWrapper } from "components/user";
 import { Notifications } from "components/notifications";
 import { ThemeWrapper } from "components/theme";
-
 import "styles/reset.css";
 import "styles/globals.css";
 import "styles/theme.css";
@@ -37,6 +39,12 @@ const App: FunctionComponent = () => {
             {/* Workspace page routes. */}
             <Route exact path="/workspace/new" component={WorkspaceNewPage} />
             <Route path="/workspace" component={WorkspaceAreaPage} />
+
+            {/* Authentication page routes. */}
+            <Route exact path="/signin" component={SignInPage} />
+            <Route exact path="/signin/forgotpassword" component={ForgotPasswordPage} />
+            <Route exact path="/signin/resetpassword" component={ResetPasswordPage} />
+
           </Switch>
         </ThemeWrapper>
       </UserWrapper>
