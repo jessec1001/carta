@@ -30,7 +30,7 @@ interface UserContextValue {
     username: string,
     code: string,
     password: string
-  ) => Promise<void>;
+  ) => Promise<string | undefined>;
 }
 
 /** A context for user authentication that is updated when authentication is updated */
@@ -38,10 +38,10 @@ const UserContext = createContext<UserContextValue>({
   user: null,
   authenticated: false,
   signIn: async () => null,
-  completeSignIn: async () => { },
-  signOut: async () => { },
+  completeSignIn: async () => {},
+  signOut: async () => {},
   forgotPassword: async () => undefined,
-  resetPassword: async () => { },
+  resetPassword: async () => undefined,
 });
 
 export default UserContext;

@@ -58,14 +58,9 @@ const UserWrapper: FunctionComponent = ({ children }) => {
   }, [updateAuthUser]);
 
   // Prepare functions to handle authentication related requests.
-  const handleSignIn = async (
-    username: string,
-    password: string) => {
+  const handleSignIn = async (username: string, password: string) => {
     // Execute sign in request.
-    const data = (await Auth.signIn(
-      username,
-      password
-    ));
+    const data = await Auth.signIn(username, password);
     if (data.challengeName === "NEW_PASSWORD_REQUIRED") {
       return data as CognitoUser;
     }
@@ -84,13 +79,14 @@ const UserWrapper: FunctionComponent = ({ children }) => {
     cognitoUser: CognitoUser | null,
     password: string,
     firstname: string,
-    lastname: string) => {
+    lastname: string
+  ) => {
     // Execute complete sign in request.
     await Auth.completeNewPassword(cognitoUser, password, {
       given_name: firstname,
       family_name: lastname,
     });
-    const user = await Auth.currentAuthenticatedUser() as LocalCognitoUser;
+    const user = (await Auth.currentAuthenticatedUser()) as LocalCognitoUser;
     setUser({
       name: user.username,
       firstName: user.attributes.given_name,
@@ -114,7 +110,7 @@ const UserWrapper: FunctionComponent = ({ children }) => {
     password: string
   ) => {
     setUser(null);
-    const data = await Auth.forgotPasswordSubmit(username, code, password);
+    return await Auth.forgotPasswordSubmit(username, code, password);
   };
   const handleSignOut = async (apiless?: boolean) => {
     // Execute sign out request.
