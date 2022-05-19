@@ -58,6 +58,10 @@ namespace CartaAwsDeploy
             Table secretsDynamoDbTable = new Table(this, "CartaSecretsTable", secretsTableProps);
 
             // Create the Cognito user pool and client and identity provider
+            string url = this.Node.TryGetContext($"{environment.ContextPrefix}:url").ToString();
+            string signinUrl = url;
+            if (environment.AccountType == AccountType.DEVELOPMENT)
+                signinUrl = "https://localhost:5001";
             UserPool userPool = new UserPool(this, "CartaUserPool", new UserPoolProps
             {
                 SelfSignUpEnabled = false,
@@ -86,15 +90,16 @@ namespace CartaAwsDeploy
                 {
                     EmailSubject = "Your Carta Verification Code",
                     EmailBody =
-                    "<div style=\"text-align: center; font-family: sans-serif\"> " +
+                    "<div style=\"text-align: center; font-family: sans-serif; color: black\"> " +
                         "<img src=\"https://carta.contextualize.us.com/carta.png\" style=\"height: 4rem; margin-bottom: 2rem\" />" +
                         "<h1>Carta Verification Code</h1>" +
-                        "<p style=\"font-size: 1.1rem\">" +
-                            "Your verification code is below. <br />" +
-                            "<span style=\"font-size: 2rem\">{####}</span>" +
-                        "</p>" +
-                        "<p style=\"padding: 1rem 0rem; font-size: 1.5rem\">" +
-                            "We hope you enjoy your stay." +
+                        "<p>" +
+                            "<span style=\"padding: 1rem 0rem; font-size: 1.1rem; color: black\">" +
+                                "Your verification code to reset your password is below. <br /></span>" +
+                            "<span style=\"font-size: 2rem; color: black\">{####}<br /></span>" +
+                            "<span style=\"padding: 1rem 0rem; font-size: 1.1rem; color: black\">" +
+                                "The code will expire in 1 hour. Reset your password <a href=\"" + signinUrl + "/signin/resetpassword?code={####}\">here.</a>" +
+                            "</span>" +
                         "</p>" +
                     "</div>",
                     EmailStyle = VerificationEmailStyle.CODE
@@ -103,19 +108,19 @@ namespace CartaAwsDeploy
                 {
                     EmailSubject = "Welcome to Carta!",
                     EmailBody =
-                    "<div style=\"text-align: center; font-family: sans-serif\"> " +
+                    "<div style=\"text-align: center; font-family: sans-serif; color: black\"> " +
                         "<img src=\"https://carta.contextualize.us.com/carta.png\" style=\"height: 4rem; margin-bottom: 2rem\" />" +
                         "<h1>Welcome to Carta</h1>" +
-                        "<p style=\"font-size: 1.1rem\">" +
-                            "Your username is: <br />" +
-                            "<span style=\"font-size: 2rem\">{username}</span>" +
-                        "</p>" +
-                        "<p style=\"font-size: 1.1rem\">" +
-                            "Your temporary password is: <br />" +
-                            "<span style=\"font-size: 2rem\">{####}</span>" +
-                        "</p>" +
-                        "<p style=\"padding: 1rem 0rem; font-size: 1.5rem\">" +
-                            "We hope you enjoy your stay." +
+                        "<p>" +
+                            "<span style=\"font-size: 1.1rem; color: black\">" +
+                                "Your username is: <br /></span>" +
+                            "<span style=\"font-size: 2rem; color: black\">{username}<br /></span>" +
+                            "<span style=\"font-size: 1.1rem; color: black\">" +
+                                "Your temporary password is: <br /></span>" +
+                            "<span style=\"font-size: 2rem; color: black\">{####}<br /></span>" +
+                            "<span style=\"padding: 1rem 0rem; font-size: 1.1rem; color: black\">" +
+                                "Your password will expire in 7 days. Please <a href=\"" + signinUrl + "/signin?username={username}\">sign in.</a>" +
+                            "</span>" +
                         "</p>" +
                     "</div>"
                 },
@@ -123,7 +128,7 @@ namespace CartaAwsDeploy
                 AutoVerify = new AutoVerifiedAttrs { Email = true, Phone = false },
                 RemovalPolicy = RemovalPolicy.DESTROY
             });
-            string callbackUrl = this.Node.TryGetContext($"{environment.ContextPrefix}:cognitoCallbackUrl").ToString();
+            string callbackUrl = $"{url}/signin-oidc";
             string[] callbackUrls;
             if (environment.AccountType == AccountType.DEVELOPMENT)
                 callbackUrls = new[] { "https://localhost:5001/signin-oidc", callbackUrl };

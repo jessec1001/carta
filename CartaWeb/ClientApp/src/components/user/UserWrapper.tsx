@@ -5,25 +5,7 @@ import { User } from "library/api";
 import { LogSeverity } from "library/logging";
 import { UserContext } from "components/user";
 import { useNotifications } from "components/notifications";
-
-/** Represents the information stored about local users. */
-interface LocalCognitoUser extends CognitoUser {
-  /** Attributes of the user stored in the Cognito user pool. */
-  attributes: {
-    /** The organization that the user belongs to. */
-    "custom:tenantId": string;
-    /** The email address of the user. */
-    email: string;
-    /** The first name of the user. */
-    given_name: string;
-    /** The last name of the user. */
-    family_name: string;
-    /** The unique user identifier. */
-    sub: string;
-  };
-  /** The username of the user. */
-  username: string;
-}
+import { LocalCognitoCodeDelivery, LocalCognitoUser } from "./CognitoTypes";
 
 /** A component that wraps a user context around its children components. */
 const UserWrapper: FunctionComponent = ({ children }) => {
@@ -75,10 +57,19 @@ const UserWrapper: FunctionComponent = ({ children }) => {
     updateAuthUser();
   }, [updateAuthUser]);
 
-  // Prepare functions to handle sign in and sign out requests.
-  const handleSignIn = async (username: string, password: string) => {
+  // Prepare functions to handle authentication related requests.
+  const handleSignIn = async (
+    username: string,
+    password: string) => {
     // Execute sign in request.
-    const user = (await Auth.signIn(username, password)) as LocalCognitoUser;
+    const data = (await Auth.signIn(
+      username,
+      password
+    ));
+    if (data.challengeName === "NEW_PASSWORD_REQUIRED") {
+      return data as CognitoUser;
+    }
+    const user = data as LocalCognitoUser;
     setUser({
       name: user.username,
       firstName: user.attributes.given_name,
@@ -87,6 +78,43 @@ const UserWrapper: FunctionComponent = ({ children }) => {
       id: user.attributes.sub,
       groups: [],
     });
+    return null;
+  };
+  const handleCompleteSignIn = async (
+    cognitoUser: CognitoUser | null,
+    password: string,
+    firstname: string,
+    lastname: string) => {
+    // Execute complete sign in request.
+    await Auth.completeNewPassword(cognitoUser, password, {
+      given_name: firstname,
+      family_name: lastname,
+    });
+    const user = await Auth.currentAuthenticatedUser() as LocalCognitoUser;
+    setUser({
+      name: user.username,
+      firstName: user.attributes.given_name,
+      lastName: user.attributes.family_name,
+      email: user.attributes.email,
+      id: user.attributes.sub,
+      groups: [],
+    });
+  };
+  const handleForgotPassword = async (username: string) => {
+    const data = await Auth.forgotPassword(username);
+    return {
+      attributeName: data.CodeDeliveryDetails.AttributeName,
+      deliveryMedium: data.CodeDeliveryDetails.DeliveryMedium,
+      destination: data.CodeDeliveryDetails.Destination,
+    } as LocalCognitoCodeDelivery;
+  };
+  const handleResetPassword = async (
+    username: string,
+    code: string,
+    password: string
+  ) => {
+    setUser(null);
+    const data = await Auth.forgotPasswordSubmit(username, code, password);
   };
   const handleSignOut = async (apiless?: boolean) => {
     // Execute sign out request.
@@ -135,9 +163,11 @@ const UserWrapper: FunctionComponent = ({ children }) => {
       value={{
         user: user,
         authenticated: user !== null,
-
         signIn: handleSignIn,
         signOut: handleSignOut,
+        completeSignIn: handleCompleteSignIn,
+        forgotPassword: handleForgotPassword,
+        resetPassword: handleResetPassword,
       }}
     >
       {children}

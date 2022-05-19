@@ -6,7 +6,6 @@ import {
   UserIsAuthenticated,
   UserIsNotAuthenticated,
   UserSignOut,
-  UserSignInDialog,
 } from "components/user";
 import { Dropdown } from "components/dropdown";
 import { NavigationLink, NavigationLinkList } from "components/navigation";
@@ -27,28 +26,22 @@ const Header: FunctionComponent = () => {
         <CartaIcon />
       </NavigationLink>
 
+      {/* TODO: Enable documentation again once we have official documentation */}
       {/* Render navigation links to common pages. */}
       <NavigationLinkList>
         <NavigationLink lower to="/">
           Home
         </NavigationLink>
-        <NavigationLink lower to="/documentation">
+        {/* <NavigationLink lower to="/documentation">
           Documentation
-        </NavigationLink>
+        </NavigationLink> */}
       </NavigationLinkList>
 
       {/* This link is used to sign in when the user is unauthenticated. */}
       <UserIsNotAuthenticated>
-        <Dropdown side="bottom-left">
-          <Dropdown.Toggler>
-            <NavigationLink lower to="#">
-              Sign In
-            </NavigationLink>
-          </Dropdown.Toggler>
-          <Dropdown.Area>
-            <UserSignInDialog />
-          </Dropdown.Area>
-        </Dropdown>
+        <NavigationLink lower to="/signin">
+          Sign In
+        </NavigationLink>
       </UserIsNotAuthenticated>
 
       {/* This user dropdown is used to navigate to authenticated pages. */}

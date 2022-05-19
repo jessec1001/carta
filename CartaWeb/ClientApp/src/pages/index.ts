@@ -5,3 +5,4 @@ import TestPage from "./Test";
 
 export { HomePage, DocsPage, ProfilePage, TestPage };
 export * from "./workspace";
+export * from "./auth";
